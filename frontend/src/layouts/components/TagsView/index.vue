@@ -10,41 +10,62 @@
 
       <el-scrollbar ref="scrollbarRef" class="scroll-container" @wheel="handleScroll">
         <VueDraggable v-model="visitedViews" :animation="150">
-          <router-link 
+          <router-link
             v-for="tag in visitedViews" :key="tag.fullPath"
             :class="['tags-item', { active: tagsViewStore.isActive(tag) }]" :to="{ path: tag.path, query: tag.query }"
             @click.middle="handleMiddleClick(tag)">
-            <el-dropdown 
-              v-if="tagsViewStore.isActive(tag)" trigger="contextmenu"
-              @visible-change="onContextMenuVisibleChange" @click.stop>
+            <!-- 为所有标签添加右键菜单 -->
+            <el-dropdown
+              trigger="contextmenu"
+              @visible-change="(visible) => onContextMenuVisibleChange(visible, tag)"
+              @click.stop>
               <span class="tag-text">{{ translateRouteTitle(tag.title) }}</span>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="refreshSelectedTag(tag)">
+                  <!-- 收藏到快速开始 -->
+                  <el-dropdown-item @click="toggleQuickStart(tag)">
+                    <el-icon>
+                      <Star v-if="!isQuickLinkExists(tag)" />
+                      <StarFilled v-else />
+                    </el-icon>
+                    {{ isQuickLinkExists(tag) ? '取消收藏' : '收藏到快速开始' }}
+                  </el-dropdown-item>
+
+                  <el-dropdown-item divided @click="refreshSelectedTag(tag)">
                     <el-icon>
                       <Refresh />
                     </el-icon>
                     {{ t("navbar.refresh") }}
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="tag.affix || visitedViews.length <= 1" @click="closeSelectedTag(tag)">
+
+                  <el-dropdown-item
+                    :disabled="tag.affix || visitedViews.length <= 1"
+                    @click="closeSelectedTag(tag)">
                     <el-icon>
                       <Close />
                     </el-icon>
                     {{ t("navbar.close") }}
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="isFirstView || !tagsViewStore.isActive(tag)" @click="closeLeftTags">
+
+                  <el-dropdown-item
+                    :disabled="isFirstView || !tagsViewStore.isActive(tag)"
+                    @click="closeLeftTags">
                     <el-icon>
                       <Back />
                     </el-icon>
                     {{ t("navbar.closeLeft") }}
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="isLastView || !tagsViewStore.isActive(tag)" @click="closeRightTags">
+
+                  <el-dropdown-item
+                    :disabled="isLastView || !tagsViewStore.isActive(tag)"
+                    @click="closeRightTags">
                     <el-icon>
                       <Right />
                     </el-icon>
                     {{ t("navbar.closeRight") }}
                   </el-dropdown-item>
-                  <el-dropdown-item 
+
+                  <el-dropdown-item
                     :disabled="visitedViews.length <= 1 || !tagsViewStore.isActive(tag)"
                     @click="closeOtherTags">
                     <el-icon>
@@ -52,7 +73,10 @@
                     </el-icon>
                     {{ t("navbar.closeOther") }}
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="visitedViews.length <= 1" @click="closeAllTags(tag)">
+
+                  <el-dropdown-item
+                    :disabled="visitedViews.length <= 1"
+                    @click="closeAllTags(tag)">
                     <el-icon>
                       <Minus />
                     </el-icon>
@@ -61,7 +85,7 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <span v-else class="tag-text">{{ translateRouteTitle(tag.title) }}</span>
+
             <span v-if="!tag.affix" class="tag-close-btn" @click.prevent.stop="closeSelectedTag(tag)">
               <el-icon>
                 <Close />
@@ -143,6 +167,9 @@ import { resolve } from "path-browserify";
 import { translateRouteTitle } from "@/utils/i18n";
 import { usePermissionStore, useTagsViewStore } from "@/store";
 import { VueDraggable } from "vue-draggable-plus";
+import { quickStartManager } from "@/utils/quickStartManager";
+import { Star, StarFilled } from "@element-plus/icons-vue";
+import { ElMessage } from 'element-plus';
 
 const { t } = useI18n();
 
@@ -420,14 +447,49 @@ const handleAction = (action: string) => {
 /**
  * 右键菜单显示状态变化处理函数
  */
-const onContextMenuVisibleChange = (visible: boolean) => {
+const onContextMenuVisibleChange = (visible: boolean, tag?: TagView) => {
   if (visible) {
-    // 总是获取最新的路由对应标签
-    selectedTag.value = routePathMap.value.get(route.path) || null;
+    // 设置当前右键点击的标签
+    selectedTag.value = tag || routePathMap.value.get(route.path) || null;
   } else {
     // 关闭菜单时清空选择
     selectedTag.value = null;
   }
+};
+
+/**
+ * 切换快速开始收藏状态
+ */
+const toggleQuickStart = (tag: TagView) => {
+  try {
+    const href = tag.fullPath || tag.path;
+    const isExists = quickStartManager.isLinkExists(href);
+
+    if (isExists) {
+      // 取消收藏：找到对应的链接并删除
+      const links = quickStartManager.getQuickLinks();
+      const targetLink = links.find(link => link.href === href);
+      if (targetLink?.id) {
+        quickStartManager.removeQuickLink(targetLink.id);
+        ElMessage.success(`已取消收藏：${tag.title}`);
+      }
+    } else {
+      // 添加收藏
+      const quickLink = quickStartManager.createQuickLinkFromRoute(tag);
+      quickStartManager.addQuickLink(quickLink);
+      ElMessage.success(`已收藏：${tag.title}`);
+    }
+  } catch (error) {
+    console.error('Failed to toggle quick start:', error);
+    ElMessage.error('操作失败');
+  }
+};
+
+/**
+ * 检查快速链接是否已存在
+ */
+const isQuickLinkExists = (tag: TagView): boolean => {
+  return quickStartManager.isLinkExists(tag.fullPath || tag.path);
 };
 
 /**
