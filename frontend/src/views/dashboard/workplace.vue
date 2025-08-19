@@ -91,21 +91,7 @@
         <!-- 右侧：快速开始 / 便捷导航 + XX 指数 + 团队 -->
         <ElCol :xl="8" :lg="8" :md="12" :sm="12" :xs="24">
           <!-- 快速开始 / 便捷导航 -->
-          <ElCard class="mb-4 font-bold">
-            <template #header>
-              <span class="font-bold">快速开始 / 便捷导航</span>
-              <ElButton size="small" type="primary" plain style="float: right">
-                <el-icon>
-                  <Plus />
-                </el-icon> {{ t('common.add') }}
-              </ElButton>
-            </template>
-            <div class="linkGroup">
-              <ElLink v-for="(item, index) in links" :key="index" underline="never" :href="item.href">
-                {{ item.title }}
-              </ElLink>
-            </div>
-          </ElCard>
+          <QuickStart />
 
           <!-- XX 指数 -->
           <ElCard class="mb-4 font-bold" header="XX 指数">
@@ -136,6 +122,7 @@ import { Plus } from "@element-plus/icons-vue";
 import { EChartsOption } from 'echarts'
 import { useUserStore } from "@/store/index";
 import { greetings } from '@/utils/common';
+import QuickStart from './components/QuickStart.vue';
 
 const { t } = useI18n();
 
@@ -360,32 +347,7 @@ const chartOptions = reactive<EChartsOption>({
   }]
 });
 
-const links = [
-  {
-    title: "操作一",
-    href: "",
-  },
-  {
-    title: "操作二",
-    href: "",
-  },
-  {
-    title: "操作三",
-    href: "",
-  },
-  {
-    title: "操作四",
-    href: "",
-  },
-  {
-    title: "操作五",
-    href: "",
-  },
-  {
-    title: "操作六",
-    href: "",
-  },
-];
+
 
 </script>
 
@@ -413,19 +375,5 @@ const links = [
   }
 }
 
-.linkGroup {
-  padding: 20px 0 8px 24px;
-  font-size: 0;
 
-  &>a {
-    display: inline-block;
-    width: 25%;
-    margin-bottom: 13px;
-    font-size: 14px;
-
-    &:hover {
-      color: #1890ff;
-    }
-  }
-}
 </style>
