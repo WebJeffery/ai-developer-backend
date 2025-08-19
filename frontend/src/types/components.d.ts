@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AddQuickLinkDialog: typeof import('./../views/dashboard/components/AddQuickLinkDialog.vue')['default']
     AppLink: typeof import('./../components/AppLink/index.vue')['default']
     AppLogo: typeof import('./../layouts/components/AppLogo/index.vue')['default']
     AppMain: typeof import('./../layouts/components/AppMain/index.vue')['default']
@@ -112,6 +113,7 @@ declare module 'vue' {
     PageSearch: typeof import('./../components/CURD/PageSearch.vue')['default']
     Pagination: typeof import('./../components/Pagination/index.vue')['default']
     PermissonDrawer: typeof import('./../views/system/role/components/PermissonDrawer.vue')['default']
+    QuickStart: typeof import('./../views/dashboard/components/QuickStart.vue')['default']
     Register: typeof import('./../views/system/auth/components/Register.vue')['default']
     ResetPwd: typeof import('./../views/system/auth/components/ResetPwd.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
