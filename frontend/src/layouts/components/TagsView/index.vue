@@ -15,7 +15,8 @@
             :class="['tags-item', { active: tagsViewStore.isActive(tag) }]" :to="{ path: tag.path, query: tag.query }"
             @click.middle="handleMiddleClick(tag)">
             <!-- 为所有标签添加右键菜单 -->
-            <el-dropdown
+            <el-dropdown 
+              v-if="tagsViewStore.isActive(tag)"
               trigger="contextmenu"
               @visible-change="(visible) => onContextMenuVisibleChange(visible, tag)"
               @click.stop>
@@ -85,7 +86,8 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-
+            <span v-else class="tag-text">{{ translateRouteTitle(tag.title) }}</span>
+            
             <span v-if="!tag.affix" class="tag-close-btn" @click.prevent.stop="closeSelectedTag(tag)">
               <el-icon>
                 <Close />

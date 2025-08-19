@@ -210,12 +210,10 @@ onUnmounted(() => {
     }
 
     &::-webkit-scrollbar-track {
-      background: #f1f1f1;
       border-radius: 3px;
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
       border-radius: 3px;
 
       &:hover {
@@ -266,7 +264,6 @@ onUnmounted(() => {
       .link-title {
         font-size: 14px;
         font-weight: 500;
-        color: #303133;
         margin-bottom: 2px;
         line-height: 1.4;
         display: flex;

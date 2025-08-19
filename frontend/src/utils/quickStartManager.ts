@@ -76,7 +76,6 @@ class QuickStartManager {
       this.notifyListeners(links);
     } catch (error) {
       console.error('Failed to save quick links:', error);
-      ElMessage.error('保存快速链接失败');
     }
   }
 
@@ -96,7 +95,6 @@ class QuickStartManager {
     } else {
       // 添加新链接
       links.push(link);
-      ElMessage.success(`已添加快速链接：${link.title}`);
     }
     
     this.saveQuickLinks(links);
@@ -109,7 +107,6 @@ class QuickStartManager {
     
     if (filteredLinks.length < links.length) {
       this.saveQuickLinks(filteredLinks);
-      ElMessage.success('已删除快速链接');
     }
   }
 

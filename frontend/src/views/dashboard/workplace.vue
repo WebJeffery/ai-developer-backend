@@ -118,13 +118,10 @@
 </template>
 
 <script setup lang="ts">
-import { Plus } from "@element-plus/icons-vue";
 import { EChartsOption } from 'echarts'
 import { useUserStore } from "@/store/index";
 import { greetings } from '@/utils/common';
 import QuickStart from './components/QuickStart.vue';
-
-const { t } = useI18n();
 
 const userStore = useUserStore();
 const timefix = greetings();
