@@ -23,13 +23,12 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <!-- 收藏到快速开始 -->
-                  <el-dropdown-item
-                    @click="addToQuickStart(tag)"
-                    :disabled="isQuickLinkExists(tag)">
+                  <el-dropdown-item @click="toggleQuickStart(tag)">
                     <el-icon>
-                      <Star />
+                      <Star v-if="!isQuickLinkExists(tag)" />
+                      <StarFilled v-else />
                     </el-icon>
-                    {{ isQuickLinkExists(tag) ? '已收藏' : '收藏到快速开始' }}
+                    {{ isQuickLinkExists(tag) ? '取消收藏' : '收藏到快速开始' }}
                   </el-dropdown-item>
 
                   <el-dropdown-item divided @click="refreshSelectedTag(tag)">
@@ -169,7 +168,7 @@ import { translateRouteTitle } from "@/utils/i18n";
 import { usePermissionStore, useTagsViewStore } from "@/store";
 import { VueDraggable } from "vue-draggable-plus";
 import { quickStartManager } from "@/utils/quickStartManager";
-import { Star } from "@element-plus/icons-vue";
+import { Star, StarFilled } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus';
 
 const { t } = useI18n();
@@ -459,15 +458,30 @@ const onContextMenuVisibleChange = (visible: boolean, tag?: TagView) => {
 };
 
 /**
- * 添加到快速开始
+ * 切换快速开始收藏状态
  */
-const addToQuickStart = (tag: TagView) => {
+const toggleQuickStart = (tag: TagView) => {
   try {
-    const quickLink = quickStartManager.createQuickLinkFromRoute(tag);
-    quickStartManager.addQuickLink(quickLink);
+    const href = tag.fullPath || tag.path;
+    const isExists = quickStartManager.isLinkExists(href);
+
+    if (isExists) {
+      // 取消收藏：找到对应的链接并删除
+      const links = quickStartManager.getQuickLinks();
+      const targetLink = links.find(link => link.href === href);
+      if (targetLink?.id) {
+        quickStartManager.removeQuickLink(targetLink.id);
+        ElMessage.success(`已取消收藏：${tag.title}`);
+      }
+    } else {
+      // 添加收藏
+      const quickLink = quickStartManager.createQuickLinkFromRoute(tag);
+      quickStartManager.addQuickLink(quickLink);
+      ElMessage.success(`已收藏：${tag.title}`);
+    }
   } catch (error) {
-    console.error('Failed to add to quick start:', error);
-    ElMessage.error('添加到快速开始失败');
+    console.error('Failed to toggle quick start:', error);
+    ElMessage.error('操作失败');
   }
 };
 

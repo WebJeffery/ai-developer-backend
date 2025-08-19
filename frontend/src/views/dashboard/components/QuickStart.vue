@@ -137,7 +137,10 @@ const onContextMenuChange = (visible: boolean, item?: QuickLink) => {
 
 // 处理编辑链接
 const handleEditLink = (item: QuickLink) => {
-  selectedLink.value = item;
+  // 深拷贝链接数据，避免直接修改原数据
+  console.log('开始编辑链接:', item);
+  selectedLink.value = { ...item };
+  console.log('设置选中链接:', selectedLink.value);
   addDialogVisible.value = true;
 };
 

@@ -276,9 +276,32 @@ const handleConfirm = async () => {
   }
 };
 
-// 监听编辑数据变化，填充表单
+// 监听对话框显示状态，处理表单数据
+watch(() => props.visible, (visible) => {
+  if (visible) {
+    if (props.editData) {
+      // 编辑模式：填充现有数据
+      console.log('编辑模式 - 填充数据:', props.editData);
+      Object.assign(form, {
+        title: props.editData.title,
+        description: props.editData.description,
+        icon: props.editData.icon,
+        color: props.editData.color,
+        href: props.editData.href,
+        action: props.editData.action
+      });
+      console.log('表单数据已填充:', form);
+    } else {
+      // 新增模式：重置表单
+      console.log('新增模式 - 重置表单');
+      resetForm();
+    }
+  }
+});
+
+// 监听编辑数据变化（当对话框已经打开时）
 watch(() => props.editData, (editData) => {
-  if (editData && props.visible) {
+  if (props.visible && editData) {
     // 编辑模式：填充现有数据
     Object.assign(form, {
       title: editData.title,
@@ -289,15 +312,7 @@ watch(() => props.editData, (editData) => {
       action: editData.action
     });
   }
-}, { immediate: true });
-
-// 监听对话框显示状态
-watch(() => props.visible, (visible) => {
-  if (visible && !props.editData) {
-    // 新增模式：重置表单
-    resetForm();
-  }
-});
+}, { immediate: false });
 
 // 监听链接类型变化，自动调整链接地址格式
 watch(() => form.action, (newAction) => {

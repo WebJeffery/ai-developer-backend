@@ -22,6 +22,8 @@
           <h3>测试步骤：</h3>
           <ol class="test-steps">
             <li><strong>收藏功能：</strong>在当前页面的标签上右击，选择"收藏到快速开始"</li>
+            <li><strong>取消收藏：</strong>在已收藏页面的标签上右击，选择"取消收藏"</li>
+            <li><strong>自动图标：</strong>收藏时会自动获取路由配置的图标</li>
             <li><strong>查看收藏：</strong>前往工作台页面查看快速开始组件</li>
             <li><strong>编辑链接：</strong>在快速开始组件中右击任意链接，选择"编辑链接"</li>
             <li><strong>删除链接：</strong>在快速开始组件中右击任意链接，选择"删除链接"</li>
@@ -40,6 +42,14 @@
             </ElDescriptionsItem>
             <ElDescriptionsItem label="完整路径">
               {{ $route.fullPath }}
+            </ElDescriptionsItem>
+            <ElDescriptionsItem label="路由图标">
+              <div class="flex items-center">
+                <el-icon v-if="$route.meta?.icon" :size="20" class="mr-2">
+                  <component :is="$route.meta.icon" />
+                </el-icon>
+                <span>{{ $route.meta?.icon || '无图标配置' }}</span>
+              </div>
             </ElDescriptionsItem>
             <ElDescriptionsItem label="收藏状态">
               <ElTag :type="isBookmarked ? 'success' : 'info'">
@@ -74,6 +84,22 @@
           >
             删除收藏
           </ElButton>
+
+          <ElButton
+            type="info"
+            @click="previewQuickLink"
+            class="ml-2"
+          >
+            预览收藏信息
+          </ElButton>
+
+          <ElButton
+            type="warning"
+            @click="testEditFunction"
+            class="ml-2"
+          >
+            测试编辑功能
+          </ElButton>
         </div>
 
         <div class="mt-4">
@@ -100,6 +126,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { quickStartManager, type QuickLink } from '@/utils/quickStartManager';
+import { ElMessageBox } from 'element-plus';
 
 defineOptions({
   name: "QuickStartTest",
@@ -139,6 +166,70 @@ const removeBookmark = () => {
     // 更新快速链接列表
     quickLinks.value = quickStartManager.getQuickLinks();
   }
+};
+
+// 预览收藏信息
+const previewQuickLink = () => {
+  const quickLink = quickStartManager.createQuickLinkFromRoute(
+    route,
+    '快速开始测试页面',
+    '用于测试快速开始收藏功能的演示页面'
+  );
+
+  ElMessageBox.alert(
+    `<div style="text-align: left;">
+      <p><strong>标题：</strong>${quickLink.title}</p>
+      <p><strong>描述：</strong>${quickLink.description}</p>
+      <p><strong>图标：</strong>${quickLink.icon}</p>
+      <p><strong>颜色：</strong><span style="color: ${quickLink.color};">${quickLink.color}</span></p>
+      <p><strong>链接：</strong>${quickLink.href}</p>
+      <p><strong>类型：</strong>${quickLink.action}</p>
+    </div>`,
+    '收藏信息预览',
+    {
+      dangerouslyUseHTMLString: true,
+      confirmButtonText: '确定'
+    }
+  );
+};
+
+// 测试编辑功能
+const testEditFunction = () => {
+  const links = quickStartManager.getQuickLinks();
+  if (links.length === 0) {
+    ElMessage.warning('没有可编辑的快速链接，请先添加一些链接');
+    return;
+  }
+
+  ElMessageBox.alert(
+    `<div style="text-align: left;">
+      <p><strong>测试说明：</strong></p>
+      <ol>
+        <li>前往工作台页面</li>
+        <li>在快速开始组件中右击任意链接</li>
+        <li>选择"编辑链接"</li>
+        <li>验证表单是否预填充了现有数据</li>
+        <li>修改任意字段后保存</li>
+        <li>确认修改是否生效</li>
+      </ol>
+      <p><strong>当前可编辑的链接：</strong></p>
+      <ul>
+        ${links.slice(0, 3).map(link => `<li>${link.title} (${link.href})</li>`).join('')}
+        ${links.length > 3 ? `<li>... 还有 ${links.length - 3} 个链接</li>` : ''}
+      </ul>
+    </div>`,
+    '编辑功能测试指南',
+    {
+      dangerouslyUseHTMLString: true,
+      confirmButtonText: '前往工作台测试',
+      cancelButtonText: '取消',
+      showCancelButton: true
+    }
+  ).then(() => {
+    goToWorkplace();
+  }).catch(() => {
+    // 用户取消
+  });
 };
 
 // 前往工作台
