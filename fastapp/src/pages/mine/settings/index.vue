@@ -99,7 +99,8 @@ const navigateToOfficialWebsite = () => {
 
 // 网络测试
 const navigateToNetworkTest = () => {
-  uni.navigateTo({ url: "/pages/mine/settings/network/index" });
+  // #ifdef H5
+  window.open("https://service.fastapiadmin.com", "_blank");
 };
 
 // 是否正在清理
