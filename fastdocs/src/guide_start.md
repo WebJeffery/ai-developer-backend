@@ -142,7 +142,7 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 
 ### web 端
 
-| 模块名{ width="100" } | 截图 |
+| 模块名 <div style="width:60px"/>  | 截图 |
 |----------|------|
 | 登录      | ![登录](/login.png) |
 | 仪表盘    | ![仪表盘](/dashboard.png) |
@@ -166,7 +166,7 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 
 ### 移动端
 
-| 模块 { width="80" }| 详情 | 模块 { width="80" }| 详情 | 模块 { width="80" }| 详情 |
+| 模块 <div style="width:60px"/> | 详情 | 模块 <div style="width:60px"/> | 详情 | 模块 <div style="width:60px"/> | 详情 |
 |----------|------|----------|------|----------|------|
 | 登录    | ![移动端登录](/app_login.png) | 首页      | ![移动端首页](/app_home.png) | 我的      | ![移动端个人中心](/app_mine.png) |
 | 个人  | ![移动端个人信息](/app_profile.png) | 设置   | ![移动端设置](/app_setting.png) | 工作台      | ![移动端工作台](/app_work.png) |
