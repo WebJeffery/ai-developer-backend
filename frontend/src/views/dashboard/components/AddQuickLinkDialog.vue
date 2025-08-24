@@ -45,48 +45,13 @@
       </ElFormItem>
 
       <ElFormItem label="图标" prop="icon">
-        <div class="icon-selector">
-          <div class="selected-icon">
-            <el-icon :size="24" :color="form.color">
-              <component :is="form.icon" />
-            </el-icon>
-            <span class="ml-2">{{ getIconName(form.icon) }}</span>
-          </div>
-          <ElButton size="small" @click="showIconPicker = true">选择图标</ElButton>
-        </div>
+        <IconSelect v-model="form.icon" width="400px" />
       </ElFormItem>
 
-      <ElFormItem label="颜色" prop="color">
-        <ElColorPicker v-model="form.color" />
-      </ElFormItem>
+
     </ElForm>
 
-    <!-- 图标选择器 -->
-    <ElDialog
-      v-model="showIconPicker"
-      title="选择图标"
-      width="600px"
-      append-to-body
-    >
-      <div class="icon-grid">
-        <div
-          v-for="icon in availableIcons"
-          :key="icon.name"
-          class="icon-item"
-          :class="{ active: form.icon === icon.name }"
-          @click="selectIcon(icon.name)"
-        >
-          <el-icon :size="24">
-            <component :is="icon.name" />
-          </el-icon>
-          <span class="icon-name">{{ icon.label }}</span>
-        </div>
-      </div>
-      <template #footer>
-        <ElButton @click="showIconPicker = false">取消</ElButton>
-        <ElButton type="primary" @click="showIconPicker = false">确定</ElButton>
-      </template>
-    </ElDialog>
+
 
     <template #footer>
       <span class="dialog-footer">
@@ -98,31 +63,8 @@
 </template>
 
 <script setup lang="ts">
-import {
-  User,
-  Setting,
-  Document,
-  DataAnalysis,
-  Monitor,
-  Tools,
-  Bell,
-  Message,
-  Search,
-  House,
-  Files,
-  Calendar,
-  ChatDotRound,
-  Connection,
-  DataBoard,
-  Histogram,
-  PieChart,
-  TrendCharts,
-  Operation,
-  Service,
-  Guide,
-  Link
-} from "@element-plus/icons-vue";
 import { ElMessage, FormInstance, FormRules } from 'element-plus';
+import IconSelect from '@/components/IconSelect/index.vue';
 
 interface Props {
   visible: boolean;
@@ -138,7 +80,6 @@ interface QuickLink {
   title: string;
   description: string;
   icon: string;
-  color: string;
   href: string;
   action: 'navigate' | 'external';
 }
@@ -147,7 +88,6 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const formRef = ref<FormInstance>();
-const showIconPicker = ref(false);
 
 // 对话框显示状态
 const dialogVisible = computed({
@@ -162,37 +102,12 @@ const isEditMode = computed(() => !!props.editData);
 const form = reactive<QuickLink>({
   title: '',
   description: '',
-  icon: 'User',
-  color: '#409EFF',
+  icon: 'user',
   href: '',
   action: 'navigate'
 });
 
-// 可用图标列表
-const availableIcons = [
-  { name: 'User', label: '用户' },
-  { name: 'Setting', label: '设置' },
-  { name: 'Document', label: '文档' },
-  { name: 'DataAnalysis', label: '分析' },
-  { name: 'Monitor', label: '监控' },
-  { name: 'Tools', label: '工具' },
-  { name: 'Bell', label: '通知' },
-  { name: 'Message', label: '消息' },
-  { name: 'Search', label: '搜索' },
-  { name: 'House', label: '首页' },
-  { name: 'Files', label: '文件' },
-  { name: 'Calendar', label: '日历' },
-  { name: 'ChatDotRound', label: '聊天' },
-  { name: 'Connection', label: '连接' },
-  { name: 'DataBoard', label: '数据' },
-  { name: 'Histogram', label: '柱状图' },
-  { name: 'PieChart', label: '饼图' },
-  { name: 'TrendCharts', label: '趋势图' },
-  { name: 'Operation', label: '操作' },
-  { name: 'Service', label: '服务' },
-  { name: 'Guide', label: '指南' },
-  { name: 'Link', label: '链接' }
-];
+
 
 // 表单验证规则
 const rules: FormRules = {
@@ -233,24 +148,14 @@ const rules: FormRules = {
   ]
 };
 
-// 获取图标名称
-const getIconName = (iconName: string) => {
-  const icon = availableIcons.find(item => item.name === iconName);
-  return icon ? icon.label : iconName;
-};
 
-// 选择图标
-const selectIcon = (iconName: string) => {
-  form.icon = iconName;
-};
 
 // 重置表单
 const resetForm = () => {
   Object.assign(form, {
     title: '',
     description: '',
-    icon: 'User',
-    color: '#409EFF',
+    icon: 'user',
     href: '',
     action: 'navigate'
   });
@@ -286,7 +191,6 @@ watch(() => props.visible, (visible) => {
         title: props.editData.title,
         description: props.editData.description,
         icon: props.editData.icon,
-        color: props.editData.color,
         href: props.editData.href,
         action: props.editData.action
       });
@@ -307,7 +211,6 @@ watch(() => props.editData, (editData) => {
       title: editData.title,
       description: editData.description,
       icon: editData.icon,
-      color: editData.color,
       href: editData.href,
       action: editData.action
     });
@@ -325,54 +228,5 @@ watch(() => form.action, (newAction) => {
 </script>
 
 <style lang="scss" scoped>
-.icon-selector {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 
-  .selected-icon {
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    background-color: #f5f7fa;
-  }
-}
-
-.icon-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 12px;
-  max-height: 300px;
-  overflow-y: auto;
-
-  .icon-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 12px 8px;
-    border: 1px solid #e4e7ed;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    &:hover {
-      border-color: #409EFF;
-      background-color: #f0f9ff;
-    }
-
-    &.active {
-      border-color: #409EFF;
-      background-color: #e1f3ff;
-    }
-
-    .icon-name {
-      font-size: 12px;
-      color: #606266;
-      margin-top: 4px;
-      text-align: center;
-    }
-  }
-}
 </style>
