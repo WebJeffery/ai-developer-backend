@@ -1,4 +1,5 @@
 <template>
+  <view style="width: 100%; height: var(--status-bar-height)" />
   <view class="app-container">
     <wd-swiper
       v-model:current="current"
@@ -14,12 +15,13 @@
         v-for="(item, index) in navList"
         :key="index"
         use-slot
-        @click="handleNavClick(item)"
+        link-type="navigateTo"
+        :url="item.url"
       >
         <view class="p-2">
           <image class="w-72rpx h-72rpx rounded-8rpx" :src="item.icon" />
         </view>
-        <view class="text-sm text-center">{{ item.title }}</view>
+        <view class="text">{{ item.title }}</view>
       </wd-grid-item>
     </wd-grid>
 
@@ -38,9 +40,9 @@
 
     <!-- 数据统计 -->
     <wd-grid :column="2" :gutter="2">
-      <wd-grid-item use-slot custom-class="h-80px">
+      <wd-grid-item use-slot custom-class="custom-item">
         <view class="flex justify-start pl-5">
-          <view class="flex items-center">
+          <view class="flex-center">
             <image class="w-80rpx h-80rpx rounded-8rpx" src="/static/icons/visitor.png" />
             <view class="ml-5 text-left">
               <view class="font-bold">访客数</view>
@@ -49,9 +51,9 @@
           </view>
         </view>
       </wd-grid-item>
-      <wd-grid-item use-slot custom-class="h-80px">
+      <wd-grid-item use-slot custom-class="custom-item">
         <view class="flex justify-start pl-5">
-          <view class="flex items-center">
+          <view class="flex-center">
             <image class="w-80rpx h-80rpx rounded-8rpx" src="/static/icons/browser.png" />
             <view class="ml-5 text-left">
               <view class="font-bold">浏览量</view>
@@ -64,11 +66,11 @@
 
     <wd-card>
       <template #title>
-        <view class="flex justify-between items-center">
+        <view class="flex-between">
           <view>访问趋势</view>
           <view>
             <wd-radio-group
-              v-model="recentDaysRange"
+              :value="recentDaysRange"
               shape="button"
               inline
               @change="handleDataRangeChange"
@@ -80,7 +82,7 @@
         </view>
       </template>
 
-      <view class="w-full h-240px mb-40rpx">
+      <view class="w-full h-360px mb-40rpx">
         <qiun-data-charts type="area" :chartData="chartData" :opts="chartOpts" />
       </view>
     </wd-card>
@@ -89,7 +91,6 @@
 
 <script setup lang="ts">
 import { dayjs } from "wot-design-uni";
-import { useRouter } from "vue-router";
 
 // 定义访问统计数据类型
 interface VisitStatsVO {
@@ -101,7 +102,6 @@ interface VisitStatsVO {
   totalPvCount: number;
 }
 
-const router = useRouter();
 const current = ref<number>(0);
 
 const visitStatsData = ref<VisitStatsVO>({
@@ -148,34 +148,28 @@ const navList = reactive([
   {
     icon: "/static/icons/user.png",
     title: "用户管理",
-    url: "/pages/work/index",
+    url: "/pages/work/user/index",
     prem: "sys:user:query",
   },
   {
     icon: "/static/icons/role.png",
     title: "角色管理",
-    url: "/pages/work/index",
+    url: "/pages/work/role/index",
     prem: "sys:role:query",
   },
   {
     icon: "/static/icons/notice.png",
     title: "通知公告",
-    url: "/pages/work/index",
+    url: "/pages/work/notice/index",
     prem: "sys:notice:query",
   },
   {
     icon: "/static/icons/setting.png",
     title: "系统配置",
-    url: "/pages/work/index",
+    url: "/pages/work/config/index",
     prem: "sys:config:query",
   },
 ]);
-
-// 处理导航点击
-function handleNavClick(item: any) {
-  // 使用路由系统进行导航，这样会触发路由守卫
-  router.push({ path: item.url });
-}
 
 // 生成静态的访问趋势数据
 const generateStaticTrendData = (days: number) => {

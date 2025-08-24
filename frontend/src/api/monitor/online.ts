@@ -46,4 +46,5 @@ export interface OnlineUserTable {
   os: string;
   browser: string;
   login_time: string;
+  login_type: string;
 }

@@ -145,7 +145,8 @@ const loginForm = reactive<LoginFormData>({
   password: "",
   captcha: "",
   captcha_key: "",
-  remember: true
+  remember: true,
+  login_type: "PC端",
 });
 
 const captchaState = reactive<CaptchaInfo>({

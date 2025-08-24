@@ -6,7 +6,9 @@ import { createRouter } from "uni-mini-router";
 function generateRoutes() {
   const routes = pages.map((page: { path: string; [key: string]: any }) => {
     const newPath = `/${page.path}`;
-    return { ...page, path: newPath };
+    // 透传 meta 字段（如果 pages.json 中定义了）
+    const meta = page.meta ?? undefined;
+    return { ...page, path: newPath, meta };
   });
 
   // 处理分包路由
@@ -14,7 +16,8 @@ function generateRoutes() {
     subPackages.forEach((subPackage: { root: string; pages: any[] }) => {
       const subRoutes = subPackage.pages.map((page: any) => {
         const newPath = `/${subPackage.root}/${page.path}`;
-        return { ...page, path: newPath };
+        const meta = page.meta ?? undefined;
+        return { ...page, path: newPath, meta };
       });
       routes.push(...subRoutes);
     });
@@ -62,8 +65,8 @@ router.beforeEach((to, from, next) => {
   }
 });
 
-router.afterEach((to) => {
-  console.log("路由跳转完成:", to.path);
+router.afterEach((to, from) => {
+  console.log("🎯 afterEach 钩子触发:", { to, from });
 });
 
 export default router;

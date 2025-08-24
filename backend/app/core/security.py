@@ -55,6 +55,7 @@ class CustomOAuth2PasswordRequestForm(OAuth2PasswordRequestForm):
             password: str = Form(),
             captcha_key: Optional[str] = Form(default=""),
             captcha: Optional[str] = Form(default=""),
+            login_type: Optional[str] = Form(default="PC端", description="PC端 | 移动端")
     ):
         super().__init__(
             grant_type=grant_type,
@@ -62,10 +63,11 @@ class CustomOAuth2PasswordRequestForm(OAuth2PasswordRequestForm):
             client_id=client_id,
             client_secret=client_secret,
             username=username,
-            password=password
+            password=password,
         )
         self.captcha_key = captcha_key
         self.captcha = captcha
+        self.login_type = login_type
 
 
 # OAuth2认证配置
@@ -88,7 +90,7 @@ def create_access_token(payload: JWTPayloadSchema) -> str:
 def decode_access_token(token: str) -> JWTPayloadSchema:
     """解析JWT访问令牌"""
     if not token:
-        raise CustomException(msg="认证不存在,请重新登录", status_code=401)
+        raise CustomException(msg="认证不存在,请重新登录", code=10401, status_code=401)
 
     try:
         payload = jwt.decode(
@@ -99,15 +101,15 @@ def decode_access_token(token: str) -> JWTPayloadSchema:
 
         online_user_info = payload.get("sub")
         if not online_user_info:
-            raise CustomException(msg="无效认证,请重新登录", status_code=401)
+            raise CustomException(msg="无效认证,请重新登录", code=10401, status_code=401)
 
         return JWTPayloadSchema(**payload)
 
     except (jwt.InvalidSignatureError, jwt.DecodeError):
-        raise CustomException(msg="无效认证,请重新登录", status_code=401)
+        raise CustomException(msg="无效认证,请重新登录", code=10401, status_code=401)
 
     except jwt.ExpiredSignatureError:
-        raise CustomException(msg="认证已过期,请重新登录", status_code=401)
+        raise CustomException(msg="认证已过期,请重新登录", code=10401, status_code=401)
 
     except jwt.InvalidTokenError:
-        raise CustomException(msg="token已失效,请重新登录", status_code=401)
+        raise CustomException(msg="token已失效,请重新登录", code=10401, status_code=401)

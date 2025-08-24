@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import { useTheme } from "@/composables/useTheme";
+import { useThemeStore } from "@/store";
 
-const { initTheme } = useTheme();
+// 主题初始化
+const themeStore = useThemeStore();
 
 onLaunch(() => {
   // 初始化主题
-  initTheme();
+  themeStore.initTheme();
 });
 
 onShow(() => {
@@ -18,4 +19,25 @@ onHide(() => {
 });
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+/* H5 环境样式变量设置 */
+:root {
+  --primary-color: #165dff;
+  --primary-color-light: #94bfff;
+  --primary-color-dark: #0e3c9b;
+}
+
+/* 小程序环境样式变量设置 */
+page {
+  --primary-color: #165dff;
+  --primary-color-light: #94bfff;
+  --primary-color-dark: #0e3c9b;
+  background: #f8f8f8;
+}
+
+/* 动态加载小程序主题色的钩子 */
+/* 用于通过小程序原生API获取主题色并应用 */
+.theme-container {
+  display: none;
+}
+</style>

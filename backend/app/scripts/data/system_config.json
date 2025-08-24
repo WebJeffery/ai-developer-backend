@@ -66,7 +66,7 @@
     "id": 8,
     "config_name": "帮助文档",
     "config_key": "sys_help_doc",
-    "config_value": "https://service.fastapiadmin.com/site/index.html",
+    "config_value": "https://service.fastapiadmin.com",
     "config_type": true,
     "description": "帮助文档",
     "creator_id": 1

@@ -20,12 +20,12 @@ export const enum ApiCode {
   /**
    * 未授权访问
    */
-  UNAUTHORIZED = 401,
+  UNAUTHORIZED = 10403,
 
   /**
    * 令牌已过期
    */
-  TOKEN_EXPIRED = 403,
+  TOKEN_EXPIRED = 10401,
 
   /**
    * 参数校验失败

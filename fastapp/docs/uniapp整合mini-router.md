@@ -29,55 +29,55 @@ pnpm add - uni-mini-router
 
 ```typescript
 // src/router/index.ts
-import { createRouter } from 'uni-mini-router'
-import { pages, subPackages } from 'virtual:uni-pages'
+import { createRouter } from "uni-mini-router";
+import { pages, subPackages } from "virtual:uni-pages";
 
 // 生成路由配置
 function generateRoutes() {
   const routes = pages.map((page) => {
-    const newPath = `/${page.path}`
-    return { ...page, path: newPath }
-  })
+    const newPath = `/${page.path}`;
+    return { ...page, path: newPath };
+  });
 
   // 处理分包路由
   if (subPackages && subPackages.length > 0) {
     subPackages.forEach((subPackage) => {
       const subRoutes = subPackage.pages.map((page: any) => {
-        const newPath = `/${subPackage.root}/${page.path}`
-        return { ...page, path: newPath }
-      })
-      routes.push(...subRoutes)
-    })
+        const newPath = `/${subPackage.root}/${page.path}`;
+        return { ...page, path: newPath };
+      });
+      routes.push(...subRoutes);
+    });
   }
 
-  return routes
+  return routes;
 }
 
 // 创建路由实例
 const router = createRouter({
   routes: generateRoutes(),
-})
+});
 
-export default router
+export default router;
 ```
 
 ### 3. 在main.ts中挂载路由
 
 ```typescript
 // src/main.ts
-import { createSSRApp } from 'vue'
-import App from './App.vue'
-import router from './router'
+import { createSSRApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
 
 export function createApp() {
-  const app = createSSRApp(App)
+  const app = createSSRApp(App);
 
   // 使用路由
-  app.use(router)
+  app.use(router);
 
   return {
-    app
-  }
+    app,
+  };
 }
 ```
 
@@ -87,22 +87,22 @@ export function createApp() {
 
 ```typescript
 // vite.config.ts
-import AutoImport from 'unplugin-auto-import/vite'
+import AutoImport from "unplugin-auto-import/vite";
 
 export default defineConfig({
   plugins: [
     AutoImport({
       imports: [
-        'vue',
+        "vue",
         {
-          from: 'uni-mini-router',
-          imports: ['createRouter', 'useRouter', 'useRoute']
-        }
+          from: "uni-mini-router",
+          imports: ["createRouter", "useRouter", "useRoute"],
+        },
       ],
-      dts: 'src/auto-imports.d.ts'
-    })
-  ]
-})
+      dts: "src/auto-imports.d.ts",
+    }),
+  ],
+});
 ```
 
 ## 三、路由基本用法
@@ -112,55 +112,55 @@ export default defineConfig({
 uni-mini-router提供了多种导航方法：
 
 ```typescript
-const router = useRouter()
+const router = useRouter();
 
 // 字符串路径导航
-router.push('/pages/index/index')
+router.push("/pages/index/index");
 
 // 对象导航(通过路径)
-router.push({ path: '/pages/index/index' })
+router.push({ path: "/pages/index/index" });
 
 // 对象导航(通过名称)
-router.push({ name: 'index' })
+router.push({ name: "index" });
 
 // 携带参数
 router.push({
-  path: '/pages/detail/index',
-  query: { id: 10 }
-})
+  path: "/pages/detail/index",
+  query: { id: 10 },
+});
 
 // 通过名称 + 参数
 router.push({
-  name: 'detail',
-  params: { id: 10 }
-})
+  name: "detail",
+  params: { id: 10 },
+});
 
 // Tab页面导航
-router.pushTab('/pages/home/index')
+router.pushTab("/pages/home/index");
 
 // 关闭当前页面并跳转
-router.replace('/pages/index/index')
+router.replace("/pages/index/index");
 
 // 关闭所有页面并跳转
-router.replaceAll('/pages/index/index')
+router.replaceAll("/pages/index/index");
 
 // 返回上一级
-router.back()
+router.back();
 
 // 返回多级
-router.back(2)
+router.back(2);
 ```
 
 ### 2. 获取和使用路由信息
 
 ```typescript
-const route = useRoute()
+const route = useRoute();
 
 // 访问当前路由信息
-console.log(route.path) // 当前路由路径
-console.log(route.name) // 当前路由名称
-console.log(route.query) // 查询参数
-console.log(route.params) // 路由参数
+console.log(route.path); // 当前路由路径
+console.log(route.name); // 当前路由名称
+console.log(route.query); // 查询参数
+console.log(route.params); // 路由参数
 ```
 
 ### 3. 接收页面参数
@@ -194,24 +194,24 @@ uni-mini-router提供了全局导航守卫功能，可以在路由跳转前后�
 ```typescript
 // src/router/index.ts
 router.beforeEach((to, from, next) => {
-  console.log('路由跳转:', from.path, '->', to.path)
+  console.log("路由跳转:", from.path, "->", to.path);
 
   // 检查是否需要登录
   if (to.meta && to.meta.requireAuth) {
     // 检查登录状态
-    const isLoggedIn = uni.getStorageSync('token')
+    const isLoggedIn = uni.getStorageSync("token");
 
     if (!isLoggedIn) {
       // 未登录，跳转到登录页
-      uni.showToast({ title: '请先登录', icon: 'none' })
-      next('/pages/login/index')
-      return
+      uni.showToast({ title: "请先登录", icon: "none" });
+      next("/pages/login/index");
+      return;
     }
   }
 
   // 继续导航
-  next()
-})
+  next();
+});
 ```
 
 ### 2. 全局后置守卫
@@ -219,10 +219,10 @@ router.beforeEach((to, from, next) => {
 ```typescript
 // src/router/index.ts
 router.afterEach((to, from) => {
-  console.log('路由跳转完成:', to.path)
+  console.log("路由跳转完成:", to.path);
 
   // 可以在这里做一些统计或记录
-})
+});
 ```
 
 ### 3. 路由元数据配置
@@ -255,45 +255,45 @@ router.afterEach((to, from) => {
 
 ```typescript
 // src/router/index.ts
-import { createRouter } from 'uni-mini-router'
+import { createRouter } from "uni-mini-router";
 
 const router = createRouter({
-  routes: generateRoutes()
-})
+  routes: generateRoutes(),
+});
 
 // 全局前置守卫
 router.beforeEach((to, from, next) => {
   // 检查页面是否需要登录
   if (to.meta && to.meta.requireAuth) {
-    const token = uni.getStorageSync('token')
+    const token = uni.getStorageSync("token");
 
     if (!token) {
       // 显示登录提示
       uni.showModal({
-        title: '提示',
-        content: '该功能需要登录后使用',
-        confirmText: '去登录',
-        cancelText: '返回',
+        title: "提示",
+        content: "该功能需要登录后使用",
+        confirmText: "去登录",
+        cancelText: "返回",
         success: (res) => {
           if (res.confirm) {
             // 记住原来要去的页面
-            uni.setStorageSync('redirect', to.fullPath)
-            next('/pages/login/index')
+            uni.setStorageSync("redirect", to.fullPath);
+            next("/pages/login/index");
           } else {
             // 取消则返回首页
-            next('/pages/index/index')
+            next("/pages/index/index");
           }
-        }
-      })
-      return
+        },
+      });
+      return;
     }
   }
 
   // 继续导航
-  next()
-})
+  next();
+});
 
-export default router
+export default router;
 ```
 
 ### 2. 登录成功后跳转回原页面
@@ -301,21 +301,21 @@ export default router
 ```vue
 <!-- src/pages/login/index.vue -->
 <script setup>
-const router = useRouter()
+const router = useRouter();
 
 function handleLogin() {
   // 模拟登录请求
   setTimeout(() => {
     // 登录成功，存储token
-    uni.setStorageSync('token', 'user_token_example')
+    uni.setStorageSync("token", "user_token_example");
 
     // 获取之前要去的页面
-    const redirect = uni.getStorageSync('redirect') || '/pages/index/index'
-    uni.removeStorageSync('redirect')
+    const redirect = uni.getStorageSync("redirect") || "/pages/index/index";
+    uni.removeStorageSync("redirect");
 
     // 跳转回原来的页面
-    router.replaceAll(redirect)
-  }, 1000)
+    router.replaceAll(redirect);
+  }, 1000);
 }
 </script>
 ```
@@ -336,25 +336,25 @@ function handleLogin() {
 
 ```typescript
 // 传递复杂对象
-const complexData = { name: 'product', details: { id: 1, features: ['a', 'b'] } }
+const complexData = { name: "product", details: { id: 1, features: ["a", "b"] } };
 
 // 方法1: JSON序列化 + URL编码
 router.push({
-  path: '/pages/detail/index',
-  query: { data: encodeURIComponent(JSON.stringify(complexData)) }
-})
+  path: "/pages/detail/index",
+  query: { data: encodeURIComponent(JSON.stringify(complexData)) },
+});
 
 // 接收页面
 onLoad((option) => {
   if (option.data) {
     try {
-      const data = JSON.parse(decodeURIComponent(option.data))
-      console.log(data)
+      const data = JSON.parse(decodeURIComponent(option.data));
+      console.log(data);
     } catch (e) {
-      console.error('参数解析错误', e)
+      console.error("参数解析错误", e);
     }
   }
-})
+});
 
 // 方法2: 对于非常大的数据，考虑使用全局状态管理或本地存储
 ```
@@ -391,12 +391,12 @@ uni-mini-router自动支持小程序的分包加载特性，可以在pages.json�
 ```typescript
 // src/router/index.ts
 router.beforeEach((to, from, next) => {
-  console.log(`[Router] ${from.path || '初始页面'} -> ${to.path}`, {
+  console.log(`[Router] ${from.path || "初始页面"} -> ${to.path}`, {
     params: to.params,
     query: to.query,
-  })
-  next()
-})
+  });
+  next();
+});
 ```
 
 ### 2. 常见问题解决

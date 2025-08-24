@@ -1,6 +1,12 @@
 <template>
   <view class="app-container">
-    <wd-navbar title="用户协议" left-arrow @click-left="handleBack" />
+    <wd-navbar
+      title="用户协议"
+      left-arrow
+      placeholder
+      safe-area-inset-top
+      @click-left="handleBack"
+    />
 
     <wd-card custom-style="margin-top: 20rpx">
       <view class="flex-col-center py-4">
@@ -80,5 +86,12 @@ const handleAgree = () => {
   }, 1500);
 };
 </script>
+<route lang="json">
+{
+  "name": "agreement",
+  "style": { "navigationBarTitleText": "用户协议" },
+  "layout": "tabbar"
+}
+</route>
 
 <style lang="scss" scoped></style>

@@ -25,25 +25,38 @@
     {
       "path": "pages/work/index",
       "type": "page",
-      "name": "index",
+      "name": "work",
       "style": {
-        "navigationBarTitleText": "工作台"
+        "navigationStyle": "custom"
       },
+      "layout": "tabbar",
       "meta": {
         "requireAuth": true
       }
     },
     {
       "path": "pages/mine/about/index",
-      "type": "page"
+      "type": "page",
+      "name": "about",
+      "style": {
+        "navigationBarTitleText": "关于我们"
+      }
     },
     {
       "path": "pages/mine/faq/index",
-      "type": "page"
+      "type": "page",
+      "name": "faq",
+      "style": {
+        "navigationBarTitleText": "常见问题"
+      }
     },
     {
       "path": "pages/mine/feedback/index",
-      "type": "page"
+      "type": "page",
+      "name": "feedback",
+      "style": {
+        "navigationBarTitleText": "问题反馈"
+      }
     },
     {
       "path": "pages/mine/profile/complete-profile",
@@ -55,23 +68,54 @@
     },
     {
       "path": "pages/mine/settings/index",
-      "type": "page"
+      "type": "page",
+      "name": "settings",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
     },
     {
       "path": "pages/mine/settings/account/index",
-      "type": "page"
+      "type": "page",
+      "name": "account",
+      "style": {
+        "navigationBarTitleText": "账号和安全"
+      },
+      "layout": "tabbar"
     },
     {
       "path": "pages/mine/settings/agreement/index",
-      "type": "page"
+      "type": "page",
+      "name": "agreement",
+      "style": {
+        "navigationBarTitleText": "用户协议"
+      },
+      "layout": "tabbar"
     },
     {
       "path": "pages/mine/settings/network/index",
-      "type": "page"
+      "type": "page",
+      "name": "network",
+      "style": {
+        "navigationBarTitleText": "网络测试"
+      }
+    },
+    {
+      "path": "pages/mine/settings/privacy/index",
+      "type": "page",
+      "name": "privacy",
+      "style": {
+        "navigationBarTitleText": "隐私政策"
+      },
+      "layout": "tabbar"
     },
     {
       "path": "pages/mine/settings/theme/index",
-      "type": "page"
+      "type": "page",
+      "name": "theme",
+      "style": {
+        "navigationBarTitleText": "主题设置"
+      }
     }
   ],
   "globalStyle": {
@@ -99,6 +143,9 @@
     "list": [
       {
         "pagePath": "pages/index/index"
+      },
+      {
+        "pagePath": "pages/work/index"
       },
       {
         "pagePath": "pages/mine/index"
