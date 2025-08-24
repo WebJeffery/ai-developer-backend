@@ -77,7 +77,8 @@ class DemoEnvMiddleware(BaseHTTPMiddleware):
     async def dispatch(
             self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        if settings.DEMO_ENABLE and request.method != "GET":
+        client_ip = request.client.host
+        if settings.DEMO_ENABLE and request.method != "GET" and client_ip not in settings.DEMO_IP_WHITE_LIST:
             path = request.scope.get("path")
             if path in settings.DEMO_BLACK_LIST_PATH:
                 return ErrorResponse(msg="演示环境，禁止操作",)
