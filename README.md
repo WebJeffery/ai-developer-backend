@@ -78,8 +78,8 @@ fastapi_vue3_admin
 | ORM      | SQLAlchemy 2.0      | 强大的 ORM 库。 |
 | 定时任务 | APScheduler         | 轻松实现定时任务。 |
 | 权限认证 | PyJWT               | 实现 JWT 认证。 |
-| 前端框架 | Vue3 / Vite5 / Pinia / TypeScript | 快速开发 Vue3 应用。 |
-| UI 库    | ElementPlus | 快速开发美观的 UI 组件。 |
+| 前端框架 | Uni App / Vue3 / Vite5 / Pinia / TypeScript | 快速开发 Vue3 应用。 |
+| UI 库    | ElementPlus / Wot Design Uni | 快速开发美观的 UI 组件。 |
 | 数据库   | MySQL / MongoDB     | 强大的数据库。 |
 | 缓存     | Redis               | 强大的缓存数据库。 |
 | 文档     | Swagger / Redoc     | 自动生成 API 文档。 |
@@ -114,13 +114,16 @@ fastapi_vue3_admin
 
 | 类型     | 技术栈     | 版本       |
 |----------|------------|------------|
-| 后端     | Python     | >=3.100       |
-| 后端     | FastAPI    | 0.109      |
-| 前端     | Node.js    | >= 20.0（推荐使用最新版）|
-| 前端     | npm        | 16.14      |
-| 前端     | Vue3       | 3.3        |
-| 数据库   | MySQL      | 8.0 （推荐使用最新版）|
-| 中间件   | Redis      | 7.0 （推荐使用最新版）|
+| 后端     | Python         | >=3.10       |
+| 后端     | FastAPI        | 0.109      |
+| 前端     | Node.js        | >= 20.0（推荐使用最新版）|
+| 前端     | npm            | 16.14      |
+| 前端     | Vue3           | 3.3        |
+| Web UI  | ElementPlus     | 2.10.4        |
+| 移动端  | Uni App         | 3.0.0       |
+| App UI  | Wot Design Uni  | 1.9.1        |
+| 数据库   | MySQL           | 8.0 （推荐使用最新版）|
+| 中间件   | Redis           | 7.0 （推荐使用最新版）|
 
 ---
 
@@ -271,9 +274,10 @@ fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 
 ### 移动端
 
-| 模块名 | 截图 |
-|----------|------|
-| 登录      | 开发中... （待完成） |
+| 模块 { width="80" }| 详情 | 模块 { width="80" }| 详情 | 模块 { width="80" }| 详情 |
+|----------|------|----------|------|----------|------|
+| 登录    | ![移动端登录](./fastdocs/src/public/app_login.png) | 首页      | ![移动端首页](./fastdocs/src/public/app_home.png) | 我的      | ![移动端个人中心](./fastdocs/src/public/app_mine.png) |
+| 个人  | ![移动端个人信息](./fastdocs/src/public/app_profile.png) | 设置   | ![移动端设置](./fastdocs/src/public/app_setting.png) | 工作台      | ![移动端工作台](./fastdocs/src/public/app_work.png) |
 
 ---
 
@@ -296,6 +300,11 @@ fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 
 1. **前端接入后端接口地址**：在 `frontend/src/api/demo/example.ts` 中配置
 2. **编写前端页面**：在 `frontend/src/views/demo/example/index.vue` 中编写
+
+### 移动端部分
+
+1. **移动端接入后端接口地址**：在 `fastapp/src/api` 中编写
+2. **编写移动端页面**：在 `fastapp/src/pages` 中编写
 
 ---
 

@@ -85,7 +85,7 @@ httpRequest.interceptors.response.use((response: AxiosResponse<ApiResponse>) => 
       }
     }
 
-    if (data?.status_code === ResultEnum.TOKEN_EXPIRED) {
+    if (data?.code === ResultEnum.TOKEN_EXPIRED) {
       await redirectToLogin("登录已过期，请重新登录");
       return Promise.reject(new Error(data.msg));
     } else if (data?.code === ResultEnum.ERROR) {
