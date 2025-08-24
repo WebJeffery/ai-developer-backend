@@ -179,6 +179,10 @@ class Settings(BaseSettings):
     DEMO_BLACK_LIST_PATH: List[str] = [  # 演示黑名单
         "/auth/login"
     ]
+    DEMO_IP_WHITE_LIST: List[str] = [  # 演示白名单IP
+        "192.168.18.7",
+        "192.168.1.3"
+    ]
 
     # ================================================= #
     # ***************** 静态文件配置 ***************** #
