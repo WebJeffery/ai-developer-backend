@@ -1,52 +1,56 @@
-import { useUserStore } from "@/store/modules/user.store";
+import { useUserStore } from "@/store";
 import { Storage } from "./storage";
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/constants";
+import { APP_ACCESS_TOKEN_KEY, APP_REFRESH_TOKEN_KEY, APP_USER_INFO } from "@/constants";
 
-/**
- * 获取访问令牌
- * @returns 返回访问令牌，如果不存在则返回null
- */
-export function getAccessToken(): string {
-  return Storage.get<string>(ACCESS_TOKEN_KEY);
+// 获取访问 token
+export function getAccessToken(): string | null {
+  return Storage.get<string>(APP_ACCESS_TOKEN_KEY) || null;
 }
 
-/**
- * 设置访问令牌
- * @param token 访问令牌
- */
+// 设置 token
 export function setAccessToken(token: string): void {
-  Storage.set(ACCESS_TOKEN_KEY, token);
+  return Storage.set(APP_ACCESS_TOKEN_KEY, token);
 }
 
-/**
- * 获取刷新令牌
- * @returns 返回刷新令牌，如果不存在则返回null
- */
+// 获取刷新 token
 export function getRefreshToken(): string | null {
-  return Storage.get<string>(REFRESH_TOKEN_KEY) || null;
+  return Storage.get<string>(APP_REFRESH_TOKEN_KEY) || null;
 }
 
-/**
- * 设置刷新令牌
- * @param token 刷新令牌
- */
+// 设置刷新 token
 export function setRefreshToken(token: string): void {
-  Storage.set(REFRESH_TOKEN_KEY, token);
+  return Storage.set(APP_REFRESH_TOKEN_KEY, token);
 }
 
-/**
- * 清除所有令牌
- */
-export function clearTokens(): void {
-  Storage.remove(ACCESS_TOKEN_KEY);
-  Storage.remove(REFRESH_TOKEN_KEY);
+// 清除 token
+export function clearTokens() {
+  Storage.remove(APP_ACCESS_TOKEN_KEY);
+  Storage.remove(APP_REFRESH_TOKEN_KEY);
 }
 
-/**
- * 检查用户登录状态，未登录则跳转到登录页面
- * @param silent 是否静默检查，不跳转登录页面
- * @returns 返回用户是否已登录
- */
+// 获取用户信息
+export function getUserInfo<T = any>(): T | undefined {
+  return Storage.get<T>(APP_USER_INFO);
+}
+
+// 设置用户信息
+export function setUserInfo(userInfo: any): void {
+  return Storage.set(APP_USER_INFO, userInfo);
+}
+
+// 清除用户信息
+export function clearUserInfo() {
+  return Storage.remove(APP_USER_INFO);
+}
+
+// 清除所有缓存信息
+export function clearAll() {
+  Storage.remove(APP_ACCESS_TOKEN_KEY);
+  Storage.remove(APP_REFRESH_TOKEN_KEY);
+  Storage.remove(APP_USER_INFO);
+}
+
+// 检查用户登录状态，未登录则跳转到登录页面
 export function checkLogin(silent: boolean = false): boolean {
   const userStore = useUserStore();
   const accessToken = getAccessToken();
@@ -97,17 +101,12 @@ export function checkLogin(silent: boolean = false): boolean {
   return isLoggedIn;
 }
 
-/**
- * 检查用户是否已登录（静默检查，不跳转）
- * @returns 返回用户是否已登录
- */
+// 检查用户是否已登录（静默检查，不跳转）
 export function isLoggedIn(): boolean {
   return checkLogin(true);
 }
 
-/**
- * 强制用户登录，清除无效的登录状态
- */
+// 强制用户登录，清除无效的登录状态
 export function requireLogin(): void {
   const userStore = useUserStore();
   const accessToken = getAccessToken();

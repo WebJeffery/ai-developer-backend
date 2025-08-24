@@ -13,9 +13,8 @@ const AuthAPI = {
     return request<LoginResult>({
       url: `${AUTH_BASE_URL}/login`,
       method: "POST",
-      headers: { [ApiHeader.KEY]: ApiHeader.FORM },
+      header: { [ApiHeader.KEY]: ApiHeader.FORM },
       data: body,
-      skipAuth: true,
     });
   },
 
@@ -40,7 +39,6 @@ const AuthAPI = {
     return request<CaptchaInfo>({
       url: `${AUTH_BASE_URL}/captcha/get`,
       method: "GET",
-      skipAuth: true,
     });
   },
 
@@ -56,44 +54,9 @@ const AuthAPI = {
       data: body,
     });
   },
-
-  /**
-   * 微信小程序手机号授权登录
-   * @param data 包含code、encryptedData、iv等手机号相关数据
-   * @returns 登录结果
-   */
-  loginByWxMiniAppPhone(data: WxLoginData): Promise<LoginResult> {
-    return request<LoginResult>({
-      url: `${AUTH_BASE_URL}/wx/miniapp/phone-login`,
-      method: "POST",
-      data,
-      skipAuth: true,
-    });
-  },
-
-  /**
-   * 微信小程序授权登录 (仅使用code获取OpenID)
-   * @param code 微信登录凭证
-   * @returns 登录结果
-   */
-  loginByWxMiniAppCode(code: string): Promise<LoginResult> {
-    return request<LoginResult>({
-      url: `${AUTH_BASE_URL}/wx/miniapp/code-login`,
-      method: "POST",
-      data: { code },
-      skipAuth: true,
-    });
-  },
 };
 
 export default AuthAPI;
-
-export interface WxLoginData {
-  code: string;
-  encryptedData?: string;
-  iv?: string;
-  phoneCode?: string;
-}
 
 /** 登录表单数据 */
 export interface LoginFormData {
@@ -102,6 +65,7 @@ export interface LoginFormData {
   captcha_key: string;
   captcha: string;
   remember: boolean;
+  login_type: string;
 }
 
 // 刷新令牌

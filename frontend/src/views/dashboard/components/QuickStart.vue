@@ -2,7 +2,14 @@
   <ElCard class="mb-4" shadow="hover">
     <template #header>
       <div class="flex justify-between items-center">
-        <span class="font-bold text-16px">快速开始 / 便捷导航</span>
+        <div class="flex items-center gap-2">
+          <el-tooltip content="快速访问常用功能，支持内部路由跳转和外部链接打开。可以自定义添加、编辑和删除快捷方式。" placement="top">
+            <el-icon class="cursor-help" size="16">
+              <QuestionFilled />
+            </el-icon>
+          </el-tooltip>
+          <span class="font-bold text-16px">快速开始 / 便捷导航</span>
+        </div>
         <ElButton size="small" type="primary" plain @click="handleAddQuickLink">
           <el-icon>
             <Plus />
@@ -12,7 +19,7 @@
       </div>
     </template>
     <div class="quick-links-container">
-      <div class="quick-links-scroll">
+      <div class="quick-links-grid">
         <div
           v-for="(item, index) in quickLinks"
           :key="index"
@@ -27,7 +34,7 @@
           >
             <div class="link-content-wrapper">
               <div class="link-icon">
-                <el-icon :size="20" :color="item.color">
+                <el-icon :size="24">
                   <component :is="item.icon" />
                 </el-icon>
               </div>
@@ -36,12 +43,6 @@
                   {{ item.title }}
                   <span v-if="item.action === 'external'" class="external-link-badge">外链</span>
                 </div>
-                <div class="link-description">{{ item.description }}</div>
-              </div>
-              <div class="link-arrow">
-                <el-icon size="14" color="#999">
-                  <ArrowRight />
-                </el-icon>
               </div>
             </div>
 
@@ -84,7 +85,8 @@ import {
   Plus,
   ArrowRight,
   Edit,
-  Delete
+  Delete,
+  QuestionFilled
 } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
@@ -195,55 +197,39 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 // 快速链接容器样式
 .quick-links-container {
-  height: 280px; // 固定容器高度
-  overflow: hidden;
+  padding: 16px 0;
 
-  .quick-links-scroll {
-    height: 100%;
-    overflow-y: auto;
-    padding: 8px 0;
-    padding-right: 4px; // 为滚动条留出空间
-
-    // 自定义滚动条样式
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      border-radius: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      border-radius: 3px;
-
-      &:hover {
-        background: #a8a8a8;
-      }
-    }
+  .quick-links-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 
   .quick-link-item {
-    margin-bottom: 8px;
-    border-radius: 8px;
-    border: 1px solid transparent;
+    border-radius: 6px;
+    border: 1px solid #e4e7ed;
     transition: all 0.3s ease;
+    width: 100%;
+    height: 100px;
+    max-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover {
-      background-color: #f5f7fa;
-      border-color: #e4e7ed;
-      transform: translateX(4px);
-    }
-
-    &:last-child {
-      margin-bottom: 0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .link-content-wrapper {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      padding: 12px 16px;
+      justify-content: center;
+      padding: 8px;
       cursor: pointer;
       width: 100%;
+      text-align: center;
     }
 
     .link-icon {
@@ -253,56 +239,39 @@ onUnmounted(() => {
       width: 40px;
       height: 40px;
       border-radius: 8px;
-      background-color: #f0f2f5;
-      margin-right: 12px;
+      margin-bottom: 8px;
       transition: all 0.3s ease;
     }
 
     .link-content {
-      flex: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
 
       .link-title {
         font-size: 14px;
         font-weight: 500;
-        margin-bottom: 2px;
         line-height: 1.4;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
+        text-align: center;
 
         .external-link-badge {
           font-size: 10px;
           font-weight: 400;
-          color: #fff;
           background-color: #409EFF;
           padding: 1px 4px;
           border-radius: 2px;
           line-height: 1.2;
         }
       }
-
-      .link-description {
-        font-size: 12px;
-        color: #909399;
-        line-height: 1.3;
-      }
-    }
-
-    .link-arrow {
-      display: flex;
-      align-items: center;
-      opacity: 0;
-      transition: all 0.3s ease;
     }
 
     &:hover {
       .link-icon {
         background-color: #e8f4ff;
-      }
-
-      .link-arrow {
-        opacity: 1;
-        transform: translateX(4px);
       }
     }
   }

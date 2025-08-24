@@ -1,53 +1,18 @@
-import { getAccessToken } from "./auth";
+import { ApiCode } from "@/enums/api-code.enum";
 
-// 请求配置
-interface RequestOptions<T = any> {
-  url: string;
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  data?: T;
-  headers?: Record<string, string>;
-  timeout?: number;
-  responseType?: "text" | "arraybuffer" | "blob" | "json";
-  skipAuth?: boolean; // 标记是否跳过认证
-}
-
+import { getAccessToken, clearAll } from "@/utils/auth";
 /**
  * 请求拦截器 - 添加 Authorization 头
  */
-function request<T = any>(options: RequestOptions): Promise<T> {
+function request<T>(options: UniApp.RequestOptions): Promise<T> {
+  uni.showLoading({
+    title: "加载中...",
+  });
   return new Promise<T>((resolve, reject) => {
-    // 构建请求头
-    const header = Object.assign({}, options.headers || {});
-
-    // 检查是否需要添加认证令牌
-    if (!options.skipAuth) {
-      const accessToken = getAccessToken();
-      if (accessToken) {
-        header["Authorization"] = `Bearer ${accessToken}`;
-      } else {
-        // 需要认证但没有令牌，跳转到登录页
-        // 防止循环跳转：检查当前页面是否已经是登录页
-        const currentPages = getCurrentPages();
-        const currentPage = currentPages[currentPages.length - 1];
-        if (!currentPage || !currentPage.route || !currentPage.route.includes("login")) {
-          uni.navigateTo({
-            url: "/pages/login/index",
-          });
-        }
-        return reject(new Error("请先登录"));
-      }
-    }
-
-    // 根据平台决定URL前缀
-    let requestUrl = options.url;
-    // #ifdef MP-WEIXIN
-    // 微信小程序环境，使用完整URL
-    requestUrl = `${import.meta.env.VITE_API_BASE_URL}${options.url}`;
-    // #endif
-
-    // #ifndef MP-WEIXIN
-    // 非微信小程序环境，使用代理前缀
-    requestUrl = `${import.meta.env.VITE_APP_BASE_API}${options.url}`;
+    // H5 使用 VITE_APP_BASE_API 作为代理路径，其他平台使用 VITE_API_BASE_URL 作为请求路径
+    let baseApi = import.meta.env.VITE_API_BASE_URL;
+    // #ifdef H5
+    baseApi = import.meta.env.VITE_APP_BASE_API;
     // #endif
 
     let timeout = Number(import.meta.env.VITE_TIMEOUT);
@@ -57,37 +22,63 @@ function request<T = any>(options: RequestOptions): Promise<T> {
 
     // 统一处理请求
     uni.request({
-      url: requestUrl,
+      url: `${baseApi}${options.url}`,
       method: options.method,
       data: options.data,
-      header: header,
+      header: {
+        ...options.header,
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
       timeout: timeout,
       responseType: options.responseType,
-      success: (res: any) => {
+      success: (res: UniApp.RequestSuccessCallbackResult) => {
+        const result = res.data as ApiResponse<T>;
         // 请求成功
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(res.data.data);
+        if (result.code === ApiCode.SUCCESS) {
+          resolve(result.data);
         }
-        // 未授权错误
-        else if (res.statusCode === 401) {
-          // 防止循环跳转：检查当前页面是否已经是登录页
-          const currentPages = getCurrentPages();
-          const currentPage = currentPages[currentPages.length - 1];
-          if (!currentPage || !currentPage.route || !currentPage.route.includes("login")) {
-            uni.navigateTo({
-              url: "/pages/login/index",
-            });
-          }
-          reject(new Error(res.data.message || "未授权，请重新登录"));
+        // 令牌过期
+        else if (result.code === ApiCode.TOKEN_EXPIRED) {
+          // 清除所有缓存
+          clearAll();
+          // 跳转登录
+          uni.reLaunch({ url: "/pages/login/index" });
+          // 提示
+          uni.showToast({
+            title: result.msg || "登录已过期，请重新登录",
+            icon: "error",
+          });
+          reject(new Error(result.msg || "登录已过期，请重新登录"));
+        }
+        // 未授权访问
+        else if (result.code === ApiCode.UNAUTHORIZED) {
+          uni.showToast({
+            title: result.msg || "未授权访问",
+            icon: "error",
+          });
+          reject(new Error(result.msg || "未授权访问"));
         }
         // 其他错误
         else {
-          const errorMsg = res.data.message || `请求失败: ${res.statusCode}`;
-          reject(new Error(errorMsg));
+          uni.showToast({
+            title: result.msg || "请求失败",
+            icon: "error",
+          });
+          reject(new Error(result.msg || "请求失败"));
         }
       },
-      fail: (err) => {
+      fail: (err: UniApp.GeneralCallbackResult) => {
+        console.log("请求失败", err);
+        uni.showToast({
+          title: "网络请求失败",
+          icon: "none",
+          duration: 2000,
+        });
         reject(new Error(err.errMsg || "网络请求失败"));
+      },
+      complete: () => {
+        // 请求完成，隐藏loading
+        uni.hideLoading();
       },
     });
   });

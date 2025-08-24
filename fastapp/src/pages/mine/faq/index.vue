@@ -1,12 +1,6 @@
 <template>
   <view class="faq-container">
-    <wd-navbar
-      title="常见问题"
-      left-arrow
-      safe-area-inset-top
-      placeholder
-      @click-left="handleBack"
-    />
+    <wd-navbar title="常见问题" left-arrow placeholder safe-area-inset-top @click-left="handleBack" />
 
     <scroll-view class="content-scroll" scroll-y :scroll-top="scrollTop" @scroll="handleScroll">
       <view class="content-wrapper">
@@ -21,7 +15,7 @@
             <view class="support-grid">
               <view class="support-item" @tap="handleContact('email')">
                 <view class="support-icon">
-                  <wd-icon name="email" size="40rpx" color="#0083f0" />
+                  <wd-icon name="mail" size="40rpx" color="#0083f0" />
                 </view>
                 <view class="support-info">
                   <text class="support-label">邮箱支持</text>
@@ -55,24 +49,16 @@
           <wd-collapse v-model="activeNames" accordion>
             <wd-collapse-item title="常见问题" name="faq">
               <view class="faq-list">
-                <view 
-                  v-for="(item, index) in faqList"
-                  :key="index"
-                  class="faq-item"
-                  :class="{ 'active': currentFaq === index }"
-                  @tap="toggleFaq(index)"
-                >
+                <view v-for="(item, index) in faqList" :key="index" class="faq-item" :class="{
+                  active: currentFaq === index,
+                }" @tap="toggleFaq(index)">
                   <view class="faq-header">
                     <view class="faq-question">
                       <wd-icon name="question-filled" size="28rpx" color="#ff9500" />
                       <text class="question-text">{{ item.question }}</text>
                     </view>
-                    <wd-icon
-                      name="arrow-down-bold"
-                      size="24rpx" 
-                      color="#999"
-                      :custom-class="currentFaq === index ? 'rotate-180' : ''"
-                    />
+                    <wd-icon name="arrow-down-bold" size="24rpx" color="#999"
+                      :custom-class="currentFaq === index ? 'rotate-180' : ''" />
                   </view>
                   <view v-if="currentFaq === index" class="faq-answer">
                     <text class="answer-text">{{ item.answer }}</text>
@@ -83,11 +69,7 @@
 
             <wd-collapse-item title="系统功能" name="features">
               <view class="feature-list">
-                <view 
-                  v-for="(feature, index) in featureList" 
-                  :key="index"
-                  class="feature-item"
-                >
+                <view v-for="(feature, index) in featureList" :key="index" class="feature-item">
                   <view class="feature-icon">
                     <wd-icon :name="feature.icon" size="48rpx" :color="feature.color" />
                   </view>
@@ -106,18 +88,14 @@
                   <text class="guide-title">快速开始</text>
                 </view>
                 <view class="guide-steps">
-                  <view
-                    v-for="(step, index) in guideSteps" 
-                    :key="index"
-                    class="guide-step"
-                  >
+                  <view v-for="(step, index) in guideSteps" :key="index" class="guide-step">
                     <view class="step-indicator">
                       <view class="step-number">{{ index + 1 }}</view>
-                      <view class="step-line" v-if="index < guideSteps.length - 1"></view>
+                      <view v-if="index < guideSteps.length - 1" class="step-line"></view>
                     </view>
                     <view class="step-content">
                       <text class="step-title">{{ step.title }}</text>
-                      <text class="step-desc" v-if="step.desc">{{ step.desc }}</text>
+                      <text v-if="step.desc" class="step-desc">{{ step.desc }}</text>
                     </view>
                   </view>
                 </view>
@@ -146,21 +124,25 @@ const scrollTop = ref<number>(0);
 const faqList = ref([
   {
     question: "如何重置密码？",
-    answer: '在登录页面点击"忘记密码"，按照提示操作即可重置密码。如果无法收到验证码，请检查邮箱或手机号是否正确，或联系客服协助处理。'
+    answer:
+      "在登录页面点击 '忘记密码'，按照提示操作即可重置密码。如果无法收到验证码，请检查邮箱或手机号是否正确，或联系客服协助处理。",
   },
   {
     question: "数据如何备份？",
-    answer: '系统会自动定期备份数据，您也可以在"系统设置-数据管理"中手动导出数据。建议每月进行一次完整数据备份，确保数据安全。'
+    answer:
+      "系统会自动定期备份数据，您也可以在'系统设置-数据管理'中手动导出数据。建议每月进行一次完整数据备份，确保数据安全。",
   },
   {
     question: "支持哪些浏览器？",
-    answer: '推荐使用Chrome 90+、Firefox 88+、Safari 14+、Edge 90+等现代浏览器。IE浏览器仅支持IE11及以上版本。' 
+    answer:
+      "推荐使用Chrome 90+、Firefox 88+、Safari 14+、Edge 90+等现代浏览器。IE浏览器仅支持IE11及以上版本。",
   },
   {
     question: "如何联系客服？",
-    answer: "您可以通过以下方式联系客服：1. 客服热线 400-123-4567（工作日9:00-18:00）；2. 邮箱 support@example.com（7×24小时）；3. 在线客服（工作日9:00-18:00）。"
-  }
-])
+    answer:
+      "您可以通过以下方式联系客服：1. 客服热线 400-123-4567（工作日9:00-18:00）；2. 邮箱 support@example.com（7×24小时）；3. 在线客服（工作日9:00-18:00）。",
+  },
+]);
 
 // 系统功能数据
 const featureList = ref([
@@ -168,65 +150,65 @@ const featureList = ref([
     name: "用户管理",
     desc: "支持用户注册、登录、权限管理等功能",
     icon: "user",
-    color: "#0083f0"
+    color: "#0083f0",
   },
   {
     name: "数据统计",
     desc: "提供实时数据分析和可视化报表",
     icon: "chart",
-    color: "#00c250"
+    color: "#00c250",
   },
   {
     name: "文件管理",
     desc: "支持文件上传、下载、分类管理",
     icon: "folder",
-    color: "#ff9500"
+    color: "#ff9500",
   },
   {
     name: "消息通知",
     desc: "实时消息推送和系统通知",
     icon: "notification",
-    color: "#ff3b30"
-  }
-])
+    color: "#ff3b30",
+  },
+]);
 
 // 使用指南数据
 const guideSteps = ref([
   {
     title: "注册账号并登录系统",
-    desc: "使用手机号或邮箱注册账号，完成实名认证"
+    desc: "使用手机号或邮箱注册账号，完成实名认证",
   },
   {
     title: "完善个人或企业信息",
-    desc: "填写基本信息，设置安全问题和密保邮箱"
+    desc: "填写基本信息，设置安全问题和密保邮箱",
   },
   {
     title: "根据需求配置功能模块",
-    desc: "选择需要的功能模块，设置相关参数"
+    desc: "选择需要的功能模块，设置相关参数",
   },
   {
     title: "开始使用各项功能",
-    desc: "完成初始化设置，开始使用系统各项功能"
-  }
-])
+    desc: "完成初始化设置，开始使用系统各项功能",
+  },
+]);
 
-// 方法定义
+// 返回
 const handleBack = () => {
-  uni.navigateBack()
-}
+  uni.navigateBack();
+};
 
 const handleScroll = (e: any) => {
-  scrollTop.value = e.detail.scrollTop
-}
+  scrollTop.value = e.detail.scrollTop;
+};
 
 const toggleFaq = (index: number) => {
-  currentFaq.value = currentFaq.value === index ? null : index
-}
+  currentFaq.value = currentFaq.value === index ? null : index;
+};
 
 const handleContact = (type: "email" | "phone") => {
   if (type === "email") {
     // #ifdef H5
-    window.location.href = "mailto:support@example.com"
+    window.location.href = "mailto:support@example.com";
     // #endif
     // #ifndef H5
     uni.setClipboardData({
@@ -234,34 +216,41 @@ const handleContact = (type: "email" | "phone") => {
       success: () => {
         uni.showToast({
           title: "邮箱已复制",
-          icon: "success"
-        })
-      }
-    })
+          icon: "success",
+        });
+      },
+    });
     // #endif
   } else if (type === "phone") {
     // #ifdef H5
-    window.location.href = "tel:400-123-4567"
+    window.location.href = "tel:400-123-4567";
     // #endif
     // #ifndef H5
     uni.makePhoneCall({
-      phoneNumber: "400-123-4567"
-    })
+      phoneNumber: "400-123-4567",
+    });
     // #endif
   }
-}
+};
 
 // 生命周期
 onMounted(() => {
   // 可以在这里添加页面埋点或初始化逻辑
-})
+});
 </script>
-
+<route lang="json">
+{
+  "name": "faq",
+  "style": {
+    "navigationBarTitleText": "常见问题"
+  }
+}
+</route>
 <style lang="scss" scoped>
 .faq-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background: var(--wot-color-bg);
 
   .content-scroll {
@@ -536,8 +525,8 @@ onMounted(() => {
       .guide-footer {
         display: flex;
         align-items: center;
-        margin-top: 48rpx;
         padding: 32rpx;
+        margin-top: 48rpx;
         background: var(--wot-color-bg);
         border-radius: 16rpx;
 
@@ -577,8 +566,8 @@ onMounted(() => {
 
     .support-card,
     .faq-section :deep(.wd-collapse) {
-      background: #2c2c2e;
       color: var(--wot-color-text);
+      background: #2c2c2e;
     }
   }
 }

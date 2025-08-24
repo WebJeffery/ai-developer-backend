@@ -5,7 +5,7 @@
 
     <!-- Logo和标题区域 -->
     <view class="header">
-      <image src="/static/logo.png" class="logo" mode="aspectFit" />
+      <wd-img src="/static/logo.png" class="logo" mode="aspectFit" />
       <text class="title">FastApp管理系统</text>
       <text class="subtitle">欢迎使用移动端管理平台</text>
     </view>
@@ -28,13 +28,13 @@
               prop="username"
               class="form-input input-transparent"
               placeholder="请输入用户名"
-              clear-trigger="focus"
+              placeholder-class="input-placeholder"
               clearable
-              :rules="[{ required: true, message: '请输入用户名', trigger: 'blur' }]"
+              clear-trigger="focus"
             />
           </view>
 
-          <!-- <view class="divider"></view> -->
+          <!-- <wd-divider /> -->
 
           <!-- 密码输入框 -->
           <view class="form-item">
@@ -57,7 +57,7 @@
             />
           </view>
 
-          <!-- <view class="divider"></view> -->
+          <!-- <wd-divider /> -->
 
           <!-- 验证码输入框 -->
           <view v-if="captchaState.enable" class="form-item">
@@ -91,7 +91,7 @@
               <text>点击加载</text>
             </view>
           </view>
-          <!-- <view class="divider"></view> -->
+          <!-- <wd-divider /> -->
 
           <!-- 登录按钮 -->
           <view class="footer">
@@ -121,15 +121,16 @@
           <view class="phone-login-title">微信一键登录</view>
           <view class="phone-login-subtitle">授权后将获取您的手机号</view>
 
-          <button
+          <wd-button
             class="wechat-phone-btn"
             :disabled="loading"
             open-type="getPhoneNumber"
+            size="large"
             @getphonenumber="handleWechatPhoneLogin"
           >
             <wd-icon name="weixin" size="24" color="#ffffff" />
             <text>微信一键登录</text>
-          </button>
+          </wd-button>
 
           <!-- 切换登录方式 -->
           <view class="switch-login-type" @click="loginType = 'account'">
@@ -148,17 +149,19 @@
 
           <view class="wechat-login" @click="handleWechatLogin">
             <view class="wechat-icon-wrapper">
-              <image src="/static/icons/weixin.png" class="wechat-icon" />
+              <wd-img src="/static/icons/weixin.png" class="wechat-icon" />
             </view>
           </view>
         </view>
 
         <!-- 底部协议 -->
         <view class="agreement">
-          <text class="text">登录即同意</text>
-          <text class="link" @click="navigateToUserAgreement">《用户协议》</text>
-          <text class="text">和</text>
-          <text class="link" @click="navigateToPrivacy">《隐私政策》</text>
+          <wd-checkbox v-model="loginFormData.remember">
+            <wd-text text="我已阅读并同意"></wd-text>
+            <wd-text type="primary" text="《用户协议》" @click="navigateToUserAgreement"></wd-text>
+            <wd-text text="和"></wd-text>
+            <wd-text type="primary" text="《隐私政策》" @click="navigateToPrivacy"></wd-text>
+          </wd-checkbox>
         </view>
       </view>
     </view>
@@ -168,18 +171,17 @@
 </template>
 
 <script lang="ts" setup>
-import { useUserStore } from "@/store/modules/user.store";
+import { onLoad } from "@dcloudio/uni-app";
+import { useUserStore } from "@/store";
 import { useToast } from "wot-design-uni";
-import { useWechat } from "@/composables/useWechat";
 import { useTheme } from "@/composables/useTheme";
-import { computed, ref, reactive, watch } from "vue";
 import AuthAPI, { type LoginFormData, type CaptchaInfo } from "@/api/auth";
 
 const loginFormRef = ref();
 const toast = useToast();
+const loading = ref(false);
 const userStore = useUserStore();
 const loginType = ref<"account" | "phone">("account");
-const { authState, getLoginCode, getPhoneNumber } = useWechat();
 const { theme } = useTheme();
 
 // 登录表单数据
@@ -189,6 +191,7 @@ const loginFormData = ref<LoginFormData>({
   captcha: "",
   captcha_key: "",
   remember: true,
+  login_type: "移动端",
 });
 
 // 验证码状态
@@ -200,9 +203,6 @@ const captchaState = reactive<CaptchaInfo>({
 
 // 防重复请求标志
 const isCaptchaLoading = ref(false);
-
-// 使用store的loading状态
-const loading = computed(() => userStore.isLoggingIn || authState.value.isLogining);
 
 // 表单验证
 const isFormValid = computed(() => {
@@ -237,25 +237,6 @@ const getLoginCaptcha = async () => {
   }
 };
 
-// 统一的错误处理
-const handleLoginError = (error: any, loginType: string) => {
-  const message = error?.message || `${loginType}登录失败`;
-
-  // 根据错误类型显示不同提示
-  if (message.includes("验证码")) {
-    toast.error("验证码错误，请重新输入");
-    getLoginCaptcha(); // 刷新验证码
-  } else if (message.includes("用户不存在") || message.includes("密码错误")) {
-    toast.error("用户名或密码错误");
-  } else if (message.includes("拒绝授权")) {
-    toast.error("您已拒绝授权");
-  } else {
-    toast.error(message);
-  }
-
-  console.error(`${loginType}登录失败:`, error);
-};
-
 // 账号密码登录
 const handleAccountLogin = async () => {
   if (!isFormValid.value) {
@@ -272,66 +253,32 @@ const handleAccountLogin = async () => {
       return;
     }
   }
-
+  loading.value = true;
   try {
     await userStore.login(loginFormData.value);
     toast.success("登录成功");
 
     // 登录成功后跳转到mine页面，确保用户信息及时更新
-    uni.switchTab({ url: "/pages/mine/index" });
+    setTimeout(() => {
+      uni.reLaunch({ url: redirect.value });
+    }, 1000);
   } catch (error: any) {
-    handleLoginError(error, "账号密码");
+    toast.error(error?.message || "登录失败");
+    getLoginCaptcha(); // 刷新验证码
+  } finally {
+    loading.value = false;
   }
 };
 
 // 微信一键登录（通过手机号）
-const handleWechatPhoneLogin = async (e: any) => {
-  if (!e.detail?.encryptedData) {
-    toast.error("获取手机号失败");
-    return;
-  }
-
-  try {
-    const phoneData = await getPhoneNumber(e);
-    await userStore.loginWithWxPhone(phoneData);
-    toast.success("登录成功");
-
-    // 登录成功后跳转到mine页面，确保用户信息及时更新
-    uni.switchTab({ url: "/pages/mine/index" });
-  } catch (error: any) {
-    handleLoginError(error, "微信手机号");
-  }
+const handleWechatPhoneLogin = async () => {
+  toast.error("微信一键登录功能开发中...");
 };
 
 // 微信授权登录
 const handleWechatLogin = async () => {
-  try {
-    // #ifdef MP-WEIXIN
-    const code = await getLoginCode();
-    await userStore.loginWithWxCode(code);
-    toast.success("登录成功");
-
-    // 登录成功后跳转到mine页面，确保用户信息及时更新
-    uni.switchTab({ url: "/pages/mine/index" });
-    // #endif
-
-    // #ifndef MP-WEIXIN
-    toast.error("当前环境不支持微信登录");
-    // #endif
-  } catch (error: any) {
-    handleLoginError(error, "微信授权");
-  }
+  toast.error("微信授权登录功能开发中...");
 };
-
-// 监听验证码状态变化
-watch(
-  () => captchaState.enable,
-  (newVal) => {
-    if (newVal && !captchaState.img_base) {
-      getLoginCaptcha();
-    }
-  }
-);
 
 // 是否暗黑模式
 const isDarkMode = computed(() => theme.value === "dark");
@@ -345,10 +292,26 @@ const navigateToPrivacy = () => {
   uni.navigateTo({ url: "/pages/mine/settings/privacy/index" });
 };
 
-// 页面加载时获取验证码
-onLoad(() => {
+// 强制清除输入框背景色
+onMounted(() => {
+  setTimeout(() => {
+    const inputs = document.querySelectorAll("input");
+    inputs.forEach((input) => {
+      input.style.backgroundColor = "transparent";
+      input.style.boxShadow = "none";
+    });
+  }, 100);
+});
+
+// 仅使用 query 作为重定向来源
+const redirect = ref("/pages/index/index");
+onLoad((options) => {
   uni.setNavigationBarTitle({ title: "登录" });
   getLoginCaptcha();
+  const fromQuery = options && options.redirect ? decodeURIComponent(options.redirect) : "";
+  if (fromQuery && fromQuery !== "/pages/login/index") {
+    redirect.value = fromQuery;
+  }
 });
 </script>
 
@@ -359,6 +322,7 @@ onLoad(() => {
   flex-direction: column;
   align-items: center;
   height: 100%;
+  min-height: 100%;
   overflow: hidden;
   background-color: var(--wot-color-bg-container);
 }
@@ -367,35 +331,10 @@ onLoad(() => {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: -1;
   width: 100%;
   height: 100%;
 }
 
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-  align-items: center;
-}
-
-.loading-text {
-  font-size: 28rpx;
-  color: #fff;
-}
 .header {
   z-index: 2;
   display: flex;
@@ -429,7 +368,7 @@ onLoad(() => {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  width: 95%;
+  width: 90%;
   margin-top: 80rpx;
   overflow: hidden;
   background-color: rgba(255, 255, 255, 0.9);
@@ -504,8 +443,6 @@ input:-webkit-autofill:active {
 .form-item input,
 input.form-input,
 input.input-transparent {
-  -webkit-appearance: none;
-  appearance: none;
   background: none !important;
   background-color: transparent !important;
   border: none !important;
@@ -710,16 +647,6 @@ input.input-transparent {
     background: none !important;
     background-color: transparent !important;
     background-image: none !important;
-  }
-}
-
-/* 修复Android Chrome输入框背景色问题 */
-@supports (-webkit-appearance: none) {
-  input {
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent !important;
-    background-color: transparent !important;
   }
 }
 </style>

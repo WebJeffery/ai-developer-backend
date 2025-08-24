@@ -83,12 +83,12 @@ class LoginService:
         user = await UserCRUD(auth).update_last_login_crud(id=user.id)
 
         # 创建token
-        token = await cls.create_token_service(request=request, redis=redis, user=user)
+        token = await cls.create_token_service(request=request, redis=redis, user=user, login_type=login_form.login_type)
 
         return token
 
     @classmethod
-    async def create_token_service(cls, request: Request, redis: Redis, user: UserModel) -> JWTOutSchema:
+    async def create_token_service(cls, request: Request, redis: Redis, user: UserModel, login_type: str) -> JWTOutSchema:
         """
         创建访问令牌和刷新令牌
         
@@ -129,6 +129,7 @@ class LoginService:
             os=user_agent.os.family,
             browser = user_agent.browser.family,
             login_time=user.last_login.isoformat() if isinstance(user.last_login, datetime) else str(user.last_login),
+            login_type=login_type
         ).model_dump_json()
 
         access_token = create_access_token(payload=JWTPayloadSchema(

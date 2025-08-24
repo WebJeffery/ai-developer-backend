@@ -54,6 +54,9 @@ export default [
           ApiResponse: "readonly", // 统一响应数据类型
           creatorType: "readonly", // 创建人类型
           UploadFileResult: "readonly", // 上传文件返回类型
+          Todo: "readonly", // 待办事项
+          TodoState: "readonly", // 待办事项状态
+          plus: true, // HTML5+ 运行时环境
         },
       },
     },

@@ -71,17 +71,17 @@ fastapi_vue3_admin
 ## 🛠️ Technology Stack Overview
 
 | Type     | Technology Selection            | Description |
-|----------|---------------------------------|---------------------------------|
-| Backend Framework | FastAPI / Uvicorn / Pydantic 2.0 / Alembic | A modern, high-performance asynchronous framework with enforced type constraints and data migration capabilities. |
+|----------|---------------------------------|-------------|
+| Backend Framework | FastAPI / Uvicorn / Pydantic 2.0 / Alembic | A modern, high-performance asynchronous framework with强制类型约束 (mandatory type constraints) and data migration capabilities. |
 | ORM      | SQLAlchemy 2.0      | A powerful ORM library. |
 | Scheduled Tasks | APScheduler         | Easily implement scheduled tasks. |
-| Authentication | PyJWT               | Implement JWT authentication. |
-| Frontend Framework | Vue3 / Vite5 / Pinia / TypeScript | Quickly develop Vue3 applications. |
-| UI Library    | ElementPlus | Quickly develop beautiful UI components. |
+| Permission Authentication | PyJWT               | Implement JWT authentication. |
+| Frontend Framework | Uni App / Vue3 / Vite5 / Pinia / TypeScript | Rapidly develop Vue3 applications. |
+| UI Library    | ElementPlus / Wot Design Uni | Quickly develop beautiful UI components. |
 | Database   | MySQL / MongoDB     | Powerful databases. |
-| Cache     | Redis               | A powerful caching database. |
+| Cache     | Redis               | A powerful cache database. |
 | Documentation     | Swagger / Redoc     | Automatically generate API documentation. |
-| Deployment     | Docker / Nginx / Docker Compose | Quickly deploy projects. |
+| Deployment     | Docker / Nginx / Docker Compose | Rapidly deploy projects. |
 
 ---
 
@@ -117,6 +117,9 @@ fastapi_vue3_admin
 | Frontend | Node.js              | >= 20.0 (It is recommended to use the latest version.) |
 | Frontend | npm                  | 16.14         |
 | Frontend | Vue3                 | 3.3           |
+| Web UI   | ElementPlus          | 2.10.4        |
+| Mobile   | Uni App              | 3.0.0         |
+| App UI   | Wot Design Uni       | 1.9.1         |
 | Database | MySQL                | 8.0 (It is recommended to use the latest version.) |
 | Middleware | Redis              | 7.0 (It is recommended to use the latest version.) |
 
@@ -267,10 +270,10 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 
 ### 移动端
 
-| Module Name | Screenshot |
-|----------|------|
-| Login      | Under development... (To be completed) |
-
+| Module { width="80" }| Details | Module { width="80" }| Details | Module { width="80" }| Details |
+|----------|------|----------|------|----------|------|
+| Login    | ![Mobile Login](./fastdocs/src/public/app_login.png) | Home      | ![Mobile Home](./fastdocs/src/public/app_home.png) | Profile      | ![Mobile Profile](./fastdocs/src/public/app_mine.png) |
+| Personal  | ![Mobile Personal Info](./fastdocs/src/public/app_profile.png) | Settings   | ![Mobile Settings](./fastdocs/src/public/app_setting.png) | Workbench      | ![Mobile Workbench](./fastdocs/src/public/app_work.png) |
 ---
 
 ## 🛠️ Secondary Development Tutorial
@@ -292,6 +295,12 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 
 1. **Configure the Frontend to Access the Backend Interface Address**: Configure it in `frontend/src/api/demo/example.ts`.
 2. **Write the Frontend Page**: Write it in `frontend/src/views/demo/example/index.vue`.
+
+### Mobile Part
+
+1. **Configure the mobile access address for backend interfaces**: Write the code in `fastapp/src/api`.
+2. **Write mobile pages**: Write the code in `fastapp/src/pages`.
+
 
 ---
 

@@ -11,7 +11,7 @@
       <el-scrollbar ref="scrollbarRef" class="scroll-container" @wheel="handleScroll">
         <VueDraggable v-model="visitedViews" :animation="150">
           <router-link
-            v-for="tag in visitedViews" :key="tag.fullPath"
+            v-for="tag in displayedViews" :key="tag.fullPath"
             :class="['tags-item', { active: tagsViewStore.isActive(tag) }]" :to="{ path: tag.path, query: tag.query }"
             @click.middle="handleMiddleClick(tag)">
             <!-- 为所有标签添加右键菜单 -->
@@ -170,7 +170,6 @@ import { translateRouteTitle } from "@/utils/i18n";
 import { usePermissionStore, useTagsViewStore } from "@/store";
 import { VueDraggable } from "vue-draggable-plus";
 import { quickStartManager } from "@/utils/quickStartManager";
-import { Star, StarFilled } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus';
 
 const { t } = useI18n();
@@ -185,6 +184,10 @@ const tagsViewStore = useTagsViewStore();
 
 const { visitedViews } = storeToRefs(tagsViewStore);
 
+// 简单的标签显示逻辑
+const displayedViews = computed(() => {
+  return visitedViews.value
+});
 
 // 当前选中的标签
 const selectedTag = ref<TagView | null>(null);
@@ -268,14 +271,36 @@ const initAffixTags = () => {
 const addCurrentTag = () => {
   if (!route.meta?.title) return;
 
-  tagsViewStore.addView({
-    name: route.name as string,
-    title: route.meta.title,
-    path: route.path,
-    fullPath: route.fullPath,
-    affix: route.meta.affix || false,
-    keepAlive: route.meta.keepAlive || false,
-    query: route.query,
+  // 检查标签是否已存在
+  const existingTag = visitedViews.value.find(tag => tag.path === route.path);
+  
+  if (existingTag) {
+    // 如果标签已存在，将其移动到最新位置（除非是固定标签）
+    if (!existingTag.affix) {
+      // 从当前位置移除
+      const index = visitedViews.value.findIndex(tag => tag.path === route.path);
+      if (index !== -1) {
+        const tag = visitedViews.value.splice(index, 1)[0];
+        // 添加到末尾
+        visitedViews.value.push(tag);
+      }
+    }
+  } else {
+    // 添加新标签
+    tagsViewStore.addView({
+      name: route.name as string,
+      title: route.meta.title,
+      path: route.path,
+      fullPath: route.fullPath,
+      affix: route.meta.affix || false,
+      keepAlive: route.meta.keepAlive || false,
+      query: route.query,
+    });
+  }
+
+  // 检查是否需要自动滚动到最新标签
+  nextTick(() => {
+    autoScrollToLatestTag();
   });
 };
 
@@ -517,6 +542,28 @@ const scrollRight = () => {
   scrollbarRef.value.setScrollLeft(newScrollLeft)
 }
 
+/**
+ * 自动滚动到最新标签
+ */
+const autoScrollToLatestTag = () => {
+  const scrollWrapper = scrollbarRef.value?.wrapRef
+  if (!scrollWrapper) return
+
+  // 获取容器宽度和内容宽度
+  const containerWidth = scrollWrapper.clientWidth
+  const contentWidth = scrollWrapper.scrollWidth
+
+  // 如果内容宽度超过容器宽度，需要滚动
+  if (contentWidth > containerWidth) {
+    // 计算需要滚动到的位置，确保最新标签在右侧可见
+    const maxScrollLeft = contentWidth - containerWidth
+    scrollbarRef.value.setScrollLeft(maxScrollLeft)
+  } else {
+    // 如果内容宽度不超过容器宽度，滚动到最左边
+    scrollbarRef.value.setScrollLeft(0)
+  }
+}
+
 // 监听路由变化
 watch(
   route,
@@ -527,9 +574,51 @@ watch(
   { immediate: true }
 );
 
+// 监听容器大小变化
+let resizeObserver: ResizeObserver | null = null;
+
+// 监听标签数量变化，自动滚动到最新标签
+watch(
+  () => visitedViews.value.length,
+  () => {
+    nextTick(() => {
+      autoScrollToLatestTag();
+    });
+  }
+);
+
+// 监听当前路由变化，确保点击隐藏标签时滚动到最新位置
+watch(
+  () => route.path,
+  () => {
+    nextTick(() => {
+      autoScrollToLatestTag();
+    });
+  }
+);
+
 // 初始化
 onMounted(() => {
   initAffixTags();
+  
+  // 监听容器大小变化
+  const tagsContainer = document.querySelector('.tags-container');
+  if (tagsContainer && window.ResizeObserver) {
+    resizeObserver = new ResizeObserver(() => {
+      // 强制重新计算 displayedViews
+      nextTick(() => {
+        autoScrollToLatestTag();
+      });
+    });
+    resizeObserver.observe(tagsContainer);
+  }
+});
+
+// 清理
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
 });
 
 </script>
@@ -650,7 +739,6 @@ onMounted(() => {
 
         &:hover {
           color: var(--el-color-white);
-          background-color: rgba(255, 255, 255, 0.3);
         }
       }
     }

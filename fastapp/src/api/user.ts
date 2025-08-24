@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import { ApiHeader } from "@/enums/api-header.enum";
 
 const USER_BASE_URL = "/system/user";
 
@@ -26,7 +27,7 @@ const UserAPI = {
       url: `${USER_BASE_URL}/current/avatar/upload`,
       method: "POST",
       data: body,
-      headers: { "Content-Type": "multipart/form-data" },
+      header: { [ApiHeader.KEY]: ApiHeader.MULTIPART },
     });
   },
 
@@ -213,7 +214,7 @@ export interface UserInfo {
   avatar?: string;
   email?: string;
   mobile?: string;
-  gender?: number;
+  gender?: string;
   password?: string;
   menus?: MenuTable[];
   dept?: deptTreeType;
@@ -290,7 +291,7 @@ export interface positionSelectorType {
 export interface UserProfileForm {
   id?: number;
   name?: string;
-  gender?: number;
+  gender?: string;
   mobile?: string;
   email?: string;
   username?: string;

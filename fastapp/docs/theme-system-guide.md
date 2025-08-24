@@ -34,12 +34,7 @@ const {
 
 ```vue
 <template>
-  <wd-config-provider
-    :theme="theme"
-    :theme-vars="themeVars"
-    custom-style="min-height: 100vh"
-    :class="{ 'wot-theme-dark': theme === 'dark' }"
-  >
+  <wd-config-provider :theme="theme" :theme-vars="themeVars" custom-style="min-height: 100vh" :class="{ 'wot-theme-dark': theme === 'dark' }">
     <!-- 页面内容 -->
   </wd-config-provider>
 </template>
@@ -49,12 +44,7 @@ const {
 
 ```vue
 <template>
-  <wd-config-provider
-    :theme="theme"
-    :theme-vars="themeVars"
-    custom-style="background-color: #f5f5f5;min-height: 100vh"
-    :class="{ 'wot-theme-dark': theme === 'dark' }"
-  >
+  <wd-config-provider :theme="theme" :theme-vars="themeVars" custom-style="background-color: #f5f5f5;min-height: 100vh" :class="{ 'wot-theme-dark': theme === 'dark' }">
     <!-- 页面内容 -->
   </wd-config-provider>
 </template>
@@ -170,6 +160,7 @@ const THEME_COLOR_STORAGE_KEY = "app_theme_color";
 ```
 
 主题设置会在以下情况自动保存：
+
 - 切换主题模式时
 - 设置主题色时
 - 重置主题时

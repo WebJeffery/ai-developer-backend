@@ -16,8 +16,13 @@ export const enum ResultEnum {
   EXCEPTION = -1,
 
   /**
-   * 访问令牌无效或过期
+   * 未授权访问
    */
-  ACCESS_TOKEN_INVALID = 401,
+  UNAUTHORIZED = 10403,
+
+  /**
+   * 令牌已过期
+   */
+  TOKEN_EXPIRED = 10401,
 
 }

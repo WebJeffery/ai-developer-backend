@@ -1,11 +1,5 @@
 {
-  "extends": [
-    "stylelint-config-recommended",
-    "stylelint-config-recommended-scss",
-    "stylelint-config-recommended-vue/scss",
-    "stylelint-config-html/vue",
-    "stylelint-config-recess-order"
-  ],
+  "extends": ["stylelint-config-recommended", "stylelint-config-recommended-scss", "stylelint-config-recommended-vue/scss", "stylelint-config-html/vue", "stylelint-config-recess-order"],
   "plugins": ["stylelint-prettier"],
   "overrides": [
     {

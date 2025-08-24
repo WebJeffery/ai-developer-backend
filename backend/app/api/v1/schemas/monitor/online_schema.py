@@ -22,4 +22,5 @@ class OnlineOutSchema(BaseModel):
     os: Optional[str] = Field(default=None, description='操作系统')
     browser: Optional[str] = Field(default=None, description='浏览器')
     login_time: Optional[DateTimeStr] = Field(default=None, description='登录时间')
+    login_type: Optional[str] = Field(default=None, description='登录类型 PC端 | 移动端')
 

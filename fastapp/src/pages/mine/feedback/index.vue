@@ -1,48 +1,32 @@
 <template>
   <view class="app-container">
-    <wd-navbar title="意见反馈" left-arrow @click-left="handleBack" />
+    <wd-navbar title="意见反馈" left-text="返回" left-arrow placeholder safe-area-inset-top right-text="首页"
+      @click-left="handleBack" @click-right="handleClickRight" />
 
-    123
     <wd-text size="small">选填，最多上传3张图片</wd-text>
-    <wd-form ref="formRef" :model="formData" :rules="rules">
+    <wd-form ref="formRef" :model="formData" :rules="rules" errorType="toast">
       <!-- 问题类型选择 -->
-      <wd-form-item label="问题类型" prop="feedbackType">
-        <wd-radio-group v-model="formData.feedbackType" inline>
+      <wd-cell-group title="问题类型" border>
+        <wd-radio-group v-model="formData.feedbackType" inline prop="feedbackType">
           <wd-radio v-for="item in feedbackTypes" :key="item.value" :value="item.value">
             {{ item.label }}
           </wd-radio>
         </wd-radio-group>
-      </wd-form-item>
 
-      <!-- 问题描述 -->
-      <wd-form-item label="问题描述" prop="description">
-        <wd-textarea
-          v-model="formData.description"
-          placeholder="请详细描述您遇到的问题或建议..."
-          :maxlength="120"
-          show-word-limit
-        />
-      </wd-form-item>
+        <wd-textarea v-model="formData.description" label="问题描述" prop="description" placeholder="请详细描述您遇到的问题或建议..."
+          :maxlength="120" show-word-limit />
 
-      <!-- 图片上传 -->
-      <wd-form-item label="相关截图" prop="fileList">
-        <wd-upload
-          v-model="formData.fileList"
-          :max-count="3"
-          :before-read="beforeRead"
-          @delete="handleDelete"
-        />
-      </wd-form-item>
+        <wd-upload v-model="formData.fileList" label="相关截图" prop="fileList" :max-count="3" :before-read="beforeRead"
+          @delete="handleDelete" />
 
-      <!-- 联系方式 -->
-      <wd-form-item label="联系方式" prop="contact">
-        <wd-input v-model="formData.contact" placeholder="请输入您的手机号或邮箱" clearable />
+        <wd-input v-model="formData.contact" label="联系方式" prop="contact" placeholder="请输入您的手机号或邮箱" clearable
+          :border="false" />
         <wd-text size="small">选填，便于我们与您联系</wd-text>
-      </wd-form-item>
+      </wd-cell-group>
 
       <!-- 提交按钮 -->
-      <view class="submit-btn">
-        <wd-button type="primary" block :loading="submitting" @click="handleSubmit">
+      <view class="footer">
+        <wd-button type="primary" size="large" :loading="submitting" block @click="handleSubmit">
           提交反馈
         </wd-button>
       </view>
@@ -175,8 +159,22 @@ const handleSubmit = async () => {
 const handleBack = () => {
   uni.navigateBack();
 };
-</script>
 
+// 首页
+const handleClickRight = () => {
+  uni.switchTab({
+    url: "/pages/index/index",
+  });
+};
+</script>
+<route lang="json">
+{
+  "name": "feedback",
+  "style": {
+    "navigationBarTitleText": "问题反馈"
+  }
+}
+</route>
 <style lang="scss" scoped>
 :deep(.wd-form-item) {
   margin-bottom: 12rpx;

@@ -159,7 +159,7 @@ const redirect = ref("/pages/index/index");
 // 表单数据
 const profileForm = reactive({
   name: "",
-  gender: 1,
+  gender: "0",
   mobile: "",
   email: "",
   username: "",
@@ -197,7 +197,7 @@ onLoad((options: any) => {
   if (userInfo) {
     profileForm.name = userInfo.name || "";
     profileForm.avatar = userInfo.avatar || "";
-    profileForm.gender = userInfo.gender || 1;
+    profileForm.gender = userInfo.gender || "0";
     profileForm.email = userInfo.email || "";
     profileForm.username = userInfo.username || "";
     profileForm.dept_name = userInfo.dept_name || "";
