@@ -270,7 +270,7 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 
 ### 移动端
 
-| Module { width="80" }| Details | Module { width="80" }| Details | Module { width="80" }| Details |
+| Module <div style="width:60px"/> | Details | Module <div style="width:60px"/> | Details | Module <div style="width:60px"/> | Details |
 |----------|------|----------|------|----------|------|
 | Login    | ![Mobile Login](./fastdocs/src/public/app_login.png) | Home      | ![Mobile Home](./fastdocs/src/public/app_home.png) | Profile      | ![Mobile Profile](./fastdocs/src/public/app_mine.png) |
 | Personal  | ![Mobile Personal Info](./fastdocs/src/public/app_profile.png) | Settings   | ![Mobile Settings](./fastdocs/src/public/app_setting.png) | Workbench      | ![Mobile Workbench](./fastdocs/src/public/app_work.png) |

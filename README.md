@@ -274,7 +274,7 @@ fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 
 ### 移动端
 
-| 模块 { width="80" }| 详情 | 模块 { width="80" }| 详情 | 模块 { width="80" }| 详情 |
+| 模块 <div style="width:60px"/> | 详情 | 模块 <div style="width:60px"/> | 详情 | 模块 <div style="width:60px"/> | 详情 |
 |----------|------|----------|------|----------|------|
 | 登录    | ![移动端登录](./fastdocs/src/public/app_login.png) | 首页      | ![移动端首页](./fastdocs/src/public/app_home.png) | 我的      | ![移动端个人中心](./fastdocs/src/public/app_mine.png) |
 | 个人  | ![移动端个人信息](./fastdocs/src/public/app_profile.png) | 设置   | ![移动端设置](./fastdocs/src/public/app_setting.png) | 工作台      | ![移动端工作台](./fastdocs/src/public/app_work.png) |
