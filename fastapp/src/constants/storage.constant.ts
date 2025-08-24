@@ -3,9 +3,14 @@
  * 包括 localStorage、sessionStorage 等各种存储的键名
  */
 
-// 🔐 用户认证相关
-export const ACCESS_TOKEN_KEY = "access_token";
-export const REFRESH_TOKEN_KEY = "refresh_token";
+// 访问token
+export const APP_ACCESS_TOKEN_KEY = "appAccessToken";
 
-// 📊 用户缓存相关
-export const USER_INFO_KEY = "user_info";
+// 刷新token
+export const APP_REFRESH_TOKEN_KEY = "appRefreshToken";
+
+// 用户缓存相关
+export const APP_USER_INFO = "appUserInfo";
+
+// 全局配置相关
+export const APP_THEME_KEY = "appTheme";

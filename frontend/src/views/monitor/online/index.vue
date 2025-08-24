@@ -67,6 +67,7 @@
         <el-table-column v-if="tableColumns.find(col => col.prop === 'selection')?.show" type="selection" min-width="55" align="center" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'index')?.show" type="index" fixed label="序号" min-width="60" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'session_id')?.show" key="session_id" label="会话编号" prop="session_id" min-width="250" show-overflow-tooltip/>
+        <el-table-column v-if="tableColumns.find(col => col.prop === 'login_type')?.show" key="login_type" label="登录类型" prop="login_type" min-width="100" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'ipaddr')?.show" key="ipaddr" label="IP地址" prop="ipaddr" min-width="150" show-overflow-tooltip>
           <template #default="scope">
             <el-text>{{ scope.row.ipaddr }}</el-text>
@@ -103,7 +104,7 @@ defineOptions({
 });
 
 import OnlineAPI, { type OnlineUserPageQuery, type OnlineUserTable } from "@/api/monitor/online";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 
 const queryFormRef = ref();
 const total = ref(0);
@@ -119,6 +120,7 @@ const tableColumns = ref([
   { label: '选择框', prop: 'selection', show: true },
   { label: '序号', prop: 'index', show: true },
   { label: '会话编号', prop: 'session_id', show: true },
+  { label: '登录类型', prop: 'login_type', show: true },
   { label: '登录名称', prop: 'name', show: true },
   { label: '用户账号', prop: 'user_name', show: true },
   { label: '主机', prop: 'ipaddr', show: true },

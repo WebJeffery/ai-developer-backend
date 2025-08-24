@@ -14,10 +14,13 @@ declare global {
   const applyThemeToMiniProgram: typeof import('../utils/theme')['applyThemeToMiniProgram']
   const auth: typeof import('../api/auth')['default']
   const checkLogin: typeof import('../utils/auth')['checkLogin']
-  const clearAll: typeof import('../utils/storage')['clearAll']
+  const clearAll: typeof import('../utils/auth')['clearAll']
+  const clearToken: typeof import('../utils/storage')['clearToken']
   const clearTokens: typeof import('../utils/auth')['clearTokens']
+  const clearUserInfo: typeof import('../utils/auth')['clearUserInfo']
   const colorColumns: typeof import('../composables/useTheme')['colorColumns']
   const computed: typeof import('vue')['computed']
+  const config: typeof import('../api/config')['default']
   const createApp: typeof import('vue')['createApp']
   const createPinia: typeof import('pinia')['createPinia']
   const createRouter: typeof import('uni-mini-router')['createRouter']
@@ -27,6 +30,8 @@ declare global {
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
   const defineStore: typeof import('pinia')['defineStore']
+  const dept: typeof import('../api/dept')['default']
+  const dict: typeof import('../api/dict')['default']
   const effectScope: typeof import('vue')['effectScope']
   const extendedColorOptions: typeof import('../composables/useTheme')['extendedColorOptions']
   const file: typeof import('../api/file')['default']
@@ -34,9 +39,11 @@ declare global {
   const getActivePinia: typeof import('pinia')['getActivePinia']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getDarkerColor: typeof import('../utils/colorUtils')['getDarkerColor']
+  const getLighterColor: typeof import('../utils/colorUtils')['getLighterColor']
   const getRefreshToken: typeof import('../utils/auth')['getRefreshToken']
   const getToken: typeof import('../utils/storage')['getToken']
-  const getUserInfo: typeof import('../utils/storage')['getUserInfo']
+  const getUserInfo: typeof import('../utils/auth')['getUserInfo']
   const guessSerializerType: typeof import('@uni-helper/uni-use')['guessSerializerType']
   const h: typeof import('vue')['h']
   const initTheme: typeof import('../composables/useTheme')['initTheme']
@@ -46,13 +53,16 @@ declare global {
   const isReactive: typeof import('vue')['isReactive']
   const isReadonly: typeof import('vue')['isReadonly']
   const isRef: typeof import('vue')['isRef']
+  const log: typeof import('../api/log')['default']
   const mapActions: typeof import('pinia')['mapActions']
   const mapGetters: typeof import('pinia')['mapGetters']
   const mapState: typeof import('pinia')['mapState']
   const mapStores: typeof import('pinia')['mapStores']
   const mapWritableState: typeof import('pinia')['mapWritableState']
   const markRaw: typeof import('vue')['markRaw']
+  const menu: typeof import('../api/menu')['default']
   const nextTick: typeof import('vue')['nextTick']
+  const notice: typeof import('../api/notice')['default']
   const onActivated: typeof import('vue')['onActivated']
   const onAddToFavorites: typeof import('@dcloudio/uni-app')['onAddToFavorites']
   const onBackPress: typeof import('@dcloudio/uni-app')['onBackPress']
@@ -102,13 +112,14 @@ declare global {
   const requireLogin: typeof import('../utils/auth')['requireLogin']
   const resetTheme: typeof import('../composables/useTheme')['resetTheme']
   const resolveComponent: typeof import('vue')['resolveComponent']
+  const role: typeof import('../api/role')['default']
   const setAccessToken: typeof import('../utils/auth')['setAccessToken']
   const setActivePinia: typeof import('pinia')['setActivePinia']
   const setMapStoreSuffix: typeof import('pinia')['setMapStoreSuffix']
   const setRefreshToken: typeof import('../utils/auth')['setRefreshToken']
   const setThemeColor: typeof import('../composables/useTheme')['setThemeColor']
   const setToken: typeof import('../utils/storage')['setToken']
-  const setUserInfo: typeof import('../utils/storage')['setUserInfo']
+  const setUserInfo: typeof import('../utils/auth')['setUserInfo']
   const setupStore: typeof import('../store/index')['setupStore']
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
@@ -138,6 +149,7 @@ declare global {
   const useClipboardData: typeof import('@uni-helper/uni-use')['useClipboardData']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVars: typeof import('vue')['useCssVars']
+  const useDictStore: typeof import('../store/modules/dict.store')['useDictStore']
   const useDownloadFile: typeof import('@uni-helper/uni-use')['useDownloadFile']
   const useGlobalData: typeof import('@uni-helper/uni-use')['useGlobalData']
   const useId: typeof import('vue')['useId']
@@ -201,12 +213,11 @@ declare module 'vue' {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly Storage: UnwrapRef<typeof import('../utils/storage')['Storage']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
-    readonly applyThemeOnPageShow: UnwrapRef<typeof import('../utils/theme')['applyThemeOnPageShow']>
-    readonly applyThemeToMiniProgram: UnwrapRef<typeof import('../utils/theme')['applyThemeToMiniProgram']>
     readonly auth: UnwrapRef<typeof import('../api/auth')['default']>
     readonly checkLogin: UnwrapRef<typeof import('../utils/auth')['checkLogin']>
-    readonly clearAll: UnwrapRef<typeof import('../utils/storage')['clearAll']>
+    readonly clearAll: UnwrapRef<typeof import('../utils/auth')['clearAll']>
     readonly clearTokens: UnwrapRef<typeof import('../utils/auth')['clearTokens']>
+    readonly clearUserInfo: UnwrapRef<typeof import('../utils/auth')['clearUserInfo']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly createPinia: UnwrapRef<typeof import('pinia')['createPinia']>
@@ -217,15 +228,13 @@ declare module 'vue' {
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
-    readonly extendedColorOptions: UnwrapRef<typeof import('../composables/useTheme')['extendedColorOptions']>
     readonly file: UnwrapRef<typeof import('../api/file')['default']>
     readonly getAccessToken: UnwrapRef<typeof import('../utils/auth')['getAccessToken']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getRefreshToken: UnwrapRef<typeof import('../utils/auth')['getRefreshToken']>
-    readonly getToken: UnwrapRef<typeof import('../utils/storage')['getToken']>
-    readonly getUserInfo: UnwrapRef<typeof import('../utils/storage')['getUserInfo']>
+    readonly getUserInfo: UnwrapRef<typeof import('../utils/auth')['getUserInfo']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly isLoggedIn: UnwrapRef<typeof import('../utils/auth')['isLoggedIn']>
@@ -289,15 +298,13 @@ declare module 'vue' {
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
     readonly setMapStoreSuffix: UnwrapRef<typeof import('pinia')['setMapStoreSuffix']>
     readonly setRefreshToken: UnwrapRef<typeof import('../utils/auth')['setRefreshToken']>
-    readonly setToken: UnwrapRef<typeof import('../utils/storage')['setToken']>
-    readonly setUserInfo: UnwrapRef<typeof import('../utils/storage')['setUserInfo']>
+    readonly setUserInfo: UnwrapRef<typeof import('../utils/auth')['setUserInfo']>
     readonly setupStore: UnwrapRef<typeof import('../store/index')['setupStore']>
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
     readonly store: UnwrapRef<typeof import('../store/index')['store']>
     readonly storeToRefs: UnwrapRef<typeof import('pinia')['storeToRefs']>
-    readonly themeColorOptions: UnwrapRef<typeof import('../composables/useTheme')['themeColorOptions']>
     readonly toRaw: UnwrapRef<typeof import('vue')['toRaw']>
     readonly toRef: UnwrapRef<typeof import('vue')['toRef']>
     readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
@@ -321,7 +328,6 @@ declare module 'vue' {
     readonly useThemeStore: UnwrapRef<typeof import('../store/modules/theme.store')['useThemeStore']>
     readonly useToast: UnwrapRef<typeof import('wot-design-uni')['useToast']>
     readonly useUserStore: UnwrapRef<typeof import('../store/modules/user.store')['useUserStore']>
-    readonly useWechat: UnwrapRef<typeof import('../composables/useWechat')['useWechat']>
     readonly user: UnwrapRef<typeof import('../api/user')['default']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
     readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>

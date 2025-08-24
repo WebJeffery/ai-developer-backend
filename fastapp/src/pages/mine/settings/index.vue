@@ -1,31 +1,18 @@
 <template>
   <view class="app-container">
-    <wd-navbar title="设置" left-arrow @click-left="handleBack" />
-
     <wd-cell-group custom-style="margin-top: 20rpx">
       <wd-cell v-if="isLogin" title="个人资料" icon="user" is-link @click="navigateToProfile" />
-      <wd-cell
-        v-if="isLogin"
-        title="账号和安全"
-        icon="secured"
-        is-link
-        @click="navigateToAccount"
-      />
+      <wd-cell v-if="isLogin" title="账号和安全" icon="secured" is-link @click="navigateToAccount" />
       <wd-cell title="主题设置" icon="setting1" is-link @click="navigateToTheme" />
       <wd-cell title="用户协议" icon="user" is-link @click="navigateToUserAgreement" />
+      <wd-cell title="隐私政策" icon="folder" is-link @click="navigateToPrivacy" />
       <wd-cell title="关于我们" icon="info-circle" is-link @click="navigateToAbout" />
       <wd-cell title="进入官网" icon="internet" is-link @click="navigateToOfficialWebsite" />
     </wd-cell-group>
 
     <wd-cell-group custom-style="margin-top:40rpx">
       <wd-cell title="网络测试" icon="wifi" is-link @click="navigateToNetworkTest" />
-      <wd-cell
-        title="清空缓存"
-        icon="delete1"
-        :value="cacheSize"
-        clickable
-        @click="handleClearCache"
-      />
+      <wd-cell title="清空缓存" icon="delete1" :value="cacheSize" clickable @click="handleClearCache" />
     </wd-cell-group>
 
     <view v-if="isLogin" class="logout-section">
@@ -83,6 +70,13 @@ const navigateToUserAgreement = () => {
   });
 };
 
+// 隐私政策
+const navigateToPrivacy = () => {
+  uni.navigateTo({
+    url: "/pages/mine/settings/privacy/index",
+  });
+};
+
 // 关于我们
 const navigateToAbout = () => {
   uni.navigateTo({
@@ -92,15 +86,13 @@ const navigateToAbout = () => {
 
 // 进入官网
 const navigateToOfficialWebsite = () => {
-  uni.navigateTo({
-    url: "https://service.fastapiadmin.com",
-  });
+  // plus.runtime.openURL("https://service.fastapiadmin.com");
+  window.open("https://service.fastapiadmin.com", "_blank");
 };
 
 // 网络测试
 const navigateToNetworkTest = () => {
-  // #ifdef H5
-  window.open("https://service.fastapiadmin.com", "_blank");
+  uni.navigateTo({ url: "/pages/mine/settings/network/index" });
 };
 
 // 是否正在清理
@@ -201,16 +193,21 @@ const handleLogout = () => {
   });
 };
 
-// 返回
-const handleBack = () => {
-  uni.navigateBack();
-};
-
 // 检查登录状态
 onLoad(() => {
   getCacheSize();
 });
 </script>
+
+<route lang="json">
+{
+  "name": "settings",
+  "style": {
+    "navigationBarTitleText": "设置"
+  }
+}
+</route>
+
 <style lang="scss" scoped>
 .logout-section {
   display: flex;

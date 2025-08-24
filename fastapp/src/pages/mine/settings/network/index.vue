@@ -1,9 +1,15 @@
 <template>
-  <view class="app-container">
-    <wd-navbar title="网络测试" left-arrow @click-left="handleBack" />
+  <view class="app-container dark:text-[var(--wot-dark-color)]">
+    <wd-navbar
+      title="网络测试"
+      left-arrow
+      placeholder
+      safe-area-inset-top
+      @click-left="handleBack"
+    />
 
     <!-- 网络状态展示 -->
-    <wd-card title="网络状态" custom-style="margin: 20rpx">
+    <wd-card custom-style="margin: 20rpx">
       <wd-cell-group border>
         <wd-cell title="网络状态">
           <wd-tag :type="networkType ? 'success' : 'danger'" size="small">
@@ -206,6 +212,15 @@ onBeforeUnmount(() => {
   // #endif
 });
 </script>
+
+<route lang="json">
+{
+  "name": "network",
+  "style": {
+    "navigationBarTitleText": "网络测试"
+  }
+}
+</route>
 
 <style lang="scss" scoped>
 .mr-10 {

@@ -85,11 +85,14 @@ httpRequest.interceptors.response.use((response: AxiosResponse<ApiResponse>) => 
       }
     }
 
-    if (data?.status_code === ResultEnum.ACCESS_TOKEN_INVALID) {
+    if (data?.status_code === ResultEnum.TOKEN_EXPIRED) {
       await redirectToLogin("登录已过期，请重新登录");
       return Promise.reject(new Error(data.msg));
     } else if (data?.code === ResultEnum.ERROR) {
       ElMessage.error(data.msg || "请求错误");
+      return Promise.reject(new Error(data.msg || "请求错误"));
+    } else if (data?.code === ResultEnum.UNAUTHORIZED) {
+      ElMessage.error(data.msg || "暂无权限");
       return Promise.reject(new Error(data.msg || "请求错误"));
     } else if (data?.code === ResultEnum.EXCEPTION) {
       ElMessage.error(data.msg || "服务异常");

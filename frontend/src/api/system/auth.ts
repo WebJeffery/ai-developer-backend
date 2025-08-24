@@ -45,6 +45,7 @@ export interface LoginFormData {
   captcha_key: string;
   captcha: string;
   remember: boolean;
+  login_type: string;
 }
 
 // 刷新令牌
