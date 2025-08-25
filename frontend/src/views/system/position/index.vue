@@ -47,10 +47,10 @@
       <template #header>
         <div class="card-header">
           <span>
-            <el-tooltip content="公告通知管理维护系统的公告和通知。">
+            <el-tooltip content="岗位管理维护系统的岗位信息。">
               <QuestionFilled class="w-4 h-4 mx-1" />
             </el-tooltip>
-            公告通知列表
+            岗位列表
           </span>
         </div>
       </template>
