@@ -41,15 +41,15 @@ fastapi_vue3_admin/frontend
 # 进入前端工程目录
 cd frontend
 # 安装依赖
-npm install
+pnpm install
 # 启动前端服务
-npm run dev
+pnpm run dev
 # 构建前端, 生成 `frontend/dist` 目录
-npm run build
+pnpm run build
 # 运行文档工程
-npm run docs:dev
+pnpm run docs:dev
 # 构建文档工程, 生成 `public/docs` 目录
-npm run docs:build
+pnpm run docs:build
 # 运行命令，查看未用到的依赖
 depcheck
 ```
