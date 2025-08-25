@@ -77,13 +77,34 @@ class DemoEnvMiddleware(BaseHTTPMiddleware):
     async def dispatch(
             self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        client_ip = request.client.host
-        if settings.DEMO_ENABLE and request.method != "GET" and client_ip not in settings.DEMO_IP_WHITE_LIST:
+        
+        if settings.DEMO_ENABLE and request.method != "GET":
             path = request.scope.get("path")
+            client_ip = request.client.host
+            
+            # 基本检查：IP和路径限制
+            if client_ip not in settings.DEMO_IP_WHITE_LIST:
+                return ErrorResponse(msg="演示环境，禁止操作")
+
             if path in settings.DEMO_BLACK_LIST_PATH:
-                return ErrorResponse(msg="演示环境，禁止操作",)
-            elif path not in settings.DEMO_WHITE_LIST_PATH:
-                return ErrorResponse(msg="演示环境，禁止操作",)
+                return ErrorResponse(msg="演示环境，禁止操作")
+                
+            # 对于需要权限控制的路径，先执行请求，然后在响应前检查用户权限
+            if path not in settings.DEMO_WHITE_LIST_PATH:
+                # 先执行请求，这样认证依赖项会运行并设置用户信息
+                try:
+                    response = await call_next(request)
+                    
+                    # 现在检查用户是否有权限执行操作
+                    user_username = request.scope.get("user_username")
+                    if user_username and user_username not in settings.DEMO_USER_WHITE_LIST:
+                        # 如果用户没有权限，返回错误响应
+                        return ErrorResponse(msg="演示环境，禁止操作")
+                    
+                    return response
+                except Exception as e:
+                    # 处理可能的异常
+                    raise e
 
         return await call_next(request)
 

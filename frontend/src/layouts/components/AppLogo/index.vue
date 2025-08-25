@@ -2,7 +2,7 @@
   <div class="logo">
     <transition enter-active-class="animate__animated animate__fadeInLeft">
       <router-link :key="+collapse" class="wh-full flex-center" to="/">
-        <img :src="configStore.configData.sys_web_logo.config_value" class="w20px h20px" />
+        <img :src="configStore.configData.sys_web_logo.config_value" class="w50px h50px" />
         <span v-if="!collapse" class="title">
           {{ configStore.configData.sys_web_title.config_value }}
         </span>
