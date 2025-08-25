@@ -13,7 +13,7 @@ export interface ThemeColorOption {
 export type ThemeMode = "light" | "dark";
 
 export const useThemeStore = defineStore("appTheme", () => {
-  const theme = useStorage<ThemeMode>("app-theme", "light");
+  const theme = useStorage<ThemeMode>("app-theme", "dark");
 
   // 预定义的主题色选项
   const themeColorOptions: ThemeColorOption[] = [

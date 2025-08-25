@@ -141,8 +141,8 @@ const isCapsLock = ref(false);
 
 
 const loginForm = reactive<LoginFormData>({
-  username: "",
-  password: "",
+  username: "admin",
+  password: "123456",
   captcha: "",
   captcha_key: "",
   remember: true,

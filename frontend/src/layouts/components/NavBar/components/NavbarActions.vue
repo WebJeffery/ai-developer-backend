@@ -228,7 +228,8 @@ function logout() {
     lockScroll: false,
   }).then(() => {
     userStore.logout().then(() => {
-      router.push(`/login?redirect=${route.fullPath}`);
+      // router.push(`/login?redirect=${route.fullPath}`);
+      router.push(`/login`);
     });
   }).catch(() => {
     ElMessageBox.close();

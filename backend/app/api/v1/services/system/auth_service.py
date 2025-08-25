@@ -114,6 +114,9 @@ class LoginService:
             request_ip = request.client.host
         login_location = await IpLocalUtil.get_ip_location(request_ip)
         request.scope["login_location"] = login_location
+        
+        # 确保在请求上下文中设置用户名
+        request.scope["user_username"] = user.username
 
         access_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         refresh_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
