@@ -71,9 +71,9 @@ services:
       # - ./fastapp/dist/build/h5:/usr/share/nginx/html/fastapp/dist/build/h5
       # - ./fastdocs/dist:/usr/share/nginx/html/fastdocs/dist
       #  下面三行是本地前端打包好放在服务器的路径，如果使用服务器打包则使用上面方式
-      - /home/fastapiadmin/frontend/dist:/usr/share/nginx/html/frontend/dist
-      - /home/fastapiadmin/fastapp/dist/build/h5:/usr/share/nginx/html/fastapp/dist/build/h5
-      - /home/fastapiadmin/fastdocs/dist:/usr/share/nginx/html/fastdocs/dist
+      - /home/fastapiadmin/frontend:/usr/share/nginx/html/frontend
+      - /home/fastapiadmin/fastapp:/usr/share/nginx/html/fastapp
+      - /home/fastapiadmin/fastdocs:/usr/share/nginx/html/fastdocs
       # ssl 证书
       - /home/fastapiadmin/ssl:/etc/nginx/ssl:ro
     depends_on:

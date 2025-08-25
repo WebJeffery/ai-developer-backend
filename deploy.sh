@@ -135,7 +135,7 @@ build_frontend() {
 
 # 构建镜像&启动容器
 start_containers() {
-    log "==========🚀 第五步：构建镜像&启动容器...==========" "INFO"
+    log "==========🚀 构建镜像&启动容器...==========" "INFO"
     docker compose build || { log "❌ 镜像构建失败" "ERROR"; exit 1; }
     log "✅  Docker镜像构建成功" "INFO"
     docker compose up -d --force-recreate || { log "❌ 容器启动失败" "ERROR"; exit 1; }
@@ -146,7 +146,7 @@ start_containers() {
     
     # 显示容器日志
     log "📋 获取容器日志..." "INFO"
-    docker compose logs --tail 400 ||  { log "❌ 容器日志获取失败" "ERROR"; exit 1; }
+    docker compose logs  ||  { log "❌ 容器日志获取失败" "ERROR"; exit 1; }
     log "✅ 容器启动成功" "INFO"
 }
 
@@ -182,9 +182,9 @@ main() {
     log "==========🚀 开始部署流程==========" "INFO"
     check_permissions
     check_dependencies
+    update_code
+    # build_frontend (由于本地资源较小，在服务器上构建应用改用本地构建好，上传到服务器)
     stop_project
-    # update_code (由于本地资源较小，在服务器上构建应用改用本地构建好，上传到服务器)
-    build_image
     start_containers
     cleanup_old_images
     log "🎉 部署完成！以下是访问信息：" "INFO"
