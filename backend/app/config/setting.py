@@ -99,7 +99,7 @@ class Settings(BaseSettings):
     EXPIRE_ON_COMMIT: bool = False      # 是否在提交时过期
 
     # SQLite数据库连接
-    DB_DRIVER: str
+    DB_DRIVER: Literal['sqlite','mysql', 'postgresql'] = 'sqlite'
     SQLITE_DB_NAME: str
 
     # MySQL数据库连接
