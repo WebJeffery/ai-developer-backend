@@ -17,7 +17,7 @@ class CacheInfoSchema(BaseModel):
     """缓存对象信息模型"""
     model_config = ConfigDict(from_attributes=True)
 
-    cache_key: str = Field(default='', description='缓存键名')
-    cache_name: str = Field(default='', description='缓存名称')
+    cache_key: str = Field(..., description='缓存键名')
+    cache_name: str = Field(..., description='缓存名称')
     cache_value: Any = Field(default=None, description='缓存值')
     remark: Optional[str] = Field(default=None, description='备注说明')
