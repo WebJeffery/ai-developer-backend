@@ -1,13 +1,5 @@
 <template>
   <view class="app-container">
-    <wd-navbar
-      title="账号和安全"
-      left-arrow
-      placeholder
-      safe-area-inset-top
-      @click-left="handleBack"
-    />
-
     <wd-card custom-style="margin-top: 20rpx">
       <wd-cell-group border>
         <wd-cell
@@ -115,11 +107,6 @@ const passwordChangeForm = reactive<PasswordChangeForm>({
   confirm_password: "",
 });
 const passwordChangeFormRef = ref();
-
-// 处理返回按钮点击
-const handleBack = () => {
-  uni.navigateBack();
-};
 
 /** 加载用户信息 */
 const loadUserProfile = async () => {

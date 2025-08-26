@@ -3,7 +3,7 @@
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, ClassVar, Dict, List, Optional, Union
+from typing import Any, ClassVar, Dict, List, Optional, Union, Literal
 from pydantic import MongoDsn, PostgresDsn, RedisDsn, MySQLDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from uvicorn.config import LifespanType

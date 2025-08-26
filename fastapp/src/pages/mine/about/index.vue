@@ -1,13 +1,5 @@
 <template>
   <view class="app-container dark:text-[var(--wot-dark-color)]">
-    <wd-navbar
-      title="关于我们"
-      left-arrow
-      placeholder
-      safe-area-inset-top
-      @click-left="handleBack"
-    />
-
     <wd-card custom-style="margin-top: 20rpx">
       <view class="about-header">
         <wd-img
@@ -90,11 +82,6 @@ onMounted(() => {
   version.value = uni.getSystemInfoSync().appVersion;
   // #endif
 });
-
-// 返回
-const handleBack = () => {
-  uni.navigateBack();
-};
 </script>
 
 <route lang="json">

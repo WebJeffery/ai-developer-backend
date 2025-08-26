@@ -1,13 +1,5 @@
 <template>
   <view class="app-container">
-    <wd-navbar
-      title="个人信息"
-      left-arrow
-      placeholder
-      safe-area-inset-top
-      @click-left="handleBack"
-    />
-
     <wd-card v-if="userProfile" custom-style="margin-top: 20rpx">
       <wd-cell-group border>
         <wd-cell class="avatar-cell" title="头像" center is-link>
@@ -217,10 +209,6 @@ function touchstartListener(event: TouchEvent) {
 // 禁用浏览器下拉刷新，使头像裁剪时能够移动图片
 function touchmoveListener(event: TouchEvent) {
   event.preventDefault();
-}
-
-function handleBack() {
-  uni.navigateBack();
 }
 </script>
 <style lang="scss" scoped>

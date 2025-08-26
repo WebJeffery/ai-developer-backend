@@ -54,16 +54,11 @@ export const useThemeStore = defineStore("appTheme", () => {
 
   // 设置导航栏颜色
   const setNavigationBarColor = () => {
-    // 只在非H5环境下调用setNavigationBarColor
-    if (process.env.UNI_PLATFORM !== "h5") {
-      console.log("设置导航栏颜色", theme.value);
-      uni.setNavigationBarColor({
-        frontColor: theme.value === "light" ? "#000000" : "#ffffff",
-        backgroundColor: theme.value === "light" ? "#ffffff" : "#000000",
-      });
-    } else {
-      console.log("H5环境下跳过设置导航栏颜色");
-    }
+    console.log("设置导航栏颜色", theme.value);
+    uni.setNavigationBarColor({
+      frontColor: theme.value === "light" ? "#000000" : "#ffffff",
+      backgroundColor: theme.value === "light" ? "#ffffff" : "#000000",
+    });
   };
 
   // 设置主题色
