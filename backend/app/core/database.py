@@ -28,8 +28,15 @@ from app.core.logger import logger
 from app.config.setting import settings
 from app.core.exceptions import CustomException
 
+# 同步数据库引擎
+engine = create_engine(
+    url=settings.DATABASES_URI,
+    echo=settings.DATABASE_ECHO,
+)
+# 同步数据库会话工厂
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-
+# 异步数据库引擎
 def async_db_engine() -> AsyncEngine:
     """创建异步数据库引擎"""
     # 创建数据库引擎
@@ -47,8 +54,7 @@ def async_db_engine() -> AsyncEngine:
 
     return async_engine
     
-
-# 创建会话工厂
+# 异步数据库会话工厂
 async_session = async_sessionmaker(
     bind=async_db_engine(),
     autocommit=settings.AUTOCOMMIT,
@@ -56,7 +62,6 @@ async_session = async_sessionmaker(
     expire_on_commit=settings.EXPIRE_ON_COMMIT,
     class_=AsyncSession
 )
-
 
 def session_connect() -> AsyncSession:
     """获取数据库会话"""
@@ -125,7 +130,6 @@ async def redis_connect(app: FastAPI, status: bool) -> aioredis.Redis:
     else:
         await app.state.redis.close()
         logger.info('Redis连接已关闭')
-
 
 async def mongodb_connect(app: FastAPI, status: bool) -> AsyncIOMotorClient:
     """创建或关闭MongoDB连接"""

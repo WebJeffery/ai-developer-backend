@@ -1,6 +1,12 @@
 <template>
   <view class="app-container">
-    <wd-navbar title="账号和安全" left-arrow @click-left="handleBack" />
+    <wd-navbar
+      title="账号和安全"
+      left-arrow
+      placeholder
+      safe-area-inset-top
+      @click-left="handleBack"
+    />
 
     <wd-card custom-style="margin-top: 20rpx">
       <wd-cell-group border>
@@ -93,6 +99,8 @@ const rules = reactive({
 
 enum DialogType {
   PASSWORD = "password",
+  MOBILE = "mobile",
+  EMAIL = "email",
 }
 
 const dialog = reactive({
@@ -152,4 +160,12 @@ onMounted(() => {
   loadUserProfile();
 });
 </script>
+
+<route lang="json">
+{
+  "name": "account",
+  "style": { "navigationBarTitleText": "账号和安全" },
+  "layout": "tabbar"
+}
+</route>
 <style lang="scss" scoped></style>

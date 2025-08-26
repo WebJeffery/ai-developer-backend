@@ -16,6 +16,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       host: true,
       port: Number(env.VITE_APP_PORT),
       open: true,
+      // 代理配置只在 H5（浏览器）开发时生效。 其他平台（如小程序、App）在开发时不使用 Vite 的开发服务器，它们直接运行在各自的环境中。
       proxy: {
         [env.VITE_APP_BASE_API]: {
           changeOrigin: true,
@@ -36,7 +37,15 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       // make sure put it before `Uni()`
       UnoCss(),
       UniLayouts(),
-      UniPages(),
+      UniPages({
+        dts: "src/types/uni-pages.d.ts",
+        subPackages: ["src/subPages"],
+        /**
+         * 排除的页面，相对于 dir 和 subPackages
+         * @default []
+         */
+        exclude: ["**/components/**/*.*"],
+      }),
 
       Components({
         resolvers: [WotResolver()],

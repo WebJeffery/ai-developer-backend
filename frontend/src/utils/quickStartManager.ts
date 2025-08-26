@@ -5,7 +5,6 @@ export interface QuickLink {
   title: string;
   description: string;
   icon: string;
-  color: string;
   href: string;
   action: 'navigate' | 'external';
   id?: string;
@@ -35,7 +34,6 @@ class QuickStartManager {
         title: "用户管理",
         description: "管理系统用户信息",
         icon: "User",
-        color: "#409EFF",
         href: "/system/user",
         action: "navigate"
       },
@@ -44,7 +42,6 @@ class QuickStartManager {
         title: "系统监控",
         description: "监控系统状态",
         icon: "Monitor",
-        color: "#909399",
         href: "/monitor",
         action: "navigate"
       },
@@ -53,7 +50,6 @@ class QuickStartManager {
         title: "百度搜索",
         description: "访问百度搜索引擎",
         icon: "Search",
-        color: "#3385FF",
         href: "https://www.baidu.com",
         action: "external"
       },
@@ -62,7 +58,6 @@ class QuickStartManager {
         title: "GitHub",
         description: "访问代码托管平台",
         icon: "Monitor",
-        color: "#24292e",
         href: "https://github.com",
         action: "external"
       }
@@ -177,7 +172,6 @@ class QuickStartManager {
       title: customTitle || route.meta?.title || route.name || '未命名页面',
       description: customDescription || `快速访问 ${route.meta?.title || route.name || '页面'}`,
       icon: routeIcon,
-      color: routeColor,
       href: route.fullPath || route.path,
       action: 'navigate',
       id: `route-${route.path.replace(/\//g, '-')}-${Date.now()}`

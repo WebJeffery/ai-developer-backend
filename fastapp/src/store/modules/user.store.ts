@@ -1,17 +1,16 @@
 import { defineStore } from "pinia";
-import AuthAPI, {
-  type LoginFormData,
-  type WxLoginData,
-  type LoginResult,
-  type LogoutBody,
-} from "@/api/auth";
 import UserAPI, { type UserInfo } from "@/api/user";
-import { getAccessToken, setAccessToken, clearTokens } from "@/utils/auth";
-import { getUserInfo, setUserInfo } from "@/utils/storage";
-import { USER_INFO_KEY } from "@/constants";
-import { Storage } from "@/utils/storage";
+import AuthAPI, { type LoginFormData, type LoginResult, type LogoutBody } from "@/api/auth";
+import {
+  getAccessToken,
+  setAccessToken,
+  setRefreshToken,
+  clearAll,
+  getUserInfo,
+  setUserInfo,
+} from "@/utils/auth";
 
-export const useUserStore = defineStore("user_info", () => {
+export const useUserStore = defineStore("appUserInfo", () => {
   const userInfo = ref<UserInfo | undefined>(getUserInfo());
   const isLoggingIn = ref(false);
 
@@ -23,6 +22,7 @@ export const useUserStore = defineStore("user_info", () => {
     try {
       const result = await loginFn();
       setAccessToken(result.access_token);
+      setRefreshToken(result.refresh_token);
 
       // 登录成功后获取用户信息
       await getInfo();
@@ -39,16 +39,6 @@ export const useUserStore = defineStore("user_info", () => {
   // 账号密码登录
   const login = async (data: LoginFormData) => {
     return handleLogin(() => AuthAPI.login(data), "账号密码");
-  };
-
-  // 微信基础授权登录
-  const loginWithWxCode = async (code: string) => {
-    return handleLogin(() => AuthAPI.loginByWxMiniAppCode(code), "微信授权");
-  };
-
-  // 微信手机号授权登录
-  const loginWithWxPhone = async (data: WxLoginData) => {
-    return handleLogin(() => AuthAPI.loginByWxMiniAppPhone(data), "微信手机号");
   };
 
   // 获取用户信息
@@ -69,14 +59,13 @@ export const useUserStore = defineStore("user_info", () => {
   const logout = async () => {
     try {
       const logoutBody: LogoutBody = {
-        token: getAccessToken(),
+        token: getAccessToken() || "",
       };
       await AuthAPI.logout(logoutBody); // 调用后台注销接口
     } catch (error) {
       console.error("登出失败", error);
     } finally {
-      clearTokens(); // 清除本地的 token
-      Storage.remove(USER_INFO_KEY); // 清除用户信息缓存
+      clearAll(); // 清除本地的 token
       userInfo.value = undefined; // 清空用户信息
       // 跳转到登录页面
       uni.reLaunch({
@@ -95,8 +84,6 @@ export const useUserStore = defineStore("user_info", () => {
     userInfo,
     isLoggingIn,
     login,
-    loginWithWxCode,
-    loginWithWxPhone,
     logout,
     getInfo,
     isUserInfoComplete,

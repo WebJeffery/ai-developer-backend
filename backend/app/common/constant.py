@@ -200,6 +200,19 @@ class RET(Enum):
 class CommonConstant:
     """
     常用常量
+    
+    WWW: www主域名
+    HTTP: http请求
+    HTTPS: https请求
+    LOOKUP_RMI: RMI远程方法调用
+    LOOKUP_LDAP: LDAP远程方法调用
+    LOOKUP_LDAPS: LDAPS远程方法调用
+    YES: 是否为系统默认（是）
+    NO: 是否为系统默认（否）
+    DEPT_NORMAL: 部门正常状态
+    DEPT_DISABLE: 部门停用状态
+    UNIQUE: 校验是否唯一的返回标识（是）
+    NOT_UNIQUE: 校验是否唯一的返回标识（否）
     """
 
     # 域名相关
@@ -280,6 +293,29 @@ class JobConstant:
     ]
     JOB_WHITE_LIST = ['module_task']
 
+
+class MenuConstant:
+    """
+    菜单常量
+
+    TYPE_DIR: 菜单类型（目录）
+    TYPE_MENU: 菜单类型（菜单）
+    TYPE_BUTTON: 菜单类型（按钮）
+    YES_FRAME: 是否菜单外链（是）
+    NO_FRAME: 是否菜单外链（否）
+    LAYOUT: Layout组件标识
+    PARENT_VIEW: ParentView组件标识
+    INNER_LINK: InnerLink组件标识
+    """
+
+    TYPE_DIR = 'M'
+    TYPE_MENU = 'C'
+    TYPE_BUTTON = 'F'
+    YES_FRAME = 0
+    NO_FRAME = 1
+    LAYOUT = 'Layout'
+    PARENT_VIEW = 'ParentView'
+    INNER_LINK = 'InnerLink'
 
 # if __name__ == "__main__":
 #     print(RET.OK.msg)  # 输出: 成功

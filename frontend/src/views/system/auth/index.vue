@@ -21,19 +21,19 @@
         <div w-full flex flex-col items-center>
           <!-- logo -->
           <!-- <el-image :src="logo" style="width: 84px" /> -->
-          <el-image :src="configStore.configData.sys_web_logo.config_value" style="width: 84px" />
+          <el-image :src="configStore.configData.sys_web_logo.config_value" style="width: 140px" />
 
           <!-- 标题 -->
           <!-- 添加小图标用于显示提示信息 -->
-          <div class="flex items-center justify-center">
+          <div class="flex items-center justify-center mb-4">
             <el-tooltip :content="configStore.configData.sys_web_description.config_value" placement="bottom">
               <el-icon class="cursor-help"><QuestionFilled /></el-icon>
             </el-tooltip>
-            <h2 class="ml-2">
+            <div class="ml-2 text-xl font-bold">
               <el-badge :value="`v ${configStore.configData.sys_web_version.config_value}`" type="success">
                 {{ configStore.configData.sys_web_title.config_value }}
               </el-badge>
-            </h2>
+            </div>
           </div>
 
           <!-- 组件切换 -->

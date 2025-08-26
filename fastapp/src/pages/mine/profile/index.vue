@@ -1,6 +1,12 @@
 <template>
   <view class="app-container">
-    <wd-navbar title="个人信息" left-arrow @click-left="handleBack" />
+    <wd-navbar
+      title="个人信息"
+      left-arrow
+      placeholder
+      safe-area-inset-top
+      @click-left="handleBack"
+    />
 
     <wd-card v-if="userProfile" custom-style="margin-top: 20rpx">
       <wd-cell-group border>
@@ -24,13 +30,27 @@
         <wd-cell title="昵称" :value="userProfile.name" is-link @click="handleOpenDialog()" />
         <wd-cell
           title="性别"
-          :value="userProfile.gender === 1 ? '男' : userProfile.gender === 2 ? '女' : '未知'"
+          :value="userProfile.gender === '0' ? '男' : userProfile.gender === '1' ? '女' : '未知'"
           is-link
           @click="handleOpenDialog()"
         />
         <wd-cell title="用户名" :value="userProfile.username" />
+        <wd-cell v-if="userProfile" title="状态" center>
+          <wd-tag :type="userProfile.status ? 'success' : 'danger'">
+            {{ userProfile.status ? "启用" : "停用" }}
+          </wd-tag>
+        </wd-cell>
+        <wd-cell v-if="userProfile" title="是否超管" center>
+          <wd-tag plain :type="userProfile.is_superuser ? 'primary' : 'default'">
+            {{ userProfile.is_superuser ? "是" : "否" }}
+          </wd-tag>
+        </wd-cell>
+        <wd-cell title="手机号" :value="userProfile.mobile" />
+        <wd-cell title="邮箱" :value="userProfile.email" />
         <wd-cell title="部门" :value="userProfile.dept_name" />
-        <wd-cell title="角色" :value="userProfile.roleNames?.join(', ')" />
+        <wd-cell title="角色" :value="userProfile.roles?.map((item) => item.name).join(', ')" />
+        <wd-cell title="岗位" :value="userProfile.positions?.map((item) => item.name).join(', ')" />
+        <wd-cell title="备注" :value="userProfile.description" />
         <wd-cell title="创建日期" :value="userProfile.created_at" />
       </wd-cell-group>
     </wd-card>
@@ -52,12 +72,13 @@
           />
           <wd-cell title="性别" title-width="160rpx" center prop="gender" :rules="rules.gender">
             <wd-radio-group v-model="userProfileForm.gender" shape="button" class="ef-radio-group">
-              <wd-radio :value="1">男</wd-radio>
-              <wd-radio :value="2">女</wd-radio>
+              <wd-radio :value="0">男</wd-radio>
+              <wd-radio :value="1">女</wd-radio>
+              <wd-radio :value="2">未知</wd-radio>
             </wd-radio-group>
           </wd-cell>
         </wd-cell-group>
-        <view class="p-6">
+        <view class="footer">
           <wd-button type="primary" size="large" block @click="handleSubmit">提交</wd-button>
         </view>
       </wd-form>
@@ -95,7 +116,7 @@ function handleAvatarConfirm(event: any) {
   FileAPI.upload(tempFilePath).then((fileInfo: UploadFileResult) => {
     const avatarForm = {
       name: userProfile.value?.name || "",
-      gender: userProfile.value?.gender || 1,
+      gender: userProfile.value?.gender || "0",
       mobile: userProfile.value?.mobile || "",
       email: userProfile.value?.email || "",
       username: userProfile.value?.username || "",
@@ -125,7 +146,7 @@ const dialog = reactive({
 
 const userProfileForm = reactive<{
   name?: string;
-  gender?: number;
+  gender?: string;
 }>({});
 const userProfileFormRef = ref();
 
@@ -137,7 +158,7 @@ const handleOpenDialog = () => {
   dialog.visible = true;
   // 初始化表单数据
   userProfileForm.name = userProfile.value?.name || "";
-  userProfileForm.gender = userProfile.value?.gender || 1;
+  userProfileForm.gender = userProfile.value?.gender || "0";
 };
 
 // 提交表单
@@ -207,16 +228,19 @@ function handleBack() {
   :deep(.wd-cell__body) {
     align-items: center;
   }
+
   .avatar {
     display: flex;
     align-items: center;
     justify-content: right;
+
     .img {
       position: relative;
       width: 80px;
       height: 80px;
       background-color: rgba(0, 0, 0, 0.04);
       border-radius: 50%;
+
       .img-icon {
         position: absolute;
         top: 50%;
@@ -229,6 +253,7 @@ function handleBack() {
 
 .edit-form {
   padding-top: 40rpx;
+
   .ef-radio-group {
     line-height: 1;
     text-align: left;

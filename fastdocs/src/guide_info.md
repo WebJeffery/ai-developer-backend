@@ -27,6 +27,7 @@ outline: "deep"
 > **设计初心**: 以模块化、松耦合为核心，追求丰富的功能模块、简洁易用的接口、详尽的开发文档和便捷的维护方式。通过统一框架和组件，降低技术选型成本，遵循开发规范和设计模式，构建强大的代码分层模型，搭配完善的本地中文化支持，专为团队和企业开发场景量身定制。
 
 ## 📦工程结构概览
+
 ```sh
 fastapi_vue3_admin
 ├─ backend        # 后端工程
@@ -61,8 +62,8 @@ fastapi_vue3_admin
 | ORM      | SQLAlchemy 2.0      | 强大的 ORM 库。 |
 | 定时任务 | APScheduler         | 轻松实现定时任务。 |
 | 权限认证 | PyJWT               | 实现 JWT 认证。 |
-| 前端框架 | Vue3 / Vite5 / Pinia / TypeScript | 快速开发 Vue3 应用。 |
-| UI 库    | ElementPlus | 快速开发美观的 UI 组件。 |
+| 前端框架 | Uni App / Vue3 / Vite5 / Pinia / TypeScript | 快速开发 Vue3 应用。 |
+| UI 库    | ElementPlus / Wot Design Uni | 快速开发美观的 UI 组件。 |
 | 数据库   | MySQL / MongoDB     | 强大的数据库。 |
 | 缓存     | Redis               | 强大的缓存数据库。 |
 | 文档     | Swagger / Redoc     | 自动生成 API 文档。 |

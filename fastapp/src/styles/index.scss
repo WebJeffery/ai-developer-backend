@@ -8,4 +8,255 @@ body,
 
 .app-container {
   padding: 10rpx 10rpx;
+  :deep(.custom-item) {
+    height: 80px !important;
+  }
+  :deep(.wd-card) {
+    margin: 10rpx 0 !important;
+  }
+}
+
+/**
+ * 全局样式变量
+ */
+
+/* 
+ * 主题颜色 - 会被theme.ts中的动态设置覆盖
+ * 这里作为默认值和IDE提示
+ */
+:root {
+  /* 主色 */
+  --primary-color: #165dff;
+  --primary-color-light: #94bfff;
+  --primary-color-dark: #0e3c9b;
+
+  /* 功能色 */
+  --success-color: #0fc6c2;
+  --warning-color: #ff7d00;
+  --danger-color: #f5222d;
+  --info-color: #86909c;
+
+  /* 文字颜色 */
+  --text-primary: #1d2129;
+  --text-regular: #4e5969;
+  --text-secondary: #86909c;
+  --text-placeholder: #c9cdd4;
+  --text-inverse: #ffffff;
+
+  /* 边框颜色 */
+  --border-color: #e5e6eb;
+  --border-light: #f2f3f5;
+
+  /* 背景颜色 */
+  --bg-white: #ffffff;
+  --bg-light: #f2f3f5;
+  --bg-gray: #f7f8fa;
+}
+
+/**
+ * 主题相关的通用类
+ */
+
+/* 主色文本 */
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+/* 主色背景 */
+.bg-primary {
+  color: #fff;
+  background-color: var(--primary-color) !important;
+}
+
+/* 主色边框 */
+.border-primary {
+  border-color: var(--primary-color) !important;
+}
+
+/* 主色按钮样式 */
+.btn-primary {
+  color: #fff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 8rpx;
+  transition: opacity 0.3s;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+/* 圆角按钮 */
+.btn-rounded {
+  border-radius: 45rpx !important;
+}
+
+/* 次级按钮 */
+.btn-secondary {
+  color: var(--primary-color);
+  background-color: #fff;
+  border: 1px solid var(--primary-color);
+  border-radius: 8rpx;
+  transition: background-color 0.3s;
+
+  &:active {
+    background-color: rgba(22, 93, 255, 0.05);
+  }
+}
+
+/**
+ * 字体大小
+ */
+.font-xs {
+  font-size: 24rpx;
+}
+
+.font-sm {
+  font-size: 28rpx;
+}
+
+.font-md {
+  font-size: 32rpx;
+}
+
+.font-lg {
+  font-size: 36rpx;
+}
+
+.font-xl {
+  font-size: 40rpx;
+}
+
+/**
+ * 边距辅助类
+ */
+.mt-10 {
+  margin-top: 10rpx;
+}
+.mt-20 {
+  margin-top: 20rpx;
+}
+.mt-30 {
+  margin-top: 30rpx;
+}
+.mt-40 {
+  margin-top: 40rpx;
+}
+
+.mb-10 {
+  margin-bottom: 10rpx;
+}
+.mb-20 {
+  margin-bottom: 20rpx;
+}
+.mb-30 {
+  margin-bottom: 30rpx;
+}
+.mb-40 {
+  margin-bottom: 40rpx;
+}
+
+.ml-10 {
+  margin-left: 10rpx;
+}
+.ml-20 {
+  margin-left: 20rpx;
+}
+.ml-30 {
+  margin-left: 30rpx;
+}
+.ml-40 {
+  margin-left: 40rpx;
+}
+
+.mr-10 {
+  margin-right: 10rpx;
+}
+.mr-20 {
+  margin-right: 20rpx;
+}
+.mr-30 {
+  margin-right: 30rpx;
+}
+.mr-40 {
+  margin-right: 40rpx;
+}
+
+.p-10 {
+  padding: 10rpx;
+}
+.p-20 {
+  padding: 20rpx;
+}
+.p-30 {
+  padding: 30rpx;
+}
+.p-40 {
+  padding: 40rpx;
+}
+
+/**
+ * 布局辅助类
+ */
+.flex {
+  display: flex;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.flex-column {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.items-start {
+  align-items: flex-start;
+}
+.items-end {
+  align-items: flex-end;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-around {
+  justify-content: space-around;
+}
+.justify-start {
+  justify-content: flex-start;
+}
+.justify-end {
+  justify-content: flex-end;
+}
+
+/**
+ * 其他辅助类
+ */
+.text-center {
+  text-align: center;
+}
+.text-left {
+  text-align: left;
+}
+.text-right {
+  text-align: right;
+}
+
+.rounded-sm {
+  border-radius: 4rpx;
+}
+.rounded {
+  border-radius: 8rpx;
+}
+.rounded-lg {
+  border-radius: 16rpx;
+}
+.rounded-xl {
+  border-radius: 24rpx;
+}
+.rounded-full {
+  border-radius: 9999rpx;
 }

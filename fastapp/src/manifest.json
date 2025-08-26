@@ -15,8 +15,11 @@
       "autoclose": true,
       "delay": 0
     },
+    /* 模块配置 */
     "modules": {},
+    /* 应用发布信息 */
     "distribute": {
+      /* android打包配置 */
       "android": {
         "permissions": [
           "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
@@ -36,11 +39,15 @@
           "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
         ]
       },
+      /* ios打包配置 */
       "ios": {},
+      /* SDK配置 */
       "sdkConfigs": {}
     }
   },
+  /* 快应用特有相关 */
   "quickapp": {},
+  /* 小程序特有相关:"appid": "wx99a151dc43d2637b" */
   "mp-weixin": {
     "appid": "微信开发者ID",
     "setting": {
@@ -50,12 +57,15 @@
     "darkmode": true,
     "themeLocation": "theme.json"
   },
+  /* 抖音小程序特有相关 */
   "mp-alipay": {
     "usingComponents": true
   },
+  /* 百度小程序特有相关 */
   "mp-baidu": {
     "usingComponents": true
   },
+  /* 字节跳动小程序特有相关 */
   "mp-toutiao": {
     "usingComponents": true
   },
