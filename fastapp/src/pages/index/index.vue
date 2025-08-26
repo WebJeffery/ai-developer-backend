@@ -1,13 +1,7 @@
 <template>
   <view style="width: 100%; height: var(--status-bar-height)" />
   <view class="app-container">
-    <wd-swiper
-      v-model:current="current"
-      :list="swiperList"
-      autoplay
-      @click="handleClick"
-      @change="onChange"
-    />
+    <wd-swiper v-model:current="current" :list="swiperList" autoplay />
 
     <!-- 快捷导航 -->
     <wd-grid clickable :column="4" class="mt-2">
@@ -141,7 +135,11 @@ const chartOpts = ref({
 // 日期范围
 const recentDaysRange = ref(7);
 
-const swiperList = ref(["/static/images/banner.png"]);
+const swiperList = ref([
+  "/static/images/banner02.jpg",
+  "/static/images/banner03.jpg",
+  "/static/images/banner01.png",
+]);
 
 // 快捷导航列表
 const navList = reactive([

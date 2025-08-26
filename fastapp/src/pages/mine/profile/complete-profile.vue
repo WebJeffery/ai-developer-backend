@@ -1,7 +1,5 @@
 <template>
   <view class="app-container">
-    <wd-navbar title="完善个人信息" left-arrow @click-left="handleBack" />
-
     <!-- 头部标题 -->
     <view class="header">
       <view class="title">完善个人信息</view>
@@ -333,11 +331,6 @@ const handleSkip = () => {
     },
   });
 };
-
-// 返回
-function handleBack() {
-  uni.navigateBack();
-}
 </script>
 
 <style lang="scss" scoped>

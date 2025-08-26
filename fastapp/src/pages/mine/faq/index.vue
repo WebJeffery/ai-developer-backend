@@ -1,7 +1,5 @@
 <template>
   <view class="faq-container">
-    <wd-navbar title="常见问题" left-arrow placeholder safe-area-inset-top @click-left="handleBack" />
-
     <scroll-view class="content-scroll" scroll-y :scroll-top="scrollTop" @scroll="handleScroll">
       <view class="content-wrapper">
         <!-- 技术支持卡片 -->
@@ -191,11 +189,6 @@ const guideSteps = ref([
     desc: "完成初始化设置，开始使用系统各项功能",
   },
 ]);
-
-// 返回
-const handleBack = () => {
-  uni.navigateBack();
-};
 
 const handleScroll = (e: any) => {
   scrollTop.value = e.detail.scrollTop;

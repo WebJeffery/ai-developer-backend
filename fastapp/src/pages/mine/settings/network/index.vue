@@ -1,13 +1,5 @@
 <template>
   <view class="app-container dark:text-[var(--wot-dark-color)]">
-    <wd-navbar
-      title="网络测试"
-      left-arrow
-      placeholder
-      safe-area-inset-top
-      @click-left="handleBack"
-    />
-
     <!-- 网络状态展示 -->
     <wd-card custom-style="margin: 20rpx">
       <wd-cell-group border>
@@ -186,11 +178,6 @@ const startTest = async () => {
       progress.value = 0;
     }, 500);
   }
-};
-
-// 返回
-const handleBack = () => {
-  uni.navigateBack();
 };
 
 // 生命周期钩子

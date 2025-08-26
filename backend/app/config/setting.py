@@ -3,7 +3,7 @@
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, ClassVar, Dict, List, Optional, Union
+from typing import Any, ClassVar, Dict, List, Optional, Union, Literal
 from pydantic import MongoDsn, PostgresDsn, RedisDsn, MySQLDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from uvicorn.config import LifespanType
@@ -99,7 +99,7 @@ class Settings(BaseSettings):
     EXPIRE_ON_COMMIT: bool = False      # 是否在提交时过期
 
     # SQLite数据库连接
-    DB_DRIVER: str
+    DB_DRIVER: Literal['sqlite','mysql', 'postgresql'] = 'sqlite'
     SQLITE_DB_NAME: str
 
     # MySQL数据库连接
@@ -108,6 +108,13 @@ class Settings(BaseSettings):
     MYSQL_HOST: str
     MYSQL_PORT: int
     MYSQL_DB_NAME: str
+
+    # PostgreSQL数据库连接
+    POSTGRESQL_USER: str
+    POSTGRESQL_PASSWORD: str
+    POSTGRESQL_HOST: str
+    POSTGRESQL_PORT: int
+    POSTGRESQL_DB_NAME: str
 
     # ================================================= #
     # ******************** MongoDB配置 ******************* #
@@ -255,30 +262,40 @@ class Settings(BaseSettings):
     @property
     def DB_URI(self) -> str:
         """获取数据库连接"""
-        supported_db_drivers = ("sqlite", "mysql")
+        
+        supported_db_drivers = ("sqlite", "mysql", "postgresql")
         if settings.DB_DRIVER not in supported_db_drivers:
             raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
         if settings.DB_DRIVER == "mysql":
             MYSQL_URI: MySQLDsn = f"mysql+asyncmy://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB_NAME}?charset=utf8mb4"
             return MYSQL_URI
-        else:
+        elif settings.DB_DRIVER == "sqlite":
             SQLITE_URI: str = f"sqlite+aiosqlite:///{settings.BASE_DIR.joinpath(settings.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
             return SQLITE_URI
-        
+        elif settings.DB_DRIVER == "postgresql":
+            POSRGRES_URI: PostgresDsn = f"postgresql+asyncpg://{settings.POSTGRESQL_USER}:{settings.POSTGRESQL_PASSWORD}@{settings.POSTGRESQL_HOST}:{settings.POSTGRESQL_PORT}/{settings.POSTGRESQL_DB_NAME}"
+            return POSRGRES_URI
+        else:
+            raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
 
     
     @property
     def DATABASES_URI(self) -> str:
         """获取数据库连接"""
-        supported_db_drivers = ("sqlite", "mysql")
+        supported_db_drivers = ("sqlite", "mysql", "postgresql")
         if settings.DB_DRIVER not in supported_db_drivers:
             raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
         if settings.DB_DRIVER == "mysql":
             MYSQL_URI: MySQLDsn = f"mysql+pymysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB_NAME}?charset=utf8mb4"
             return MYSQL_URI
-        else:
+        elif settings.DB_DRIVER == "postgresql":
+            POSRGRES_URI: PostgresDsn = f"postgresql://{settings.POSTGRESQL_USER}:{settings.POSTGRESQL_PASSWORD}@{settings.POSTGRESQL_HOST}:{settings.POSTGRESQL_PORT}/{settings.POSTGRESQL_DB_NAME}"
+            return POSRGRES_URI
+        elif settings.DB_DRIVER == "sqlite":
             SQLITE_URI: str = f"sqlite:///{settings.BASE_DIR.joinpath(settings.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
             return SQLITE_URI
+        else:
+            raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
             
 
         
@@ -364,6 +381,45 @@ class Settings(BaseSettings):
             "lifespan": self.LIFESPAN,
             "factory": self.FACTORY,
         }
+
+
+class WxMiniConfig(BaseSettings):
+
+    WX_MINI_APPID: str = "xxxx"
+    WX_MINI_APPID_SECRET: str = "xxxx"
+
+    WX_MINI_TOKEN_URL: str = ("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}"
+                         .format(WX_MINI_APPID, WX_MINI_APPID_SECRET))
+    WX_MINI_GET_PHONE_URL: str = "https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token={}"
+    WX_MINI_LOGIN: str = ("https://api.weixin.qq.com/sns/jscode2session?grant_type=authorization_code&appid={}"
+                          "&secret={}&js_code={}")
+    # 获取无限小程序码
+    WX_MINI_GEN_PATH_CODE: str = 'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}'
+    # 微信小程序发送订阅消息
+    WX_MINI_SEND_SUBSCRIBE_MSG: str = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token={}'
+    # 微信商户ID，后续支付使用
+    WXPAY_MCHID: str= "xxxx"
+    # 微信支付 API v3秘钥
+    WXPAY_APIV3_KEY: str = "xxxx"
+    # 微信支付结果回调接口
+    WXPAY_NOTIFYURL: str = "微信支付结果回调接口"
+    # 商户证书序列号
+    WXPAY_SERIALNO: str = "xxxx"
+    # 商户私钥
+    WXPAY_CLIENT_PRIKEY: str = "wxmini/wepay_cert/apiclient_key.pem"
+    # 商品描述(统一下单接口用到)
+    WXPAY_PAY_DESC: str = "商品描述(统一下单接口用到)"
+    # 回调地址，也可以在调用接口的时候覆盖
+    NOTIFY_URL: str = 'https://xxxx.xxxxx.cn/api/v1/wepay/notify'
+    # 微信支付平台证书缓存目录，减少证书下载调用次数，首次使用确保此目录为空目录.
+    # 初始调试时可不设置，调试通过后再设置，示例值:'./cert'
+    CERT_DIR: str = './cert'
+
+    SubscribeTemplate: Any = {
+        # 微信小程序通知模板ID
+        "rest_minute": "xxxxx"
+    }
+    pass
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

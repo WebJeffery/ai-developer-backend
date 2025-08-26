@@ -1,8 +1,5 @@
 <template>
   <view class="app-container">
-    <wd-navbar title="意见反馈" left-text="返回" left-arrow placeholder safe-area-inset-top right-text="首页"
-      @click-left="handleBack" @click-right="handleClickRight" />
-
     <wd-text size="small">选填，最多上传3张图片</wd-text>
     <wd-form ref="formRef" :model="formData" :rules="rules" errorType="toast">
       <!-- 问题类型选择 -->
@@ -153,18 +150,6 @@ const handleSubmit = async () => {
     // 表单验证失败
     console.log("表单验证失败", error);
   }
-};
-
-// 返回
-const handleBack = () => {
-  uni.navigateBack();
-};
-
-// 首页
-const handleClickRight = () => {
-  uni.switchTab({
-    url: "/pages/index/index",
-  });
 };
 </script>
 <route lang="json">

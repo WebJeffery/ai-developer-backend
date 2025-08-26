@@ -25,7 +25,7 @@ from pymongo import MongoClient
 
 from app.api.v1.schemas.system.auth_schema import AuthSchema
 from app.config.setting import settings
-from app.core.database import session_connect
+from app.core.database import engine, session_connect, SessionLocal
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.api.v1.cruds.monitor.job_crud import JobCRUD
@@ -46,6 +46,7 @@ if settings.REDIS_USER:
 
 job_stores = {
     'default': MemoryJobStore(),
+    'sqlalchemy': SQLAlchemyJobStore(url=settings.DATABASES_URI, engine=engine),
     'redis': RedisJobStore(**redis_config),
 }
 # 配置执行器
@@ -71,7 +72,9 @@ class SchedulerUtil:
 
     @classmethod
     def scheduler_event_listener(cls, event: JobEvent | JobExecutionEvent):
+        # 获取事件类型和任务ID
         event_type = event.__class__.__name__
+        # 初始化任务状态
         status = True
         exception_info = ''
         if event_type == 'JobExecutionEvent' and event.exception:
@@ -80,10 +83,29 @@ class SchedulerUtil:
             if hasattr(event, 'job_id'):
                 job_id = event.job_id
                 query_job = cls.get_job(job_id=job_id)
-                job_group = query_job._jobstore_alias # 获取任务组
-                job_message = f"事件类型: {event_type}, 任务ID: {job_id}, 状态: {status}, 任务组: {job_group}, 错误详情: {exception_info}"
-                logger.error(job_message)
-                # JobCRUD(AuthSchema(db=session)).set_obj_field_crud(ids=[job_id], status=status, message=job_message)
+                if query_job:
+                    query_job_info = query_job.__getstate__()
+                    # 获取任务名称
+                    job_name = query_job_info.get('name')
+                    # 获取任务组名
+                    job_group = query_job._jobstore_alias
+                    # # 获取任务执行器
+                    # job_executor = query_job_info.get('executor')
+                    # # 获取调用目标字符串
+                    # invoke_target = query_job_info.get('func')
+                    # # 获取调用函数位置参数
+                    # job_args = ','.join(query_job_info.get('args'))
+                    # # 获取调用函数关键字参数
+                    # job_kwargs = json.dumps(query_job_info.get('kwargs'))
+                    # # 获取任务触发器
+                    # job_trigger = str(query_job_info.get('trigger'))
+                    # 构造日志消息
+                    job_message = f"事件类型: {event_type}, 任务ID: {job_id}, 任务名称: {job_name}, 状态: {status}, 任务组: {job_group}, 错误详情: {exception_info}, 执行于{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+
+                    logger.error(job_message)
+                    session = SessionLocal()
+                    JobCRUD(AuthSchema(db=session)).set_obj_field_crud(ids=[job_id], status=status, message=job_message)
+                    session.close()
 
     @classmethod
     async def init_system_scheduler(cls, db):

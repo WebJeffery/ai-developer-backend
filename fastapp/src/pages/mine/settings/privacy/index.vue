@@ -1,12 +1,5 @@
 <template>
   <view class="app-container">
-    <wd-navbar
-      title="隐私政策"
-      left-arrow
-      placeholder
-      safe-area-inset-top
-      @click-left="handleBack"
-    />
     <wd-card custom-style="margin-top: 20rpx">
       <view class="flex-col-center py-4">
         <text class="text-xl font-bold mb-2">隐私政策</text>
@@ -83,11 +76,6 @@ const handleAgree = () => {
   setTimeout(() => {
     uni.navigateBack();
   }, 1500);
-};
-
-// 返回
-const handleBack = () => {
-  uni.navigateBack();
 };
 </script>
 <route lang="json">
