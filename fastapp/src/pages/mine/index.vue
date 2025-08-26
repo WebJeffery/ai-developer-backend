@@ -325,18 +325,15 @@ watch(
         margin-bottom: 8rpx;
         font-size: 34rpx;
         font-weight: bold;
-        color: #fff;
       }
 
       .user-id {
         font-size: 24rpx;
-        color: rgba(255, 255, 255, 0.8);
       }
 
       .login-prompt {
         margin-bottom: 16rpx;
         font-size: 28rpx;
-        color: #fff;
       }
     }
 

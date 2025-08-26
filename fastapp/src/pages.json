@@ -1,4 +1,12 @@
 {
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue",
+      "^cu-(.*)": "@/components/cu-$1/index.vue"
+    }
+  },
+
   "pages": [
     {
       "path": "pages/index/index",
@@ -119,27 +127,20 @@
     }
   ],
   "globalStyle": {
-    "navigationBarBackgroundColor": "@navBgColor",
-    "navigationBarTextStyle": "@navTxtStyle",
+    "navigationBarTextStyle": "black",
     "navigationBarTitleText": "FastApp",
-    "backgroundColor": "@bgColor",
-    "backgroundTextStyle": "@bgTxtStyle",
-    "backgroundColorTop": "@bgColorTop",
-    "backgroundColorBottom": "@bgColorBottom",
-    "enablePullDownRefresh": false,
-    "onReachBottomDistance": 50,
-    "animationType": "pop-in",
-    "animationDuration": 300
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
   },
   "tabBar": {
     "custom": true,
     "customize": true,
     "overlay": true,
     "height": "0",
-    "color": "@tabColor",
-    "selectedColor": "@tabSelectedColor",
-    "backgroundColor": "@tabBgColor",
-    "borderStyle": "@tabBorderStyle",
+    "color": "#474747",
+    "selectedColor": "#3B8DFF",
+    "backgroundColor": "#F8F8F8",
+    "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index"
