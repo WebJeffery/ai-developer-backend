@@ -61,34 +61,54 @@
               </ElCol>
             </ElRow>
           </ElCard>
-          <!-- 动态 -->
-          <ElCard shadow="hover" title="动态" class="mt-4">
-            <template #header>
-              <span class="font-bold">动态</span>
-              <ElLink href="" type="primary" underline="never" style="float: right">更多</ElLink>
-            </template>
-            <ElTimeline>
-              <ElTimelineItem v-for="item in activities" :key="item.id">
-                <div class="flex justify-between items-center">
-                  <div class="flex items-center">
-                    <ElAvatar :src="item.user.avatar" size="small" class="mr-20px">{{ item.user?.name }}</ElAvatar>
-                    <span>{{ item.template1 }}</span>
-                    <span>&nbsp;</span>
-                    <ElLink :href="item.group?.link" type="primary" underline="never">{{ item?.group?.name }}</ElLink>
-                    <span>&nbsp;</span>
-                    <span>{{ item.template2 }}</span>
-                    <span>&nbsp;</span>
-                    <ElLink :href="item.project?.link" type="primary" underline="never">{{ item?.project?.name }}
-                    </ElLink>
-                  </div>
-                  <span>{{ item.updatedAt }}</span>
-                </div>
-              </ElTimelineItem>
-            </ElTimeline>
-          </ElCard>
+                     <!-- 通知公告 -->
+           <ElCard shadow="hover" class="mt-4">
+             <template #header>
+               <div class="flex justify-between items-center">
+                 <span class="font-bold">通知公告</span>
+                 <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary" underline="never">更多</ElLink>
+               </div>
+             </template>
+             <ElTimeline>
+               <ElTimelineItem v-for="(item, index) in noticeList" :key="item.id" :type="index === 0 ? 'primary' : 'info'">
+                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                   <div class="flex justify-between items-start mb-2">
+                     <div class="flex items-center gap-2">
+                       <span class="font-medium text-gray-900">{{ item.notice_title }}</span>
+                      <el-tag size="small" :type="getNoticeTypeColor(item.notice_type)">
+                          {{ getNoticeTypeText(item.notice_type) }}
+                        </el-tag>
+                     </div>
+                     <span class="text-xs text-gray-500">{{ formatTime(item.created_at) }}</span>
+                   </div>
+                   <div class="text-sm text-gray-600 mb-3 line-clamp-2">{{ item.notice_content }}</div>
+                   <div class="flex justify-between items-center text-xs">
+                     <span class="text-gray-500">{{ item.creator?.name }} 发布</span>
+                     <el-tooltip placement="top" :content="item.description || item.notice_content">
+                       <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary">详情↗</ElLink>
+                     </el-tooltip>
+                   </div>
+                 </div>
+               </ElTimelineItem>
+             </ElTimeline>
+           </ElCard>
+
+                     <!-- 团队 -->
+           <ElCard class="mt-4 font-bold" header="团队">
+             <div class="members">
+               <ElRow :gutter="16">
+                 <ElCol v-for="item in projectNotice" :key="`members-item-${item.id}`" :span="8">
+                   <ElLink underline="never" :href="item.href">
+                     <ElAvatar :src="item.avatar" size="small" />
+                     <span class="member">{{ item.member }}</span>
+                   </ElLink>
+                 </ElCol>
+               </ElRow>
+             </div>
+           </ElCard>
         </ElCol>
 
-        <!-- 右侧：快速开始 / 便捷导航 + XX 指数 + 团队 -->
+        <!-- 右侧：快速开始 / 便捷导航 + XX 指数 -->
         <ElCol :xl="8" :lg="8" :md="12" :sm="12" :xs="24">
           <!-- 快速开始 / 便捷导航 -->
           <QuickStart />
@@ -96,20 +116,6 @@
           <!-- XX 指数 -->
           <ElCard class="mb-4 font-bold" header="XX 指数">
             <ECharts class="chart" :options="chartOptions" height="450px" autoresize :init-options="{ renderer: 'canvas' }" />
-          </ElCard>
-
-          <!-- 团队 -->
-          <ElCard class="mb-4 font-bold" header="团队">
-            <div class="members">
-              <ElRow :gutter="48">
-                <ElCol v-for="item in projectNotice" :key="`members-item-${item.id}`" :span="12">
-                  <ElLink underline="never" :href="item.href">
-                    <ElAvatar :src="item.avatar" size="small" />
-                    <span class="member">{{ item.member }}</span>
-                  </ElLink>
-                </ElCol>
-              </ElRow>
-            </div>
           </ElCard>
         </ElCol>
       </ElRow>
@@ -122,9 +128,76 @@ import { EChartsOption } from 'echarts'
 import { useUserStore } from "@/store/index";
 import { greetings } from '@/utils/common';
 import QuickStart from './components/QuickStart.vue';
+import NoticeAPI, { NoticeTable } from '@/api/system/notice';
+import { ref, onMounted } from 'vue';
 
 const userStore = useUserStore();
 const timefix = greetings();
+
+// 通知公告数据
+const noticeList = ref<NoticeTable[]>([]);
+
+// 格式化时间
+const formatTime = (time: string | undefined) => {
+  if (!time) return '';
+  const date = new Date(time);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  
+  if (minutes < 1) return '刚刚';
+  if (minutes < 60) return `${minutes}分钟前`;
+  if (hours < 24) return `${hours}小时前`;
+  if (days < 7) return `${days}天前`;
+  return date.toLocaleDateString();
+};
+
+// 获取通知类型文本和颜色
+const getNoticeTypeText = (type: string | undefined) => {
+  switch (type) {
+    case '1':
+      return '通知';
+    case '2':
+      return '公告';
+    default:
+      return '通知';
+  }
+};
+
+// 获取通知类型对应的标签颜色
+const getNoticeTypeColor = (type: string | undefined) => {
+  switch (type) {
+    case '1':
+      return 'primary';
+    case '2':
+      return 'success';
+    default:
+      return 'primary';
+  }
+};
+
+// 获取通知公告列表
+const getNoticeList = async () => {
+  try {
+    const response = await NoticeAPI.getNoticeList({
+      page_no: 1,
+      page_size: 10,
+      status: true // 只获取启用的公告
+    });
+    if (response.data.code === 0) {
+      noticeList.value = response.data.data.items;
+    }
+  } catch (error) {
+    console.error('获取通知公告失败:', error);
+  }
+};
+
+// 组件挂载时获取数据
+onMounted(() => {
+  getNoticeList();
+});
 
 defineOptions({
   name: "DashBoard",
@@ -204,118 +277,7 @@ const projectNotice = [
   },
 ];
 
-const activities = [
-  {
-    id: "trend-1",
-    updatedAt: "几秒前",
-    user: {
-      name: "曲丽丽",
-      avatar:
-        "https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png",
-    },
-    group: {
-      name: "高逼格设计天团",
-      link: "http://github.com/",
-    },
-    project: {
-      name: "六月迭代",
-      link: "http://github.com/",
-    },
-    template1: "在",
-    template2: "新建项目",
-  },
-  {
-    id: "trend-2",
-    updatedAt: "几分钟前",
-    user: {
-      name: "付小小",
-      avatar:
-        "https://gw.alipayobjects.com/zos/rmsportal/cnrhVkzwxjPwAaCfPbdc.png",
-    },
-    group: {
-      name: "高逼格设计天团",
-      link: "http://github.com/",
-    },
-    project: {
-      name: "六月迭代",
-      link: "http://github.com/",
-    },
-    template1: "在",
-    template2: "新建项目",
-  },
-  {
-    id: "trend-3",
-    updatedAt: "10 分钟前",
-    user: {
-      name: "林东东",
-      avatar:
-        "https://gw.alipayobjects.com/zos/rmsportal/gaOngJwsRYRaVAuXXcmB.png",
-    },
-    group: {
-      name: "中二少女团",
-      link: "http://github.com/",
-    },
-    project: {
-      name: "六月迭代",
-      link: "http://github.com/",
-    },
-    template1: "在",
-    template2: "新建项目",
-  },
-  {
-    id: "trend-4",
-    updatedAt: "1小时前",
-    user: {
-      name: "周星星",
-      avatar:
-        "https://gw.alipayobjects.com/zos/rmsportal/WhxKECPNujWoWEFNdnJE.png",
-    },
-    group: {
-      name: "5 月日常迭代",
-      link: "http://github.com/",
-    },
-    template1: "将",
-    template2: "更新至已发布状态",
-  },
-  {
-    id: "trend-5",
-    updatedAt: "1周前",
-    user: {
-      name: "朱偏右",
-      avatar:
-        "https://gw.alipayobjects.com/zos/rmsportal/ubnKSIfAJTxIgXOKlciN.png",
-    },
-    group: {
-      name: "工程效能",
-      link: "http://github.com/",
-    },
-    project: {
-      name: "留言",
-      link: "http://github.com/",
-    },
-    template1: "在",
-    template2: "发布了",
-  },
-  {
-    id: "trend-6",
-    updatedAt: "1个月前",
-    user: {
-      name: "乐哥",
-      avatar:
-        "https://gw.alipayobjects.com/zos/rmsportal/jZUIxmJycoymBprLOUbT.png",
-    },
-    group: {
-      name: "程序员日常",
-      link: "http://github.com/",
-    },
-    project: {
-      name: "品牌迭代",
-      link: "http://github.com/",
-    },
-    template1: "在",
-    template2: "新建项目",
-  },
-];
+
 
 const chartOptions = reactive<EChartsOption>({
   tooltip: { trigger: 'item' },
@@ -366,11 +328,8 @@ const chartOptions = reactive<EChartsOption>({
       vertical-align: top;
     }
 
-    &:hover {
-      color: #1890ff;
-    }
   }
 }
 
-
+/* 通知公告相关样式已使用UnoCSS工具类替代 */
 </style>

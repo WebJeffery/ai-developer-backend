@@ -23,16 +23,7 @@
               <span class="tag-text">{{ translateRouteTitle(tag.title) }}</span>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <!-- 收藏到快速开始 -->
-                  <el-dropdown-item @click="toggleQuickStart(tag)">
-                    <el-icon>
-                      <Star v-if="!isQuickLinkExists(tag)" />
-                      <StarFilled v-else />
-                    </el-icon>
-                    {{ isQuickLinkExists(tag) ? '取消收藏' : '收藏到快速开始' }}
-                  </el-dropdown-item>
-
-                  <el-dropdown-item divided @click="refreshSelectedTag(tag)">
+                  <el-dropdown-item @click="refreshSelectedTag(tag)">
                     <el-icon>
                       <Refresh />
                     </el-icon>
@@ -82,6 +73,15 @@
                       <Minus />
                     </el-icon>
                     {{ t("navbar.closeAll") }}
+                  </el-dropdown-item>
+
+                  <!-- 收藏到快速开始 -->
+                  <el-dropdown-item divided @click="toggleQuickStart(tag)">
+                    <el-icon>
+                      <Star v-if="!isQuickLinkExists(tag)" />
+                      <StarFilled v-else />
+                    </el-icon>
+                    {{ isQuickLinkExists(tag) ? '取消收藏' : '收藏' }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -739,6 +739,7 @@ onUnmounted(() => {
 
         &:hover {
           color: var(--el-color-white);
+
         }
       }
     }
