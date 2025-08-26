@@ -200,6 +200,19 @@ class RET(Enum):
 class CommonConstant:
     """
     常用常量
+    
+    WWW: www主域名
+    HTTP: http请求
+    HTTPS: https请求
+    LOOKUP_RMI: RMI远程方法调用
+    LOOKUP_LDAP: LDAP远程方法调用
+    LOOKUP_LDAPS: LDAPS远程方法调用
+    YES: 是否为系统默认（是）
+    NO: 是否为系统默认（否）
+    DEPT_NORMAL: 部门正常状态
+    DEPT_DISABLE: 部门停用状态
+    UNIQUE: 校验是否唯一的返回标识（是）
+    NOT_UNIQUE: 校验是否唯一的返回标识（否）
     """
 
     # 域名相关

@@ -109,6 +109,13 @@ class Settings(BaseSettings):
     MYSQL_PORT: int
     MYSQL_DB_NAME: str
 
+    # PostgreSQL数据库连接
+    POSTGRESQL_USER: str
+    POSTGRESQL_PASSWORD: str
+    POSTGRESQL_HOST: str
+    POSTGRESQL_PORT: int
+    POSTGRESQL_DB_NAME: str
+
     # ================================================= #
     # ******************** MongoDB配置 ******************* #
     # ================================================= #
@@ -255,30 +262,40 @@ class Settings(BaseSettings):
     @property
     def DB_URI(self) -> str:
         """获取数据库连接"""
-        supported_db_drivers = ("sqlite", "mysql")
+        
+        supported_db_drivers = ("sqlite", "mysql", "postgresql")
         if settings.DB_DRIVER not in supported_db_drivers:
             raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
         if settings.DB_DRIVER == "mysql":
             MYSQL_URI: MySQLDsn = f"mysql+asyncmy://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB_NAME}?charset=utf8mb4"
             return MYSQL_URI
-        else:
+        elif settings.DB_DRIVER == "sqlite":
             SQLITE_URI: str = f"sqlite+aiosqlite:///{settings.BASE_DIR.joinpath(settings.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
             return SQLITE_URI
-        
+        elif settings.DB_DRIVER == "postgresql":
+            POSRGRES_URI: PostgresDsn = f"postgresql+asyncpg://{settings.POSTGRESQL_USER}:{settings.POSTGRESQL_PASSWORD}@{settings.POSTGRESQL_HOST}:{settings.POSTGRESQL_PORT}/{settings.POSTGRESQL_DB_NAME}"
+            return POSRGRES_URI
+        else:
+            raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
 
     
     @property
     def DATABASES_URI(self) -> str:
         """获取数据库连接"""
-        supported_db_drivers = ("sqlite", "mysql")
+        supported_db_drivers = ("sqlite", "mysql", "postgresql")
         if settings.DB_DRIVER not in supported_db_drivers:
             raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
         if settings.DB_DRIVER == "mysql":
             MYSQL_URI: MySQLDsn = f"mysql+pymysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB_NAME}?charset=utf8mb4"
             return MYSQL_URI
-        else:
+        elif settings.DB_DRIVER == "postgresql":
+            POSRGRES_URI: PostgresDsn = f"postgresql://{settings.POSTGRESQL_USER}:{settings.POSTGRESQL_PASSWORD}@{settings.POSTGRESQL_HOST}:{settings.POSTGRESQL_PORT}/{settings.POSTGRESQL_DB_NAME}"
+            return POSRGRES_URI
+        elif settings.DB_DRIVER == "sqlite":
             SQLITE_URI: str = f"sqlite:///{settings.BASE_DIR.joinpath(settings.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
             return SQLITE_URI
+        else:
+            raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
             
 
         
