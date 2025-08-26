@@ -1,12 +1,5 @@
 <template>
   <view class="app-container dark:text-[var(--wot-dark-color)]">
-    <wd-navbar
-      title="主题设置"
-      left-arrow
-      placeholder
-      safe-area-inset-top
-      @click-left="handleBack"
-    />
     <!-- 页面标题 -->
     <view class="page-header">
       <text class="page-title">主题设置</text>
@@ -77,31 +70,7 @@
       </wd-cell>
     </wd-card>
 
-    <!-- 预览区域 -->
-    <wd-card class="setting-section">
-      <view class="section-header">
-        <wd-icon name="eye" size="20" />
-        <text class="section-title">效果预览</text>
-      </view>
-
-      <wd-divider />
-
-      <wd-grid :column="2" border>
-        <wd-grid-item use-slot>
-          <wd-button size="small" type="primary">按钮</wd-button>
-        </wd-grid-item>
-        <wd-grid-item use-slot>
-          <wd-button size="small" plain :style="{ borderColor: currentThemeColor }">边框</wd-button>
-        </wd-grid-item>
-        <wd-grid-item use-slot>
-          <wd-text class="preview-text" :style="{ color: currentThemeColor }" text="文本"></wd-text>
-        </wd-grid-item>
-
-        <wd-grid-item use-slot>
-          <wd-tag type="primary" mark>标签</wd-tag>
-        </wd-grid-item>
-      </wd-grid>
-    </wd-card>
+    <wd-divider />
 
     <!-- 操作按钮 -->
     <wd-card class="action-section">
@@ -261,11 +230,6 @@ onMounted(() => {
 onShow(() => {
   customColor.value = currentThemeColor.value;
 });
-
-// 返回
-const handleBack = () => {
-  uni.navigateBack();
-};
 </script>
 
 <route lang="json">
@@ -412,12 +376,6 @@ const handleBack = () => {
       }
     }
   }
-}
-
-// 效果预览
-.preview-text {
-  font-size: 28rpx;
-  font-weight: 500;
 }
 
 .preview-border {
