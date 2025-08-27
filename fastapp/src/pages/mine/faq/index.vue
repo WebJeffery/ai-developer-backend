@@ -47,16 +47,24 @@
           <wd-collapse v-model="activeNames" accordion>
             <wd-collapse-item title="常见问题" name="faq">
               <view class="faq-list">
-                <view v-for="(item, index) in faqList" :key="index" class="faq-item" :class="{
-                  active: currentFaq === index,
-                }" @tap="toggleFaq(index)">
+                <view
+                  v-for="(item, index) in faqList"
+                  :key="index"
+                  class="faq-item"
+                  :class="{ active: currentFaq === index }"
+                  @tap="toggleFaq(index)"
+                >
                   <view class="faq-header">
                     <view class="faq-question">
                       <wd-icon name="question-filled" size="28rpx" color="#ff9500" />
                       <text class="question-text">{{ item.question }}</text>
                     </view>
-                    <wd-icon name="arrow-down-bold" size="24rpx" color="#999"
-                      :custom-class="currentFaq === index ? 'rotate-180' : ''" />
+                    <wd-icon
+                      name="arrow-down-bold"
+                      size="24rpx"
+                      color="#999"
+                      :custom-class="currentFaq === index ? 'rotate-180' : ''"
+                    />
                   </view>
                   <view v-if="currentFaq === index" class="faq-answer">
                     <text class="answer-text">{{ item.answer }}</text>

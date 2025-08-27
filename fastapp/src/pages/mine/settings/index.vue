@@ -1,6 +1,6 @@
 <template>
   <view class="app-container">
-    <wd-cell-group custom-style="margin-top: 20rpx">
+    <wd-cell-group>
       <wd-cell v-if="isLogin" title="个人资料" icon="user" is-link @click="navigateToProfile" />
       <wd-cell v-if="isLogin" title="账号和安全" icon="secured" is-link @click="navigateToAccount" />
       <wd-cell title="主题设置" icon="setting1" is-link @click="navigateToTheme" />
@@ -8,9 +8,7 @@
       <wd-cell title="隐私政策" icon="folder" is-link @click="navigateToPrivacy" />
       <wd-cell title="关于我们" icon="info-circle" is-link @click="navigateToAbout" />
       <wd-cell title="进入官网" icon="internet" is-link @click="navigateToOfficialWebsite" />
-    </wd-cell-group>
-
-    <wd-cell-group custom-style="margin-top:40rpx">
+      <wd-divider />
       <wd-cell title="网络测试" icon="wifi" is-link @click="navigateToNetworkTest" />
       <wd-cell title="清空缓存" icon="delete1" :value="cacheSize" clickable @click="handleClearCache" />
     </wd-cell-group>
@@ -214,7 +212,7 @@ onLoad(() => {
   align-items: center;
   justify-content: center;
   padding: 0 20rpx;
-  margin-top: 60rpx;
+  margin-top: 40rpx;
 }
 
 .logout-btn {

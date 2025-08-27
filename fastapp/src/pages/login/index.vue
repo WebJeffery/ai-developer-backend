@@ -5,7 +5,7 @@
 
     <!-- Logo和标题区域 -->
     <view class="header">
-      <wd-img src="/static/logo.png" class="logo" mode="aspectFit" />
+      <wd-img src="./static/logo.png" class="logo" mode="aspectFit" />
       <text class="title">FastApp管理系统</text>
       <text class="subtitle">欢迎使用移动端管理平台</text>
     </view>
@@ -174,15 +174,17 @@
 import { onLoad } from "@dcloudio/uni-app";
 import { useUserStore } from "@/store";
 import { useToast } from "wot-design-uni";
-import { useTheme } from "@/composables/useTheme";
 import AuthAPI, { type LoginFormData, type CaptchaInfo } from "@/api/auth";
+import { useThemeStore } from "@/store/modules/theme.store";
+
+const useTheme = useThemeStore();
 
 const loginFormRef = ref();
 const toast = useToast();
 const loading = ref(false);
 const userStore = useUserStore();
 const loginType = ref<"account" | "phone">("account");
-const { theme } = useTheme();
+let theme = useTheme.theme;
 
 // 登录表单数据
 const loginFormData = ref<LoginFormData>({
@@ -281,7 +283,7 @@ const handleWechatLogin = async () => {
 };
 
 // 是否暗黑模式
-const isDarkMode = computed(() => theme.value === "dark");
+const isDarkMode = computed(() => theme === "dark");
 
 // 导航函数
 const navigateToUserAgreement = () => {
@@ -314,14 +316,21 @@ onLoad((options) => {
   }
 });
 </script>
-
+<route lang="json">
+{
+  "name": "login",
+  "style": {
+    "navigationBarTitleText": "登录"
+  }
+}
+</route>
 <style lang="scss" scoped>
 .app-container {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100%;
+  height: 100vh;
   min-height: 100%;
   overflow: hidden;
   background-color: var(--wot-color-bg-container);

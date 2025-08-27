@@ -5,7 +5,7 @@
         <wd-img
           width="120rpx"
           height="120rpx"
-          src="/static/logo.png"
+          src="./static/logo.png"
           mode="aspectFit"
           class="about-logo"
         />
