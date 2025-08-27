@@ -336,25 +336,24 @@ const handleCloseDrawer = () => {
     height: 100%;
     padding: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 }
 
 /* 设置内容区域 */
 .settings-content {
-  height: calc(100vh - 120px); /* 减去头部和底部按钮的高度 */
+  flex: 1;
   padding: 20px;
   padding-bottom: 20px;
   overflow-y: auto;
+  min-height: 0; /* 确保内容区域可以收缩 */
 }
 
 /* 底部操作区域样式 */
 .action-footer {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 10;
-  padding: 0;
+  flex-shrink: 0;
+  margin-top: auto; /* 将底部操作区域推到最下方 */
   background: var(--el-bg-color);
   border-top: 1px solid var(--el-border-color-light);
 
