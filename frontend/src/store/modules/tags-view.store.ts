@@ -30,6 +30,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
    * 添加缓存视图到缓存视图列表中
    */
   function addCachedView(view: TagView) {
+    console.log("view",view)
     const viewName = view.name;
     // 如果缓存视图名称已经存在于缓存视图列表中，则不再添加
     if (cachedViews.value.includes(viewName)) {
@@ -39,6 +40,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     // 如果视图需要缓存（keepAlive），则将其路由名称添加到缓存视图列表中
     if (view.keepAlive) {
       cachedViews.value.push(viewName);
+      console.log("cachedViews",cachedViews.value)
     }
   }
 

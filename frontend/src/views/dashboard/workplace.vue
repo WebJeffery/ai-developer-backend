@@ -9,13 +9,13 @@
               <div class="text-20px font-bold">
                 {{ timefix }}{{ currentUser.name }}，{{ welcome }}
               </div>
-              <el-text class="text-[var(--el-text-color-regular)]">
+              <el-text>
                 {{ currentUser.username }} | {{ currentUser.dept_name }} | {{ currentUser.description }}
               </el-text>
             </div>
           </div>
           <!-- 最近登录时间 -->
-          <div class="statItem text-14px text-[var(--el-text-color-regular)] text-right">
+          <div class="statItem text-14px text-gray-600 text-right">
             <el-text>最近登录时间</el-text>
             <div class="mt-5px text-20px">{{ currentUser.last_login }}</div>
           </div>

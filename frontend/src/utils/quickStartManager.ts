@@ -105,72 +105,27 @@ class QuickStartManager {
     }
   }
 
-  // 从路由信息创建快速链接
+  // 从路由或菜单信息创建快速链接
   createQuickLinkFromRoute(route: any, customTitle?: string, customDescription?: string): QuickLink {
-    // 优先使用路由配置的图标
-    let routeIcon = route.meta?.icon;
-    let routeColor = '#409EFF'; // 默认颜色
-
-    // 如果路由没有配置图标，根据路径推断
-    if (!routeIcon) {
-      const iconMap: Record<string, { icon: string; color: string }> = {
-        '/dashboard/workplace': { icon: 'House', color: '#409EFF' },
-        '/dashboard/analysis': { icon: 'TrendCharts', color: '#67C23A' },
-        '/dashboard': { icon: 'House', color: '#409EFF' },
-        '/system/user': { icon: 'User', color: '#409EFF' },
-        '/system/role': { icon: 'UserFilled', color: '#E6A23C' },
-        '/system/menu': { icon: 'Menu', color: '#F56C6C' },
-        '/system/dept': { icon: 'OfficeBuilding', color: '#909399' },
-        '/system/position': { icon: 'Briefcase', color: '#606266' },
-        '/system/dict': { icon: 'Collection', color: '#FF6B6B' },
-        '/system/config': { icon: 'Setting', color: '#67C23A' },
-        '/system/notice': { icon: 'Bell', color: '#E6A23C' },
-        '/system/log': { icon: 'Document', color: '#FF6B6B' },
-        '/system': { icon: 'Setting', color: '#67C23A' },
-        '/monitor/server': { icon: 'Monitor', color: '#606266' },
-        '/monitor/cache': { icon: 'Coin', color: '#F56C6C' },
-        '/monitor/job': { icon: 'Timer', color: '#909399' },
-        '/monitor/online': { icon: 'Connection', color: '#67C23A' },
-        '/monitor': { icon: 'Monitor', color: '#606266' },
-        '/codegen': { icon: 'Code', color: '#4ECDC4' },
-        '/demo': { icon: 'DataAnalysis', color: '#3385FF' },
-        '/profile': { icon: 'User', color: '#409EFF' },
-      };
-
-      // 查找最匹配的路径配置
-      let bestMatch = { icon: 'Link', color: '#909399' }; // 默认配置
-      let maxMatchLength = 0;
-
-      for (const [path, config] of Object.entries(iconMap)) {
-        if (route.path.startsWith(path) && path.length > maxMatchLength) {
-          bestMatch = config;
-          maxMatchLength = path.length;
-        }
-      }
-
-      routeIcon = bestMatch.icon;
-      routeColor = bestMatch.color;
-    } else {
-      // 如果有路由图标，尝试获取对应的颜色
-      const colorMap: Record<string, string> = {
-        'house': '#409EFF',
-        'user': '#409EFF',
-        'setting': '#67C23A',
-        'monitor': '#606266',
-        'document': '#FF6B6B',
-        'bell': '#E6A23C',
-        'menu': '#F56C6C',
-        'office-building': '#909399',
-        'data-analysis': '#3385FF',
-        'trend-charts': '#67C23A',
-      };
-
-      routeColor = colorMap[routeIcon.toLowerCase()] || '#409EFF';
+        // 优先使用路由对象上的icon字段，如果没有则使用默认图标
+    let routeIcon = route.icon || 'Link';
+    
+    // 处理Element Plus图标名称，转换为组件名称
+    if (routeIcon.startsWith('el-icon-')) {
+      // 将 el-icon-Odometer 转换为 Odometer
+      routeIcon = routeIcon.replace('el-icon-', '');
+      // 首字母大写
+      routeIcon = routeIcon.charAt(0).toUpperCase() + routeIcon.slice(1);
     }
+    
+    console.log("routeIcon",routeIcon)
+
+    // 确定最终使用的标题 - 优先使用route.title
+    const finalTitle = customTitle || route.title || route.name || '未命名页面';
 
     return {
-      title: customTitle || route.meta?.title || route.name || '未命名页面',
-      description: customDescription || `快速访问 ${route.meta?.title || route.name || '页面'}`,
+      title: finalTitle,
+      description: customDescription || `快速访问 ${route.title || route.name || '页面'}`,
       icon: routeIcon,
       href: route.fullPath || route.path,
       action: 'navigate',
