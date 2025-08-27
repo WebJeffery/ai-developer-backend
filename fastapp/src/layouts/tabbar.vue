@@ -26,12 +26,15 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from "uni-mini-router";
-import { useTheme } from "@/composables/useTheme";
 import { useTabbar } from "@/composables/useTabbar";
+import { useThemeStore } from "@/store/modules/theme.store";
+
+const useTheme = useThemeStore();
 
 const router = useRouter();
 const route = useRoute();
-const { themeVars, theme } = useTheme();
+let theme = useTheme.theme;
+let themeVars = useTheme.themeVars;
 const { activeTabbar, getTabbarItemValue, setTabbarItemActive, tabbarList } = useTabbar();
 
 function handleTabbarChange({ value }: { value: string }) {

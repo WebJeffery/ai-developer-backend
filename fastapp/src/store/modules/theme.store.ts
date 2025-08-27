@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
-import type { ConfigProviderThemeVars } from "wot-design-uni";
 import { useStorage } from "@uni-helper/uni-use";
+import type { ConfigProviderThemeVars } from "wot-design-uni";
+import { nextTick, reactive, computed } from "vue";
 
 // 主题色选项接口
 export interface ThemeColorOption {
@@ -46,12 +47,6 @@ export const useThemeStore = defineStore("appTheme", () => {
   // 计算属性
   const isDark = computed(() => theme.value === "dark");
 
-  // 切换主题, 指定主题模式，不传则自动切换
-  const toggleTheme = (mode?: ThemeMode) => {
-    theme.value = mode || (theme.value === "light" ? "dark" : "light");
-    setNavigationBarColor();
-  };
-
   // 设置导航栏颜色
   const setNavigationBarColor = () => {
     console.log("设置导航栏颜色", theme.value);
@@ -59,6 +54,12 @@ export const useThemeStore = defineStore("appTheme", () => {
       frontColor: theme.value === "light" ? "#000000" : "#ffffff",
       backgroundColor: theme.value === "light" ? "#ffffff" : "#000000",
     });
+  };
+
+  // 切换主题, 指定主题模式，不传则自动切换
+  const toggleTheme = (mode?: ThemeMode) => {
+    theme.value = mode || (theme.value === "light" ? "dark" : "light");
+    setNavigationBarColor();
   };
 
   // 设置主题色
@@ -78,6 +79,10 @@ export const useThemeStore = defineStore("appTheme", () => {
       setNavigationBarColor();
     });
   };
+
+  // 注意：全局主题管理已在App.vue中处理
+  // 包括：系统主题监听、导航栏颜色同步等
+  // 组件中一般不需要再调用initTheme()，除非有特殊需求
 
   return {
     // 状态

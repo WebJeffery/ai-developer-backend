@@ -71,19 +71,19 @@
              </template>
              <ElTimeline>
                <ElTimelineItem v-for="(item, index) in noticeList" :key="item.id" :type="index === 0 ? 'primary' : 'info'">
-                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                 <div class="bg-[var(--el-fill-color-light)] rounded-lg p-4 border border-[var(--el-border-color)] hover:shadow-md transition-shadow">
                    <div class="flex justify-between items-start mb-2">
                      <div class="flex items-center gap-2">
-                       <span class="font-medium text-gray-900">{{ item.notice_title }}</span>
+                       <span class="font-medium text-[var(--el-text-color-primary)]">{{ item.notice_title }}</span>
                       <el-tag size="small" :type="getNoticeTypeColor(item.notice_type)">
                           {{ getNoticeTypeText(item.notice_type) }}
                         </el-tag>
                      </div>
-                     <span class="text-xs text-gray-500">{{ formatTime(item.created_at) }}</span>
+                     <span class="text-xs text-[var(--el-text-color-regular)]">{{ formatTime(item.created_at) }}</span>
                    </div>
-                   <div class="text-sm text-gray-600 mb-3 line-clamp-2">{{ item.notice_content }}</div>
+                   <div class="text-sm text-[var(--el-text-color-regular)] mb-3 line-clamp-2">{{ item.notice_content }}</div>
                    <div class="flex justify-between items-center text-xs">
-                     <span class="text-gray-500">{{ item.creator?.name }} 发布</span>
+                     <span class="text-[var(--el-text-color-regular)]">{{ item.creator?.name }} 发布</span>
                      <el-tooltip placement="top" :content="item.description || item.notice_content">
                        <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary">详情↗</ElLink>
                      </el-tooltip>
@@ -94,17 +94,18 @@
            </ElCard>
 
                      <!-- 团队 -->
-           <ElCard class="mt-4 font-bold" header="团队">
-             <div class="members">
-               <ElRow :gutter="16">
-                 <ElCol v-for="item in projectNotice" :key="`members-item-${item.id}`" :span="8">
-                   <ElLink underline="never" :href="item.href">
-                     <ElAvatar :src="item.avatar" size="small" />
-                     <span class="member">{{ item.member }}</span>
-                   </ElLink>
-                 </ElCol>
-               </ElRow>
-             </div>
+           <ElCard shadow="hover" class="mt-4">
+             <template #header>
+               <span class="font-bold">团队</span>
+             </template>
+             <ElRow :gutter="16">
+               <ElCol v-for="item in projectNotice" :key="`members-item-${item.id}`" :span="8" class="mb-3">
+                 <ElLink underline="never" :href="item.href" class="flex items-center hover:bg-[var(--el-fill-color-light)] p-2 rounded transition-colors">
+                   <ElAvatar :src="item.avatar" size="small" class="mr-2" />
+                   <span class="text-sm truncate text-[var(--el-text-color-regular)]">{{ item.member }}</span>
+                 </ElLink>
+               </ElCol>
+             </ElRow>
            </ElCard>
         </ElCol>
 
@@ -310,26 +311,14 @@ const chartOptions = reactive<EChartsOption>({
 
 </script>
 
-<style lang="scss" scoped>
-.members {
-  a {
-    display: block;
-    height: 24px;
-    margin: 8px 0;
-    transition: all 0.3s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+<style scoped>
 
-    .member {
-      margin-left: 8px;
-      font-size: 14px;
-      line-height: 24px;
-      vertical-align: top;
-    }
-
-  }
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* 通知公告相关样式已使用UnoCSS工具类替代 */
+/* 最小化自定义样式，主要使用UnoCSS和Element Plus内置样式 */
 </style>

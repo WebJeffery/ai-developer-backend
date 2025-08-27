@@ -10,14 +10,32 @@
           </wd-radio>
         </wd-radio-group>
 
-        <wd-textarea v-model="formData.description" label="问题描述" prop="description" placeholder="请详细描述您遇到的问题或建议..."
-          :maxlength="120" show-word-limit />
+        <wd-textarea
+          v-model="formData.description"
+          label="问题描述"
+          prop="description"
+          placeholder="请详细描述您遇到的问题或建议..."
+          :maxlength="120"
+          show-word-limit
+        />
 
-        <wd-upload v-model="formData.fileList" label="相关截图" prop="fileList" :max-count="3" :before-read="beforeRead"
-          @delete="handleDelete" />
+        <wd-upload
+          v-model="formData.fileList"
+          label="相关截图"
+          prop="fileList"
+          :max-count="3"
+          :before-read="beforeRead"
+          @delete="handleDelete"
+        />
 
-        <wd-input v-model="formData.contact" label="联系方式" prop="contact" placeholder="请输入您的手机号或邮箱" clearable
-          :border="false" />
+        <wd-input
+          v-model="formData.contact"
+          label="联系方式"
+          prop="contact"
+          placeholder="请输入您的手机号或邮箱"
+          clearable
+          :border="false"
+        />
         <wd-text size="small">选填，便于我们与您联系</wd-text>
       </wd-cell-group>
 

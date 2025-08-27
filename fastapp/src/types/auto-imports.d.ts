@@ -326,7 +326,6 @@ declare module 'vue' {
     readonly useStomp: UnwrapRef<typeof import('../composables/useStomp')['useStomp']>
     readonly useTabbar: UnwrapRef<typeof import('../composables/useTabbar')['useTabbar']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
-    readonly useTheme: UnwrapRef<typeof import('../composables/useTheme')['useTheme']>
     readonly useThemeStore: UnwrapRef<typeof import('../store/modules/theme.store')['useThemeStore']>
     readonly useToast: UnwrapRef<typeof import('wot-design-uni')['useToast']>
     readonly useUserStore: UnwrapRef<typeof import('../store/modules/user.store')['useUserStore']>

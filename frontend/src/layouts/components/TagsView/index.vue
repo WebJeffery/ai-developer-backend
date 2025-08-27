@@ -236,6 +236,7 @@ const extractAffixTags = (routes: RouteRecordRaw[], basePath = "/"): TagView[] =
           fullPath,
           name: String(route.name || ""),
           title: route.meta.title || "no-name",
+          icon: (route as any).icon || route.meta?.icon,
           affix: true,
           keepAlive: route.meta.keepAlive || false,
         });
@@ -271,6 +272,7 @@ const initAffixTags = () => {
 const addCurrentTag = () => {
   if (!route.meta?.title) return;
 
+
   // 检查标签是否已存在
   const existingTag = visitedViews.value.find(tag => tag.path === route.path);
   
@@ -292,11 +294,13 @@ const addCurrentTag = () => {
       title: route.meta.title,
       path: route.path,
       fullPath: route.fullPath,
+      icon: (route as any).icon || route.meta?.icon,
       affix: route.meta.affix || false,
       keepAlive: route.meta.keepAlive || false,
       query: route.query,
     });
   }
+
 
   // 检查是否需要自动滚动到最新标签
   nextTick(() => {
@@ -317,6 +321,7 @@ const updateCurrentTag = () => {
         title: route.meta?.title || "",
         path: route.path,
         fullPath: route.fullPath,
+        icon: (route as any).icon || route.meta?.icon,
         affix: route.meta?.affix || false,
         keepAlive: route.meta?.keepAlive || false,
         query: route.query,

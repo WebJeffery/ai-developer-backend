@@ -1,7 +1,16 @@
 <script lang="ts" setup>
-import { useTheme } from "@/composables/useTheme";
+import { onLoad } from "@dcloudio/uni-app";
+import { useThemeStore } from "@/store/modules/theme.store";
 
-const { theme, themeVars } = useTheme();
+const useTheme = useThemeStore();
+
+let theme = useTheme.theme;
+let themeVars = useTheme.themeVars;
+
+onLoad(() => {
+  theme = useTheme.theme;
+  themeVars = useTheme.themeVars;
+});
 </script>
 
 <script lang="ts">

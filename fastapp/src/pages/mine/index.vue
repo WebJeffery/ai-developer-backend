@@ -358,7 +358,7 @@ watch(
 
 // 卡片容器
 .card-container {
-  margin: 24rpx 30rpx;
+  margin: 24rpx 12rpx;
   overflow: hidden;
   background-color: #fff;
   border-radius: 16rpx;
@@ -419,7 +419,7 @@ watch(
   display: flex;
   align-items: center;
   padding: 30rpx;
-  margin: 20rpx 30rpx;
+  margin: 24rpx 12rpx;
   background-color: #ffffff;
   border-radius: 16rpx;
   box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.1);

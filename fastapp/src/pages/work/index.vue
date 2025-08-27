@@ -22,7 +22,12 @@
         <text class="section-subtitle">常用功能一键直达</text>
       </view>
       <view class="actions-grid">
-        <view class="action-item" v-for="(action, index) in quickActions" :key="index" @tap="handleQuickAction(action)">
+        <view
+          v-for="(action, index) in quickActions"
+          :key="index"
+          class="action-item"
+          @tap="handleQuickAction(action)"
+        >
           <view class="action-icon" :style="{ backgroundColor: action.color + '15' }">
             <wd-icon :name="action.icon" :color="action.color" size="28" />
           </view>
@@ -38,7 +43,12 @@
         <text class="section-subtitle">{{ pendingTodos.length }} 项待处理</text>
       </view>
       <view class="todo-list">
-        <view class="todo-item" v-for="(todo, index) in pendingTodos" :key="index" @tap="handleTodoItem(todo)">
+        <view
+          v-for="(todo, index) in pendingTodos"
+          :key="index"
+          class="todo-item"
+          @tap="handleTodoItem(todo)"
+        >
           <view class="todo-priority" :class="'priority-' + todo.priority">
             <view class="priority-dot"></view>
           </view>

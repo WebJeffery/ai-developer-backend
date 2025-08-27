@@ -29,10 +29,10 @@
         <text class="color-label">预设主题色</text>
         <view class="color-grid">
           <view
-            v-for="(color, index) in themeColorOptions"
+            v-for="(color, index) in useTheme.themeColorOptions"
             :key="index"
             class="color-item"
-            :class="{ active: currentThemeColor === color.primary }"
+            :class="{ active: color.primary }"
             @click="handleSelectColor(color)"
           >
             <view
@@ -113,13 +113,12 @@
 </template>
 
 <script lang="ts" setup>
-import { useTheme } from "@/composables/useTheme";
+import { useThemeStore } from "@/store/modules/theme.store";
 
-// 使用主题组合函数
-const { isDark, themeVars, themeColorOptions, toggleTheme, setThemeColor } = useTheme();
+const useTheme = useThemeStore();
 
 // 创建响应式的计算属性
-const isDarkMode = computed(() => isDark.value);
+const isDarkMode = computed(() => useTheme.isDark);
 
 // 自定义颜色输入
 const customColor = ref("");
@@ -127,12 +126,12 @@ const showCustomColorInput = ref(false);
 
 // 当前选中的主题色
 const currentThemeColor = computed(() => {
-  return themeVars.value.colorTheme || themeColorOptions.value[0].primary;
+  return useTheme.themeVars.colorTheme || useTheme.themeColorOptions[0].primary;
 });
 
 // 选择预设颜色
-const handleSelectColor = (color: (typeof themeColorOptions.value)[0]) => {
-  setThemeColor(color);
+const handleSelectColor = (color: (typeof useTheme.themeColorOptions)[0]) => {
+  useTheme.setCurrentThemeColor(color);
   customColor.value = color.primary;
 
   // 提示
@@ -175,7 +174,7 @@ const applyCustomColor = () => {
     primary: color,
   };
 
-  setThemeColor(customColorOption);
+  useTheme.setCurrentThemeColor(customColorOption);
   showCustomColorInput.value = false;
 
   // 提示
@@ -193,8 +192,8 @@ const handleResetTheme = () => {
     content: "确定要重置为默认主题吗？",
     success: (res) => {
       if (res.confirm) {
-        setThemeColor(themeColorOptions.value[0]);
-        customColor.value = themeColorOptions.value[0].primary;
+        useTheme.setCurrentThemeColor(useTheme.themeColorOptions[0]);
+        customColor.value = useTheme.themeColorOptions[0].primary;
 
         uni.showToast({
           title: "已重置为默认主题",
@@ -208,7 +207,7 @@ const handleResetTheme = () => {
 
 // 切换暗黑模式
 const handleToggleDarkMode = () => {
-  toggleTheme();
+  useTheme.toggleTheme();
   nextTick(() => {
     uni.showToast({
       title: `已切换到${isDarkMode.value ? "暗黑" : "浅色"}模式`,
@@ -376,18 +375,6 @@ onShow(() => {
       }
     }
   }
-}
-
-.preview-border {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 200rpx;
-  height: 60rpx;
-  font-size: 26rpx;
-  color: var(--wot-color-text-secondary, #666);
-  border: 2rpx solid;
-  border-radius: 8rpx;
 }
 
 // 自定义颜色弹窗

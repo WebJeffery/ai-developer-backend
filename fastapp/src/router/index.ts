@@ -32,7 +32,6 @@ const router = createRouter({
 
 // 全局前置守卫
 router.beforeEach((to, from, next) => {
-  // 检查页面是否需要登录
   if (to.meta && to.meta.requireAuth && !isLoggedIn()) {
     uni.showModal({
       title: "提示",

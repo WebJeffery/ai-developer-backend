@@ -58,7 +58,7 @@
       </wd-grid-item>
     </wd-grid>
 
-    <wd-card>
+    <wd-card type="rectangle">
       <template #title>
         <view class="flex-between">
           <view>访问趋势</view>
@@ -76,7 +76,7 @@
         </view>
       </template>
 
-      <view class="w-full h-360px mb-40rpx">
+      <view class="h-330px mb-2rpx">
         <qiun-data-charts type="area" :chartData="chartData" :opts="chartOpts" />
       </view>
     </wd-card>
@@ -135,11 +135,7 @@ const chartOpts = ref({
 // 日期范围
 const recentDaysRange = ref(7);
 
-const swiperList = ref([
-  "/static/images/banner02.jpg",
-  "/static/images/banner03.jpg",
-  "/static/images/banner01.png",
-]);
+const swiperList = ref(["/static/images/banner01.jpg", "/static/images/banner02.jpg"]);
 
 // 快捷导航列表
 const navList = reactive([
@@ -193,13 +189,6 @@ const generateStaticTrendData = (days: number) => {
     pvList,
   };
 };
-
-function handleClick(e: any) {
-  console.log(e);
-}
-function onChange(e: any) {
-  console.log(e);
-}
 
 // 加载访问统计数据（使用静态数据）
 const loadVisitStatsData = async () => {
