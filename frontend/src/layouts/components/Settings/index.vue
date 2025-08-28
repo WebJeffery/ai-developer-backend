@@ -350,16 +350,23 @@ const handleCloseDrawer = () => {
   min-height: 0; /* 确保内容区域可以收缩 */
 }
 
+
 /* 底部操作区域样式 */
 .action-footer {
-  flex-shrink: 0;
-  margin-top: auto; /* 将底部操作区域推到最下方 */
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  padding: 0;
   background: var(--el-bg-color);
   border-top: 1px solid var(--el-border-color-light);
 
   .action-divider {
     display: none; /* 移除重复的分割线 */
   }
+
+
 
   .action-card {
     padding: 16px 20px;
