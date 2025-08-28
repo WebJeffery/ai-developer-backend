@@ -336,20 +336,16 @@ const handleCloseDrawer = () => {
     height: 100%;
     padding: 0;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
   }
 }
 
 /* 设置内容区域 */
 .settings-content {
-  flex: 1;
+  height: calc(100vh - 120px); /* 减去头部和底部按钮的高度 */
   padding: 20px;
   padding-bottom: 20px;
   overflow-y: auto;
-  min-height: 0; /* 确保内容区域可以收缩 */
 }
-
 
 /* 底部操作区域样式 */
 .action-footer {
@@ -365,8 +361,6 @@ const handleCloseDrawer = () => {
   .action-divider {
     display: none; /* 移除重复的分割线 */
   }
-
-
 
   .action-card {
     padding: 16px 20px;
