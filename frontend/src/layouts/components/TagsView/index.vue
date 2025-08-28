@@ -236,7 +236,6 @@ const extractAffixTags = (routes: RouteRecordRaw[], basePath = "/"): TagView[] =
           fullPath,
           name: String(route.name || ""),
           title: route.meta.title || "no-name",
-          icon: (route as any).icon || route.meta?.icon,
           affix: true,
           keepAlive: route.meta.keepAlive || false,
         });

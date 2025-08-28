@@ -261,10 +261,18 @@ onUnmounted(() => {
         .external-link-badge {
           font-size: 10px;
           font-weight: 400;
-          background-color: #409EFF;
+          background-color: var(--el-color-primary);
+          color: #ffffff;
           padding: 1px 4px;
           border-radius: 2px;
           line-height: 1.2;
+          transition: all 0.3s ease;
+        }
+
+        // 暗色主题适配 - 使用项目标准的暗色主题选择器
+        html.dark .external-link-badge {
+          background-color: var(--el-color-primary-dark-2);
+          color: var(--el-text-color-primary);
         }
       }
     }
