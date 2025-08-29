@@ -30,14 +30,16 @@ outline: "deep"
 
 ```sh
 fastapi_vue3_admin
-├─ backend        # 后端工程
-├─ frontend       # 前端工程
-├─ devops         # 部署工程
-├─ docker-compose.yaml # 部署文件
-├─ start.sh       # 一键部署脚本
-├─ LICENSE        # 许可协议
-|─ README.en.md   # 英文文档
-└─ README.md      # 中文文档
+├─ backend               # 后端工程
+├─ frontend              # 前端工程
+├─ fastapp               # 小程序工程
+├─ fastdocs              # 官网文档
+├─ devops                # 部署工程
+├─ docker-compose.yaml   # 部署文件
+├─ start.sh              # 部署脚本
+├─ LICENSE               # 许可协议
+|─ README.en.md          # 英文文档
+└─ README.md             # 中文文档
 ```
 
 ## ✨核心亮点

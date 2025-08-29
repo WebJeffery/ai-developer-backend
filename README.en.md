@@ -42,6 +42,8 @@ English | [Chinese](./README.md)
 fastapi_vue3_admin
 ├─ backend        # Backend project
 ├─ frontend       # Frontend project
+├─ fastapp        # Mobile project
+├─ fastdocs       # Official Website project
 ├─ devops         # Deployment project
 ├─ docker-compose.yaml # Deployment file
 ├─ start.sh       # One-click deployment script
@@ -280,13 +282,13 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 
 ### Backend Part
 
-1. **Write the Entity Class Layer**: Create the ORM model for the demo in `backend/app/v1/models/demo/demo_model.py` (corresponding to the entity class layer in Spring Boot).
-2. **Write the Data Model Layer**: Create the demo data model in `backend/app/v1/schemas/demo/demo_schema.py` (corresponding to the DTO layer in Spring Boot).
-3. **Write the Query Parameter Model Layer**: Create the query parameter model for the demo in `backend/app/v1/params/demo/demo_param.py` (corresponding to the DTO layer in Spring Boot).
-4. **Write the Persistence Layer**: Create the demo data layer in `backend/app/v1/cruds/demo/demo_crud.py` (corresponding to the Mapper or DAO layer in Spring Boot).
-5. **Write the Business Layer**: Create the demo data layer in `backend/app/v1/services/demo/demo_service.py` (corresponding to the Service layer in Spring Boot).
-6. **Write the Interface Layer**: Create the demo data layer in `backend/app/v1/controllers/demo/demo_controller.py` (corresponding to the Controller layer in Spring Boot).
-7. **Register Backend Routes**: Register the demo routes in `backend/app/v1/urls/demo/demo_url.py`.
+1. **Write the Entity Class Layer**: Create the ORM model for the demo in `backend/app/api/v1/models/demo/example_model.py` (corresponding to the entity class layer in Spring Boot).
+2. **Write the Data Model Layer**: Create the demo data model in `backend/app/api/v1/schemas/demo/example_schema.py` (corresponding to the DTO layer in Spring Boot).
+3. **Write the Query Parameter Model Layer**: Create the query parameter model for the demo in `backend/app/v1/params/demo/example_param.py` (corresponding to the DTO layer in Spring Boot).
+4. **Write the Persistence Layer**: Create the demo data layer in `backend/app/api/v1/cruds/demo/example_crud.py` (corresponding to the Mapper or DAO layer in Spring Boot).
+5. **Write the Business Layer**: Create the demo data layer in `backend/app/api/v1/services/demo/example_service.py` (corresponding to the Service layer in Spring Boot).
+6. **Write the Interface Layer**: Create the demo data layer in `backend/app/api/v1/controllers/demo/example_controller.py` (corresponding to the Controller layer in Spring Boot).
+7. **Register Backend Routes**: Register the demo routes in `backend/app/api/v1/urls/demo_url.py`.
 8. **Register Routes to the FastAPI Service**: Register the routes in `backend/plugin/init_app.py`.
 9. **Add the Demo Module to the System Initialization Script**: Add it in `backend/app/scripts/initialize.py` (if necessary, you can configure the demo menu permissions in `backend/app/scripts/data/system_menu.json` and `backend/app/scripts/data/system_role_menus.json` or from the frontend page menu).
 10. **Add the Demo Module to the Database Migration Script**: Add it in `backend/app/alembic/env.py`.
