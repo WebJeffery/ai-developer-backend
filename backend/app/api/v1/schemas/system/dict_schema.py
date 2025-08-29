@@ -1,6 +1,6 @@
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic_validation_decorator import NotBlank, Pattern, Size
-from typing import Literal, Optional
+import re
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Optional
 
 from app.core.base_schema import BaseSchema
 
@@ -10,29 +10,25 @@ class DictTypeCreateSchema(BaseModel):
     字典类型表对应pydantic模型
     """
 
-    dict_name: Optional[str] = Field(default=None, description='字典名称')
-    dict_type: Optional[str] = Field(default=None, description='字典类型')
-    status: Optional[bool] = Field(default=None, description='状态（0正常 1停用）')
+    dict_name: str = Field(..., min_length=1, max_length=100, description='字典名称')
+    dict_type: str = Field(..., min_length=1, max_length=100, description='字典类型')
+    status: Optional[bool] = Field(default=None, description='状态（1正常 0停用）')
     description: Optional[str] = Field(None, max_length=255, description="描述")
 
-    @NotBlank(field_name='dict_name', message='字典名称不能为空')
-    @Size(field_name='dict_name', min_length=0, max_length=100, message='字典类型名称长度不能超过100个字符')
-    def get_dict_name(self):
-        return self.dict_name
+    @field_validator('dict_name')
+    def validate_dict_name(cls, value: str):
+        if not value or value.strip() == '':
+            raise ValueError('字典名称不能为空')
+        return value
 
-    @NotBlank(field_name='dict_type', message='字典类型不能为空')
-    @Size(field_name='dict_type', min_length=0, max_length=100, message='字典类型类型长度不能超过100个字符')
-    @Pattern(
-        field_name='dict_type',
-        regexp='^[a-z][a-z0-9_]*$',
-        message='字典类型必须以字母开头，且只能为（小写字母，数字，下滑线）',
-    )
-    def get_dict_type(self):
-        return self.dict_type
-
-    def validate_fields(self):
-        self.get_dict_name()
-        self.get_dict_type()
+    @field_validator('dict_type')
+    def validate_dict_type(cls, value: str):
+        if not value or value.strip() == '':
+            raise ValueError('字典类型不能为空')
+        regexp = r'^[a-z][a-z0-9_]*$'
+        if not re.match(regexp, value):
+            raise ValueError('字典类型必须以字母开头，且只能为（小写字母，数字，下滑线）')
+        return value
 
 
 class DictTypeUpdateSchema(DictTypeCreateSchema):
@@ -45,46 +41,37 @@ class DictTypeOutSchema(DictTypeCreateSchema, BaseSchema):
     model_config = ConfigDict(from_attributes=True)
 
 
-
 class DictDataCreateSchema(BaseModel):
     """
     字典数据表对应pydantic模型
     """
-
-    dict_sort: Optional[int] = Field(default=None, description='字典排序')
-    dict_label: Optional[str] = Field(default=None, description='字典标签')
-    dict_value: Optional[str] = Field(default=None, description='字典键值')
-    dict_type: Optional[str] = Field(default=None, description='字典类型')
-    css_class: Optional[str] = Field(default=None, description='样式属性（其他样式扩展）')
+    dict_sort: int = Field(..., gt=0, description='字典排序')
+    dict_label: str = Field(..., max_length=100, description='字典标签')
+    dict_value: str = Field(..., max_length=100, description='字典键值')
+    dict_type: str = Field(..., max_length=100, description='字典类型')
+    css_class: Optional[str] = Field(default=None, max_length=100, description='样式属性（其他样式扩展）')
     list_class: Optional[str] = Field(default=None, description='表格回显样式')
     is_default: Optional[bool] = Field(default=None, description='是否默认（Y是 N否）')
-    status: Optional[bool] = Field(default=None, description='状态（0正常 1停用）')
+    status: Optional[bool] = Field(default=None, description='状态（1正常 0停用）')
     description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
-    @NotBlank(field_name='dict_label', message='字典标签不能为空')
-    @Size(field_name='dict_label', min_length=0, max_length=100, message='字典标签长度不能超过100个字符')
-    def get_dict_label(self):
-        return self.dict_label
+    @field_validator('dict_label')
+    def validate_dict_label(cls, value: str):
+        if not value or value.strip() == '':
+            raise ValueError('字典标签不能为空')
+        return value
 
-    @NotBlank(field_name='dict_value', message='字典键值不能为空')
-    @Size(field_name='dict_value', min_length=0, max_length=100, message='字典键值长度不能超过100个字符')
-    def get_dict_value(self):
-        return self.dict_value
+    @field_validator('dict_value')
+    def validate_dict_value(cls, value: str):
+        if not value or value.strip() == '':
+            raise ValueError('字典键值不能为空')
+        return value
 
-    @NotBlank(field_name='dict_type', message='字典类型不能为空')
-    @Size(field_name='dict_type', min_length=0, max_length=100, message='字典类型长度不能超过100个字符')
-    def get_dict_type(self):
-        return self.dict_type
-
-    @Size(field_name='css_class', min_length=0, max_length=100, message='样式属性长度不能超过100个字符')
-    def get_css_class(self):
-        return self.css_class
-
-    def validate_fields(self):
-        self.get_dict_label()
-        self.get_dict_value()
-        self.get_dict_type()
-        self.get_css_class()
+    @field_validator('dict_type')
+    def validate_dict_type(cls, value: str):
+        if not value or value.strip() == '':
+            raise ValueError('字典类型不能为空')
+        return value
 
 
 class DictDataUpdateSchema(DictDataCreateSchema):
