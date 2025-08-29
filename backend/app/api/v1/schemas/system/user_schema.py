@@ -83,12 +83,14 @@ class UserUpdateSchema(UserCreateSchema):
     model_config = ConfigDict(from_attributes=True)
 
     id: int = Field(..., description="主键ID")
+    password: Optional[str] = Field(default=None, max_length=128, description="密码哈希值")
 
 
 class UserOutSchema(UserCreateSchema, BaseSchema):
     """响应"""
     model_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True)
     
+    password: str = Field(exclude=True)  # password 不返回
     last_login: Optional[DateTimeStr] = Field(default=None, description="最后登录时间")
     dept_name: Optional[str] = Field(default=None, description='部门名称')
     dept: Optional[DeptOutSchema] = Field(default=None, description='部门')
