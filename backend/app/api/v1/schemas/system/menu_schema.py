@@ -10,7 +10,7 @@ from app.core.base_schema import BaseSchema
 class MenuCreateSchema(BaseModel):
     """菜单创建模型"""
     name: str = Field(..., max_length=50, description="菜单名称")
-    type: int = Field(..., ge=1, le=4, description="菜单类型(1:目录 2:菜单 3:按钮 4:外链)")
+    type: Optional[int] = Field(default=None, ge=1, le=4, description="菜单类型(1:目录 2:菜单 3:按钮 4:外链)")
     icon: Optional[str] = Field(default=None, max_length=100, description="菜单图标")
     order: int = Field(..., ge=1, description="显示顺序")
     permission: Optional[str] = Field(default=None, max_length=100, description="权限标识")
