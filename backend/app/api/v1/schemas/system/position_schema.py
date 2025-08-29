@@ -11,12 +11,12 @@ class PositionCreateSchema(BaseModel):
     name: str = Field(..., max_length=40, description="岗位名称")
     order: Optional[int] = Field(default=1, ge=1, description='显示排序')
     status: bool = Field(default=True, description="是否启用(True:启用 False:禁用)")
-    description: Optional[str] = Field(None, description="备注说明")
+    description: Optional[str] = Field(default=None, description="备注说明")
 
 
 class PositionUpdateSchema(PositionCreateSchema):
     """岗位更新模型"""
-    id: int = Field(..., gt=0, description="岗位ID")
+    id: int = Field(..., ge=1, description="岗位ID")
 
 
 class PositionOutSchema(PositionCreateSchema, BaseSchema):
@@ -27,6 +27,6 @@ class PositionOutSchema(PositionCreateSchema, BaseSchema):
 class PositionOptionsOut(PositionCreateSchema):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int = Field(description="主键ID")
-    created_at: DateTimeStr = Field(description="创建时间")
-    updated_at: DateTimeStr = Field(description="更新时间")
+    id: int = Field(..., description="主键ID")
+    created_at: DateTimeStr = Field(..., description="创建时间")
+    updated_at: DateTimeStr = Field(..., description="更新时间")
