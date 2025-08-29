@@ -118,8 +118,6 @@ class QuickStartManager {
       routeIcon = routeIcon.charAt(0).toUpperCase() + routeIcon.slice(1);
     }
     
-    console.log("routeIcon",routeIcon)
-
     // 确定最终使用的标题 - 优先使用route.title
     const finalTitle = customTitle || route.title || route.name || '未命名页面';
 
