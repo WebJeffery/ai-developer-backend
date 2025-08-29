@@ -11,7 +11,7 @@ from app.core.validator import DateTimeStr
 
 class RoleCreateSchema(BaseModel):
     """角色创建模型"""
-    name: str = Field(default=None, max_length=15, description="角色名称")
+    name: str = Field(..., max_length=15, description="角色名称")
     order: Optional[int] = Field(default=1, ge=1, description='显示排序')
     data_scope: Optional[int] = Field(default=1, ge=1, le=5, description='数据权限范围')
     status: bool = Field(default=True, description="是否启用")
@@ -25,16 +25,15 @@ class RolePermissionSettingSchema(BaseModel):
     menu_ids: List[int] = Field(default_factory=list, description='菜单ID列表')
     dept_ids: List[int] = Field(default_factory=list, description='部门ID列表')
     
-    @classmethod
     @model_validator(mode='after')
-    def validate_fields(cls, data):
+    def validate_fields(self):
         """验证权限配置字段"""
-        return role_permission_request_validator(data)
+        return role_permission_request_validator(self)
 
 
 class RoleUpdateSchema(RoleCreateSchema):
     """角色更新模型"""
-    id: int = Field(..., gt=0, description="角色ID")
+    id: int = Field(..., ge=1, description="角色ID")
 
 
 class RoleOutSchema(RoleCreateSchema, BaseSchema):
@@ -48,8 +47,8 @@ class RoleOutSchema(RoleCreateSchema, BaseSchema):
 class RoleOptionsOut(RoleCreateSchema):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int = Field(description="主键ID")
-    created_at: DateTimeStr = Field(description="创建时间")
-    updated_at: DateTimeStr = Field(description="更新时间")
+    id: int = Field(..., description="主键ID")
+    created_at: DateTimeStr = Field(..., description="创建时间")
+    updated_at: DateTimeStr = Field(..., description="更新时间")
     menus: List[MenuOutSchema] = Field(default_factory=list, description='角色菜单列表')
     depts: List[DeptOutSchema] = Field(default_factory=list, description='角色部门列表')
