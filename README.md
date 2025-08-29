@@ -285,13 +285,13 @@ fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 
 ### 后端部分
 
-1. **编写实体类层**：在 `backend/app/v1/models/demo/demo_model.py` 中创建 demo 的 ORM 模型（对应 Spring Boot 中的实体类层）
-2. **编写数据模型层**：在 `backend/app/v1/schemas/demo/demo_schema.py` 中创建 demo 数据模型（对应 Spring Boot 中的 DTO 层）
-3. **编写查询参数模型层**：在 `backend/app/v1/params/demo/demo_param.py` 中创建 demo 的查询参数模型（对应 Spring Boot 中的 DTO 层）
-4. **编写持久化层**：在 `backend/app/v1/cruds/demo/demo_crud.py` 中创建 demo 数据层（对应 Spring Boot 中的 Mapper 或 DAO 层）
-5. **编写业务层**：在 `backend/app/v1/services/demo/demo_service.py` 中创建 demo 数据层（对应 Spring Boot 中的 Service 层）
-6. **编写接口层**：在 `backend/app/v1/controllers/demo/demo_controller.py` 中创建 demo 数据层（对应 Spring Boot 中的 Controller 层）
-7. **注册后端路由**：在 `backend/app/v1/urls/demo/demo_url.py` 中注册 demo 路由
+1. **编写实体类层**：在 `backend/app/api/v1/models/demo/example_model.py` 中创建 example 的 ORM 模型（对应 Spring Boot 中的实体类层）
+2. **编写数据模型层**：在 `backend/app/api/v1/schemas/demo/example_schema.py` 中创建 example 数据模型（对应 Spring Boot 中的 DTO 层）
+3. **编写查询参数模型层**：在 `backend/app/api/v1/params/demo/example_param.py` 中创建 example 的查询参数模型（对应 Spring Boot 中的 DTO 层）
+4. **编写持久化层**：在 `backend/app/api/v1/cruds/demo/example_crud.py` 中创建 example 数据层（对应 Spring Boot 中的 Mapper 或 DAO 层）
+5. **编写业务层**：在 `backend/app/api/v1/services/demo/example_service.py` 中创建 example 数据层（对应 Spring Boot 中的 Service 层）
+6. **编写接口层**：在 `backend/app/api/v1/controllers/demo/example_controller.py` 中创建 example 数据层（对应 Spring Boot 中的 Controller 层）
+7. **注册后端路由**：在 `backend/app/api/v1/urls/demo_url.py` 中注册 example 路由
 8. **注册路由到 FastAPI 服务中**：在 `backend/plugin/init_app.py` 中注册路由
 9. **将 demo 模块添加至系统初始化脚本**：在 `backend/app/scripts/initialize.py` 中添加（如果需要可以把 demo 的菜单权限，配置到 `backend/app/scripts/data/system_menu.json` 和 `backend/app/scripts/data/system_role_menus.json` 或从前端页面菜单中新增）
 10. **将 demo 模块添加至数据库迁移脚本中**：在 `backend/app/alembic/env.py` 中添加
