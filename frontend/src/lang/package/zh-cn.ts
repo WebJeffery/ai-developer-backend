@@ -174,6 +174,7 @@ export default {
     navigation: "导航主题",
     themeColor: "主题颜色",
     themeColorTip: "主题颜色",
+    customColor: "自定义颜色",
     darkMode: "暗黑模式",
     layoutSetting: "布局设置",
     sidebarColorScheme: "侧边栏配色",

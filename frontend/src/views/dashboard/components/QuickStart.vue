@@ -197,28 +197,29 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 // 快速链接容器样式
 .quick-links-container {
-  padding: 16px 0;
+  padding: 16px;
 
   .quick-links-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+    max-width: 400px; /* 限制最大宽度 */
+    margin: 0 auto; /* 居中对齐 */
   }
 
   .quick-link-item {
     border-radius: 6px;
-    border: 1px solid #e4e7ed;
+    border: 1px solid var(--el-border-color-light);
     transition: all 0.3s ease;
     width: 100%;
     height: 100px;
-    max-width: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--el-box-shadow);
     }
 
     .link-content-wrapper {
@@ -261,17 +262,25 @@ onUnmounted(() => {
         .external-link-badge {
           font-size: 10px;
           font-weight: 400;
-          background-color: #409EFF;
+          background-color: var(--el-color-primary);
+          color: var(--el-color-primary-contrast);
           padding: 1px 4px;
           border-radius: 2px;
           line-height: 1.2;
+          transition: all 0.3s ease;
+        }
+
+        // 暗色主题适配 - 使用项目标准的暗色主题选择器
+        html.dark .external-link-badge {
+          background-color: var(--el-color-primary-dark-2);
+          color: var(--el-text-color-primary);
         }
       }
     }
 
     &:hover {
       .link-icon {
-        background-color: #e8f4ff;
+        background-color: var(--el-color-primary-light-9);
       }
     }
   }
@@ -279,11 +288,11 @@ onUnmounted(() => {
 
 // 删除菜单项样式
 :deep(.delete-item) {
-  color: #f56c6c;
+  color: var(--el-color-danger);
 
   &:hover {
-    background-color: #fef0f0;
-    color: #f56c6c;
+    background-color: var(--el-color-danger-light-9);
+    color: var(--el-color-danger-dark-2);
   }
 }
 </style>

@@ -172,6 +172,7 @@ export default {
     interface: "Interface",
     navigation: "Navigation",
     themeColor: "Theme Color",
+    customColor: "Custom Color",
     showTagsView: "Show Tags View",
     showAppLogo: "Show App Logo",
     sidebarColorScheme: "Sidebar Color Scheme",
