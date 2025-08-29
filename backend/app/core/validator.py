@@ -99,8 +99,8 @@ def menu_request_validator(data):
     :return: 验证后的请求数据
     :raises: CustomException 请求数据无效时抛出
     """
-    menu_types = {1: "目录", 2: "功能", 3: "权限"}
-    
+    menu_types = {1: "目录", 2: "功能", 3: "权限", 4: "外链"}
+
     if data.type not in menu_types:
         raise CustomException(code=RET.BAD_REQUEST.code, msg=f"菜单类型必须为: {','.join(map(str, menu_types.keys()))}")
     
