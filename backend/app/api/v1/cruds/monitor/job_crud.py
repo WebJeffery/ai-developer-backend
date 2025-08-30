@@ -3,8 +3,8 @@
 from typing import Dict, List, Optional, Sequence
 
 from app.core.base_crud import CRUDBase
-from app.api.v1.models.monitor.job_model import JobModel
-from app.api.v1.schemas.monitor.job_schema import JobCreateSchema,JobUpdateSchema
+from app.api.v1.models.monitor.job_model import JobModel, JobLogModel
+from app.api.v1.schemas.monitor.job_schema import JobCreateSchema,JobUpdateSchema,JobLogCreateSchema,JobLogUpdateSchema
 from app.api.v1.schemas.system.auth_schema import AuthSchema
 
 
@@ -44,3 +44,27 @@ class JobCRUD(CRUDBase[JobModel, JobCreateSchema, JobUpdateSchema]):
         """清除定时任务日志"""
         return await self.clear()
 
+
+class JobLogCRUD(CRUDBase[JobLogModel, JobLogCreateSchema, JobLogUpdateSchema]):
+    """定时任务日志数据层"""
+
+    def __init__(self, auth: AuthSchema) -> None:
+        """初始化定时任务日志CRUD"""
+        self.auth = auth
+        super().__init__(model=JobLogModel, auth=auth)
+
+    async def get_obj_log_by_id_crud(self, id: int) -> Optional[JobLogModel]:
+        """获取定时任务日志详情"""
+        return await self.get(id=id)
+    
+    async def get_obj_log_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[JobLogModel]:
+        """获取定时任务日志列表"""
+        return await self.list(search=search, order_by=order_by)
+    
+    async def create_obj_log_crud(self, data: JobLogCreateSchema) -> Optional[JobLogModel]:
+        """创建定时任务日志"""
+        return await self.create(data=data)
+    
+    async def delete_obj_log_crud(self, ids: List[int]) -> None:
+        """删除定时任务日志"""
+        return await self.delete(ids=ids)

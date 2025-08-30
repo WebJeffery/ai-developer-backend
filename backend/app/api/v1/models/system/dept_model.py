@@ -18,7 +18,7 @@ class DeptModel(ModelBase):
     id = Column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
     name = Column(String(40), nullable=False, comment="部门名称", unique=True)
     order = Column(Integer, nullable=False, default=1, comment="显示排序")
-    
+    # leader_id = Column(Integer, nullable=True, default=None, comment='负责人ID') # 部门领导绑定用户，作为后面的流程审批人
     # 层级关系
     parent_id = Column(
         Integer, 

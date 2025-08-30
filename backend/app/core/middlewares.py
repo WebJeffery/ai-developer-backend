@@ -39,7 +39,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
 
     async def dispatch(
-            self, request: Request, call_next: RequestResponseEndpoint
+        self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         start_time = time.time()
         

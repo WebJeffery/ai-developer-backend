@@ -7,7 +7,7 @@ from app.core.dependencies import AuthPermission
 from app.core.router_class import OperationLogRoute
 from app.core.logger import logger
 from app.api.v1.services.common.file_service import FileService
-from app.common.response import SuccessResponse, CustomFileResponse
+from app.common.response import SuccessResponse, UploadFileResponse
 
 router = APIRouter(route_class=OperationLogRoute)
 
@@ -27,4 +27,4 @@ async def download_controller(
 ) -> FileResponse:
     result = await FileService.download_service(file_path=file_path)
     logger.info(f"下载文件成功")
-    return CustomFileResponse(file_path=result.file_path, file_name=result.file_name)
+    return UploadFileResponse(file_path=result.file_path, file_name=result.file_name)

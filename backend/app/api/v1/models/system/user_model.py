@@ -117,3 +117,22 @@ class UserModel(ModelBase):
         lazy="selectin",
         uselist=False
     )
+
+class UserWechat(Base, BaseMixin):
+
+    """
+    用户微信信息
+    """
+
+    __tablename__ = 'system_users_wechat'
+
+    user_id = Column(Integer, nullable=False, comment='用户ID')
+    city = Column(String(100), nullable=True, comment='城市')
+    country = Column(String(100), nullable=True, comment='国家')
+    head_img_url = Column(String(255), nullable=True, comment='微信头像')
+    nickname = Column(String(255), nullable=True, comment='微信昵称')
+    openid = Column(String(255), unique=True, nullable=False, comment='openid')
+    union_id = Column(String(255), nullable=False, comment='union_id')
+    user_phone = Column(String(15), unique=True, nullable=False, comment='手机号')
+    province = Column(String(255), nullable=True, comment='省份')
+    sex = Column(Integer, nullable=True, comment='性别')

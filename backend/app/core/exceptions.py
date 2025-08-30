@@ -22,6 +22,7 @@ class CustomException(Exception):
             code: int = RET.EXCEPTION.code,
             status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
             data: Optional[Any] = None,
+            success: bool = False
     ) -> None:
         """
         初始化异常
@@ -35,6 +36,7 @@ class CustomException(Exception):
         self.code = code
         self.msg = msg
         self.data = data
+        self.success = success
 
     def __str__(self) -> str:
         """返回异常消息"""

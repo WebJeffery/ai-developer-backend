@@ -2,7 +2,7 @@
 
 import io
 from typing import Dict
-from fastapi import UploadFile
+from fastapi import UploadFile, BackgroundTasks
 
 from app.api.v1.schemas.system.auth_schema import AuthSchema
 from app.core.exceptions import CustomException
@@ -17,11 +17,16 @@ class FileService:
     """
 
     @classmethod
-    async def upload_service(cls, base_url: str, file: UploadFile) -> Dict:
+    async def upload_service(cls, base_url: str, file: UploadFile, upload_type: str = 'local') -> Dict:
         """ 上传文件"""
         if not file:
             raise CustomException(msg="请选择要上传的文件")
-        filename, filepath, file_url = await UploadUtil.upload_file(file=file, base_url=base_url)
+        if upload_type == 'local':
+            filename, filepath, file_url = await UploadUtil.upload_file(file=file, base_url=base_url)
+        elif upload_type == 'oss':
+            filename, filepath, file_url = await UploadUtil.upload_file_oss(file=file, oss_folder=file.filename)
+        else:
+            raise CustomException(msg="上传类型错误")
         
         return UploadResponseSchema(
             file_path=f'{filepath}',

@@ -50,3 +50,23 @@ class JobModel(ModelBase):
         uselist=False
     )
 
+
+class JobLogModel(Base):
+    """
+    定时任务调度日志表
+    """
+
+    __tablename__ = 'monitor_job_log'
+
+    job_log_id = Column(Integer, primary_key=True, autoincrement=True, comment='任务日志ID')
+    job_name = Column(String(64), nullable=False, comment='任务名称')
+    job_group = Column(String(64), nullable=False, comment='任务组名')
+    job_executor = Column(String(64), nullable=False, comment='任务执行器')
+    invoke_target = Column(String(500), nullable=False, comment='调用目标字符串')
+    job_args = Column(String(255), nullable=True, default='', comment='位置参数')
+    job_kwargs = Column(String(255), nullable=True, default='', comment='关键字参数')
+    job_trigger = Column(String(255), nullable=True, default='', comment='任务触发器')
+    job_message = Column(String(500), nullable=True, default='', comment='日志信息')
+    status = Column(Boolean, default=False, nullable=True, comment='任务状态:正常,失败')
+    exception_info = Column(String(2000), nullable=True, default='', comment='异常信息')
+    create_time = Column(DateTime, nullable=True, default=datetime.now(), comment='创建时间')

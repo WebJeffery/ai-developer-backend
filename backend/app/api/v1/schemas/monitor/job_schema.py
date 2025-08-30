@@ -34,4 +34,34 @@ class JobUpdateSchema(JobCreateSchema):
 class JobOutSchema(JobCreateSchema, BaseSchema):
     """定时任务响应模型"""
     model_config = ConfigDict(from_attributes=True)
-    
+    ...
+
+class JobLogCreateSchema(BaseModel):
+    """
+    定时任务调度日志表对应pydantic模型
+    """
+
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
+
+    job_log_id: Optional[int] = Field(default=None, description='任务日志ID')
+    job_name: Optional[str] = Field(default=None, description='任务名称')
+    job_group: Optional[str] = Field(default=None, description='任务组名')
+    job_executor: Optional[str] = Field(default=None, description='任务执行器')
+    invoke_target: Optional[str] = Field(default=None, description='调用目标字符串')
+    job_args: Optional[str] = Field(default=None, description='位置参数')
+    job_kwargs: Optional[str] = Field(default=None, description='关键字参数')
+    job_trigger: Optional[str] = Field(default=None, description='任务触发器')
+    job_message: Optional[str] = Field(default=None, description='日志信息')
+    status: Optional[bool] = Field(default=None, description='任务状态:正常,失败')
+    exception_info: Optional[str] = Field(default=None, description='异常信息')
+    create_time: Optional[datetime] = Field(default=None, description='创建时间')
+
+class JobLogUpdateSchema(JobLogCreateSchema):
+    """定时任务调度日志表更新模型"""
+    ...
+    id: int = Field(..., gt=0, description="ID")
+
+class JobLogOutSchema(JobLogCreateSchema, BaseSchema):
+    """定时任务调度日志表响应模型"""
+    model_config = ConfigDict(from_attributes=True)
+    ...
