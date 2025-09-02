@@ -57,7 +57,14 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "Profile",
         meta: { title: "个人中心", icon: "user", hidden: true },
         component: () => import("@/views/current/profile.vue"),
-      }
+      },
+      // // 临时构建后面要删除掉
+      // {
+      //   path: "form-builder",
+      //   name: "FormBuilder",
+      //   meta: { title: "表单构建", icon: "document" },
+      //   component: () => import("@/views/codegen/build/index.vue"),
+      // }
     ],
   },
 ];

@@ -170,3 +170,8 @@ export function isEmpty(obj: string | null | undefined) {
   }
 }
 
+// 验证是否为blob格式
+export function blobValidate(data: Blob): boolean {
+  return data.type !== 'application/json'
+}
+
