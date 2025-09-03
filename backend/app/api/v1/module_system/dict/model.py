@@ -17,7 +17,7 @@ class DictTypeModel(CreatorMixin):
 
     dict_name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, comment='字典名称')
     dict_type: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, comment='字典类型')
-    dict_datas: Mapped[List["DictDataModel"]] = relationship(back_populates="dict_type_rel", lazy="select")
+    dict_datas: Mapped[List["DictDataModel"]] = relationship(back_populates="dict_type_rel", lazy="selectin")
 
 
 class DictDataModel(CreatorMixin):
@@ -38,5 +38,5 @@ class DictDataModel(CreatorMixin):
     dict_type_id: Mapped[Optional[int]] = mapped_column(ForeignKey('system_dict_type.id'), nullable=True, comment='字典类型ID')
     
     # 字典类型关联关系
-    dict_type_rel: Mapped[Optional["DictTypeModel"]] = relationship(back_populates="dict_datas", lazy="select")
+    dict_type_rel: Mapped[Optional["DictTypeModel"]] = relationship(back_populates="dict_datas", lazy="selectin")
 

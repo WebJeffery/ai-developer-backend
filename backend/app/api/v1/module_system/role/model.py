@@ -79,7 +79,7 @@ class RoleModel(CreatorMixin):
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=999, comment="显示排序")
     data_scope: Mapped[int] = mapped_column(Integer, nullable=False, default=1, comment="数据权限范围")
 
-    menus: Mapped[List["MenuModel"]] = relationship(secondary="system_role_menus", back_populates="roles", lazy="select")
-    depts: Mapped[List["DeptModel"]] = relationship(secondary="system_role_depts", back_populates="roles", lazy="select")
-    users: Mapped[List["UserModel"]] = relationship(secondary="system_user_roles", back_populates="roles", lazy="select")
+    menus: Mapped[List["MenuModel"]] = relationship(secondary="system_role_menus", back_populates="roles", lazy="selectin")
+    depts: Mapped[List["DeptModel"]] = relationship(secondary="system_role_depts", back_populates="roles", lazy="selectin")
+    users: Mapped[List["UserModel"]] = relationship(secondary="system_user_roles", back_populates="roles", lazy="selectin")
 

@@ -21,10 +21,10 @@ class DeptModel(ModelMixin):
     parent: Mapped[Optional["DeptModel"]] = relationship("DeptModel", cascade="all, delete-orphan", uselist=False)
     
     # 角色关联关系
-    roles: Mapped[List["RoleModel"]] = relationship(secondary="system_role_depts", back_populates="depts", lazy="select")
+    roles: Mapped[List["RoleModel"]] = relationship(secondary="system_role_depts", back_populates="depts", lazy="selectin")
     
     # 用户关联关系
-    users: Mapped[List["UserModel"]] = relationship(back_populates="dept", lazy="select")
+    users: Mapped[List["UserModel"]] = relationship(back_populates="dept", lazy="selectin")
     
     # code: Mapped[Optional[str]] = mapped_column(String(20),nullable=True,unique=True,comment="部门编码")
     # leader_id: Mapped[Optional[int]] = mapped_column(Integer,nullable=True,comment="负责人ID")

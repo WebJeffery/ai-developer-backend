@@ -27,7 +27,7 @@ class JobModel(CreatorMixin):
     start_date: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, comment='开始时间')
     end_date: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, comment='结束时间')
     
-    job_logs: Mapped[Optional[list['JobLogModel']]] = relationship(back_populates="job", lazy="select")
+    job_logs: Mapped[Optional[list['JobLogModel']]] = relationship(back_populates="job", lazy="selectin")
 
 
 class JobLogModel(MappedBase):
@@ -50,4 +50,4 @@ class JobLogModel(MappedBase):
     job_id: Mapped[Optional[int]] = mapped_column(ForeignKey('monitor_job.id'), comment='任务ID')
     
     # 任务关联关系
-    job: Mapped[Optional["JobModel"]] = relationship(back_populates="job_logs", lazy="select")
+    job: Mapped[Optional["JobModel"]] = relationship(back_populates="job_logs", lazy="selectin")

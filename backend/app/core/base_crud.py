@@ -278,7 +278,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             
         if 3 in data_scopes:
             # 3、本部门及以下数据
-            dept_objs = await CRUDBase(DeptModel, self.auth).list()
+            # 直接查询部门表，避免递归调用CRUD
+            dept_sql = select(DeptModel)
+            dept_result = await self.db.execute(dept_sql)
+            dept_objs = dept_result.scalars().all()
             id_map = get_child_id_map(dept_objs)
             dept_child_ids = get_child_recursion(id=self.current_user.dept_id, id_map=id_map)
             for child_id in dept_child_ids:

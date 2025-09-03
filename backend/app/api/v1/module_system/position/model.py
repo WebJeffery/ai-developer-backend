@@ -23,7 +23,7 @@ class PositionModel(CreatorMixin):
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=1, comment="显示排序")
 
     # 用户关联关系
-    users: Mapped[List["UserModel"]] = relationship(secondary="system_user_positions", back_populates="positions", lazy="select")
+    users: Mapped[List["UserModel"]] = relationship(secondary="system_user_positions", back_populates="positions", lazy="selectin")
 
     # users: Mapped[List["UserModel"]] = relationship(secondary="system_user_positions", back_populates="positions", lazy="select")
 
