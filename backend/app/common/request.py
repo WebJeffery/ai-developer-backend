@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import math
 from typing import Any, Dict, List, Optional
 from pydantic import ConfigDict, Field, BaseModel
 from pydantic.alias_generators import to_camel

@@ -7,13 +7,12 @@ from fastapi.routing import APIRoute
 from user_agents import parse
 import json
 
-from app.api.v1.schemas.system.auth_schema import AuthSchema
-from app.api.v1.schemas.system.operation_log_schema import OperationLogCreateSchema
-from app.api.v1.services.system.operation_log_service import OperationLogService
 from app.core.database import session_connect
 from app.config.setting import settings
 from app.utils.ip_local_util import IpLocalUtil
-from app.core.logger import logger
+from app.api.v1.module_system.auth.schema import AuthSchema
+from app.api.v1.module_system.log.schema import OperationLogCreateSchema
+from app.api.v1.module_system.log.service import OperationLogService
 
 """
 在 FastAPI 中，route_class 参数用于自定义路由的行为。

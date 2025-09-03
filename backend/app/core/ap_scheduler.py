@@ -23,19 +23,15 @@ from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from pymongo import MongoClient
 
-from app.api.v1.schemas.system.auth_schema import AuthSchema
 from app.config.setting import settings
-from app.core.database import engine, session_connect, SessionLocal
+from app.core.database import engine, session_connect, SessionLocal, async_session
 from app.core.exceptions import CustomException
 from app.core.logger import logger
-from app.api.v1.cruds.monitor.job_crud import JobCRUD, JobLogCRUD
-from app.api.v1.models.monitor.job_model import JobModel
-from app.api.v1.schemas.monitor.job_schema import JobLogCreateSchema
 
 
 job_stores = {
     'default': MemoryJobStore(),
-    'sqlalchemy': SQLAlchemyJobStore(url=settings.DATABASES_URI, engine=engine),
+    # 'sqlalchemy': SQLAlchemyJobStore(url=settings.DB_URI, engine=engine), 如果用同一个数据库会有lock冲突
     'redis': RedisJobStore(**dict(
         host=settings.REDIS_HOST,
         port=settings.REDIS_PORT,
@@ -67,6 +63,11 @@ class SchedulerUtil:
 
     @classmethod
     def scheduler_event_listener(cls, event: JobEvent | JobExecutionEvent):
+        # 延迟导入避免循环导入
+        from app.api.v1.module_monitor.job.crud import JobLogCRUD
+        from app.api.v1.module_monitor.job.schema import JobLogCreateSchema
+        from app.api.v1.module_system.auth.schema import AuthSchema
+        
         # 获取事件类型和任务ID
         event_type = event.__class__.__name__
         # 初始化任务状态
@@ -109,7 +110,7 @@ class SchedulerUtil:
                     exception_info=exception_info,
                     create_time=datetime.now(),
                 )
-                session = SessionLocal()
+                session = async_session()
                 JobLogCRUD(AuthSchema(db=session)).create_obj_log_crud(data=job_log)
                 session.close()
 
@@ -120,6 +121,10 @@ class SchedulerUtil:
 
         :return:
         """
+        # 延迟导入避免循环导入
+        from app.api.v1.module_monitor.job.crud import JobCRUD
+        from app.api.v1.module_monitor.job.model import JobModel
+        from app.api.v1.module_system.auth.schema import AuthSchema
         
         scheduler.start()
         auth = AuthSchema(db=db)
@@ -158,7 +163,7 @@ class SchedulerUtil:
         return scheduler.get_jobs()
 
     @classmethod
-    def add_job(cls, job_info: JobModel):
+    def add_job(cls, job_info):
         """
         创建
         :param job_info: 任务对象信息

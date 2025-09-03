@@ -10,7 +10,6 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo.results import InsertOneResult, UpdateResult, DeleteResult
 
 from app.core.exceptions import CustomException
-from app.api.v1.schemas.system.operation_log_schema import OperationLogOutSchema
 
 class MongoCURD:
     """
@@ -218,6 +217,7 @@ class MongoCURD:
                 
         return params
 
+# from app.api.v1.module_system.log.schema import OperationLogOutSchema
 
 # class OperationRecordDal(MongoCURD):
 #     """

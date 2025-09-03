@@ -17,12 +17,12 @@ class CustomException(Exception):
     """自定义异常基类"""
 
     def __init__(
-            self,
-            msg: Optional[str] = RET.EXCEPTION.msg,
-            code: int = RET.EXCEPTION.code,
-            status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            data: Optional[Any] = None,
-            success: bool = False
+        self,
+        msg: Optional[str] = RET.EXCEPTION.msg,
+        code: int = RET.EXCEPTION.code,
+        status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
+        data: Optional[Any] = None,
+        success: bool = False
     ) -> None:
         """
         初始化异常

@@ -33,3 +33,4 @@ PyMySQL==1.1.2   # mysql 异步操作数据库基于 pymysql：aiomysql 是 pymy
 cryptography==45.0.2   # mysql8 密码加密
 
 openai==1.55.2      # ai 大模型
+oss2==2.18.4        # 阿里云对象存储

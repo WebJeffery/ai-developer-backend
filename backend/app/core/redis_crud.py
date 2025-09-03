@@ -57,9 +57,6 @@ class RedisCURD:
     async def set(self, key: str, value: Any, expire: Optional[int] = None) -> bool:
         """设置缓存"""
         try:
-            # if expire is None:
-            #     expire = 300
-                
             # 根据数据类型选择序列化方式
             if isinstance(value, (int, float, str)):
                 data = str(value).encode('utf-8')

@@ -8,14 +8,15 @@ from fastapi import Depends, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi import Depends
 
-from app.core.exceptions import CustomException
-from app.core.security import OAuth2Schema, decode_access_token
-from app.core.database import session_connect
-from app.core.logger import logger
-from app.api.v1.cruds.system.user_crud import UserCRUD
-from app.api.v1.schemas.system.auth_schema import AuthSchema
-from app.core.redis_crud import RedisCURD
 from app.common.enums import RedisInitKeyConfig
+from app.core.exceptions import CustomException
+from app.core.database import session_connect
+from app.core.security import OAuth2Schema, decode_access_token
+from app.core.logger import logger
+from app.core.redis_crud import RedisCURD
+from app.api.v1.module_system.user.crud import UserCRUD
+from app.api.v1.module_system.auth.schema import AuthSchema
+
 
 async def db_getter() -> AsyncGenerator[AsyncSession, None]:
     """获取数据库会话连接"""

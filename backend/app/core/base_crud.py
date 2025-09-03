@@ -8,9 +8,9 @@ from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import asc, func, select, delete, Select, desc, update, or_, and_
 
-from app.api.v1.schemas.system.auth_schema import AuthSchema
-from app.api.v1.models.system.dept_model import DeptModel
-from app.api.v1.models.system.user_model import UserModel
+from app.api.v1.module_system.auth.schema import AuthSchema
+from app.api.v1.module_system.dept.model import DeptModel
+from app.api.v1.module_system.user.model import UserModel
 from app.utils.common_util import get_child_id_map, get_child_recursion
 from app.core.exceptions import CustomException
 
@@ -34,6 +34,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.auth = auth
         self.db: AsyncSession = auth.db
         self.current_user = auth.user
+    
     async def get(self, **kwargs) -> Optional[ModelType]:
         """
         根据条件获取单个对象
