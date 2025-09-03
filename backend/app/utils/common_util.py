@@ -2,6 +2,7 @@
 
 import importlib
 import uuid
+import re
 
 from sqlalchemy.orm import DeclarativeBase
 from typing import Any, List, Dict, Sequence, Optional
@@ -9,6 +10,17 @@ from typing import Any, List, Dict, Sequence, Optional
 from app.core.logger import logger
 from app.core.exceptions import CustomException
 
+def worship():
+    print("""
+     ______        _                  _ 
+    |  ____|      | |     /\         (_)
+    | |__ __ _ ___| |_   /  \   _ __  _ 
+    |  __/ _` / __| __| / /\ \ | '_ \| |
+    | | | (_| \__ \ |_ / ____ \| |_) | |
+    |_|  \__,_|___/\__/_/    \_\ .__/|_|
+                               | |      
+                               |_|
+    """)
 
 def import_module(module: str, desc: str) -> Any:
     """

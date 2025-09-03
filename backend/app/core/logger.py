@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, Any
 from pathlib import Path
 
 from app.config.setting import settings
@@ -91,7 +91,8 @@ class LoggerHandler:
 
         # 使用Path对象提升路径操作性能
         log_dir = Path(settings.LOGGER_DIR)
-        log_dir.mkdir(parents=True, exist_ok=True)
+        if not log_dir.exists():
+            log_dir.mkdir(parents=True, exist_ok=True)
 
         # 清除现有处理器
         self.logger.handlers.clear()

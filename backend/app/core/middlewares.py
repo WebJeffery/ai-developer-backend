@@ -2,16 +2,11 @@
 
 import time
 from typing import Dict, List, Union
-from fastapi import status
 from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp
 from starlette.requests import Request
 from starlette.middleware.gzip import GZipMiddleware
-from starlette.middleware.base import (
-    Response,
-    BaseHTTPMiddleware,
-    RequestResponseEndpoint
-)
+from starlette.middleware.base import Response, BaseHTTPMiddleware, RequestResponseEndpoint
 
 from app.common.response import ErrorResponse
 from app.config.setting import settings
@@ -39,10 +34,10 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
 
     async def dispatch(
-            self, request: Request, call_next: RequestResponseEndpoint
+        self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         start_time = time.time()
-        
+
         logger.info(
             f"请求来源: {request.client.host}, "
             f"请求方法: {request.method}, "
@@ -75,7 +70,7 @@ class DemoEnvMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
 
     async def dispatch(
-            self, request: Request, call_next: RequestResponseEndpoint
+        self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         
         if settings.DEMO_ENABLE and request.method != "GET":

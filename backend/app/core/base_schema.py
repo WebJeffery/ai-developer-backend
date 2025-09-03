@@ -14,6 +14,13 @@ class UserInfoSchema(BaseModel):
     name: str = Field(description="用户姓名")
     username: str = Field(description="用户名")
 
+class CommonSchema(BaseModel):
+    """用户信息模型"""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(description="编号ID")
+    name: str = Field(description="名称")
+
 
 class BaseSchema(BaseModel):
     """通用输出模型，包含基础字段和审计字段"""
@@ -36,7 +43,6 @@ class UploadResponseSchema(BaseModel):
     """
     上传响应模型
     """
-
     model_config = ConfigDict(from_attributes=True)
 
     file_path: Optional[str] = Field(default=None, description='新文件映射路径')

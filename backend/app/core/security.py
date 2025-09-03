@@ -7,8 +7,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.security.utils import get_authorization_scheme_param
 
 from app.core.exceptions import CustomException
-from app.api.v1.schemas.system.auth_schema import JWTPayloadSchema
 from app.config.setting import settings
+from app.api.v1.module_system.auth.schema import JWTPayloadSchema
 
 
 class CustomOAuth2PasswordBearer(OAuth2PasswordBearer):

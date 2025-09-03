@@ -8,9 +8,9 @@ from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import asc, func, select, delete, Select, desc, update, or_, and_
 
-from app.api.v1.schemas.system.auth_schema import AuthSchema
-from app.api.v1.models.system.dept_model import DeptModel
-from app.api.v1.models.system.user_model import UserModel
+from app.api.v1.module_system.auth.schema import AuthSchema
+from app.api.v1.module_system.dept.model import DeptModel
+from app.api.v1.module_system.user.model import UserModel
 from app.utils.common_util import get_child_id_map, get_child_recursion
 from app.core.exceptions import CustomException
 
@@ -34,6 +34,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.auth = auth
         self.db: AsyncSession = auth.db
         self.current_user = auth.user
+    
     async def get(self, **kwargs) -> Optional[ModelType]:
         """
         根据条件获取单个对象
@@ -277,7 +278,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             
         if 3 in data_scopes:
             # 3、本部门及以下数据
-            dept_objs = await CRUDBase(DeptModel, self.auth).list()
+            # 直接查询部门表，避免递归调用CRUD
+            dept_sql = select(DeptModel)
+            dept_result = await self.db.execute(dept_sql)
+            dept_objs = dept_result.scalars().all()
             id_map = get_child_id_map(dept_objs)
             dept_child_ids = get_child_recursion(id=self.current_user.dept_id, id_map=id_map)
             for child_id in dept_child_ids:

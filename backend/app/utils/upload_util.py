@@ -9,6 +9,7 @@ from fastapi import UploadFile
 from pathlib import Path
 from urllib.parse import urljoin  # 添加URL拼接工具导入
 from sqlalchemy.orm.writeonly import strategies
+import oss2
 
 from app.config.setting import settings
 from app.core.exceptions import CustomException
@@ -149,5 +150,24 @@ class UploadUtil:
         :return: 文件下载信息
         """
         # 解析文件路径
-        filename = cls.generate_file_name(file_path)
+        filename = cls.generate_file(file_path)
         return filename
+
+    @classmethod
+    async def upload_file_oss(cls, file: UploadFile, oss_folder):
+        end_point = settings.ALI_OSS_END_POINT
+        access_key_id = settings.ALI_OSS_KEY
+        access_key_secret = settings.ALI_OSS_SECRET
+        access_pre = settings.ALI_OSS_PRE
+        auth = oss2.Auth(access_key_id, access_key_secret)
+        bucket = oss2.Bucket(auth, end_point, settings.ALI_OSS_BUCKET)
+        pic_data = file.file.read()
+        # file_name = oss_folder + str(time.time()) + file.filename.rsplit(".", 1)[-1]
+        target_file_name = oss_folder + str(time.time()) + Path(file.filename).suffix
+        bucket.put_object(target_file_name, pic_data)
+
+        # 后期优化
+        file_url = f'{access_pre}/{target_file_name}'
+        filepath = file_url
+        # 返回相对路径
+        return file.filename, filepath, file_url

@@ -30,7 +30,7 @@ from app.core.exceptions import CustomException
 
 # 同步数据库引擎
 engine = create_engine(
-    url=settings.DATABASES_URI,
+    url=settings.DB_URI,
     echo=settings.DATABASE_ECHO,
 )
 # 同步数据库会话工厂
@@ -41,7 +41,7 @@ def async_db_engine() -> AsyncEngine:
     """创建异步数据库引擎"""
     # 创建数据库引擎
     async_engine = create_async_engine(
-        url=settings.DB_URI,
+        url=settings.ASYNC_DB_URI,
         echo=settings.DATABASE_ECHO,
         echo_pool=settings.ECHO_POOL,
         pool_pre_ping=settings.POOL_PRE_PING,

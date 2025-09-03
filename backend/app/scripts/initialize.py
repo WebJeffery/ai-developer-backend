@@ -1,32 +1,28 @@
 # -*- coding: utf-8 -*-
 
+import uuid
 import json
 from pathlib import Path
 from typing import Dict, List
-from sqlalchemy import inspect, select
+from sqlalchemy import inspect, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from app.core.base_model import ModelBase
+from app.core.base_model import MappedBase
 from app.core.logger import logger
 from app.config.setting import settings
-from app.api.v1.models.system import (
-    user_model,
-    dept_model,
-    role_model,
-    menu_model,
-    position_model,
-    operation_log_model,
-    notice_model,
-    config_model,
-    dict_model,
-)
-from app.api.v1.models.monitor import (
-    job_model
-)
-from app.api.v1.models.demo import (
-    example_model
-)
+
+from app.api.v1.module_system.user.model import UserModel, UserRolesModel, UserPositionsModel
+from app.api.v1.module_system.role.model import RoleModel, RoleDeptsModel, RoleMenusModel
+from app.api.v1.module_system.position.model import PositionModel
+from app.api.v1.module_system.dept.model import DeptModel
+from app.api.v1.module_system.menu.model import MenuModel
+from app.api.v1.module_system.log.model import OperationLogModel
+from app.api.v1.module_system.notice.model import NoticeModel
+from app.api.v1.module_system.config.model import ConfigModel
+from app.api.v1.module_system.dict.model import DictTypeModel, DictDataModel
+from app.api.v1.module_monitor.job.model import JobModel, JobLogModel
+from app.api.v1.module_example.demo.model import DemoModel
+
 
 class InitializeData:
     """
@@ -34,23 +30,32 @@ class InitializeData:
     """
 
     def __init__(self) -> None:
+        # 按照依赖关系排序：先创建基础表，再创建关联表
         self.prepare_init_models = [
-            dept_model.DeptModel,
-            menu_model.MenuModel,
-            user_model.UserModel,
-            position_model.PositionModel,
-            user_model.UserPositionsModel,
-            role_model.RoleModel,
-            user_model.UserRolesModel,
-            role_model.RoleDeptsModel,
-            role_model.RoleMenusModel,
-            notice_model.NoticeModel,
-            config_model.ConfigModel,
-            operation_log_model.OperationLogModel,
-            dict_model.DictTypeModel,
-            dict_model.DictDataModel,
-            job_model.JobModel,
-            example_model.ExampleModel
+            # 部门表（自引用，需要先创建）
+            DeptModel,
+            # 菜单表（自引用，需要先创建）
+            MenuModel,
+            # 用户表（依赖部门和角色）
+            UserModel,
+            # 角色表（依赖菜单和部门）
+            RoleModel,
+            # 岗位表（无外键依赖）
+            PositionModel,
+            # 基础表（无外键依赖）
+            ConfigModel,
+            DictTypeModel,
+            NoticeModel,
+            OperationLogModel,
+            DictDataModel,
+            JobModel,
+            JobLogModel,
+            DemoModel,
+            # 关联表（依赖基础表）
+            UserPositionsModel,
+            UserRolesModel,
+            RoleDeptsModel,
+            RoleMenusModel,
         ]
         self.created_tables = set()
     async def __get_existing_tables(self, db: AsyncSession) -> List[str]:
@@ -62,9 +67,8 @@ class InitializeData:
         """初始化数据库表结构"""
         try:
             # 获取所有模型元数据
-            metadata = ModelBase.metadata
+            metadata = MappedBase.metadata
             
-
             # 只创建不存在的表
             for table in metadata.sorted_tables:
                 if table.name not in await self.__get_existing_tables(db):
@@ -81,9 +85,13 @@ class InitializeData:
         """初始化基础数据"""
         for model in self.prepare_init_models:
             table_name = model.__tablename__
-            # 如果表不是本次新建的，跳过初始化
-            if table_name not in self.created_tables:
-                logger.warning(f"跳过 {table_name} 表数据初始化（表已存在）")
+            
+            # 检查表中是否已经有数据
+            count_result = await db.execute(select(func.count()).select_from(model))
+            existing_count = count_result.scalar()
+            
+            if existing_count > 0:
+                logger.warning(f"跳过 {table_name} 表数据初始化（表已存在 {existing_count} 条记录）")
                 continue
 
             data = await self.__get_data(table_name)
@@ -92,7 +100,7 @@ class InitializeData:
                 continue
             
             try:
-                # 新建的表一定为空，无需查主键去重，直接插入全部数据
+                # 表为空，直接插入全部数据
                 objs = [model(**item) for item in data]
                 db.add_all(objs)
                 await db.flush()
@@ -101,7 +109,6 @@ class InitializeData:
             except Exception as e:
                 logger.error(f"初始化 {table_name} 表数据失败: {str(e)}")
                 raise
-
 
     async def __get_data(self, filename: str) -> List[Dict]:
         """读取初始化数据文件"""

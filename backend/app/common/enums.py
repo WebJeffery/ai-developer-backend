@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
+
 from enum import Enum, unique
-from typing import Dict
 
 @unique
 class EnvironmentEnum(str, Enum):

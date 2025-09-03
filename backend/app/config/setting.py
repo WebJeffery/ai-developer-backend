@@ -6,7 +6,9 @@ from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional, Union, Literal
 from pydantic import MongoDsn, PostgresDsn, RedisDsn, MySQLDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_validation_decorator import Pattern
 from uvicorn.config import LifespanType
+from urllib.parse import quote_plus
 
 from app.common.enums import EnvironmentEnum
 
@@ -16,6 +18,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file='.env',
         env_file_encoding="utf-8",
+        extra='ignore',
         case_sensitive=True,
     )
 
@@ -78,16 +81,19 @@ class Settings(BaseSettings):
     # ================================================= #
     SECRET_KEY: str = "vgb0tnl9d58+6n-6h-ea&u^1#s0ccp!794=krylxcjq75vzps$"  # JWT密钥
     ALGORITHM: str = "HS256"                    # JWT算法
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440     # access_token过期时间(分钟)
-    REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080   # refresh_token过期时间(分钟)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 60 * 24 * 1   # access_token过期时间(秒)1 天
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 60 * 24 * 7  # refresh_token过期时间(秒)7 天
     TOKEN_TYPE: str = "bearer"                  # token类型
+    TOKEN_REQUEST_PATH_EXCLUDE: list[str] = [  # JWT / RBAC 路由白名单
+        'api/v1/auth/login',
+    ]
 
     # ================================================= #
     # ******************** 数据库配置 ******************* #
     # ================================================= #
     SQL_DB_ENABLE: bool = True          # 是否启用数据库
-    DATABASE_ECHO: bool = False         # 是否显示SQL日志
-    ECHO_POOL: bool = False             # 是否显示连接池日志
+    DATABASE_ECHO: bool | Literal['debug'] = False         # 是否显示SQL日志
+    ECHO_POOL: bool | Literal['debug'] = False             # 是否显示连接池日志
     POOL_SIZE: int = 20                 # 连接池大小
     MAX_OVERFLOW: int = 10              # 最大溢出连接数
     POOL_TIMEOUT: int = 30              # 连接超时时间(秒)
@@ -97,24 +103,20 @@ class Settings(BaseSettings):
     AUTOCOMMIT: bool = False            # 是否自动提交
     AUTOFETCH: bool = False             # 是否自动获取
     EXPIRE_ON_COMMIT: bool = False      # 是否在提交时过期
+    DATABASE_CHARSET: str = 'utf8mb4'
 
+    # 数据库类型
+    DATABASE_TYPE: Literal['sqlite','mysql', 'postgresql']
+    
     # SQLite数据库连接
-    DB_DRIVER: Literal['sqlite','mysql', 'postgresql'] = 'sqlite'
     SQLITE_DB_NAME: str
 
     # MySQL数据库连接
-    MYSQL_USER: str
-    MYSQL_PASSWORD: str
-    MYSQL_HOST: str
-    MYSQL_PORT: int
-    MYSQL_DB_NAME: str
-
-    # PostgreSQL数据库连接
-    POSTGRESQL_USER: str
-    POSTGRESQL_PASSWORD: str
-    POSTGRESQL_HOST: str
-    POSTGRESQL_PORT: int
-    POSTGRESQL_DB_NAME: str
+    DATABASE_HOST: str
+    DATABASE_PORT: int
+    DATABASE_USER: str
+    DATABASE_PASSWORD: str
+    DATABASE_NAME: str
 
     # ================================================= #
     # ******************** MongoDB配置 ******************* #
@@ -140,7 +142,7 @@ class Settings(BaseSettings):
     # ******************** 验证码配置 ******************* #
     # ================================================= #
     CAPTCHA_ENABLE: bool = True         # 是否启用验证码
-    CAPTCHA_EXPIRE_SECONDS: int = 60    # 验证码过期时间(秒)
+    CAPTCHA_EXPIRE_SECONDS: int = 60 * 1    # 验证码过期时间(秒) 1分钟
     CAPTCHA_FONT_SIZE: int = 40         # 字体大小
     CAPTCHA_FONT_PATH: Path = 'static/assets/font/Arial.ttf'  # 字体路径
 
@@ -149,8 +151,6 @@ class Settings(BaseSettings):
     # ================================================= #
     LOGGER_LEVEL: str           # 日志级别 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     LOGGER_DIR: Path = BASE_DIR.joinpath('logs')
-    if not LOGGER_DIR.exists():
-        LOGGER_DIR.mkdir(parents=True, exist_ok=True)
     BACKUPCOUNT: int = 10       # 日志文件备份数
     WHEN: str = 'MIDNIGHT'      # 日志分割时间 (MIDNIGHT, H, D, W0-W6)
     INTERVAL: int = 1           # 日志分割间隔
@@ -222,6 +222,17 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 最大文件大小(10MB)
 
     # ================================================= #
+    # ***************** 对象存储配置 ***************** #
+    # ================================================= #
+    UPLOAD_METHOD: Literal['local','oss'] = "local" # 上传方式, local或者oss
+    ALI_OSS_KEY: str = 'xxxx'
+    ALI_OSS_SECRET: str = 'xxxx'
+    ALI_OSS_END_POINT: str = 'xxxx'
+    ALI_OSS_PRE: str = 'xxxx'
+    ALI_OSS_BUCKET: str = 'xxxx'
+    UPLOAD_METHOD: str = 'xxxx'
+
+    # ================================================= #
     # ***************** Swagger配置 ***************** #
     # ================================================= #
     SWAGGER_CSS_URL: Path = "static/swagger/swagger-ui/swagger-ui.css"
@@ -233,6 +244,21 @@ class Settings(BaseSettings):
     # ******************* 初始化数据 ****************** #
     # ================================================= #
     SCRIPT_DIR: Path = BASE_DIR.joinpath('app/scripts/data')  # 管理员路由目录
+
+    # ================================================= #
+    # ******************* 代码生成配置 ****************** #
+    # ================================================= #
+    author: str = 'insistence'
+    package_name: str = 'module_admin.system'
+    auto_remove_pre: bool = False
+    table_prefix: str = 'sys_'
+    allow_overwrite: bool = False
+
+    GEN_PATH: str = 'gen_code/gen_path'
+
+    # def __init__(self):
+    #     if not os.path.exists(self.GEN_PATH):
+    #         os.makedirs(self.GEN_PATH)
 
     # ================================================= #
     # ******************* 其他配置 ******************* #
@@ -260,45 +286,37 @@ class Settings(BaseSettings):
         return EVENTS
 
     @property
-    def DB_URI(self) -> str:
-        """获取数据库连接"""
-        
-        supported_db_drivers = ("sqlite", "mysql", "postgresql")
-        if settings.DB_DRIVER not in supported_db_drivers:
-            raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
-        if settings.DB_DRIVER == "mysql":
-            MYSQL_URI: MySQLDsn = f"mysql+asyncmy://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB_NAME}?charset=utf8mb4"
-            return MYSQL_URI
-        elif settings.DB_DRIVER == "sqlite":
-            SQLITE_URI: str = f"sqlite+aiosqlite:///{settings.BASE_DIR.joinpath(settings.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
-            return SQLITE_URI
-        elif settings.DB_DRIVER == "postgresql":
-            POSRGRES_URI: PostgresDsn = f"postgresql+asyncpg://{settings.POSTGRESQL_USER}:{settings.POSTGRESQL_PASSWORD}@{settings.POSTGRESQL_HOST}:{settings.POSTGRESQL_PORT}/{settings.POSTGRESQL_DB_NAME}"
-            return POSRGRES_URI
+    def ASYNC_DB_URI(self) -> str:
+        """获取异步数据库连接"""
+        if self.DATABASE_TYPE == "mysql":
+            uri: MySQLDsn = f"mysql+asyncmy://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset={self.DATABASE_CHARSET}"
+            return uri
+        elif self.DATABASE_TYPE == "postgresql":
+            uri: PostgresDsn = f"postgresql+asyncpg://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
+            return uri
+        elif self.DATABASE_TYPE == "sqlite":
+            uri = f"sqlite+aiosqlite:///{self.BASE_DIR.joinpath(self.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
+            return uri
         else:
-            raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
+            supported_db_drivers = ['mysql', 'postgresql', 'sqlite']
+            raise ValueError(f"数据库驱动不支持: {self.DATABASE_TYPE}, 请选择 {supported_db_drivers}")
 
-    
     @property
-    def DATABASES_URI(self) -> str:
-        """获取数据库连接"""
-        supported_db_drivers = ("sqlite", "mysql", "postgresql")
-        if settings.DB_DRIVER not in supported_db_drivers:
-            raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
-        if settings.DB_DRIVER == "mysql":
-            MYSQL_URI: MySQLDsn = f"mysql+pymysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB_NAME}?charset=utf8mb4"
-            return MYSQL_URI
-        elif settings.DB_DRIVER == "postgresql":
-            POSRGRES_URI: PostgresDsn = f"postgresql://{settings.POSTGRESQL_USER}:{settings.POSTGRESQL_PASSWORD}@{settings.POSTGRESQL_HOST}:{settings.POSTGRESQL_PORT}/{settings.POSTGRESQL_DB_NAME}"
-            return POSRGRES_URI
-        elif settings.DB_DRIVER == "sqlite":
-            SQLITE_URI: str = f"sqlite:///{settings.BASE_DIR.joinpath(settings.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
-            return SQLITE_URI
+    def DB_URI(self) -> str:
+        """获取同步数据库连接"""
+        if self.DATABASE_TYPE == "mysql":
+            uri: MySQLDsn = f"mysql+pymysql://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset={self.DATABASE_CHARSET}"
+            return uri
+        elif self.DATABASE_TYPE == "postgresql":
+            uri: PostgresDsn = f"postgresql+psycopg2://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
+            return uri
+        elif self.DATABASE_TYPE == "sqlite":
+            uri: str = f"sqlite:///{self.BASE_DIR.joinpath(self.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
+            return uri
         else:
-            raise ValueError(f"数据库驱动不支持: {settings.DB_DRIVER}, 请选择 {supported_db_drivers}")
-            
+            supported_db_drivers = ['mysql', 'postgresql', 'sqlite']
+            raise ValueError(f"数据库驱动不支持: {self.DATABASE_TYPE}, 请选择 {supported_db_drivers}")
 
-        
     @property
     def MONGO_DB_URI(self) -> MongoDsn:
         """获取MongoDB连接"""
@@ -381,45 +399,6 @@ class Settings(BaseSettings):
             "lifespan": self.LIFESPAN,
             "factory": self.FACTORY,
         }
-
-
-class WxMiniConfig(BaseSettings):
-
-    WX_MINI_APPID: str = "xxxx"
-    WX_MINI_APPID_SECRET: str = "xxxx"
-
-    WX_MINI_TOKEN_URL: str = ("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}"
-                         .format(WX_MINI_APPID, WX_MINI_APPID_SECRET))
-    WX_MINI_GET_PHONE_URL: str = "https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token={}"
-    WX_MINI_LOGIN: str = ("https://api.weixin.qq.com/sns/jscode2session?grant_type=authorization_code&appid={}"
-                          "&secret={}&js_code={}")
-    # 获取无限小程序码
-    WX_MINI_GEN_PATH_CODE: str = 'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}'
-    # 微信小程序发送订阅消息
-    WX_MINI_SEND_SUBSCRIBE_MSG: str = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token={}'
-    # 微信商户ID，后续支付使用
-    WXPAY_MCHID: str= "xxxx"
-    # 微信支付 API v3秘钥
-    WXPAY_APIV3_KEY: str = "xxxx"
-    # 微信支付结果回调接口
-    WXPAY_NOTIFYURL: str = "微信支付结果回调接口"
-    # 商户证书序列号
-    WXPAY_SERIALNO: str = "xxxx"
-    # 商户私钥
-    WXPAY_CLIENT_PRIKEY: str = "wxmini/wepay_cert/apiclient_key.pem"
-    # 商品描述(统一下单接口用到)
-    WXPAY_PAY_DESC: str = "商品描述(统一下单接口用到)"
-    # 回调地址，也可以在调用接口的时候覆盖
-    NOTIFY_URL: str = 'https://xxxx.xxxxx.cn/api/v1/wepay/notify'
-    # 微信支付平台证书缓存目录，减少证书下载调用次数，首次使用确保此目录为空目录.
-    # 初始调试时可不设置，调试通过后再设置，示例值:'./cert'
-    CERT_DIR: str = './cert'
-
-    SubscribeTemplate: Any = {
-        # 微信小程序通知模板ID
-        "rest_minute": "xxxxx"
-    }
-    pass
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

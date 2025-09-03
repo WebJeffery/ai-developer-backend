@@ -2,8 +2,15 @@
 
 # 设置全局变量
 PROJECT_NAME="fastapi_vue3_admin"
-WORK_DIR="/home"
-GIT_REPO="https://gitee.com/tao__tao/fastapi_vue3_admin.git"
+WORK_DIR="."
+GIT_REPO="https://gitee.com/tao__tao/${PROJECT_NAME}.git"
+
+# 是否有更新前端
+UPDATE_FRONTEND=false
+# 是否有更新移动端
+UPDATE_FASTAPP=false
+# 是否有更新官网
+UPDATE_FASTDOCS=false
 
 # 日志级别控制
 LOG_LEVEL=${LOG_LEVEL:-INFO}
@@ -24,7 +31,7 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $message"
 }
 
-# 检查权限
+# 检查系统依赖
 check_permissions() {
     log "==========🔍 检查权限...==========" "INFO"
     # 检查脚本文件是否有执行权限
@@ -34,10 +41,7 @@ check_permissions() {
     else
         log "✅ 脚本已有执行权限" "INFO"
     fi
-}
 
-# 检查依赖
-check_dependencies() {
     log "==========🔍 检查系统依赖...==========" "INFO"
     local missing_deps=()
     
@@ -80,17 +84,31 @@ stop_project() {
 # 更新代码
 update_code() {
     log "==========🔍 更新最新代码...==========" "INFO"
-    cd "${WORK_DIR}" || { log "❌ 无法进入工作目录：${WORK_DIR}" "ERROR"; exit 1; }
-    if [ -d "${PROJECT_NAME}/" ]; then
-        log "🔄 项目已存在，开始更新代码" "INFO"
+    if [ -d "${WORK_DIR}/${PROJECT_NAME}/" ]; then
+        log "🔄 开始更新代码" "INFO"
         cd "${PROJECT_NAME}" || { log "❌ 无法进入项目目录：${PROJECT_NAME}" "ERROR"; exit 1; }
         git pull --force || { log "❌ 拉取更新失败" "ERROR"; exit 1; }
         git log -1 || { log "❌ 获取提交信息失败" "ERROR"; exit 1; }
+        if [ -f "frontend" ]; then
+            UPDATE_FRONTEND=true
+            log "📦 项目更新了前端工程" "INFO"
+        fi
+        if [ -f "fastapp" ]; then
+            UPDATE_FASTAPP=true
+            log "📦 项目更新了移动端工程" "INFO"
+        fi
+        if [ -f "fastdocs" ]; then
+            UPDATE_FASTDOCS=true
+            log "📦 项目更新了官网工程" "INFO"
+        fi
         log "✅ 代码更新成功" "INFO"
     else
         log "📥 项目不存在，开始克隆代码" "INFO"
         git clone "${GIT_REPO}" || { log "❌ 项目克隆失败：${GIT_REPO}" "ERROR"; exit 1; }
         cd "${PROJECT_NAME}" || { log "❌ 无法进入项目目录：${PROJECT_NAME}" "ERROR"; exit 1; }
+        UPDATE_FRONTEND=true
+        UPDATE_FASTAPP=true
+        UPDATE_FASTDOCS=true
         log "✅ 代码克隆成功" "INFO"
     fi
 }
@@ -100,7 +118,7 @@ build_frontend() {
     log "==========🚀 打包前端...==========" "INFO"
     
     # 构建前端
-    if [ -d "frontend" ]; then
+    if [ -d "frontend" ] && [ "$UPDATE_FRONTEND" = true ]; then
         cd frontend || { log "❌ 无法进入前端目录" "ERROR"; exit 1; }
         log "📦 安装前端依赖..." "INFO"
         pnpm install || { log "❌ 前端依赖安装失败" "ERROR"; exit 1; }
@@ -111,7 +129,7 @@ build_frontend() {
     fi
 
     # 构建小程序
-    if [ -d "fastapp" ]; then
+    if [ -d "fastapp" ] && [ "$UPDATE_FASTAPP" = true ]; then
         cd fastapp || { log "❌ 无法进入小程序目录" "ERROR"; exit 1; }
         log "📦 安装小程序依赖..." "INFO"
         pnpm install || { log "❌ 小程序依赖安装失败" "ERROR"; exit 1; }
@@ -122,7 +140,7 @@ build_frontend() {
     fi
 
     # 构建项目文档
-    if [ -d "fastdocs" ]; then
+    if [ -d "fastdocs" ] && [ "$UPDATE_FASTDOCS" = true ]; then
         cd fastdocs || { log "❌ 无法进入项目文档目录" "ERROR"; exit 1; }
         log "📦 安装项目文档依赖..." "INFO"
         pnpm install || { log "❌ 项目文档依赖安装失败" "ERROR"; exit 1; }
@@ -139,19 +157,9 @@ start_containers() {
     docker compose build || { log "❌ 镜像构建失败" "ERROR"; exit 1; }
     log "✅  Docker镜像构建成功" "INFO"
     docker compose up -d --force-recreate || { log "❌ 容器启动失败" "ERROR"; exit 1; }
-    
-    # 显示容器状态
-    log "🔍 检查容器状态..." "INFO"
-    docker compose ps || { log "❌ 容器状态获取失败" "ERROR"; exit 1; }
-    
-    # 显示容器日志
-    log "📋 获取容器日志..." "INFO"
-    docker compose logs  ||  { log "❌ 容器日志获取失败" "ERROR"; exit 1; }
+    sleep 5
     log "✅ 容器启动成功" "INFO"
-}
 
-# 清理旧镜像
-cleanup_old_images() {
     log "==========🗑️ 清理72小时前的旧镜像...==========" "INFO"
     # 只清理与项目相关的镜像
     local project_images=$(docker images | grep ${PROJECT_NAME} | awk '{print $3}' | wc -l)
@@ -164,6 +172,20 @@ cleanup_old_images() {
     else
         log "⚠️  没有找到项目相关镜像，跳过清理" "WARN"
     fi
+}
+
+# 显示所有完整日志的函数
+show_containers_logs() {
+    log "==========📋 查看所有应用完整日志 ==========" "INFO"
+    cd "${WORK_DIR}/${PROJECT_NAME}" || { log "❌ 无法进入项目目录" "ERROR"; exit 1; }
+    
+    # 显示容器状态
+    log "🔍 检查容器状态..." "INFO"
+    docker compose ps || { log "❌ 容器状态获取失败" "ERROR"; exit 1; }
+    
+    # 显示容器日志
+    log "📋 获取容器日志..." "INFO"
+    docker compose logs --tail=300 || log "⚠️ 后端日志获取失败" "WARN"
 }
 
 # 信号处理
@@ -181,23 +203,23 @@ handle_interrupt() {
 main() {
     log "==========🚀 开始部署流程==========" "INFO"
     check_permissions
-    check_dependencies
+    stop_project
     update_code
     # build_frontend (由于本地资源较小，在服务器上构建应用改用本地构建好，上传到服务器)
-    stop_project
     start_containers
-    cleanup_old_images
-    log "🎉 部署完成！以下是访问信息：" "INFO"
-    log "📌 官网: https://service.fastapiadmin.com" "INFO"
-    log "📌 前端: https://service.fastapiadmin.com/web" "INFO"
-    log "📌 小程序: https://service.fastapiadmin.com/app" "INFO"
-    log "📌 后端接口: https://service.fastapiadmin.com/api/v1/docs" "INFO"
-    log "📌 登录信息: 账号 admin，密码 123456" "INFO"
-
+    show_logs
+    
+    log "🎉 部署完成！以下是访问信息：
+    📌 官网: https://service.fastapiadmin.com
+    📌 前端: https://service.fastapiadmin.com/web
+    📌 小程序: https://service.fastapiadmin.com/app
+    📌 后端接口: https://service.fastapiadmin.com/api/v1/docs
+    📌 登录信息: 账号 admin，密码 123456" "INFO"
 }
 
 # 设置信号处理
 trap handle_interrupt INT TERM
+
 
 # 解析命令行参数
 # 如果没有参数，则默认执行部署流程
@@ -216,9 +238,16 @@ while [[ $# -gt 0 ]]; do
             main
             exit 0
             ;;
+        --logs|-l)
+            show_containers_logs
+            exit 0
+            ;;
         --help|-h)
-            echo "Usage: $0 [--stop] [--start]"
-            echo "不带参数时默认执行部署流程"
+            echo "Usage: $0 [--stop] [--start] [--logs]"
+            echo "  --stop      停止项目容器"
+            echo "  --start     启动项目容器"
+            echo "  --logs      查看容器最近日志（摘要）"
+            echo "  不带参数时默认执行完整部署流程"
             exit 0
             ;;
         *)

@@ -13,10 +13,6 @@ from fastapi.openapi.docs import (
 from sqlalchemy import text
 
 from app.config.setting import settings
-from app.api.v1.urls.system_url import SystemApiRouter
-from app.api.v1.urls.monitor_url import MonitorApiRouter
-from app.api.v1.urls.demo_url import DemoApiRouter   
-from app.api.v1.urls.file_url import FileApiRouter
 from app.core.ap_scheduler import SchedulerUtil
 from app.core.logger import logger
 from app.utils.common_util import import_module, import_modules_async
@@ -36,10 +32,12 @@ from app.core.exceptions import (
     ResponseValidationHandle,
     ResponseValidationError
 )
-from app.api.v1.services.system.config_service import ConfigService
-from app.api.v1.services.system.dict_service import DictDataService
 from app.core.database import session_connect, test_db_connection
 from app.scripts.initialize import InitializeData
+from app.api.v1.module_system.config.service import ConfigService
+from app.api.v1.module_system.dict.service import DictDataService
+from app.api.v1 import router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
@@ -50,17 +48,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     
     try:
         async with session_connect() as session:
-            # 第一阶段：仅执行数据库相关初始化操作，确保数据库初始化完成
             async with session.begin():
                 # 测试数据库连接
                 await test_db_connection(session)
                 logger.info("数据库连接成功...")
                 await InitializeData().init_db(db=session)
                 logger.info("初始化数据完成...")
-                await session.commit()
-
-            # 第二阶段：执行依赖 redis 的操作，这些操作失败不会影响数据库初始化
-            try:
+                
+                # 在同一个事务中完成所有初始化操作
                 await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=True)
                 await ConfigService().init_config_service(redis=app.state.redis, db=session)
                 logger.info("初始化系统配置完成...")
@@ -68,16 +63,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
                 logger.info('初始化数据字典完成...')
                 await SchedulerUtil.init_system_scheduler(db=session)
                 logger.info('初始化定时任务完成...')
-            except Exception as e:
-                # 这里不进行回滚，避免影响已完成的数据库初始化
-                # 可以根据实际情况决定是否继续抛出异常，这里选择继续抛出
-                raise e
 
         logger.info(f'{settings.TITLE} 服务成功启动...')
     except Exception as e:
-        # 仅在第一阶段数据库操作出现错误时进行回滚
-        if 'session' in locals() and session.in_transaction():
-            await session.rollback()
         logger.error(f'{settings.TITLE} 服务启动失败: {str(e)}')
         raise e
     yield
@@ -113,11 +101,8 @@ def register_routers(app: FastAPI) -> None:
     """
     注册根路由
     """
-    app.include_router(router=SystemApiRouter)
-    app.include_router(router=MonitorApiRouter)
-    app.include_router(router=DemoApiRouter)
-    app.include_router(router=FileApiRouter)
-
+    app.include_router(router=router)
+    
 def register_files(app: FastAPI) -> None:
     """
     注册文件相关配置

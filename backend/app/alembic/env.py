@@ -13,7 +13,7 @@ from alembic import context
 config = context.config
 
 from app.config.setting import settings
-config.set_main_option("sqlalchemy.url", settings.DB_URI)
+config.set_main_option("sqlalchemy.url", settings.ASYNC_DB_URI)
 
 
 # Interpret the config file for Python logging.
@@ -25,19 +25,9 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.api.v1.models.system.user_model import *
-from app.api.v1.models.system.dept_model import *
-from app.api.v1.models.system.role_model import *
-from app.api.v1.models.system.menu_model import *
-from app.api.v1.models.system.position_model import *
-from app.api.v1.models.system.operation_log_model import *
-from app.api.v1.models.system.notice_model import *
-from app.api.v1.models.system.config_model import *
-from app.api.v1.models.system.dict_model import *
-from app.api.v1.models.monitor.job_model import *
-from app.api.v1.models.demo.example_model import *
-from app.core.base_model import ModelBase
-target_metadata = ModelBase.metadata
+
+from app.core.base_model import MappedBase
+target_metadata = MappedBase.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
