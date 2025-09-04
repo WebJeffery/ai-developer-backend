@@ -46,8 +46,9 @@ class OperationLogRoute(APIRoute):
             if req_content_type and (
                 req_content_type.startswith('multipart/form-data') or req_content_type.startswith('application/x-www-form-urlencoded')
             ):
-                payload = await request.form()
-                oper_param = '\n'.join([f'{k}: {v}' for k, v in payload.items()])  
+                form_data = await request.form()
+                oper_param = '\n'.join([f'{k}: {v}' for k, v in form_data.items()])
+                payload = oper_param  # 直接使用字符串格式的参数
             else:
                 payload = await request.body()
                 path_params = request.path_params
@@ -60,8 +61,8 @@ class OperationLogRoute(APIRoute):
                 # payload = str(oper_param)
 
                 # 日志表请求参数字段长度最大为2000，因此在此处判断长度
-                if len(oper_param) > 2000:
-                    oper_param = '请求参数过长'
+                if len(payload) > 2000:
+                    payload = '请求参数过长'
             
             response_data = response.body if "application/json" in response.headers.get("Content-Type", "") else b"{}"
             process_time = f"{(time.time() - start_time):.4f}s"
