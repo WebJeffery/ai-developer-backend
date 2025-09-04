@@ -46,7 +46,7 @@
 📌 **项目地址**：
 - Gitee：[https://gitee.com/tao__tao/fastapi_vue3_admin](https://gitee.com/tao__tao/fastapi_vue3_admin)
 - GitHub：[https://github.com/1014TaoTao/fastapi_vue3_admin](https://github.com/1014TaoTao/fastapi_vue3_admin)
-- [联系 or 加入我们](./about.md#关于我们)
+- [联系 or 加入我们](/about.md#关于我们)
 
 🙌 **无论你是否喜欢这个项目，都希望你能够给个 ⭐ Star 支持！小小的种子蕴含着大大的能量，终有一天星星之火，可以燎原。**
 

@@ -1256,7 +1256,7 @@ pnpm run clean:cache
 
 #### 🔄 工作原理
 
-![](./guide_front_flow.png)
+![业务流程](/guide_front_flow.png)
 
 ### 动态路由流程详解
 
@@ -1331,7 +1331,7 @@ normalizedRoute.component =
 1. 登录系统后，进入 **系统管理 → 菜单管理**
 2. 点击 **新增** 按钮
 
-![](./guide_front_menu_op1.png)
+![菜单引导](/guide_front_menu_op1.png)
 
 #### 步骤2：创建目录菜单
 
@@ -1350,7 +1350,7 @@ normalizedRoute.component =
 }
 ```
 
-![](./guide_front_menu_op2.png)
+![菜单引导](/guide_front_menu_op2.png)
 
 #### 步骤3：创建页面菜单
 
@@ -1370,7 +1370,7 @@ normalizedRoute.component =
 }
 ```
 
-![](./guide_front_menu_op3.png)
+![菜单引导](/guide_front_menu_op3.png)
 
 #### 步骤4：创建页面组件
 
