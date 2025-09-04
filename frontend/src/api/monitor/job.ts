@@ -24,9 +24,9 @@ const JobAPI = {
     });
   },
 
-  updateJob(body: JobForm) {
+  updateJob(id: number, body: JobForm) {
     return request<ApiResponse>({
-      url: `/monitor/job/update`,
+      url: `/monitor/job/update/${id}`,
       method: "put",
       data: body,
     });

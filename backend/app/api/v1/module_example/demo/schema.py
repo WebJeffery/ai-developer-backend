@@ -15,7 +15,7 @@ class DemoCreateSchema(BaseModel):
 
 class DemoUpdateSchema(DemoCreateSchema):
     """更新模型"""
-    id: int = Field(..., gt=0, description="示例ID")
+    ...
 
 
 class DemoOutSchema(DemoCreateSchema, BaseSchema):

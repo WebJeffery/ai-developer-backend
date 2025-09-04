@@ -36,7 +36,6 @@ class MenuCreateSchema(BaseModel):
 
 class MenuUpdateSchema(MenuCreateSchema):
     """菜单更新模型"""
-    id: int = Field(..., ge=1, description="菜单ID")
     parent_name: Optional[str] = Field(default=None, max_length=50, description="父菜单名称")
 
 

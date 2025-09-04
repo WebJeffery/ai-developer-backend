@@ -24,9 +24,9 @@ const RoleAPI = {
     });
   },
 
-  updateRole(body: RoleForm) {
+  updateRole(id: number, body: RoleForm) {
     return request<ApiResponse>({
-      url: `/system/role/update`,
+      url: `/system/role/update/${id}`,
       method: "put",
       data: body,
     });

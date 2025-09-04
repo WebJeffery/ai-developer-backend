@@ -19,47 +19,47 @@ class NoticeService:
     
     @classmethod
     async def get_notice_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
-        config_obj = await NoticeCRUD(auth).get_by_id_crud(id=id)
-        return NoticeOutSchema.model_validate(config_obj).model_dump()
+        notice_obj = await NoticeCRUD(auth).get_by_id_crud(id=id)
+        return NoticeOutSchema.model_validate(notice_obj).model_dump()
     
     @classmethod
     async def get_notice_list_available_service(cls, auth: AuthSchema) -> List[Dict]:
-        config_obj_list = await NoticeCRUD(auth).get_list_crud(search={'status': True})
-        return [NoticeOutSchema.model_validate(config_obj).model_dump() for config_obj in config_obj_list]
+        notice_obj_list = await NoticeCRUD(auth).get_list_crud(search={'status': True})
+        return [NoticeOutSchema.model_validate(notice_obj).model_dump() for notice_obj in notice_obj_list]
 
     @classmethod
     async def get_notice_list_service(cls, auth: AuthSchema, search: NoticeQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         if order_by:
             order_by = eval(order_by)
-        config_obj_list = await NoticeCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
-        return [NoticeOutSchema.model_validate(config_obj).model_dump() for config_obj in config_obj_list]
+        notice_obj_list = await NoticeCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
+        return [NoticeOutSchema.model_validate(notice_obj).model_dump() for notice_obj in notice_obj_list]
     
     @classmethod
     async def create_notice_service(cls, auth: AuthSchema, data: NoticeCreateSchema) -> Dict:
-        config = await NoticeCRUD(auth).get(notice_title=data.notice_title)
-        if config:
+        notice = await NoticeCRUD(auth).get(notice_title=data.notice_title)
+        if notice:
             raise CustomException(msg='创建失败，该公告通知已存在')
-        config_obj = await NoticeCRUD(auth).create_crud(data=data)
-        return NoticeOutSchema.model_validate(config_obj).model_dump()
+        notice_obj = await NoticeCRUD(auth).create_crud(data=data)
+        return NoticeOutSchema.model_validate(notice_obj).model_dump()
     
     @classmethod
-    async def update_notice_service(cls, auth: AuthSchema, data: NoticeUpdateSchema) -> Dict:
-        config = await NoticeCRUD(auth).get_by_id_crud(id=data.id)
-        if not config:
+    async def update_notice_service(cls, auth: AuthSchema, id: int, data: NoticeUpdateSchema) -> Dict:
+        notice = await NoticeCRUD(auth).get_by_id_crud(id=id)
+        if not notice:
             raise CustomException(msg='更新失败，该公告通知不存在')
-        exist_config = await NoticeCRUD(auth).get(notice_title=data.notice_title)
-        if exist_config and exist_config.id != data.id:
+        exist_notice = await NoticeCRUD(auth).get(notice_title=data.notice_title)
+        if exist_notice and exist_notice.id != id:
             raise CustomException(msg='更新失败，公告通知标题重复')
-        config_obj = await NoticeCRUD(auth).update_crud(id=data.id, data=data)
-        return NoticeOutSchema.model_validate(config_obj).model_dump()
+        notice_obj = await NoticeCRUD(auth).update_crud(id=id, data=data)
+        return NoticeOutSchema.model_validate(notice_obj).model_dump()
     
     @classmethod
     async def delete_notice_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
-            config = await NoticeCRUD(auth).get_by_id_crud(id=id)
-            if not config:
+            notice = await NoticeCRUD(auth).get_by_id_crud(id=id)
+            if not notice:
                 raise CustomException(msg='删除失败，该公告通知不存在')
         await NoticeCRUD(auth).delete_crud(ids=ids)
     
@@ -89,7 +89,7 @@ class NoticeService:
             # 处理状态
             item['status'] = '正常' if item.get('status') else '停用'
             # 处理公告类型
-            item['notice_type'] = '通知' if item.get('notice_type') == 1 else '公告'
+            item['notice_type'] = '通知' if item.get('notice_type') == '1' else '公告'
             item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
 
-        return ExcelUtil.export_list2excel(list_data=notice_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)

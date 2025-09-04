@@ -62,8 +62,8 @@ class DictTypeService:
         return new_obj_dict
     
     @classmethod
-    async def update_obj_service(cls, auth: AuthSchema, redis: Redis, data: DictTypeUpdateSchema) -> Dict:
-        exist_obj = await DictTypeCRUD(auth).get_obj_by_id_crud(id=data.id)
+    async def update_obj_service(cls, auth: AuthSchema, redis: Redis, id:int, data: DictTypeUpdateSchema) -> Dict:
+        exist_obj = await DictTypeCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该数据字典类型不存在')
         if exist_obj.dict_name != data.dict_name:
@@ -93,7 +93,7 @@ class DictTypeService:
                     obj = await DictDataCRUD(auth).update_obj_crud(id=item.id, data=dict_data)
                     dict_data_list.append(DictDataOutSchema.model_validate(obj).model_dump())
         
-        obj = await DictTypeCRUD(auth).update_obj_crud(id=data.id, data=data)
+        obj = await DictTypeCRUD(auth).update_obj_crud(id=id, data=data)
 
         new_obj_dict = DictTypeOutSchema.model_validate(obj).model_dump()
 
@@ -164,7 +164,7 @@ class DictTypeService:
             item['status'] = '正常' if item.get('status') else '停用'
             item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
 
-        return ExcelUtil.export_list2excel(list_data=data_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
     
 
 class DictDataService:
@@ -250,12 +250,12 @@ class DictDataService:
         return DictDataOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_obj_service(cls, auth: AuthSchema, redis: Redis, data: DictDataUpdateSchema) -> Dict:
-        exist_obj = await DictDataCRUD(auth).get_obj_by_id_crud(id=data.id)
+    async def update_obj_service(cls, auth: AuthSchema, redis: Redis, id:int, data: DictDataUpdateSchema) -> Dict:
+        exist_obj = await DictDataCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该字典数据不存在')
         exist_obj = await DictDataCRUD(auth).get(dict_label=data.dict_label)
-        if exist_obj and exist_obj.id != data.id:
+        if exist_obj and exist_obj.id != id:
             raise CustomException(msg='更新失败，数据字典数据重复')
             
         # 如果状态变更，需要同步更新字典类型状态并刷新缓存
@@ -283,7 +283,7 @@ class DictDataService:
                 except Exception as e:
                     logger.error(f"更新字典数据状态时刷新缓存失败: {e}")
                 
-        obj = await DictDataCRUD(auth).update_obj_crud(id=data.id, data=data)
+        obj = await DictDataCRUD(auth).update_obj_crud(id=id, data=data)
         redis_key = f"{RedisInitKeyConfig.SYSTEM_DICT.key}:{data.dict_type}"
         try:
             # 获取当前字典类型的所有字典数据
@@ -304,6 +304,8 @@ class DictDataService:
     
     @classmethod
     async def delete_obj_service(cls, auth: AuthSchema, redis: Redis, ids: list[int]) -> None:
+        if len(ids) < 1:
+            raise CustomException(msg='删除失败，删除对象不能为空')
         
         for id in ids:
 
@@ -354,4 +356,4 @@ class DictDataService:
             item['is_default'] = '是' if item.get('is_default') else '否'
             item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
 
-        return ExcelUtil.export_list2excel(list_data=data_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)

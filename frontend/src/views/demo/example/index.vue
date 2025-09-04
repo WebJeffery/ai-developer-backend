@@ -416,7 +416,7 @@ async function handleSubmit() {
             const id = formData.id;
             if (id) {
                 try {
-                    await ExampleAPI.updateExample({ id, ...formData })
+                    await ExampleAPI.updateExample(id, { id, ...formData })
                     dialogVisible.visible = false;
                     resetForm();
                     handleCloseDialog();

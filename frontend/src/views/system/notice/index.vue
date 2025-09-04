@@ -253,7 +253,7 @@ defineOptions({
 });
 
 import NoticeAPI, { NoticeTable, NoticeForm, NoticePageQuery } from "@/api/system/notice";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -429,7 +429,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await NoticeAPI.updateNotice({ id, ...formData })
+          await NoticeAPI.updateNotice(id, { id, ...formData })
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();

@@ -80,8 +80,6 @@ class UserUpdateSchema(UserCreateSchema):
     """更新"""
     model_config = ConfigDict(from_attributes=True, exclude={"password"})
 
-    id: int = Field(..., description="主键ID")
-
 
 class UserOutSchema(UserCreateSchema, BaseSchema):
     """响应"""

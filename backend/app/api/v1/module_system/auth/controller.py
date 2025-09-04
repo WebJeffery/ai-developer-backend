@@ -78,7 +78,7 @@ async def logout_controller(
     payload: LogoutPayloadSchema,
     redis: Redis = Depends(redis_getter)
 ) -> JSONResponse:
-    if await LoginService.logout_services_service(redis=redis, token=payload):
+    if await LoginService.logout_service(redis=redis, token=payload):
         logger.info('退出成功')
         return SuccessResponse(msg='退出成功')
     return ErrorResponse(msg='退出失败')

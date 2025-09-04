@@ -91,4 +91,4 @@ class OperationLogService:
             item['type'] = '操作日志' if item.get('type') == 1 else '登录日志'
             item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
 
-        return ExcelUtil.export_list2excel(list_data=operation_log_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)

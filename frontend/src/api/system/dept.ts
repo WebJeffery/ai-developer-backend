@@ -24,9 +24,9 @@ const DeptAPI = {
     });
   },
 
-  updateDept(body: DeptForm) {
+  updateDept(id: number, body: DeptForm) {
     return request<ApiResponse>({
-      url: `/system/dept/update`,
+      url: `/system/dept/update/${id}`,
       method: "put",
       data: body,
     });

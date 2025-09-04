@@ -49,7 +49,7 @@ async def delete_obj_log_controller(
 ) -> JSONResponse:
     """ 删除日志 """
     await OperationLogService.delete_log_service(ids=ids, auth=auth)
-    logger.info(f"删除日志成功 {id}")
+    logger.info(f"删除日志成功 {ids}")
     return SuccessResponse(msg="删除日志成功")
 
 

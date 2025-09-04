@@ -424,7 +424,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await RoleAPI.updateRole({ id, ...formData })
+          await RoleAPI.updateRole(id, { id, ...formData })
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();

@@ -25,7 +25,7 @@ class DeptCreateSchema(BaseModel):
 
 class DeptUpdateSchema(DeptCreateSchema):
     """部门更新模型"""
-    id: int = Field(..., ge=1, description="部门ID")
+    ...
 
 
 class DeptOutSchema(DeptCreateSchema, BaseSchema):

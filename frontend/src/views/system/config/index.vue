@@ -191,7 +191,7 @@ defineOptions({
 });
 
 import ConfigAPI, { ConfigTable, ConfigForm, ConfigPageQuery } from "@/api/system/config";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -369,7 +369,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await ConfigAPI.updateConfig(formData)
+          await ConfigAPI.updateConfig(id, formData)
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();

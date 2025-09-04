@@ -196,7 +196,7 @@ defineOptions({
 });
 
 import PositionAPI, { PositionTable, PositionForm, PositionPageQuery } from "@/api/system/position";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -370,7 +370,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await PositionAPI.updatePosition({ id, ...formData })
+          await PositionAPI.updatePosition(id, { id, ...formData })
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();

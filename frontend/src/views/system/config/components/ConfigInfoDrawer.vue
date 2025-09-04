@@ -101,7 +101,7 @@ const submitChanges = async () => {
     // 并行处理所有修改请求，提高性能
     const updatePromises = keysToSubmit.map(key => {
       const item = systemConfigs.value[key as keyof typeof systemConfigs.value] || logoConfigs.value[key as keyof typeof logoConfigs.value];
-      return item ? ConfigAPI.updateConfig({ ...item }) : Promise.resolve();
+      return item && item.id ? ConfigAPI.updateConfig(item.id, { ...item }) : Promise.resolve();
     });
 
     await Promise.all(updatePromises);

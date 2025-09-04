@@ -40,9 +40,9 @@ const ConfigAPI = {
     });
   },
 
-  updateConfig(body: ConfigForm) {
+  updateConfig(id: number, body: ConfigForm) {
     return request<ApiResponse>({
-      url: `/system/config/update`,
+      url: `/system/config/update/${id}`,
       method: "put",
       data: body,
     });

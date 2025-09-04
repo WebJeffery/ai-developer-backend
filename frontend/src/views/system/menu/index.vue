@@ -178,7 +178,7 @@
             <el-tag v-if="detailFormData.type === MenuTypeEnum.EXTLINK" type="info">外链</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="图标" :span="2">
-            <template #default="scope">
+            <template #default>
               <template v-if=" detailFormData.icon &&  detailFormData.icon.startsWith('el-icon')">
                 <el-icon style="vertical-align: -0.15em">
                   <component :is="detailFormData.icon.replace('el-icon-', '')" />
@@ -721,7 +721,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await MenuAPI.updateMenu(formData)
+          await MenuAPI.updateMenu(id, formData)
           await userStore.getUserInfo();
           dialogVisible.visible = false;
           resetForm();

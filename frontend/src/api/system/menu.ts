@@ -24,9 +24,9 @@ const MenuAPI = {
     });
   },
 
-  updateMenu(body: MenuForm) {
+  updateMenu(id: number, body: MenuForm) {
     return request<ApiResponse>({
-      url: `/system/menu/update`,
+      url: `/system/menu/update/${id}`,
       method: "put",
       data: body,
     });

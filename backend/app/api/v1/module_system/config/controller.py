@@ -53,13 +53,14 @@ async def create_obj_controller(
     return SuccessResponse(data=result_dict, msg="创建系统配置成功")
 
 
-@ConfigRouter.put("/update", summary="修改配置", description="修改配置")
+@ConfigRouter.put("/update/{id}", summary="修改配置", description="修改配置")
 async def update_objs_controller(
     data: ConfigUpdateSchema,
+    id: int = Path(..., description="系统配置ID"),
     redis: Redis = Depends(redis_getter), 
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:update"]))
 ) -> JSONResponse:
-    result_dict = await ConfigService.update_obj_service(auth=auth, redis=redis, data=data)
+    result_dict = await ConfigService.update_obj_service(auth=auth, redis=redis, id=id, data=data)
     logger.info(f"更新配置成功 {result_dict}")
     return SuccessResponse(data=result_dict, msg="更新配置成功")
 
@@ -71,13 +72,13 @@ async def delete_type_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:delete"]))
 ) -> JSONResponse:
     await ConfigService.delete_obj_service(auth=auth, redis=redis, ids=ids)
-    logger.info(f"删除系统配置成功: {id}")
+    logger.info(f"删除系统配置成功: {ids}")
     return SuccessResponse(msg="删除系统配置成功")
 
 
 @ConfigRouter.post('/export', summary="导出系统配置", description="导出系统配置")
 async def export_type_list_controller(
-    search: ConfigService = Depends(),
+    search: ConfigQueryParams = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:export"]))
 ) -> StreamingResponse:
     # 获取全量数据

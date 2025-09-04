@@ -45,19 +45,19 @@ class RoleService:
         return RoleOutSchema.model_validate(new_role).model_dump()
 
     @classmethod
-    async def update_role_service(cls, auth: AuthSchema, data: RoleUpdateSchema) -> Dict:
+    async def update_role_service(cls, auth: AuthSchema, id: int, data: RoleUpdateSchema) -> Dict:
         """更新角色"""
-        role = await RoleCRUD(auth).get_by_id_crud(id=data.id)
+        role = await RoleCRUD(auth).get_by_id_crud(id=id)
         if not role:
             raise CustomException(msg='更新失败，该角色不存在')
         exist_role = await RoleCRUD(auth).get(name=data.name)
-        if exist_role and exist_role.id != data.id:
+        if exist_role and exist_role.id != id:
             raise CustomException(msg='更新失败，角色名称重复')
-        updated_role = await RoleCRUD(auth).update(id=data.id, data=data)
+        updated_role = await RoleCRUD(auth).update(id=id, data=data)
         return RoleOutSchema.model_validate(updated_role).model_dump()
 
     @classmethod
-    async def delete_role_service(cls, auth: AuthSchema, ids: list[id]) -> None:
+    async def delete_role_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """删除角色"""
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
@@ -120,5 +120,5 @@ class RoleService:
             item['data_scope'] = data_scope_map.get(item.get('data_scope'))
             item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
 
-        return ExcelUtil.export_list2excel(list_data=role_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
         

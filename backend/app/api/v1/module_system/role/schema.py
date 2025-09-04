@@ -35,7 +35,7 @@ class RolePermissionSettingSchema(BaseModel):
 
 class RoleUpdateSchema(RoleCreateSchema):
     """角色更新模型"""
-    id: int = Field(..., ge=1, description="角色ID")
+    ...
 
 
 class RoleOutSchema(RoleCreateSchema, BaseSchema):

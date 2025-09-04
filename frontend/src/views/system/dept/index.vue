@@ -183,7 +183,7 @@ defineOptions({
 });
 
 import DeptAPI, { DeptTable, DeptForm, DeptPageQuery } from "@/api/system/dept";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 import { listToTree, formatTree } from "@/utils/common";
 
 const queryFormRef = ref();
@@ -373,7 +373,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await DeptAPI.updateDept({ id, ...formData })
+          await DeptAPI.updateDept(id, { id, ...formData })
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();

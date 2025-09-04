@@ -24,9 +24,9 @@ const ExampleAPI = {
     });
   },
 
-  updateExample(body: ExampleForm) {
+  updateExample(id: number, body: ExampleForm) {
     return request<ApiResponse>({
-      url: `/demo/example/update`,
+      url: `/demo/example/update/${id}`,
       method: "put",
       data: body,
     });

@@ -44,15 +44,15 @@ class PositionService:
         return PositionOutSchema.model_validate(new_position).model_dump()
 
     @classmethod
-    async def update_position_service(cls, auth: AuthSchema, data: PositionUpdateSchema) -> Dict:
+    async def update_position_service(cls, auth: AuthSchema, id:int, data: PositionUpdateSchema) -> Dict:
         """更新岗位"""
-        position = await PositionCRUD(auth).get_by_id_crud(id=data.id)
+        position = await PositionCRUD(auth).get_by_id_crud(id=id)
         if not position:
             raise CustomException(msg='更新失败，该岗位不存在')
         exist_position = await PositionCRUD(auth).get(name=data.name)
-        if exist_position and exist_position.id != data.id:
+        if exist_position and exist_position.id != id:
             raise CustomException(msg='更新失败，岗位名称重复')
-        updated_position = await PositionCRUD(auth).update(id=data.id, data=data)
+        updated_position = await PositionCRUD(auth).update(id=id, data=data)
         return PositionOutSchema.model_validate(updated_position).model_dump()
 
     @classmethod
@@ -72,7 +72,7 @@ class PositionService:
         await PositionCRUD(auth).set_available_crud(ids=data.ids, status=data.status)
 
     @classmethod
-    async def export_post_list_service(cls, post_list: List[Dict[str, Any]]) -> bytes:
+    async def export_position_list_service(cls, position_list: List[Dict[str, Any]]) -> bytes:
         """导出岗位列表"""
         mapping_dict = {
             'id': '编号',
@@ -87,9 +87,9 @@ class PositionService:
         }
 
         # 复制数据并转换状态
-        data = post_list.copy()
+        data = position_list.copy()
         for item in data:
             item['status'] = '正常' if item.get('status') else '停用'
             item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
 
-        return ExcelUtil.export_list2excel(list_data=post_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)

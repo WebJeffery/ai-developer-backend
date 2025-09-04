@@ -31,9 +31,9 @@ const DictAPI = {
     });
   },
 
-  updateDictType(body: DictForm) {
+  updateDictType(id: number, body: DictForm) {
     return request<ApiResponse>({
-      url: `/system/dict/type/update`,
+      url: `/system/dict/type/update/${id}`,
       method: "put",
       data: body,
     });
@@ -87,9 +87,9 @@ const DictAPI = {
     });
   },
 
-  updateDictData(body: DictDataForm) {
+  updateDictData(id: number, body: DictDataForm) {
     return request<ApiResponse>({
-      url: `/system/dict/data/update`,
+      url: `/system/dict/data/update/${id}`,
       method: "put",
       data: body,
     });

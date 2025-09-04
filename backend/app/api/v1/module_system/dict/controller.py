@@ -64,13 +64,14 @@ async def create_type_controller(
     logger.info(f"创建字典类型成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="创建字典类型成功")
 
-@DictRouter.put("/type/update", summary="修改字典类型", description="修改字典类型")
+@DictRouter.put("/type/update/{id}", summary="修改字典类型", description="修改字典类型")
 async def update_type_controller(
     data: DictTypeUpdateSchema,
     redis: Redis = Depends(redis_getter),
+    id: int = Path(..., description="字典类型ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_type:update"]))
 ) -> JSONResponse:
-    result_dict = await DictTypeService.update_obj_service(auth=auth, redis=redis, data=data)
+    result_dict = await DictTypeService.update_obj_service(auth=auth, redis=redis, id=id, data=data)
     logger.info(f"修改字典类型成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改字典类型成功")
 
@@ -81,7 +82,7 @@ async def delete_type_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_type:delete"]))
 ) -> JSONResponse:
     await DictTypeService.delete_obj_service(auth=auth, redis=redis, ids=ids)
-    logger.info(f"删除字典类型成功: {id}")
+    logger.info(f"删除字典类型成功: {ids}")
     return SuccessResponse(msg="删除字典类型成功")
 
 @DictRouter.patch("/type/available/setting", summary="批量修改公告状态", description="批量修改公告状态")
@@ -141,13 +142,14 @@ async def create_data_controller(
     logger.info(f"创建字典数据成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="创建字典数据成功")
 
-@DictRouter.put("/data/update", summary="修改字典数据", description="修改字典数据")
+@DictRouter.put("/data/update/{id}", summary="修改字典数据", description="修改字典数据")
 async def update_data_controller(
     data: DictDataUpdateSchema,
     redis: Redis = Depends(redis_getter),
+    id: int = Path(..., description="字典数据ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_data:update"]))
 ) -> JSONResponse:
-    result_dict = await DictDataService.update_obj_service(auth=auth, redis=redis, data=data)
+    result_dict = await DictDataService.update_obj_service(auth=auth, redis=redis, id=id, data=data)
     logger.info(f"修改字典数据成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改字典数据成功")
 
@@ -158,7 +160,7 @@ async def delete_data_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_data:delete"]))
 ) -> JSONResponse:
     await DictDataService.delete_obj_service(auth=auth, redis=redis, ids=ids)
-    logger.info(f"删除字典数据成功: {id}")
+    logger.info(f"删除字典数据成功: {ids}")
     return SuccessResponse(msg="删除字典数据成功")
 
 @DictRouter.patch("/data/available/setting", summary="批量修改字典数据状态", description="批量修改字典数据状态")

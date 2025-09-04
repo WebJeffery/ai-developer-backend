@@ -24,9 +24,9 @@ const PositionAPI = {
     });
   },
 
-  updatePosition(body: PositionForm) {
+  updatePosition(id: number, body: PositionForm) {
     return request<ApiResponse>({
-      url: `/system/position/update`,
+      url: `/system/position/update/${id}`,
       method: "put",
       data: body,
     });

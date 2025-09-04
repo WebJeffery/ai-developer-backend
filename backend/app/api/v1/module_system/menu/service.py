@@ -73,20 +73,20 @@ class MenuService:
         return new_menu_dict
 
     @classmethod
-    async def update_menu_service(cls, auth: AuthSchema, data: MenuUpdateSchema) -> Dict:
-        menu = await MenuCRUD(auth).get_by_id_crud(id=data.id)
+    async def update_menu_service(cls, auth: AuthSchema,id:int, data: MenuUpdateSchema) -> Dict:
+        menu = await MenuCRUD(auth).get_by_id_crud(id=id)
         if not menu:
             raise CustomException(msg='更新失败，该菜单不存在')
         exist_menu = await MenuCRUD(auth).get(name=data.name)
-        if exist_menu and exist_menu.id != data.id:
+        if exist_menu and exist_menu.id != id:
             raise CustomException(msg='更新失败，菜单名称重复')
         
         if data.parent_id:
             parent_menu = await MenuCRUD(auth).get_by_id_crud(id=data.parent_id)
             data.parent_name = parent_menu.name
-        new_menu = await MenuCRUD(auth).update(id=data.id, data=data)
+        new_menu = await MenuCRUD(auth).update(id=id, data=data)
         
-        await cls.set_menu_available_service(auth=auth, data=BatchSetAvailable(ids=[data.id], status=data.status))
+        await cls.set_menu_available_service(auth=auth, data=BatchSetAvailable(ids=[id], status=data.status))
         
         new_menu_dict = MenuOutSchema.model_validate(new_menu).model_dump()
         return new_menu_dict

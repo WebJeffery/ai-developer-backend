@@ -44,15 +44,15 @@ class DemoService:
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_demo_service(cls, auth: AuthSchema, data: DemoUpdateSchema) -> Dict:
+    async def update_demo_service(cls, auth: AuthSchema, id:int, data: DemoUpdateSchema) -> Dict:
         """更新"""
-        obj = await DemoCRUD(auth).get_by_id_crud(id=data.id)
+        obj = await DemoCRUD(auth).get_by_id_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
         exist_obj = await DemoCRUD(auth).get(name=data.name)
         if exist_obj and exist_obj.id != data.id:
             raise CustomException(msg='更新失败，名称重复')
-        obj = await DemoCRUD(auth).update_crud(id=data.id, data=data)
+        obj = await DemoCRUD(auth).update_crud(id=id, data=data)
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
