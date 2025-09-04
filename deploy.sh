@@ -2,7 +2,8 @@
 
 # 设置全局变量
 PROJECT_NAME="fastapi_vue3_admin"
-WORK_DIR="."
+WORK_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_PATH="${WORK_DIR}/${PROJECT_NAME}"
 GIT_REPO="https://gitee.com/tao__tao/${PROJECT_NAME}.git"
 
 # 是否有更新前端
@@ -65,8 +66,13 @@ check_permissions() {
 # 停止项目容器
 stop_project() {
     log "==========⏹️ 停止项目容器...==========" "INFO"
-    if [ -d "${WORK_DIR}/${PROJECT_NAME}" ]; then
-        cd "${WORK_DIR}/${PROJECT_NAME}" || { log "❌ 无法进入项目目录：${WORK_DIR}/${PROJECT_NAME}" "ERROR"; exit 1; }
+    log "📂 当前工作目录: $(pwd)" "INFO"
+    log "🎯 项目完整路径: ${PROJECT_PATH}" "INFO"
+    log "🗂️  工作目录: ${WORK_DIR}" "INFO"
+    
+    if [ -d "${PROJECT_PATH}" ]; then
+        log "📂 进入项目目录: ${PROJECT_PATH}" "INFO"
+        cd "${PROJECT_PATH}" || { log "❌ 无法进入项目目录：${PROJECT_PATH}" "ERROR"; exit 1; }
         
         if [ -f "docker-compose.yaml" ] || [ -f "docker-compose.yml" ]; then
             docker compose down || { log "❌ 停止容器失败" "ERROR"; exit 1; }
@@ -76,41 +82,59 @@ stop_project() {
             exit 1
         fi
     else
-        log "❌ 项目目录不存在：${WORK_DIR}/${PROJECT_NAME}" "ERROR"
-        exit 1
+        log "📥 项目不存在，开始克隆代码到 ${PROJECT_PATH}" "INFO"
+        log "📂 进入工作目录: ${WORK_DIR}" "INFO"
+        cd "${WORK_DIR}" || { log "❌ 无法进入工作目录：${WORK_DIR}" "ERROR"; exit 1; }
+        git clone "${GIT_REPO}" || { log "❌ 项目克隆失败：${GIT_REPO}" "ERROR"; exit 1; }
+        log "📂 克隆完成，进入项目目录: ${PROJECT_PATH}" "INFO"
+        cd "${PROJECT_PATH}" || { log "❌ 无法进入项目目录：${PROJECT_PATH}" "ERROR"; exit 1; }
+        UPDATE_FRONTEND=true
+        UPDATE_FASTAPP=true
+        UPDATE_FASTDOCS=true
+        log "✅ 代码克隆成功，当前目录: $(pwd)" "INFO"
     fi
 }
 
 # 更新代码
 update_code() {
     log "==========🔍 更新最新代码...==========" "INFO"
-    if [ -d "${WORK_DIR}/${PROJECT_NAME}/" ]; then
-        log "🔄 开始更新代码" "INFO"
-        cd "${PROJECT_NAME}" || { log "❌ 无法进入项目目录：${PROJECT_NAME}" "ERROR"; exit 1; }
-        git pull --force || { log "❌ 拉取更新失败" "ERROR"; exit 1; }
-        git log -1 || { log "❌ 获取提交信息失败" "ERROR"; exit 1; }
-        if [ -f "frontend" ]; then
-            UPDATE_FRONTEND=true
-            log "📦 项目更新了前端工程" "INFO"
-        fi
-        if [ -f "fastapp" ]; then
-            UPDATE_FASTAPP=true
-            log "📦 项目更新了移动端工程" "INFO"
-        fi
-        if [ -f "fastdocs" ]; then
-            UPDATE_FASTDOCS=true
-            log "📦 项目更新了官网工程" "INFO"
-        fi
-        log "✅ 代码更新成功" "INFO"
-    else
-        log "📥 项目不存在，开始克隆代码" "INFO"
-        git clone "${GIT_REPO}" || { log "❌ 项目克隆失败：${GIT_REPO}" "ERROR"; exit 1; }
-        cd "${PROJECT_NAME}" || { log "❌ 无法进入项目目录：${PROJECT_NAME}" "ERROR"; exit 1; }
-        UPDATE_FRONTEND=true
-        UPDATE_FASTAPP=true
-        UPDATE_FASTDOCS=true
-        log "✅ 代码克隆成功" "INFO"
+    log "📂 当前工作目录: $(pwd)" "INFO"
+    log "🎯 项目路径: ${PROJECT_PATH}" "INFO"
+    
+    # 确保我们在正确的目录
+    if [ "$(pwd)" != "${PROJECT_PATH}" ]; then
+        cd "${PROJECT_PATH}" || { log "❌ 无法进入项目目录：${PROJECT_PATH}" "ERROR"; exit 1; }
     fi
+    
+    # 检查是否是新克隆的项目
+    if [ ! -d ".git" ]; then
+        log "📥 初始化Git仓库..." "INFO"
+        git init
+        git remote add origin "${GIT_REPO}"
+        git pull origin main || git pull origin master
+    else
+        # 保存当前分支
+        local current_branch=$(git rev-parse --abbrev-ref HEAD)
+        log "📂 当前Git分支: ${current_branch}" "INFO"
+        git pull --force || { log "❌ 拉取更新失败" "ERROR"; exit 1; }
+        git log -1 --oneline || { log "❌ 获取提交信息失败" "ERROR"; exit 1; }
+    fi
+    
+    # 检查目录存在性并设置更新标志
+    if [ -d "frontend" ]; then
+        UPDATE_FRONTEND=true
+        log "📦 检测到前端工程" "INFO"
+    fi
+    if [ -d "fastapp" ]; then
+        UPDATE_FASTAPP=true
+        log "📦 检测到移动端工程" "INFO"
+    fi
+    if [ -d "fastdocs" ]; then
+        UPDATE_FASTDOCS=true
+        log "📦 检测到官网工程" "INFO"
+    fi
+    
+    log "✅ 代码更新成功" "INFO"
 }
 
 # 打包前端
@@ -154,6 +178,7 @@ build_frontend() {
 # 构建镜像&启动容器
 start_containers() {
     log "==========🚀 构建镜像&启动容器...==========" "INFO"
+    cd "${PROJECT_PATH}" || { log "❌ 无法进入项目目录：${PROJECT_PATH}" "ERROR"; exit 1; }
     docker compose build || { log "❌ 镜像构建失败" "ERROR"; exit 1; }
     log "✅  Docker镜像构建成功" "INFO"
     docker compose up -d --force-recreate || { log "❌ 容器启动失败" "ERROR"; exit 1; }
@@ -176,24 +201,45 @@ start_containers() {
 
 # 显示所有完整日志的函数
 show_containers_logs() {
-    log "==========📋 查看所有应用完整日志 ==========" "INFO"
-    cd "${WORK_DIR}/${PROJECT_NAME}" || { log "❌ 无法进入项目目录" "ERROR"; exit 1; }
+    log "==========📋 查看所有容器日志... ==========" "INFO"
+    cd "${PROJECT_PATH}" || { log "❌ 无法进入项目目录：${PROJECT_PATH}" "ERROR"; exit 1; }
     
     # 显示容器状态
-    log "🔍 检查容器状态..." "INFO"
-    docker compose ps || { log "❌ 容器状态获取失败" "ERROR"; exit 1; }
+    log "📊 当前容器状态：" "INFO"
+    docker compose ps --format "table {{.Service}}\t{{.Name}}\t{{.Status}}\t{{.Ports}}"
     
-    # 显示容器日志
-    log "📋 获取容器日志..." "INFO"
-    docker compose logs --tail=300 || log "⚠️ 后端日志获取失败" "WARN"
+    log "📋 后端服务日志：" "INFO"
+    echo "----------------------------------------"
+    docker compose logs backend
+    echo "----------------------------------------"
+    
+    log "📋 Nginx服务日志：" "INFO"
+    echo "----------------------------------------"
+    docker compose logs nginx
+    echo "----------------------------------------"
+    
+    log "📋 MySQL服务日志：" "INFO"
+    echo "----------------------------------------"
+    docker compose logs mysql
+    echo "----------------------------------------"
+    
+    log "📋 Redis服务日志：" "INFO"
+    echo "----------------------------------------"
+    docker compose logs redis
+    echo "----------------------------------------"
+    
+    log "💡 实时日志查看命令：" "INFO"
+    log "  - 查看所有服务实时日志：docker compose logs -f" "INFO"
+    log "  - 查看单个服务实时日志：docker compose logs -f [服务名]" "INFO"
+    log "  - 服务名：backend, nginx, mysql, redis" "INFO"
 }
 
 # 信号处理
 handle_interrupt() {
     log "==========⚠️ 收到中断信号，正在停止部署...==========" "WARN"
     # 如果在容器启动阶段中断，尝试停止容器
-    if [ -d "${WORK_DIR}/${PROJECT_NAME}" ]; then
-        cd "${WORK_DIR}/${PROJECT_NAME}"
+    if [ -d "${PROJECT_PATH}" ]; then
+        cd "${PROJECT_PATH}"
         docker compose down >/dev/null 2>&1
     fi
     exit 130
@@ -202,19 +248,22 @@ handle_interrupt() {
 # 主函数
 main() {
     log "==========🚀 开始部署流程==========" "INFO"
+    log "📂 脚本所在目录: ${WORK_DIR}" "INFO"
+    log "🎯 项目完整路径: ${PROJECT_PATH}" "INFO"
+    
     check_permissions
     stop_project
     update_code
-    # build_frontend (由于本地资源较小，在服务器上构建应用改用本地构建好，上传到服务器)
+    # build_frontend
     start_containers
-    show_logs
+    show_containers_logs
     
     log "🎉 部署完成！以下是访问信息：
     📌 官网: https://service.fastapiadmin.com
     📌 前端: https://service.fastapiadmin.com/web
     📌 小程序: https://service.fastapiadmin.com/app
     📌 后端接口: https://service.fastapiadmin.com/api/v1/docs
-    📌 登录信息: 账号 admin，密码 123456" "INFO"
+    📌 登录信息: 账号 admin，密码 123456" "SUCCESS"
 }
 
 # 设置信号处理
@@ -243,11 +292,26 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         --help|-h)
-            echo "Usage: $0 [--stop] [--start] [--logs]"
-            echo "  --stop      停止项目容器"
-            echo "  --start     启动项目容器"
-            echo "  --logs      查看容器最近日志（摘要）"
-            echo "  不带参数时默认执行完整部署流程"
+            echo "使用说明："
+            echo "  $0 [选项]"
+            echo ""
+            echo "选项："
+            echo "  --stop      停止所有容器"
+            echo "  --start     启动所有容器"
+            echo "  --logs      查看所有容器日志"
+            echo "  --help      显示此帮助信息"
+            echo ""
+            echo "默认执行完整部署流程："
+            echo "  1. 检查权限"
+            echo "  2. 停止现有容器"
+            echo "  3. 更新代码"
+            echo "  4. 构建前端"
+            echo "  5. 启动容器"
+            echo "  6. 显示日志"
+            echo ""
+            echo "日志查看命令："
+            echo "  查看实时日志：docker compose logs -f [服务名]"
+            echo "  服务名：backend, nginx, mysql, redis"
             exit 0
             ;;
         *)
