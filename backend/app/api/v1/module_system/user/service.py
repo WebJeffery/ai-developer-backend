@@ -96,15 +96,15 @@ class UserService:
         return new_user_dict
 
     @classmethod
-    async def update_user_service(cls, data: UserUpdateSchema, auth: AuthSchema) -> Dict:
+    async def update_user_service(cls, id: int, data: UserUpdateSchema, auth: AuthSchema) -> Dict:
         # 检查用户是否存在
-        user = await UserCRUD(auth).get_by_id_crud(id=data.id)
+        user = await UserCRUD(auth).get_by_id_crud(id=id)
         if not user:
             raise CustomException(msg='用户不存在')
 
         # 检查用户名是否重复
         exist_user = await UserCRUD(auth).get_by_username_crud(username=data.username)
-        if exist_user and exist_user.id != data.id:
+        if exist_user and exist_user.id != id:
             raise CustomException(msg='已存在相同的用户名')
 
         # 检查部门是否存在且可用
@@ -121,7 +121,7 @@ class UserService:
 
         # 更新用户
         user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
-        new_user = await UserCRUD(auth).update(id=data.id, data=user_dict)
+        new_user = await UserCRUD(auth).update(id=id, data=user_dict)
 
         # 更新角色和岗位
         if data.role_ids and len(data.role_ids) > 0:
@@ -131,16 +131,16 @@ class UserService:
                 raise CustomException(msg='部分角色不存在')
             if not all(role.status for role in roles):
                 raise CustomException(msg='部分角色已被禁用')
-            await UserCRUD(auth).set_user_roles_crud(user_ids=[data.id], role_ids=data.role_ids)
+            await UserCRUD(auth).set_user_roles_crud(user_ids=[id], role_ids=data.role_ids)
 
         if data.position_ids and len(data.position_ids) > 0:
             # 检查岗位是否都存在且可用
-            positions = await PositionCRUD(auth).list(search={"id": ("in", data.position_ids)})
+            positions = await PositionCRUD(auth).get_list_crud(search={"id": ("in", data.position_ids)})
             if len(positions) != len(data.position_ids):
                 raise CustomException(msg='部分岗位不存在')
             if not all(position.status for position in positions):
                 raise CustomException(msg='部分岗位已被禁用')
-            await UserCRUD(auth).set_user_positions_crud(user_ids=[data.id], position_ids=data.position_ids)
+            await UserCRUD(auth).set_user_positions_crud(user_ids=[id], position_ids=data.position_ids)
 
         user_dict = UserOutSchema.model_validate(new_user).model_dump()
         return user_dict
@@ -442,4 +442,4 @@ class UserService:
             item['is_superuser'] = '是' if item.get('is_superuser') else '否'
             item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
 
-        return ExcelUtil.export_list2excel(list_data=user_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)

@@ -46,9 +46,6 @@ class ConfigService:
     async def create_obj_service(cls, auth: AuthSchema, redis: Redis, data: ConfigCreateSchema) -> Dict:
         exist_obj = await ConfigCRUD(auth).get(config_key=data.config_key)
         if exist_obj:
-            raise CustomException(msg='创建失败，该配置已存在')
-        exist_obj = await ConfigCRUD(auth).get(config_key=data.config_key)
-        if exist_obj:
             raise CustomException(msg='创建失败，该配置key已存在')
         obj = await ConfigCRUD(auth).create_obj_crud(data=data)
 
@@ -71,14 +68,14 @@ class ConfigService:
         return new_obj_dict
     
     @classmethod
-    async def update_obj_service(cls, auth: AuthSchema, redis: Redis, data: ConfigUpdateSchema) -> Dict:
-        exist_obj = await ConfigCRUD(auth).get_obj_by_id_crud(id=data.id)
+    async def update_obj_service(cls, auth: AuthSchema, redis: Redis, id:int, data: ConfigUpdateSchema) -> Dict:
+        exist_obj = await ConfigCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该数系统配置不存在')
         if exist_obj.config_key != data.config_key:
             raise CustomException(msg='更新失败，系统配置key不允许修改')
         
-        new_obj = await ConfigCRUD(auth).update_obj_crud(id=data.id, data=data)
+        new_obj = await ConfigCRUD(auth).update_obj_crud(id=id, data=data)
         new_obj_dict = ConfigOutSchema.model_validate(new_obj).model_dump()
 
         # 同步redis
@@ -144,7 +141,7 @@ class ConfigService:
             item['config_type'] = '是' if item.get('config_type') else '否'
             item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
 
-        return ExcelUtil.export_list2excel(list_data=data_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
     
     @classmethod
     async def upload_service(cls, base_url: str, file: UploadFile) -> Dict:

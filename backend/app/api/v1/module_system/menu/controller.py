@@ -54,12 +54,13 @@ async def create_obj_controller(
     return SuccessResponse(data=result_dict, msg="创建菜单成功")
 
 
-@MenuRouter.put("/update", summary="修改菜单", description="修改菜单")
+@MenuRouter.put("/update/{id}", summary="修改菜单", description="修改菜单")
 async def update_obj_controller(
     data: MenuUpdateSchema,
+    id: int = Path(..., description="菜单ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:menu:update"]))
 ) -> JSONResponse:
-    result_dict = await MenuService.update_menu_service(data=data, auth=auth)
+    result_dict = await MenuService.update_menu_service(id=id, data=data, auth=auth)
     logger.info(f"修改菜单成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改菜单成功")
 
@@ -70,7 +71,7 @@ async def delete_obj_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:menu:delete"]))
 ) -> JSONResponse:
     await MenuService.delete_menu_service(ids=ids, auth=auth)
-    logger.info(f"删除菜单成功: {id}")
+    logger.info(f"删除菜单成功: {ids}")
     return SuccessResponse(msg="删除菜单成功")
 
 

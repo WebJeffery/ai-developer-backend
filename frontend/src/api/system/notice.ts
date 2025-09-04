@@ -31,9 +31,9 @@ const NoticeAPI = {
     });
   },
 
-  updateNotice(body: NoticeForm) {
+  updateNotice(id: number, body: NoticeForm) {
     return request<ApiResponse>({
-      url: `/system/notice/update`,
+      url: `/system/notice/update/${id}`,
       method: "put",
       data: body,
     });

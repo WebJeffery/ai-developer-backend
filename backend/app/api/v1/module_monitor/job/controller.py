@@ -11,8 +11,8 @@ from app.core.dependencies import AuthPermission
 from app.core.router_class import OperationLogRoute
 from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
-from .param import JobQueryParams
-from .service import JobService
+from .param import JobQueryParams, JobLogQueryParams
+from .service import JobService, JobLogService
 from .schema import (
     JobCreateSchema,
     JobUpdateSchema
@@ -51,12 +51,13 @@ async def create_obj_controller(
     logger.info(f"创建定时任务成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="创建定时任务成功")
 
-@JobRouter.put("/update", summary="修改定时任务", description="修改定时任务")
+@JobRouter.put("/update/{id}", summary="修改定时任务", description="修改定时任务")
 async def update_obj_controller(
     data: JobUpdateSchema,
+    id: int = Path(..., description="定时任务ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:update"]))
 ) -> JSONResponse:
-    result_dict = await JobService.update_job_service(auth=auth, data=data)
+    result_dict = await JobService.update_job_service(auth=auth, id=id, data=data)
     logger.info(f"修改定时任务成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改定时任务成功")
 
@@ -66,7 +67,7 @@ async def delete_obj_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:delete"]))
 ) -> JSONResponse:
     await JobService.delete_job_service(auth=auth, ids=ids)
-    logger.info(f"删除定时任务成功: {id}")
+    logger.info(f"删除定时任务成功: {ids}")
     return SuccessResponse(msg="删除定时任务成功")
 
 @JobRouter.post('/export', summary="导出定时任务", description="导出定时任务")
@@ -127,3 +128,64 @@ async def get_job_log_controller():
     ]
 
     return SuccessResponse(msg="获取定时任务日志成功", data=data)
+
+
+# 定时任务日志管理接口
+@JobRouter.get("/log/detail/{id}", summary="获取定时任务日志详情", description="获取定时任务日志详情")
+async def get_job_log_detail_controller(
+    id: int = Path(..., description="定时任务日志ID"),
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:query"]))
+) -> JSONResponse:
+    result_dict = await JobLogService.get_job_log_detail_service(id=id, auth=auth)
+    logger.info(f"获取定时任务日志详情成功 {id}")
+    return SuccessResponse(data=result_dict, msg="获取定时任务日志详情成功")
+
+
+@JobRouter.get("/log/list", summary="查询定时任务日志", description="查询定时任务日志")
+async def get_job_log_list_controller(
+    page: PaginationQueryParams = Depends(),
+    search: JobLogQueryParams = Depends(),
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:query"]))
+) -> JSONResponse:
+    result_dict_list = await JobLogService.get_job_log_list_service(auth=auth, search=search, order_by=page.order_by)
+    result_dict = await PaginationService.get_page_obj(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
+    logger.info(f"查询定时任务日志列表成功")
+    return SuccessResponse(data=result_dict, msg="查询定时任务日志列表成功")
+
+
+@JobRouter.delete("/log/delete", summary="删除定时任务日志", description="删除定时任务日志")
+async def delete_job_log_controller(
+    ids: list[int] = Body(..., description="ID列表"),
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:delete"]))
+) -> JSONResponse:
+    await JobLogService.delete_job_log_service(auth=auth, ids=ids)
+    logger.info(f"删除定时任务日志成功: {ids}")
+    return SuccessResponse(msg="删除定时任务日志成功")
+
+
+@JobRouter.delete("/log/clear", summary="清空定时任务日志", description="清空定时任务日志")
+async def clear_job_log_controller(
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:delete"]))
+) -> JSONResponse:
+    await JobLogService.clear_job_log_service(auth=auth)
+    logger.info(f"清空定时任务日志成功")
+    return SuccessResponse(msg="清空定时任务日志成功")
+
+
+@JobRouter.post('/log/export', summary="导出定时任务日志", description="导出定时任务日志")
+async def export_job_log_list_controller(
+    search: JobLogQueryParams = Depends(),
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:export"]))
+) -> StreamingResponse:
+    # 获取全量数据
+    result_dict_list = await JobLogService.get_job_log_list_service(search=search, auth=auth)
+    export_result = await JobLogService.export_job_log_service(data_list=result_dict_list)
+    logger.info('导出定时任务日志成功')
+
+    return StreamResponse(
+        data=bytes2file_response(export_result),
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={
+            'Content-Disposition': 'attachment; filename=job_log.xlsx'
+        }
+    )

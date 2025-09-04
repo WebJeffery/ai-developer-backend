@@ -51,15 +51,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         try:
             conditions = await self.__build_conditions(**kwargs)
             sql = (select(self.model)
-                  .where(*conditions)
-                  .distinct())
+                  .where(*conditions))
             if hasattr(self.model, "creator"):
                 sql = sql.options(selectinload(self.model.creator))
             
             # sql = await self.__filter_permissions(sql)
 
             result: Result = await self.db.execute(sql)
-            obj = result.scalars().unique().first()
+            obj = result.scalars().first()
             # if not obj:
             #     raise CustomException(msg="该信息不存在")
 
@@ -86,14 +85,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             order = order_by or [{'id': 'asc'}]
             sql = (select(self.model)
                   .where(*conditions)
-                  .order_by(*self.__order_by(order))
-                  .distinct())
+                  .order_by(*self.__order_by(order)))
             # 预加载creator关系
             if hasattr(self.model, "creator"):
                 sql = sql.options(selectinload(self.model.creator))
             sql = await self.__filter_permissions(sql)
             result: Result = await self.db.execute(sql)
-            return result.scalars().unique().all()
+            return result.scalars().all()
         except Exception as e:
             raise CustomException(msg=f"列表查询失败: {str(e)}")
 

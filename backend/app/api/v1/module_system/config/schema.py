@@ -17,13 +17,12 @@ class ConfigCreateSchema(BaseModel):
 
 class ConfigUpdateSchema(ConfigCreateSchema):
     """配置更新模型"""
-    id: int = Field(..., description="主键ID")
+    ...
 
 
 class ConfigOutSchema(ConfigCreateSchema, BaseSchema):
     """配置响应模型"""
     model_config = ConfigDict(from_attributes=True)
-    id: int = Field(..., description="主键ID")
 
 
 class UpdataSystemConfigSchema(BaseModel):

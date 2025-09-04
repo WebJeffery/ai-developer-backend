@@ -33,7 +33,7 @@ class DictTypeCreateSchema(BaseModel):
 
 class DictTypeUpdateSchema(DictTypeCreateSchema):
     """字典类型更新模型"""
-    id: int = Field(..., gt=0, description="字典类型ID")
+    ...
 
 
 class DictTypeOutSchema(DictTypeCreateSchema, BaseSchema):
@@ -76,7 +76,7 @@ class DictDataCreateSchema(BaseModel):
 
 class DictDataUpdateSchema(DictDataCreateSchema):
     """字典数据更新模型"""
-    id: int = Field(..., gt=0, description="字典数据ID")
+    ...
 
 
 class DictDataOutSchema(DictDataCreateSchema, BaseSchema):

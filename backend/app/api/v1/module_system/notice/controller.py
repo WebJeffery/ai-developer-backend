@@ -51,12 +51,13 @@ async def create_obj_controller(
     logger.info(f"创建公告成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="创建公告成功")
 
-@NoticeRouter.put("/update", summary="修改公告", description="修改公告")
+@NoticeRouter.put("/update/{id}", summary="修改公告", description="修改公告")
 async def update_obj_controller(
     data: NoticeUpdateSchema,
+    id: int = Path(..., description="公告ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:notice:update"]))
 ) -> JSONResponse:
-    result_dict = await NoticeService.update_notice_service(auth=auth, data=data)
+    result_dict = await NoticeService.update_notice_service(auth=auth, id=id, data=data)
     logger.info(f"修改公告成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改公告成功")
 
@@ -66,7 +67,7 @@ async def delete_obj_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:notice:delete"]))
 ) -> JSONResponse:
     await NoticeService.delete_notice_service(auth=auth, ids=ids)
-    logger.info(f"删除公告成功: {id}")
+    logger.info(f"删除公告成功: {ids}")
     return SuccessResponse(msg="删除公告成功")
 
 @NoticeRouter.patch("/available/setting", summary="批量修改公告状态", description="批量修改公告状态")

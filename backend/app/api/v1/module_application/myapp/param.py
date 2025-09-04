@@ -6,12 +6,12 @@ from fastapi import Query
 
 from app.core.validator import DateTimeStr
 
-class DemoQueryParams:
-    """示例查询参数"""
+class ApplicationQueryParams:
+    """应用系统查询参数"""
 
     def __init__(
         self,
-        name: Optional[str] = Query(None, description="名称"),
+        name: Optional[str] = Query(None, description="应用名称"),
         status: Optional[bool] = Query(None, description="是否启用"),
         creator: Optional[int] = Query(None, description="创建人"),
         start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2023-01-01 00:00:00"),
@@ -20,11 +20,11 @@ class DemoQueryParams:
         super().__init__()
         
         # 模糊查询字段
-        self.name = ("like", name)
+        self.name = ("like", name) if name else None
 
         # 精确查询字段
-        self.creator_id = creator
         self.status = status
+        self.creator_id = creator
 
         # 时间范围查询
         if start_time and end_time:

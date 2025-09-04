@@ -234,7 +234,7 @@ const props = defineProps({
 })
 
 import DictAPI, { DictDataTable, DictDataForm, DictDataPageQuery } from "@/api/system/dict";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 import { Check, Close } from '@element-plus/icons-vue'
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
@@ -417,7 +417,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await DictAPI.updateDictData({ id, ...formData })
+          await DictAPI.updateDictData(id, { id, ...formData })
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();

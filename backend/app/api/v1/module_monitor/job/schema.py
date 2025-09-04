@@ -29,7 +29,7 @@ class JobCreateSchema(BaseModel):
 
 class JobUpdateSchema(JobCreateSchema):
     """定时任务更新模型"""
-    id: int = Field(..., gt=0, description="ID")
+    ...
     
 
 class JobOutSchema(JobCreateSchema, BaseSchema):

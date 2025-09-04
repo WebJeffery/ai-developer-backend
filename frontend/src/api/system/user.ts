@@ -81,9 +81,9 @@ export const UserAPI = {
     });
   },
 
-  updateUser(body: UserForm) {
+  updateUser(id: number, body: UserForm) {
     return request<ApiResponse>({
-      url: `/system/user/update`,
+      url: `/system/user/update/${id}`,
       method: "put",
       data: body,
     });

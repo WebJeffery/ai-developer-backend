@@ -55,12 +55,13 @@ async def create_obj_controller(
     return SuccessResponse(data=result_dict, msg="创建岗位成功")
 
 
-@PositionRouter.put("/update", summary="修改岗位", description="修改岗位")
+@PositionRouter.put("/update/{id}", summary="修改岗位", description="修改岗位")
 async def update_obj_controller(
     data: PositionUpdateSchema,
+    id: int = Path(..., description="岗位ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:update"])),
 ) -> JSONResponse:
-    result_dict = await PositionService.update_position_service(data=data, auth=auth)
+    result_dict = await PositionService.update_position_service(id=id, data=data, auth=auth)
     logger.info(f"修改岗位成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改岗位成功")
 
@@ -71,7 +72,7 @@ async def delete_obj_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:delete"])),
 ) -> JSONResponse:
     await PositionService.delete_position_service(ids=ids, auth=auth)
-    logger.info(f"删除岗位成功: {id}")
+    logger.info(f"删除岗位成功: {ids}")
     return SuccessResponse(msg="删除岗位成功")
 
 
@@ -92,7 +93,7 @@ async def export_obj_list_controller(
 ) -> StreamingResponse:
     # 获取全量数据
     position_query_result = await PositionService.get_position_list_service(search=search, auth=auth)
-    position_export_result = await PositionService.export_post_list_service(post_list=position_query_result)
+    position_export_result = await PositionService.export_position_list_service(position_list=position_query_result)
     logger.info('导出岗位成功')
 
     return StreamResponse(

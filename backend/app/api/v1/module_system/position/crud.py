@@ -44,7 +44,7 @@ class PositionCRUD(CRUDBase[PositionModel, PositionCreateSchema, PositionUpdateS
         """
         await self.set(ids=ids, status=status)
 
-    async def get_name_crud(self, ids: List[int]) -> Optional[str]:
+    async def get_name_crud(self, ids: List[int]) -> List[str]:
         """
         根据id列表获取岗位名称
         """

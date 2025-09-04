@@ -70,7 +70,7 @@ class DeptService:
         return DeptOutSchema.model_validate(dept).model_dump()
 
     @classmethod
-    async def update_dept_service(cls, auth: AuthSchema, data: DeptUpdateSchema) -> Dict:
+    async def update_dept_service(cls, auth: AuthSchema, id:int, data: DeptUpdateSchema) -> Dict:
         """
         更新部门service
         
@@ -78,17 +78,17 @@ class DeptService:
         :param data: 部门更新对象
         :return: 更新后的部门对象
         """
-        dept = await DeptCRUD(auth).get_by_id_crud(id=data.id)
+        dept = await DeptCRUD(auth).get_by_id_crud(id=id)
         if not dept:
             raise CustomException(msg='更新失败，该部门不存在')
         exist_dept = await DeptCRUD(auth).get(name=data.name)
-        if exist_dept and exist_dept.id != data.id:
+        if exist_dept and exist_dept.id != id:
             raise CustomException(msg='更新失败，部门名称重复')
-        dept = await DeptCRUD(auth).update(id=data.id, data=data)
+        dept = await DeptCRUD(auth).update(id=id, data=data)
         if data.status:
-            await cls.batch_set_available_service(auth=auth, data=BatchSetAvailable(ids=[data.id], status=True))
+            await cls.batch_set_available_service(auth=auth, data=BatchSetAvailable(ids=[id], status=True))
         else:
-            await cls.batch_set_available_service(auth=auth, data=BatchSetAvailable(ids=[data.id], status=False))
+            await cls.batch_set_available_service(auth=auth, data=BatchSetAvailable(ids=[id], status=False))
         return DeptOutSchema.model_validate(dept).model_dump()
 
     @classmethod

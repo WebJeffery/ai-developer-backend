@@ -20,7 +20,13 @@ from .module_monitor.server.controller import ServerRouter
 
 from .module_common.file.controller import FileRouter
 
+from .module_resource.resource.controller import ResourceRouter
+
 from .module_example.demo.controller import DemoRouter
+
+from .module_application.myapp.controller import MyAppRouter
+
+from .module_resource.resource.controller import ResourceRouter
 
 
 # 定义路由模块映射，按模块分组
@@ -46,7 +52,11 @@ MONITOR_MODULES = [
 
 COMMON_MODULES = [{"router": FileRouter}]
 
+RESOURCE_MODULES = [{"router": ResourceRouter}]
+
 EXAMPLE_MODULES = [{"router": DemoRouter}]
+
+APPLICATION_MODULES = [{"router": MyAppRouter}]
 
 
 router = APIRouter()
@@ -68,4 +78,14 @@ for module in COMMON_MODULES:
 for module in EXAMPLE_MODULES:
     router.include_router(
         router=module["router"], prefix="/example"
+    )
+
+for module in APPLICATION_MODULES:
+    router.include_router(
+        router=module["router"], prefix="/application"
+    )
+
+for module in RESOURCE_MODULES:
+    router.include_router(
+        router=module["router"], prefix="/resource"
     )

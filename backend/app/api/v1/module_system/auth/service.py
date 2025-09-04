@@ -236,7 +236,7 @@ class LoginService:
         )
 
     @classmethod
-    async def logout_services_service(cls, redis: Redis, token: LogoutPayloadSchema) -> bool:
+    async def logout_service(cls, redis: Redis, token: LogoutPayloadSchema) -> bool:
         """
         退出登录
         

@@ -207,7 +207,7 @@ defineOptions({
 });
 
 import DictAPI, { DictTable, DictForm, DictPageQuery } from "@/api/system/dict";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 import DataDrawer from "@/views/system/dict/components/DataDrawer.vue"
 
 const queryFormRef = ref();
@@ -392,7 +392,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await DictAPI.updateDictType({ id, ...formData })
+          await DictAPI.updateDictType(id, { id, ...formData })
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();

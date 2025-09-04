@@ -194,6 +194,15 @@
                 size="small"
                 link
                 icon="document"
+                @click="handleOpenDialog('log', scope.row.id)"
+              >
+                日志
+              </el-button>
+              <el-button
+                type="info"
+                size="small"
+                link
+                icon="document"
                 @click="handleOpenDialog('detail', scope.row.id)"
               >
                 详情
@@ -627,7 +636,7 @@ const formData = reactive<JobForm>({
 const dialogVisible = reactive({
   title: "",
   visible: false,
-  type: "create" as "create" | "update" | "detail",
+  type: "create" as "create" | "update" | "detail" | "log",
 });
 
 // 表单验证规则
@@ -731,7 +740,7 @@ async function handleCloseDialog() {
 
 // 打开弹窗
 async function handleOpenDialog(
-  type: "create" | "update" | "detail",
+  type: "create" | "update" | "detail" | "log",
   id?: number
 ) {
   dialogVisible.type = type;
@@ -743,6 +752,10 @@ async function handleOpenDialog(
     } else if (type === "update") {
       dialogVisible.title = "修改任务";
       Object.assign(formData, response.data.data);
+    } else if (type === "log") {
+      // 处理可以参考字典数据
+      dialogVisible.title = "任务日志";
+      ElMessage.success("开发中...");
     }
   } else {
     dialogVisible.title = "新增任务";
@@ -761,7 +774,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await JobAPI.updateJob(formData);
+          await JobAPI.updateJob(id, formData);
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();

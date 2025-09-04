@@ -27,7 +27,7 @@ class ExampleService:
         return ExampleOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_example_list_service(cls, auth: AuthSchema, search: ExampleQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_demo_list_service(cls, auth: AuthSchema, search: ExampleQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         """列表查询"""
         if order_by:
             order_by = eval(order_by)

@@ -22,6 +22,7 @@ from app.api.v1.module_system.config.model import ConfigModel
 from app.api.v1.module_system.dict.model import DictTypeModel, DictDataModel
 from app.api.v1.module_monitor.job.model import JobModel, JobLogModel
 from app.api.v1.module_example.demo.model import DemoModel
+from app.api.v1.module_application.myapp.model import ApplicationModel
 
 
 class InitializeData:
@@ -51,6 +52,7 @@ class InitializeData:
             JobModel,
             JobLogModel,
             DemoModel,
+            ApplicationModel,
             # 关联表（依赖基础表）
             UserPositionsModel,
             UserRolesModel,

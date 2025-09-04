@@ -54,12 +54,13 @@ async def create_obj_controller(
     return SuccessResponse(data=result_dict, msg="创建部门成功")
 
 
-@DeptRouter.put("/update", summary="修改部门", description="修改部门")
+@DeptRouter.put("/update/{id}", summary="修改部门", description="修改部门")
 async def update_obj_controller(
     data: DeptUpdateSchema,
+    id: int = Path(..., description="部门ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:update"]))
 ) -> JSONResponse:
-    result_dict = await DeptService.update_dept_service(data=data, auth=auth)
+    result_dict = await DeptService.update_dept_service(auth=auth, id=id, data=data)
     logger.info(f"修改部门成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改部门成功")
 
@@ -70,7 +71,7 @@ async def delete_obj_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:delete"]))
 ) -> JSONResponse:
     await DeptService.delete_dept_service(ids=ids, auth=auth)
-    logger.info(f"删除部门成功: {id}")
+    logger.info(f"删除部门成功: {ids}")
     return SuccessResponse(msg="删除部门成功")
 
 

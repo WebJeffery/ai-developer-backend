@@ -131,12 +131,13 @@ async def create_obj_controller(
     return SuccessResponse(data=result_dict, msg="创建用户成功")
 
 
-@UserRouter.put("/update", summary="修改用户", description="修改用户")
+@UserRouter.put("/update/{id}", summary="修改用户", description="修改用户")
 async def update_obj_controller(
     data: UserUpdateSchema,
+    id: int = Path(..., description="用户ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:user:update"])),
 ) -> JSONResponse:
-    result_dict = await UserService.update_user_service(data=data, auth=auth)
+    result_dict = await UserService.update_user_service(id=id, data=data, auth=auth)
     logger.info(f"修改用户成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改用户成功")
 
@@ -147,7 +148,7 @@ async def delete_obj_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:user:delete"])),
 ) -> JSONResponse:
     await UserService.delete_user_service(ids=ids, auth=auth)
-    logger.info(f"删除用户成功: {id}")
+    logger.info(f"删除用户成功: {ids}")
     return SuccessResponse(msg="删除用户成功")
 
 

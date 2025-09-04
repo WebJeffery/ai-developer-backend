@@ -603,7 +603,7 @@ async function handleSubmit() {
             // 编辑用户时，不传递密码字段
             const updateData = { id, ...formData };
             delete updateData.password;
-            await UserAPI.updateUser(updateData)
+            await UserAPI.updateUser(id, updateData)
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -724,7 +724,7 @@ function handleOpenImportDialog() {
 const emit = defineEmits(['import-success']);
 
 // 上传文件
-const handleUpload = async (formData: FormData, file: File) => {
+const handleUpload = async (formData: FormData) => {
   try {
     const response = await UserAPI.importUser(formData);
     if (response.data.code === ResultEnum.SUCCESS) {
