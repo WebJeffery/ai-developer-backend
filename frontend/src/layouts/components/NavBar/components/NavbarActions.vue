@@ -55,10 +55,6 @@
               <el-icon><Document /></el-icon>
               {{ t("navbar.document") }}
             </el-dropdown-item>
-            <el-dropdown-item @click="handleDocumentClick">
-              <el-icon><Document /></el-icon>
-              {{ t("navbar.document") }}
-            </el-dropdown-item>
             <el-dropdown-item @click="handleGiteeClick">
               <el-icon><Reading /></el-icon>
               {{ t("navbar.gitee") }}

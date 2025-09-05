@@ -69,9 +69,9 @@
       <section class="config-section">
         <el-divider>{{ t("settings.systemTheme") }}</el-divider>
         <div class="config-item">
-          <div class="flex-x-between mb-3">
+          <!-- <div class="flex-x-between mb-3">
             <span class="text-xs">{{ t("settings.themeColor") }}</span>
-          </div>
+          </div> -->
           <!-- 自定义主题颜色选择器 -->
           <div class="theme-color-selector">
             <div class="color-options">
