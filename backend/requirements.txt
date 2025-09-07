@@ -2,7 +2,7 @@ alembic==1.15.1         # 数据库迁移
 APScheduler==3.11.0     # 定时任务
 fastapi==0.115.2
 fastapi-mcp==0.4.0
-typer==0.7.0
+typer==0.9.0
 click==8.1.7
 uvicorn==0.30.6         # uvicorn web 框架
 websockets==14.2        # websocket 框架
@@ -18,7 +18,7 @@ pydantic_validation_decorator==0.1.4
 passlib==1.7.4              # 密码加密
 user-agents==2.2.0          # 获取用户UA
 PyJWT==2.9.0                # OAuth2
-pydantic-settings==2.4.0    # 配置设置
+pydantic-settings==2.5.2    # 配置设置
 psutil==6.1.0               # 系统信息
 python-multipart==0.0.9     # request.form() 对表单进行「解析」时安装
 greenlet==3.1.1             # 协程框架
