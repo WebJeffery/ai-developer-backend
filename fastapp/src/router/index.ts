@@ -32,7 +32,19 @@ const router = createRouter({
 
 // 全局前置守卫
 router.beforeEach((to, from, next) => {
+  console.log("🚀 路由守卫触发:", {
+    to: to.path,
+    from: from.path,
+    requireAuth: to.meta?.requireAuth,
+  });
+
   if (to.meta && to.meta.requireAuth && !isLoggedIn()) {
+    console.log("🔒 需要登录，但用户未登录");
+
+    // 先阻止当前导航
+    next(false);
+
+    // 然后显示登录提示
     uni.showModal({
       title: "提示",
       content: "该功能需要登录后使用",
@@ -53,9 +65,11 @@ router.beforeEach((to, from, next) => {
           });
         }
       },
-      // 确保在取消弹窗时也能调用 next
       fail: () => {
-        next(false);
+        // 失败时也返回首页
+        uni.switchTab({
+          url: "/pages/index/index",
+        });
       },
     });
   } else {

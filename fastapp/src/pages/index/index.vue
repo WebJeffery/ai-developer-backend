@@ -1,30 +1,21 @@
 <template>
   <view style="width: 100%; height: var(--status-bar-height)" />
-  <view class="app-container">
+  <view class="app-container theme-adaptive">
     <wd-swiper v-model:current="current" :list="swiperList" autoplay />
 
     <!-- 快捷导航 -->
     <wd-grid clickable :column="4" class="mt-2">
-      <wd-grid-item
-        v-for="(item, index) in navList"
-        :key="index"
-        use-slot
-        link-type="navigateTo"
-        :url="item.url"
-      >
+      <wd-grid-item v-for="(item, index) in navList" :key="index" use-slot link-type="navigateTo" :url="item.url">
         <view class="p-2">
           <image class="w-72rpx h-72rpx rounded-8rpx" :src="item.icon" />
         </view>
-        <view class="text">{{ item.title }}</view>
+        <view class="text theme-text-primary">{{ item.title }}</view>
       </wd-grid-item>
     </wd-grid>
 
     <!-- 通知公告 -->
-    <wd-notice-bar
-      text="fastapp 是一个基于 Vue3 + UniApp 的前端模板项目，提供了一套完整的前端解决方案，包括登录、权限、字典、接口请求、状态管理、页面布局、组件封装等功能。"
-      color="#34D19D"
-      type="info"
-    >
+    <wd-notice-bar text="fastapp 是一个基于 Vue3 + UniApp 的前端模板项目，提供了一套完整的前端解决方案，包括登录、权限、字典、接口请求、状态管理、页面布局、组件封装等功能。"
+      color="#34D19D" type="info">
       <template #prefix>
         <wd-tag color="#FAA21E" bg-color="#FAA21E" plain custom-style="margin-right:10rpx">
           通知公告
@@ -39,8 +30,8 @@
           <view class="flex-center">
             <image class="w-80rpx h-80rpx rounded-8rpx" src="/static/icons/visitor.png" />
             <view class="ml-5 text-left">
-              <view class="font-bold">访客数</view>
-              <view class="mt-2">{{ visitStatsData.todayUvCount }}</view>
+              <view class="font-bold theme-text-primary">访客数</view>
+              <view class="mt-2 theme-text-primary">{{ visitStatsData.todayUvCount }}</view>
             </view>
           </view>
         </view>
@@ -50,8 +41,8 @@
           <view class="flex-center">
             <image class="w-80rpx h-80rpx rounded-8rpx" src="/static/icons/browser.png" />
             <view class="ml-5 text-left">
-              <view class="font-bold">浏览量</view>
-              <view class="mt-2">{{ visitStatsData.todayPvCount }}</view>
+              <view class="font-bold theme-text-primary">浏览量</view>
+              <view class="mt-2 theme-text-primary">{{ visitStatsData.todayPvCount }}</view>
             </view>
           </view>
         </view>
@@ -61,14 +52,9 @@
     <wd-card type="rectangle">
       <template #title>
         <view class="flex-between">
-          <view>访问趋势</view>
+          <view class="theme-text-primary">访问趋势</view>
           <view>
-            <wd-radio-group
-              :value="recentDaysRange"
-              shape="button"
-              inline
-              @change="handleDataRangeChange"
-            >
+            <wd-radio-group :value="recentDaysRange" shape="button" inline @change="handleDataRangeChange">
               <wd-radio :value="7">近7天</wd-radio>
               <wd-radio :value="15">近15天</wd-radio>
             </wd-radio-group>
@@ -252,11 +238,11 @@ onShow(() => {
 });
 </script>
 
-<route lang="json">
-{
+<route lang="json">{
   "name": "index",
-  "style": { "navigationStyle": "custom" },
+  "style": {
+    "navigationStyle": "custom"
+  },
   "layout": "tabbar"
-}
-</route>
+}</route>
 <style setup lang="scss"></style>

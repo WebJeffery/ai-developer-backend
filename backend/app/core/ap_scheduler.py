@@ -24,7 +24,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from pymongo import MongoClient
 
 from app.config.setting import settings
-from app.core.database import engine, session_connect, SessionLocal, async_session
+from app.core.database import engine, session_connect, SessionLocal, AsyncSessionLocal
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 
@@ -41,7 +41,10 @@ job_stores = {
     )),
 }
 # 配置执行器
-executors = {'default': AsyncIOExecutor(), 'processpool': ProcessPoolExecutor(5)}
+executors = {
+    'default': AsyncIOExecutor(), 
+    'processpool': ProcessPoolExecutor(max_workers=1)  # 减少进程数量以减少资源消耗
+}
 # 配置默认参数
 job_defaults = {
     'coalesce': False,  # 是否合并执行
@@ -110,7 +113,7 @@ class SchedulerUtil:
                     exception_info=exception_info,
                     create_time=datetime.now(),
                 )
-                session = async_session()
+                session = SessionLocal()
                 JobLogCRUD(AuthSchema(db=session)).create_obj_log_crud(data=job_log)
                 session.close()
 

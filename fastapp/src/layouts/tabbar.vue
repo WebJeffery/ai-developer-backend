@@ -1,22 +1,10 @@
 <template>
-  <wd-config-provider :theme-vars="themeVars" :custom-class="`page-wraper ${theme}`" :theme="theme">
+  <wd-config-provider :theme-vars="themeVars" :custom-class="`page-wrapper ${theme}`" :theme="theme">
     <slot />
-    <wd-tabbar
-      :model-value="activeTabbar.name"
-      placeholder
-      bordered
-      safe-area-inset-bottom
-      fixed
-      @change="handleTabbarChange"
-    >
-      <wd-tabbar-item
-        v-for="(item, index) in tabbarList"
-        :key="index"
-        :name="item.name"
-        :value="getTabbarItemValue(item.name)"
-        :title="item.title"
-        :icon="item.icon"
-      />
+    <wd-tabbar :model-value="activeTabbar" placeholder bordered safe-area-inset-bottom fixed
+      @change="handleTabbarChange">
+      <wd-tabbar-item v-for="(item, index) in tabbarList" :key="index" :name="item.name" :title="item.title"
+        :icon="item.icon" />
     </wd-tabbar>
     <wd-notify />
     <wd-toast />
@@ -35,7 +23,7 @@ const router = useRouter();
 const route = useRoute();
 let theme = useTheme.theme;
 let themeVars = useTheme.themeVars;
-const { activeTabbar, getTabbarItemValue, setTabbarItemActive, tabbarList } = useTabbar();
+const { activeTabbar, setTabbarItemActive, tabbarList } = useTabbar();
 
 function handleTabbarChange({ value }: { value: string }) {
   setTabbarItemActive(value);
@@ -47,7 +35,7 @@ onMounted(() => {
   uni.hideTabBar();
   // #endif
   nextTick(() => {
-    if (route.name && route.name !== activeTabbar.value.name) {
+    if (route.name) {
       setTabbarItemActive(route.name);
     }
   });
@@ -65,13 +53,14 @@ export default {
 </script>
 
 <style lang="scss">
-.page-wraper {
+.page-wrapper {
   box-sizing: border-box;
   min-height: calc(100vh - var(--window-top));
-  background: #f9f9f9;
+  background-color: var(--bg-color-2);
+  transition: background-color 0.3s ease;
 }
 
-.wot-theme-dark.page-wraper {
-  background: #222;
+.wot-theme-dark.page-wrapper {
+  background-color: var(--bg-color);
 }
 </style>

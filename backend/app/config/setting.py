@@ -261,6 +261,14 @@ class Settings(BaseSettings):
     #         os.makedirs(self.GEN_PATH)
 
     # ================================================= #
+    # ******************* AI大模型配置 ****************** #
+    # ================================================= #
+    # https://bailian.console.aliyun.com/?spm=5176.29619931.J_AHgvE-XDhTWrtotIBlDQQ.13.74cd521clrmQ7o&tab=api#/api/?type=model&url=https%3A%2F%2Fhelp.aliyun.com%2Fdocument_detail%2F2712576.html&renderType=iframe
+    QWEN_BASE_URL: str
+    QWEN_API_KEY: str
+    QWEN_MODEL: str
+
+    # ================================================= #
     # ******************* 其他配置 ******************* #
     # ================================================= #
     @property

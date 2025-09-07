@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
 from typing import Any, AsyncGenerator
+from fastapi_mcp import FastApiMCP
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.concurrency import asynccontextmanager
@@ -10,7 +10,6 @@ from fastapi.openapi.docs import (
     get_swagger_ui_html,
     get_swagger_ui_oauth2_redirect_html
 )
-from sqlalchemy import text
 
 from app.config.setting import settings
 from app.core.ap_scheduler import SchedulerUtil
@@ -103,6 +102,20 @@ def register_routers(app: FastAPI) -> None:
     """
     app.include_router(router=router)
     
+def register_fastapi_mcp(app: FastAPI) -> None:
+    """
+    注册FastAPI-MCP路由
+    """
+    mcp = FastApiMCP(
+        app,
+        name="FastAPI Vue3 Admin MCP",
+        description="MCP server for the FastAPI Vue3 Admin system",
+        describe_full_response_schema=True,
+        describe_all_responses=True,
+    )
+    mcp.mount()
+    # mcp.mount_http()
+
 def register_files(app: FastAPI) -> None:
     """
     注册文件相关配置
