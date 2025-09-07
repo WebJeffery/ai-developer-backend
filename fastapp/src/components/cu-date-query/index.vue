@@ -1,11 +1,5 @@
 <template>
-  <wd-calendar
-    v-model="dateRange"
-    :label="label"
-    type="daterange"
-    :placeholder="placeholder"
-    @confirm="handleConfirm"
-  />
+  <wd-calendar v-model="dateRange" :label="label" type="daterange" :placeholder="placeholder" @confirm="handleConfirm" />
 </template>
 
 <script lang="ts" setup>
@@ -38,12 +32,7 @@ watch(
     } else if (typeof val === "string" && val.includes(",")) {
       const [startDate, endDate] = val.split(",");
 
-      if (
-        startDate &&
-        endDate &&
-        !isNaN(new Date(startDate).getTime()) &&
-        !isNaN(new Date(endDate).getTime())
-      ) {
+      if (startDate && endDate && !isNaN(new Date(startDate).getTime()) && !isNaN(new Date(endDate).getTime())) {
         dateRange.value = [new Date(startDate).getTime(), new Date(endDate).getTime()];
       } else {
         dateRange.value = null;

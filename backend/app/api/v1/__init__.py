@@ -26,6 +26,8 @@ from .module_example.demo.controller import DemoRouter
 
 from .module_application.myapp.controller import MyAppRouter
 
+from .module_ai.mcp.controller import MCPRouter
+
 from .module_resource.resource.controller import ResourceRouter
 
 
@@ -58,6 +60,8 @@ EXAMPLE_MODULES = [{"router": DemoRouter}]
 
 APPLICATION_MODULES = [{"router": MyAppRouter}]
 
+AI_MODULES = [{"router": MCPRouter}]
+
 
 router = APIRouter()
 for module in SYSTEM_MODULES:
@@ -88,4 +92,9 @@ for module in APPLICATION_MODULES:
 for module in RESOURCE_MODULES:
     router.include_router(
         router=module["router"], prefix="/resource"
+    )
+
+for module in AI_MODULES:
+    router.include_router(
+        router=module["router"], prefix="/ai"
     )

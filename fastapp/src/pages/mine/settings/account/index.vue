@@ -1,56 +1,43 @@
 <template>
-  <view class="app-container">
-    <wd-card custom-style="margin-top: 20rpx">
+  <view class="app-container theme-adaptive">
+    <wd-card custom-style="margin-top: 20rpx" class="theme-card">
       <wd-cell-group border>
-        <wd-cell
-          title="账户密码"
-          label="定期修改密码有助于保护账户安全"
-          value="修改"
-          is-link
-          @click="handleOpenDialog(DialogType.PASSWORD)"
-        />
+        <wd-cell title="账户密码" label="定期修改密码有助于保护账户安全" value="修改" is-link @click="handleOpenDialog(DialogType.PASSWORD)">
+          <template #title>
+            <text class="theme-text-primary">账户密码</text>
+          </template>
+          <template #label>
+            <text class="theme-text-secondary">定期修改密码有助于保护账户安全</text>
+          </template>
+          <template #value>
+            <text class="theme-text-secondary">修改</text>
+          </template>
+        </wd-cell>
       </wd-cell-group>
     </wd-card>
 
     <!--用户信息编辑弹出框-->
-    <wd-popup v-model="dialog.visible" position="bottom">
-      <wd-form
-        v-if="dialog.type === DialogType.PASSWORD"
-        ref="passwordChangeFormRef"
-        :model="passwordChangeForm"
-        custom-class="edit-form"
-      >
+    <wd-popup v-model="dialog.visible" position="bottom"
+      custom-style="border-top-left-radius: 16rpx; border-top-right-radius: 16rpx;">
+      <view class="popup-header">
+        <wd-cell :title="getDialogTitle" center>
+          <template #right-icon>
+            <wd-icon name="close" size="20" @click="dialog.visible = false" />
+          </template>
+        </wd-cell>
+      </view>
+
+      <wd-divider />
+
+      <wd-form v-if="dialog.type === DialogType.PASSWORD" ref="passwordChangeFormRef" :model="passwordChangeForm"
+        custom-class="edit-form">
         <wd-cell-group border>
-          <wd-input
-            v-model="passwordChangeForm.old_password"
-            label="原密码"
-            label-width="160rpx"
-            show-password
-            clearable
-            placeholder="请输入原密码"
-            prop="old_password"
-            :rules="rules.oldPassword"
-          />
-          <wd-input
-            v-model="passwordChangeForm.new_password"
-            label="新密码"
-            label-width="160rpx"
-            show-password
-            clearable
-            placeholder="请输入新密码"
-            prop="new_password"
-            :rules="rules.newPassword"
-          />
-          <wd-input
-            v-model="passwordChangeForm.confirm_password"
-            label="确认密码"
-            label-width="160rpx"
-            show-password
-            clearable
-            placeholder="请确认新密码"
-            prop="confirm_password"
-            :rules="rules.confirmPassword"
-          />
+          <wd-input v-model="passwordChangeForm.old_password" label="原密码" label-width="160rpx" show-password clearable
+            placeholder="请输入原密码" prop="old_password" :rules="rules.oldPassword" />
+          <wd-input v-model="passwordChangeForm.new_password" label="新密码" label-width="160rpx" show-password clearable
+            placeholder="请输入新密码" prop="new_password" :rules="rules.newPassword" />
+          <wd-input v-model="passwordChangeForm.confirm_password" label="确认密码" label-width="160rpx" show-password
+            clearable placeholder="请确认新密码" prop="confirm_password" :rules="rules.confirmPassword" />
         </wd-cell-group>
         <view class="p-6">
           <wd-button type="primary" size="large" block @click="handleSubmit">提交</wd-button>
@@ -59,6 +46,7 @@
     </wd-popup>
   </view>
 </template>
+
 <script setup lang="ts">
 import UserAPI, { PasswordChangeForm, UserInfo } from "@/api/user";
 
@@ -73,6 +61,7 @@ const validatorConfirmPassword = (value: string) => {
     }
   }
 };
+
 // 本页面中所有的校验规则
 const rules = reactive({
   oldPassword: [{ required: true, message: "请填写原密码" }],
@@ -94,6 +83,19 @@ enum DialogType {
   MOBILE = "mobile",
   EMAIL = "email",
 }
+
+const getDialogTitle = computed(() => {
+  switch (dialog.type) {
+    case DialogType.PASSWORD:
+      return "修改密码";
+    case DialogType.MOBILE:
+      return "绑定手机";
+    case DialogType.EMAIL:
+      return "绑定邮箱";
+    default:
+      return "账号设置";
+  }
+});
 
 const dialog = reactive({
   visible: false,
@@ -135,8 +137,10 @@ function handleSubmit() {
     passwordChangeFormRef.value.validate().then(({ valid }: { valid: boolean }) => {
       if (valid) {
         UserAPI.changeCurrentUserPassword(passwordChangeForm).then(() => {
-          uni.showToast({ title: "密码修改成功", icon: "none" });
+          uni.showToast({ title: "密码修改成功", icon: "success" });
           dialog.visible = false;
+        }).catch((error: any) => {
+          uni.showToast({ title: error?.message || "密码修改失败", icon: "error" });
         });
       }
     });
@@ -151,8 +155,11 @@ onMounted(() => {
 <route lang="json">
 {
   "name": "account",
-  "style": { "navigationBarTitleText": "账号和安全" },
+  "style": {
+    "navigationBarTitleText": "账号和安全"
+  },
   "layout": "tabbar"
 }
 </route>
+
 <style lang="scss" scoped></style>

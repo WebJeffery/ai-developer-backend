@@ -68,7 +68,11 @@
     },
     {
       "path": "pages/mine/profile/index",
-      "type": "page"
+      "type": "page",
+      "name": "profile",
+      "style": {
+        "navigationBarTitleText": "个人中心"
+      }
     },
     {
       "path": "pages/mine/settings/index",
@@ -110,8 +114,7 @@
       "name": "privacy",
       "style": {
         "navigationBarTitleText": "隐私政策"
-      },
-      "layout": "tabbar"
+      }
     },
     {
       "path": "pages/mine/settings/theme/index",

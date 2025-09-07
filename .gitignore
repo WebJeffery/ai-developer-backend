@@ -26,3 +26,6 @@ devops/nginx/fastapp/dist
 devops/nginx/fastdocs/dist
 devops/nginx/frontend/dist
 devops/nginx/ssl
+fastapp/components.d.ts
+frontend/src/types/auto-imports.d.ts
+frontend/src/types/components.d.ts

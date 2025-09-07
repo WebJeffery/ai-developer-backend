@@ -19,6 +19,8 @@ class ResourceType(Enum):
 
 class ResourceItemSchema(BaseModel):
     """资源项目模型"""
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+    
     name: str = Field(..., description="文件名")
     path: str = Field(..., description="文件路径")
     relative_path: str = Field(..., description="相对路径")
@@ -37,6 +39,8 @@ class ResourceItemSchema(BaseModel):
 
 class ResourceDirectorySchema(BaseModel):
     """资源目录模型"""
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+    
     path: str = Field(..., description="目录路径")
     name: str = Field(..., description="目录名称")
     items: List[ResourceItemSchema] = Field(default_factory=list, description="目录项")
@@ -47,6 +51,8 @@ class ResourceDirectorySchema(BaseModel):
 
 class ResourceStatsSchema(BaseModel):
     """资源统计模型"""
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+    
     mount_point: str = Field(..., description="挂载点")
     total_files: int = Field(0, description="文件总数")
     total_dirs: int = Field(0, description="目录总数")
@@ -60,6 +66,8 @@ class ResourceStatsSchema(BaseModel):
 
 class ResourceSearchSchema(BaseModel):
     """资源搜索模型"""
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+    
     keyword: Optional[str] = Field(None, description="关键词")
     file_type: Optional[str] = Field(None, description="文件类型")
     resource_type: Optional[ResourceType] = Field(None, description="资源类型")
@@ -74,6 +82,8 @@ class ResourceSearchSchema(BaseModel):
 
 class ResourceUploadSchema(BaseModel):
     """资源上传响应模型"""
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+    
     filename: str = Field(..., description="文件名")
     file_path: str = Field(..., description="文件路径")
     file_url: str = Field(..., description="访问URL")

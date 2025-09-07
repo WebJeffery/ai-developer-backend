@@ -10,6 +10,8 @@ from pathlib import Path
 
 from fastapi import UploadFile
 from PIL import Image
+
+# 尝试导入 magic 库，如果失败则标记为不可用
 try:
     import magic
     MAGIC_AVAILABLE = True
@@ -18,6 +20,10 @@ except ImportError:
 
 from app.core.exceptions import CustomException
 from app.core.logger import logger
+
+# 如果 magic 不可用，记录日志
+if not MAGIC_AVAILABLE:
+    logger.info("没有找到 python-magic 库，将使用基于扩展名的文件类型检测")
 from app.utils.excel_util import ExcelUtil
 from app.config.setting import settings
 from ...module_system.auth.schema import AuthSchema
@@ -38,32 +44,48 @@ from .schema import (
 
 class ResourceService:
     """
-    资源管理模块服务层 - 直接操作文件系统
+    资源管理模块服务层 - 管理系统静态文件目录
     """
     
-    # 默认挂载点配置
-    DEFAULT_MOUNT_POINT = getattr(settings, 'RESOURCE_MOUNT_POINT', '/Users/tao/workspace/fastapi_vue3_admin/backend/static/upload')
-    ALLOWED_MOUNT_POINTS = getattr(settings, 'ALLOWED_MOUNT_POINTS', ['/Users/tao/workspace/fastapi_vue3_admin/backend/static', '/Users/tao/workspace/fastapi_vue3_admin/backend/static/upload'])
+    # 配置常量
+    MAX_UPLOAD_SIZE = 100 * 1024 * 1024  # 100MB
+    MAX_SEARCH_RESULTS = 1000  # 最大搜索结果数
+    MAX_PATH_DEPTH = 20  # 最大路径深度
     
     @classmethod
-    def _get_safe_path(cls, path: str) -> str:
+    def _get_resource_root(cls) -> str:
+        """获取资源管理根目录"""
+        if not settings.STATIC_ENABLE:
+            raise CustomException(msg='静态文件服务未启用')
+        return str(settings.STATIC_ROOT)
+    
+    @classmethod
+    def _get_safe_path(cls, path: str = None) -> str:
         """获取安全的文件路径"""
-        if not path:
-            return cls.DEFAULT_MOUNT_POINT
-            
-        # 规范化路径
-        safe_path = os.path.normpath(os.path.abspath(path))
+        resource_root = cls._get_resource_root()
         
-        # 检查路径是否在允许的挂载点内
-        allowed = False
-        for mount_point in cls.ALLOWED_MOUNT_POINTS:
-            mount_abs = os.path.normpath(os.path.abspath(mount_point))
-            if safe_path.startswith(mount_abs):
-                allowed = True
-                break
-                
-        if not allowed:
+        if not path:
+            return resource_root
+        
+        # 清理路径，移除危险字符
+        path = path.strip().replace('..', '').replace('//', '/')
+        
+        # 规范化路径
+        if os.path.isabs(path):
+            safe_path = os.path.normpath(path)
+        else:
+            safe_path = os.path.normpath(os.path.join(resource_root, path))
+        
+        # 检查路径是否在允许的范围内
+        resource_root_abs = os.path.normpath(os.path.abspath(resource_root))
+        safe_path_abs = os.path.normpath(os.path.abspath(safe_path))
+        
+        if not safe_path_abs.startswith(resource_root_abs):
             raise CustomException(msg=f'访问路径不在允许范围内: {path}')
+        
+        # 防止路径遍历攻击
+        if '..' in safe_path or safe_path.count('/') > cls.MAX_PATH_DEPTH:  # 限制最大目录深度
+            raise CustomException(msg=f'不安全的路径格式: {path}')
             
         return safe_path
     
@@ -86,16 +108,45 @@ class ResourceService:
                 
             stat = os.stat(safe_path)
             path_obj = Path(safe_path)
+            resource_root = cls._get_resource_root()
             
             # 获取文件扩展名和类型
             file_extension = path_obj.suffix.lower() if path_obj.suffix else None
-            file_type = cls._get_mime_type_from_extension(file_extension) if file_extension else None
+            
+            # 优先使用 magic 库检测 MIME 类型
+            file_type = None
+            if MAGIC_AVAILABLE and os.path.isfile(safe_path):
+                try:
+                    file_type = magic.from_file(safe_path, mime=True)
+                except Exception as e:
+                    logger.debug(f"magic 库检测文件类型失败: {e}")
+            
+            # 如果 magic 检测失败或不可用，使用扩展名检测
+            if not file_type and file_extension:
+                file_type = cls._get_mime_type_from_extension(file_extension)
+            
+            # 如果仍然没有类型，使用默认值
+            if not file_type:
+                file_type = 'application/octet-stream' if os.path.isfile(safe_path) else None
+                
             resource_type = cls._determine_resource_type(file_type, file_extension)
+            
+            # 计算相对路径
+            try:
+                relative_path = os.path.relpath(safe_path, resource_root)
+            except ValueError:
+                relative_path = os.path.basename(safe_path)
+            
+            # 计算深度
+            try:
+                depth = len(Path(safe_path).relative_to(resource_root).parts)
+            except ValueError:
+                depth = 0
             
             return {
                 'name': path_obj.name,
                 'path': safe_path,
-                'relative_path': os.path.relpath(safe_path, cls.DEFAULT_MOUNT_POINT),
+                'relative_path': relative_path,
                 'is_file': os.path.isfile(safe_path),
                 'is_dir': os.path.isdir(safe_path),
                 'size': stat.st_size if os.path.isfile(safe_path) else None,
@@ -106,7 +157,7 @@ class ResourceService:
                 'modified_time': datetime.fromtimestamp(stat.st_mtime),
                 'accessed_time': datetime.fromtimestamp(stat.st_atime),
                 'parent_path': str(path_obj.parent),
-                'depth': len(path_obj.relative_to(cls.DEFAULT_MOUNT_POINT).parts) if cls.DEFAULT_MOUNT_POINT in safe_path else 0
+                'depth': depth
             }
         except Exception as e:
             logger.error(f'获取文件信息失败: {str(e)}')
@@ -122,8 +173,11 @@ class ResourceService:
     ) -> Dict:
         """获取目录列表"""
         try:
-            target_path = path or cls.DEFAULT_MOUNT_POINT
-            safe_path = cls._get_safe_path(target_path)
+            # 如果没有指定路径，使用静态文件根目录
+            if path is None:
+                safe_path = cls._get_resource_root()
+            else:
+                safe_path = cls._get_safe_path(path)
             
             if not os.path.exists(safe_path):
                 raise CustomException(msg='目录不存在')
@@ -171,7 +225,7 @@ class ResourceService:
                 total_files=total_files,
                 total_dirs=total_dirs,
                 total_size=total_size
-            ).model_dump()
+            ).model_dump(mode='json')
             
         except CustomException:
             raise
@@ -214,27 +268,52 @@ class ResourceService:
     ) -> List[Dict]:
         """搜索资源"""
         try:
-            mount_point = cls.DEFAULT_MOUNT_POINT
+            # 使用静态文件根目录作为搜索起点
+            search_root = cls._get_resource_root()
             results = []
             
-            for root, dirs, files in os.walk(mount_point):
+            for root, dirs, files in os.walk(search_root):
                 # 控制搜索深度
-                depth = len(Path(root).relative_to(mount_point).parts)
+                try:
+                    depth = len(Path(root).relative_to(search_root).parts)
+                except ValueError:
+                    depth = 0
+                    
                 if depth > search.max_depth:
+                    dirs.clear()  # 阻止进一步深入
                     continue
                 
-                # 过滤隐藏文件夹
+                # 过滤隐藏文件夹（性能优化）
                 if not search.include_hidden:
                     dirs[:] = [d for d in dirs if not d.startswith('.')]
                     files = [f for f in files if not f.startswith('.')]
                 
+                # 优化：先过滤文件名，再进行详细检查
+                if search.keyword:
+                    files = [f for f in files if search.keyword.lower() in f.lower()]
+                
                 # 搜索文件
                 for file in files:
                     file_path = os.path.join(root, file)
+                    
+                    # 优化：先进行快速检查
+                    if search.extensions:
+                        file_ext = os.path.splitext(file)[1].lower()
+                        if file_ext not in search.extensions:
+                            continue
+                    
                     file_info = cls._get_file_info(file_path)
                     
                     if cls._match_search_criteria(file_info, search):
                         results.append(file_info)
+                        
+                        # 限制结果数量防止内存溢出
+                        if len(results) >= cls.MAX_SEARCH_RESULTS:
+                            logger.warning(f"搜索结果过多，已截断到前{cls.MAX_SEARCH_RESULTS}个")
+                            break
+                            
+                if len(results) >= cls.MAX_SEARCH_RESULTS:
+                    break
             
             # 排序结果
             return cls._sort_results(results, search)
@@ -314,10 +393,21 @@ class ResourceService:
         if not file or not file.filename:
             raise CustomException(msg="请选择要上传的文件")
         
+        # 文件名安全检查
+        if '..' in file.filename or '/' in file.filename or '\\' in file.filename:
+            raise CustomException(msg="文件名包含不安全字符")
+        
         try:
-            # 确定上传目录
-            upload_dir = target_path or cls.DEFAULT_MOUNT_POINT
-            safe_dir = cls._get_safe_path(upload_dir)
+            # 检查文件大小
+            content = await file.read()
+            if len(content) > cls.MAX_UPLOAD_SIZE:
+                raise CustomException(msg=f"文件太大，最大支持{cls.MAX_UPLOAD_SIZE // (1024*1024)}MB")
+            
+            # 确定上传目录，如果没有指定目标路径，使用静态文件根目录
+            if target_path is None:
+                safe_dir = cls._get_resource_root()
+            else:
+                safe_dir = cls._get_safe_path(target_path)
             
             # 创建目录（如果不存在）
             os.makedirs(safe_dir, exist_ok=True)
@@ -337,24 +427,34 @@ class ResourceService:
                     counter += 1
                 filename = os.path.basename(file_path)
             
-            # 保存文件
-            content = await file.read()
+            # 保存文件（使用已读取的内容）
             with open(file_path, 'wb') as f:
                 f.write(content)
             
             # 获取文件信息
             file_info = cls._get_file_info(file_path)
             
+            # 生成相对于资源根目录的URL路径
+            resource_root = cls._get_resource_root()
+            try:
+                relative_path = os.path.relpath(file_path, resource_root)
+                # 确保路径使用正斜杠（URL格式）
+                file_url_path = relative_path.replace(os.sep, '/')
+                file_url = f"/resource/download?path={file_url_path}"
+            except ValueError:
+                # 如果无法计算相对路径，使用文件名
+                file_url = f"/resource/download?path={filename}"
+            
             logger.info(f"文件上传成功: {filename}")
             
             return ResourceUploadSchema(
                 filename=filename,
                 file_path=file_path,
-                file_url=f"/resource/download?path={file_path}",
+                file_url=file_url,
                 file_size=file_info.get('size', 0),
                 resource_type=file_info.get('resource_type', ResourceType.OTHER),
                 upload_time=datetime.now()
-            ).model_dump()
+            ).model_dump(mode='json')
             
         except Exception as e:
             logger.error(f"文件上传失败: {str(e)}")
@@ -531,10 +631,11 @@ class ResourceService:
     async def get_stats_service(cls, auth: AuthSchema) -> Dict:
         """获取资源统计信息"""
         try:
-            mount_point = cls.DEFAULT_MOUNT_POINT
+            # 使用静态文件根目录
+            stats_root = cls._get_resource_root()
             
             # 获取磁盘空间信息
-            statvfs = os.statvfs(mount_point)
+            statvfs = os.statvfs(stats_root)
             total_space = statvfs.f_frsize * statvfs.f_blocks
             free_space = statvfs.f_frsize * statvfs.f_bavail
             used_space = total_space - free_space
@@ -546,7 +647,7 @@ class ResourceService:
             type_stats = {}
             extension_stats = {}
             
-            for root, dirs, files in os.walk(mount_point):
+            for root, dirs, files in os.walk(stats_root):
                 total_dirs += len(dirs)
                 
                 for file in files:
@@ -572,7 +673,7 @@ class ResourceService:
                         continue
             
             return ResourceStatsSchema(
-                mount_point=mount_point,
+                mount_point=stats_root,
                 total_files=total_files,
                 total_dirs=total_dirs,
                 total_size=total_size,
@@ -581,7 +682,7 @@ class ResourceService:
                 total_space=total_space,
                 type_stats=type_stats,
                 extension_stats=extension_stats
-            ).model_dump()
+            ).model_dump(mode='json')
             
         except Exception as e:
             logger.error(f"获取统计信息失败: {str(e)}")
@@ -658,36 +759,39 @@ class ResourceService:
         if not file_extension:
             return 'application/octet-stream'
             
+        # 扩展更全面的MIME类型映射
         mime_types = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.bmp': 'image/bmp',
-            '.webp': 'image/webp',
-            '.svg': 'image/svg+xml',
-            '.mp4': 'video/mp4',
-            '.avi': 'video/x-msvideo',
-            '.mov': 'video/quicktime',
-            '.wmv': 'video/x-ms-wmv',
-            '.flv': 'video/x-flv',
-            '.mp3': 'audio/mpeg',
-            '.wav': 'audio/wav',
-            '.aac': 'audio/aac',
-            '.ogg': 'audio/ogg',
-            '.pdf': 'application/pdf',
-            '.doc': 'application/msword',
+            # 图片类型
+            '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+            '.gif': 'image/gif', '.bmp': 'image/bmp', '.webp': 'image/webp',
+            '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.tiff': 'image/tiff',
+            
+            # 视频类型
+            '.mp4': 'video/mp4', '.avi': 'video/x-msvideo', '.mov': 'video/quicktime',
+            '.wmv': 'video/x-ms-wmv', '.flv': 'video/x-flv', '.webm': 'video/webm',
+            '.mkv': 'video/x-matroska', '.m4v': 'video/x-m4v',
+            
+            # 音频类型
+            '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.aac': 'audio/aac',
+            '.ogg': 'audio/ogg', '.flac': 'audio/flac', '.m4a': 'audio/mp4',
+            
+            # 文档类型
+            '.pdf': 'application/pdf', '.doc': 'application/msword',
             '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             '.xls': 'application/vnd.ms-excel',
             '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             '.ppt': 'application/vnd.ms-powerpoint',
             '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            '.txt': 'text/plain',
-            '.csv': 'text/csv',
-            '.zip': 'application/zip',
-            '.rar': 'application/x-rar-compressed',
-            '.7z': 'application/x-7z-compressed',
-            '.tar': 'application/x-tar',
-            '.gz': 'application/gzip'
+            '.txt': 'text/plain', '.csv': 'text/csv', '.rtf': 'application/rtf',
+            
+            # 代码文件
+            '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+            '.json': 'application/json', '.xml': 'application/xml',
+            '.py': 'text/x-python', '.java': 'text/x-java-source',
+            
+            # 压缩文件
+            '.zip': 'application/zip', '.rar': 'application/x-rar-compressed',
+            '.7z': 'application/x-7z-compressed', '.tar': 'application/x-tar',
+            '.gz': 'application/gzip', '.bz2': 'application/x-bzip2'
         }
         return mime_types.get(file_extension.lower(), 'application/octet-stream')

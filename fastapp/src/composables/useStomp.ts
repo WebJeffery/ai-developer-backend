@@ -135,10 +135,7 @@ export function useStomp(options: UseStompOptions = {}) {
       }
 
       // 如果是授权问题导致的关闭，尝试重连
-      if (
-        (event?.code === 1000 || event?.code === 1006 || event?.code === 1008) &&
-        reconnectCount.value < maxReconnectAttempts
-      ) {
+      if ((event?.code === 1000 || event?.code === 1006 || event?.code === 1008) && reconnectCount.value < maxReconnectAttempts) {
         console.log("检测到连接异常关闭，将尝试重连");
 
         // 通过 handleReconnect 统一处理重连，避免重复计数
@@ -152,11 +149,7 @@ export function useStomp(options: UseStompOptions = {}) {
       isConnecting = false;
 
       // 检查是否是授权错误
-      if (
-        frame.headers?.message?.includes("Unauthorized") ||
-        frame.body?.includes("Unauthorized") ||
-        frame.body?.includes("Token")
-      ) {
+      if (frame.headers?.message?.includes("Unauthorized") || frame.body?.includes("Unauthorized") || frame.body?.includes("Token")) {
         console.warn("WebSocket授权错误，请检查登录状态");
         // 授权错误不进行重连
         isManualDisconnect = true;
@@ -182,9 +175,7 @@ export function useStomp(options: UseStompOptions = {}) {
     console.log(`准备重连(${reconnectCount.value}/${maxReconnectAttempts})...`);
 
     // 使用指数退避策略增加重连间隔
-    const delay = useExponentialBackoff
-      ? Math.min(reconnectDelay * Math.pow(2, reconnectCount.value - 1), maxReconnectDelay)
-      : reconnectDelay;
+    const delay = useExponentialBackoff ? Math.min(reconnectDelay * Math.pow(2, reconnectCount.value - 1), maxReconnectDelay) : reconnectDelay;
 
     // 清除之前的计时器
     if (reconnectTimer) {

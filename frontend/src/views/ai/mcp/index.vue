@@ -1,7 +1,7 @@
-<template> 
-  <div>
-    <h1>我的应用管理开发中，暂未提供</h1>
-  </div>
+<template>
+    <dev>
+        开发中...
+    </dev>
 </template>
 
 <script setup lang="ts">
