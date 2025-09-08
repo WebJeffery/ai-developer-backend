@@ -30,6 +30,7 @@ declare module 'vue' {
     WdGridItem: typeof import('wot-design-uni/components/wd-grid-item/wd-grid-item.vue')['default']
     WdIcon: typeof import('wot-design-uni/components/wd-icon/wd-icon.vue')['default']
     WdImg: typeof import('wot-design-uni/components/wd-img/wd-img.vue')['default']
+    WdImgCropper: typeof import('wot-design-uni/components/wd-img-cropper/wd-img-cropper.vue')['default']
     WdInput: typeof import('wot-design-uni/components/wd-input/wd-input.vue')['default']
     WdLoading: typeof import('wot-design-uni/components/wd-loading/wd-loading.vue')['default']
     WdMessageBox: typeof import('wot-design-uni/components/wd-message-box/wd-message-box.vue')['default']

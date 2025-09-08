@@ -6,7 +6,7 @@ export const ResourceAPI = {
    * @param query 查询参数
    */
   getResourceList(query: ResourceListQuery) {
-    return request<ApiResponse<ResourceItem[]>>({
+    return request<ApiResponse<ResourceListResponse>>({
       url: `/resource/resource/list`,
       method: "get",
       params: query,
@@ -18,7 +18,7 @@ export const ResourceAPI = {
    * @param body 搜索条件
    */
   searchResource(body: ResourceSearchQuery) {
-    return request<ApiResponse<ResourceItem[]>>({
+    return request<ApiResponse<ResourceListResponse>>({
       url: `/resource/resource/search`,
       method: "post",
       data: body,
@@ -150,6 +150,24 @@ export interface ResourceListQuery {
 }
 
 /**
+ * 资源列表响应
+ */
+export interface ResourceListResponse {
+  /** 当前路径 */
+  path: string;
+  /** 目录名称 */
+  name: string;
+  /** 文件/目录列表 */
+  items: ResourceItem[];
+  /** 总文件数 */
+  total_files: number;
+  /** 总目录数 */
+  total_dirs: number;
+  /** 总大小 */
+  total_size: number;
+}
+
+/**
  * 资源搜索查询参数
  */
 export interface ResourceSearchQuery {
@@ -183,22 +201,34 @@ export interface ResourceItem {
   name: string;
   /** 完整路径 */
   path: string;
+  /** 相对路径 */
+  relative_path?: string;
+  /** 是否为文件 */
+  is_file?: boolean;
   /** 是否为目录 */
-  is_directory: boolean;
+  is_dir?: boolean;
+  /** 是否为目录（兼容字段） */
+  is_directory?: boolean;
   /** 文件大小（字节） */
-  size?: number;
-  /** 文件扩展名 */
-  extension?: string;
-  /** 修改时间 */
-  modified_time: string;
-  /** 创建时间 */
-  created_time: string;
-  /** 是否为隐藏文件 */
-  is_hidden: boolean;
+  size?: number | null;
   /** 文件类型 */
-  file_type?: string;
+  file_type?: string | null;
+  /** 文件扩展名 */
+  file_extension?: string | null;
   /** 资源类型 */
   resource_type?: string;
+  /** 创建时间 */
+  created_time: string;
+  /** 修改时间 */
+  modified_time: string;
+  /** 访问时间 */
+  accessed_time?: string;
+  /** 父路径 */
+  parent_path?: string;
+  /** 深度 */
+  depth?: number;
+  /** 是否为隐藏文件 */
+  is_hidden?: boolean;
   /** 文件URL（如果是图片等可预览文件） */
   file_url?: string;
   /** 缩略图URL */
@@ -253,24 +283,22 @@ export interface ResourceCreateDirQuery {
  * 资源统计信息
  */
 export interface ResourceStats {
+  /** 挂载点 */
+  mount_point: string;
   /** 总文件数 */
   total_files: number;
   /** 总目录数 */
-  total_directories: number;
+  total_dirs: number;
   /** 总大小（字节） */
   total_size: number;
+  /** 可用空间（字节） */
+  free_space: number;
+  /** 已使用空间（字节） */
+  used_space: number;
+  /** 总空间（字节） */
+  total_space: number;
   /** 按文件类型统计 */
-  file_type_stats: Array<{
-    file_type: string;
-    count: number;
-    size: number;
-  }>;
-  /** 按资源类型统计 */
-  resource_type_stats: Array<{
-    resource_type: string;
-    count: number;
-    size: number;
-  }>;
-  /** 最近修改的文件 */
-  recent_files: ResourceItem[];
+  type_stats: Record<string, number>;
+  /** 按文件扩展名统计 */
+  extension_stats: Record<string, number>;
 }

@@ -19,6 +19,9 @@ interface ImportMetaEnv {
 
   /** 超时时间 */
   VITE_TIMEOUT: number;
+
+  /** 资源管理根路径 */
+  VITE_RESOURCE_ROOT_PATH: string;
 }
 
 interface ImportMeta {
