@@ -59,6 +59,23 @@ class InitializeData:
             RoleDeptsModel,
             RoleMenusModel,
         ]
+        # 需要更新序列的模型（排除关联表模型，因为它们没有id字段）
+        self.models_with_id = [
+            DeptModel,
+            MenuModel,
+            UserModel,
+            RoleModel,
+            PositionModel,
+            ConfigModel,
+            DictTypeModel,
+            NoticeModel,
+            OperationLogModel,
+            DictDataModel,
+            JobModel,
+            JobLogModel,
+            DemoModel,
+            ApplicationModel,
+        ]
         self.created_tables = set()
         
     async def __get_existing_tables(self, db: AsyncSession) -> List[str]:
@@ -120,8 +137,8 @@ class InitializeData:
     async def __update_postgresql_sequences(self, db: AsyncSession) -> None:
         """更新 PostgreSQL 序列值，确保自增 ID 正确"""
         try:
-            # 为每个有初始化数据的表更新序列值
-            for model in self.prepare_init_models:
+            # 为每个有初始化数据的表更新序列值（只处理有id字段的模型）
+            for model in self.models_with_id:
                 table_name = model.__tablename__
                 
                 # 检查表中是否有数据
@@ -129,6 +146,10 @@ class InitializeData:
                 existing_count = count_result.scalar()
                 
                 if existing_count > 0:
+                    # 检查模型是否有id属性
+                    if not hasattr(model, 'id'):
+                        continue
+                        
                     # 获取表中最大的 ID 值
                     max_id_result = await db.execute(select(func.max(model.id)).select_from(model))
                     max_id = max_id_result.scalar()

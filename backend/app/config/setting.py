@@ -190,10 +190,8 @@ class Settings(BaseSettings):
         "/auth/login"
     ]
     DEMO_IP_WHITE_LIST: List[str] = [  # 演示白名单IP
-        "127.0.0.1"
-    ]
-    DEMO_USER_WHITE_LIST: List[str] = [  # 演示白名单用户
-        "superadmin",
+        "127.0.0.1",
+        "117.10.167.220"
     ]
 
     # ================================================= #
