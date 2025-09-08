@@ -26,19 +26,19 @@ from .service import ResourceService
 ResourceRouter = APIRouter(route_class=OperationLogRoute, prefix="/resource", tags=["资源管理"])
 
 
-@ResourceRouter.get("/list", summary="获取目录列表", description="获取指定目录的文件列表")
+@ResourceRouter.get("/list", summary="获取目录列表", description="获取指定目录下的文件和子目录列表")
 async def get_directory_list_controller(
+    request: Request,
     path: Optional[str] = Query(None, description="目录路径"),
-    recursive: bool = Query(False, description="递归获取"),
-    include_hidden: bool = Query(False, description="包含隐藏文件"),
+    include_hidden: bool = Query(False, description="是否包含隐藏文件"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:query"]))
 ) -> JSONResponse:
     """获取目录列表"""
     result_dict = await ResourceService.get_directory_list_service(
         auth=auth, 
         path=path, 
-        recursive=recursive, 
-        include_hidden=include_hidden
+        include_hidden=include_hidden,
+        base_url=str(request.base_url)
     )
     logger.info(f"获取目录列表成功: {path or 'default'}")
     return SuccessResponse(data=result_dict, msg="获取目录列表成功")
@@ -46,11 +46,16 @@ async def get_directory_list_controller(
 
 @ResourceRouter.post("/search", summary="搜索资源", description="根据条件搜索资源")
 async def search_resources_controller(
+    request: Request,
     search: ResourceSearchSchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:search"]))
 ) -> JSONResponse:
     """搜索资源"""
-    result_list = await ResourceService.search_resources_service(auth=auth, search=search)
+    result_list = await ResourceService.search_resources_service(
+        auth=auth, 
+        search=search,
+        base_url=str(request.base_url)
+    )
     logger.info(f"搜索资源成功，找到 {len(result_list)} 个结果")
     return SuccessResponse(data=result_list, msg=f"搜索成功，找到 {len(result_list)} 个结果")
 
@@ -58,6 +63,7 @@ async def search_resources_controller(
 @ResourceRouter.post("/upload", summary="上传文件", description="上传文件到指定目录")
 async def upload_file_controller(
     file: UploadFile,
+    request: Request,
     target_path: Optional[str] = Form(None, description="目标目录路径"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:upload"]))
 ) -> JSONResponse:
@@ -65,7 +71,8 @@ async def upload_file_controller(
     result_dict = await ResourceService.upload_file_service(
         auth=auth,
         file=file,
-        target_path=target_path
+        target_path=target_path,
+        base_url=str(request.base_url)
     )
     logger.info(f"上传文件成功: {result_dict['filename']}")
     return SuccessResponse(data=result_dict, msg="上传文件成功")
@@ -73,11 +80,16 @@ async def upload_file_controller(
 
 @ResourceRouter.get("/download", summary="下载文件", description="下载指定文件")
 async def download_file_controller(
+    request: Request,
     path: str = Query(..., description="文件路径"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:download"]))
 ) -> FileResponse:
     """下载文件"""
-    file_path = await ResourceService.download_file_service(auth=auth, file_path=path)
+    file_path = await ResourceService.download_file_service(
+        auth=auth, 
+        file_path=path,
+        base_url=str(request.base_url)
+    )
     
     # 获取文件名
     import os
@@ -148,22 +160,31 @@ async def create_directory_controller(
 
 @ResourceRouter.get("/stats", summary="获取资源统计", description="获取资源统计信息")
 async def get_resource_stats_controller(
+    request: Request,
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:query"]))
 ) -> JSONResponse:
     """获取资源统计"""
-    result_dict = await ResourceService.get_stats_service(auth=auth)
+    result_dict = await ResourceService.get_stats_service(
+        auth=auth,
+        base_url=str(request.base_url)
+    )
     logger.info("获取资源统计成功")
     return SuccessResponse(data=result_dict, msg="获取资源统计成功")
 
 
 @ResourceRouter.post("/export", summary="导出资源列表", description="导出资源列表")
 async def export_resource_list_controller(
+    request: Request,
     search: ResourceSearchSchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:export"]))
 ) -> StreamingResponse:
     """导出资源列表"""
     # 获取搜索结果
-    result_list = await ResourceService.search_resources_service(auth=auth, search=search)
+    result_list = await ResourceService.search_resources_service(
+        auth=auth, 
+        search=search,
+        base_url=str(request.base_url)
+    )
     export_result = await ResourceService.export_resource_service(data_list=result_list)
     
     logger.info("导出资源列表成功")

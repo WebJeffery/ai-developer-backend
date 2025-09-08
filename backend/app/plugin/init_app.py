@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     logger.info(settings.BANNER + '\n' + f'{settings.TITLE} 服务开始启动...')
     
     try:
-        # 在单独的会话中完成其他初始化操作
+        # 使用单个会话完成所有初始化操作
         async with session_connect() as session:
             # 测试数据库连接
             await test_db_connection(session)

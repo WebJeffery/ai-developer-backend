@@ -99,7 +99,7 @@ class ResourceService:
             return False
     
     @classmethod
-    def _get_file_info(cls, file_path: str) -> Dict[str, Any]:
+    def _get_file_info(cls, file_path: str, base_url: Optional[str] = None) -> Dict[str, Any]:
         """获取文件信息"""
         try:
             safe_path = cls._get_safe_path(file_path)
@@ -143,9 +143,16 @@ class ResourceService:
             except ValueError:
                 depth = 0
             
+            # 生成HTTP URL路径而不是文件系统路径
+            if base_url:
+                from urllib.parse import urljoin
+                http_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{relative_path}".lstrip('/')).replace('\\', '/').replace('//', '/')
+            else:
+                http_url = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
+            
             return {
                 'name': path_obj.name,
-                'path': safe_path,
+                'path': http_url,  # 返回HTTP URL而不是文件系统路径
                 'relative_path': relative_path,
                 'is_file': os.path.isfile(safe_path),
                 'is_dir': os.path.isdir(safe_path),
@@ -168,16 +175,37 @@ class ResourceService:
         cls, 
         auth: AuthSchema, 
         path: Optional[str] = None,
-        recursive: bool = False,
-        include_hidden: bool = False
+        include_hidden: bool = False,
+        base_url: Optional[str] = None
     ) -> Dict:
         """获取目录列表"""
         try:
             # 如果没有指定路径，使用静态文件根目录
             if path is None:
                 safe_path = cls._get_resource_root()
+                # 对于根目录，返回静态URL路径
+                if base_url:
+                    from urllib.parse import urljoin
+                    display_path = urljoin(base_url.rstrip('/') + '/', settings.STATIC_URL.lstrip('/'))
+                else:
+                    display_path = settings.STATIC_URL
             else:
                 safe_path = cls._get_safe_path(path)
+                # 对于子目录，生成相对于静态URL的路径
+                resource_root = cls._get_resource_root()
+                try:
+                    relative_path = os.path.relpath(safe_path, resource_root)
+                    if base_url:
+                        from urllib.parse import urljoin
+                        display_path = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{relative_path}".lstrip('/')).replace('\\', '/').replace('//', '/')
+                    else:
+                        display_path = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
+                except ValueError:
+                    if base_url:
+                        from urllib.parse import urljoin
+                        display_path = urljoin(base_url.rstrip('/') + '/', settings.STATIC_URL.lstrip('/'))
+                    else:
+                        display_path = settings.STATIC_URL
             
             if not os.path.exists(safe_path):
                 raise CustomException(msg='目录不存在')
@@ -197,7 +225,7 @@ class ResourceService:
                         continue
                         
                     item_path = os.path.join(safe_path, item_name)
-                    file_info = cls._get_file_info(item_path)
+                    file_info = cls._get_file_info(item_path, base_url)
                     
                     if file_info:
                         items.append(ResourceItemSchema(**file_info))
@@ -207,19 +235,12 @@ class ResourceService:
                             total_size += file_info.get('size', 0) or 0
                         elif file_info['is_dir']:
                             total_dirs += 1
-                            
-                            # 递归统计子目录
-                            if recursive:
-                                sub_stats = await cls._get_directory_stats(item_path, include_hidden)
-                                total_files += sub_stats['files']
-                                total_dirs += sub_stats['dirs']
-                                total_size += sub_stats['size']
                                 
             except PermissionError:
                 raise CustomException(msg='没有权限访问此目录')
             
             return ResourceDirectorySchema(
-                path=safe_path,
+                path=display_path,  # 返回HTTP URL路径而不是文件系统路径
                 name=os.path.basename(safe_path),
                 items=items,
                 total_files=total_files,
@@ -264,7 +285,8 @@ class ResourceService:
     async def search_resources_service(
         cls,
         auth: AuthSchema,
-        search: ResourceSearchSchema
+        search: ResourceSearchSchema,
+        base_url: Optional[str] = None
     ) -> List[Dict]:
         """搜索资源"""
         try:
@@ -302,7 +324,7 @@ class ResourceService:
                         if file_ext not in search.extensions:
                             continue
                     
-                    file_info = cls._get_file_info(file_path)
+                    file_info = cls._get_file_info(file_path, base_url)
                     
                     if cls._match_search_criteria(file_info, search):
                         results.append(file_info)
@@ -387,7 +409,8 @@ class ResourceService:
         cls, 
         auth: AuthSchema, 
         file: UploadFile, 
-        target_path: Optional[str] = None
+        target_path: Optional[str] = None,
+        base_url: Optional[str] = None
     ) -> Dict:
         """上传文件到指定目录"""
         if not file or not file.filename:
@@ -432,7 +455,7 @@ class ResourceService:
                 f.write(content)
             
             # 获取文件信息
-            file_info = cls._get_file_info(file_path)
+            file_info = cls._get_file_info(file_path, base_url)
             
             # 生成相对于资源根目录的URL路径
             resource_root = cls._get_resource_root()
@@ -440,16 +463,25 @@ class ResourceService:
                 relative_path = os.path.relpath(file_path, resource_root)
                 # 确保路径使用正斜杠（URL格式）
                 file_url_path = relative_path.replace(os.sep, '/')
-                file_url = f"/resource/download?path={file_url_path}"
+                # 如果提供了base_url，使用它生成完整URL，否则使用settings.STATIC_URL
+                if base_url:
+                    from urllib.parse import urljoin
+                    file_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{file_url_path}".lstrip('/'))
+                else:
+                    file_url = f"{settings.STATIC_URL}/{file_url_path}".replace('//', '/')
             except ValueError:
                 # 如果无法计算相对路径，使用文件名
-                file_url = f"/resource/download?path={filename}"
+                if base_url:
+                    from urllib.parse import urljoin
+                    file_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{filename}".lstrip('/'))
+                else:
+                    file_url = f"{settings.STATIC_URL}/{filename}"
             
             logger.info(f"文件上传成功: {filename}")
             
             return ResourceUploadSchema(
                 filename=filename,
-                file_path=file_path,
+                file_path=file_url,  # 返回HTTP URL而不是文件系统路径
                 file_url=file_url,
                 file_size=file_info.get('size', 0),
                 resource_type=file_info.get('resource_type', ResourceType.OTHER),
@@ -461,7 +493,7 @@ class ResourceService:
             raise CustomException(msg=f"文件上传失败: {str(e)}")
 
     @classmethod
-    async def download_file_service(cls, auth: AuthSchema, file_path: str) -> str:
+    async def download_file_service(cls, auth: AuthSchema, file_path: str, base_url: Optional[str] = None) -> str:
         """下载文件（返回文件路径）"""
         try:
             safe_path = cls._get_safe_path(file_path)
@@ -472,8 +504,28 @@ class ResourceService:
             if not os.path.isfile(safe_path):
                 raise CustomException(msg='路径不是文件')
             
-            logger.info(f"下载文件: {safe_path}")
-            return safe_path
+            # 生成HTTP URL路径而不是返回文件系统路径
+            resource_root = cls._get_resource_root()
+            try:
+                relative_path = os.path.relpath(safe_path, resource_root)
+                # 生成HTTP URL
+                if base_url:
+                    from urllib.parse import urljoin
+                    http_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{relative_path}".lstrip('/')).replace('\\', '/').replace('//', '/')
+                else:
+                    http_url = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
+                logger.info(f"生成文件访问URL: {http_url}")
+                return http_url
+            except ValueError:
+                # 如果无法计算相对路径，使用文件名
+                filename = os.path.basename(safe_path)
+                if base_url:
+                    from urllib.parse import urljoin
+                    http_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{filename}".lstrip('/'))
+                else:
+                    http_url = f"{settings.STATIC_URL}/{filename}"
+                logger.info(f"生成文件访问URL: {http_url}")
+                return http_url
             
         except CustomException:
             raise
@@ -628,7 +680,7 @@ class ResourceService:
             raise CustomException(msg=f"创建目录失败: {str(e)}")
 
     @classmethod
-    async def get_stats_service(cls, auth: AuthSchema) -> Dict:
+    async def get_stats_service(cls, auth: AuthSchema, base_url: Optional[str] = None) -> Dict:
         """获取资源统计信息"""
         try:
             # 使用静态文件根目录
@@ -653,7 +705,7 @@ class ResourceService:
                 for file in files:
                     file_path = os.path.join(root, file)
                     try:
-                        file_info = cls._get_file_info(file_path)
+                        file_info = cls._get_file_info(file_path, base_url)
                         if file_info:
                             total_files += 1
                             total_size += file_info.get('size', 0) or 0

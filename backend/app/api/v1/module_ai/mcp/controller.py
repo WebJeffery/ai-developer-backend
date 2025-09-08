@@ -24,10 +24,16 @@ async def chat_controller(
     logger.info(f"用户 {auth.user.name} 发起智能对话: {query.message[:50]}...")
     
     async def generate_response():
-        async for chunk in MCPService.chat_query(query.message):
-            yield chunk
+        try:
+            async for chunk in MCPService.chat_query(query.message):
+                # 确保返回的是字节串
+                if chunk:
+                    yield chunk.encode('utf-8') if isinstance(chunk, str) else chunk
+        except Exception as e:
+            logger.error(f"流式响应出错: {str(e)}")
+            yield f"抱歉，处理您的请求时出现了错误: {str(e)}".encode('utf-8')
     
-    return StreamingResponse(generate_response(), media_type="text/plain")
+    return StreamingResponse(generate_response(), media_type="text/plain; charset=utf-8")
 
 
 @MCPRouter.websocket("/ws/chat", name="WebSocket聊天")
@@ -43,8 +49,14 @@ async def websocket_chat_controller(
         while True:
             data = await websocket.receive_text()
             # 流式发送响应
-            async for chunk in MCPService.chat_query(data):
-                await websocket.send_text(chunk)
+            try:
+                async for chunk in MCPService.chat_query(data):
+                    if chunk:
+                        await websocket.send_text(chunk)
+            except Exception as e:
+                logger.error(f"处理聊天查询出错: {str(e)}")
+                await websocket.send_text(f"抱歉，处理您的请求时出现了错误: {str(e)}")
     except Exception as e:
         logger.error(f"WebSocket聊天出错: {str(e)}")
+    finally:
         await websocket.close()
