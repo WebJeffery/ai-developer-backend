@@ -2,7 +2,7 @@
 
 from typing import Optional, Union
 from datetime import datetime
-from pydantic import ConfigDict, Field, BaseModel, field_validator, model_validator
+from pydantic import ConfigDict, Field, BaseModel, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -25,10 +25,10 @@ class JWTPayloadSchema(BaseModel):
     exp: Union[datetime, int] = Field(..., description='过期时间')
 
     @model_validator(mode='after')
-    def validate_fields(cls, data):
-        if not data.sub or len(data.sub.strip()) == 0:
+    def validate_fields(self):
+        if not self.sub or len(self.sub.strip()) == 0:
             raise ValueError("会话编号不能为空")
-        return data
+        return self
 
 
 class JWTOutSchema(BaseModel):

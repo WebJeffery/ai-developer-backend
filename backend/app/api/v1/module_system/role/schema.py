@@ -26,11 +26,10 @@ class RolePermissionSettingSchema(BaseModel):
     menu_ids: List[int] = Field(default_factory=list, description='菜单ID列表')
     dept_ids: List[int] = Field(default_factory=list, description='部门ID列表')
     
-    @classmethod
     @model_validator(mode='after')
-    def validate_fields(cls, data):
+    def validate_fields(self):
         """验证权限配置字段"""
-        return role_permission_request_validator(data)
+        return role_permission_request_validator(self)
 
 
 class RoleUpdateSchema(RoleCreateSchema):

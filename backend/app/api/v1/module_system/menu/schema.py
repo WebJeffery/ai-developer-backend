@@ -28,10 +28,9 @@ class MenuCreateSchema(BaseModel):
     parent_id: Optional[int] = Field(default=None, ge=1, description="父菜单ID")
     description: Optional[str] = Field(default=None, max_length=500, description="备注说明")
 
-    @classmethod
     @model_validator(mode='after')
-    def validate_fields(cls, data):
-        return menu_request_validator(data)
+    def validate_fields(self):
+        return menu_request_validator(self)
 
 
 class MenuUpdateSchema(MenuCreateSchema):
