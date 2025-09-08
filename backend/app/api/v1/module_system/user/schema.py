@@ -78,7 +78,9 @@ class UserCreateSchema(CurrentUserUpdateSchema):
 
 class UserUpdateSchema(UserCreateSchema):
     """更新"""
-    model_config = ConfigDict(from_attributes=True, exclude={"password"})
+    model_config = ConfigDict(from_attributes=True)
+
+    password: Optional[str] = Field(default=None, max_length=128, description="密码哈希值")
 
 
 class UserOutSchema(UserCreateSchema, BaseSchema):

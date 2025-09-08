@@ -1,109 +1,51 @@
 <template>
-  <view class="app-container">
+  <view class="app-container theme-adaptive">
     <!-- 背景图 -->
     <image src="/static/images/login-bg.svg" mode="aspectFill" class="login-bg" />
 
     <!-- Logo和标题区域 -->
     <view class="header">
-      <wd-img src="./static/logo.png" class="logo" mode="aspectFit" />
-      <text class="title">FastApp管理系统</text>
-      <text class="subtitle">欢迎使用移动端管理平台</text>
+      <wd-img src="/static/logo.png" class="logo" mode="aspectFit" />
+      <text class="title theme-text-inverse">FastApp管理系统</text>
+      <text class="subtitle theme-text-inverse">欢迎使用移动端管理平台</text>
     </view>
 
-    <view class="login-card">
+    <view class="login-card theme-card">
       <view class="form-wrap">
         <!-- 账号密码登录表单 -->
         <wd-form v-if="loginType === 'account'" ref="loginFormRef" :model="loginFormData">
           <!-- 用户名输入框 -->
           <view class="form-item">
-            <wd-icon
-              name="user"
-              size="22"
-              :color="isDarkMode ? '#7AC5FF' : '#333'"
-              class="input-icon"
-            />
-            <wd-input
-              v-model="loginFormData.username"
-              type="text"
-              prop="username"
-              class="form-input input-transparent"
-              placeholder="请输入用户名"
-              placeholder-class="input-placeholder"
-              clearable
-              clear-trigger="focus"
-            />
+            <wd-icon name="user" size="22" :color="themeVars.darkColor3" class="input-icon" />
+            <wd-input v-model="loginFormData.username" type="text" prop="username" class="form-input input-transparent"
+              placeholder="请输入用户名" placeholder-class="input-placeholder" clearable clear-trigger="focus" />
           </view>
-
-          <!-- <wd-divider /> -->
 
           <!-- 密码输入框 -->
           <view class="form-item">
-            <wd-icon
-              name="lock-on"
-              size="22"
-              :color="isDarkMode ? '#7AC5FF' : '#333'"
-              class="input-icon"
-            />
-            <wd-input
-              v-model="loginFormData.password"
-              class="form-input input-transparent"
-              type="text"
-              prop="password"
-              show-password
-              placeholder="请输入密码"
-              clear-trigger="focus"
-              clearable
-              :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
-            />
+            <wd-icon name="lock-on" size="22" :color="themeVars.darkColor3" class="input-icon" />
+            <wd-input v-model="loginFormData.password" class="form-input input-transparent" type="text" prop="password"
+              show-password placeholder="请输入密码" clear-trigger="focus" clearable
+              :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]" />
           </view>
-
-          <!-- <wd-divider /> -->
 
           <!-- 验证码输入框 -->
           <view v-if="captchaState.enable" class="form-item">
-            <wd-icon
-              name="lock-on"
-              size="22"
-              :color="isDarkMode ? '#7AC5FF' : '#333'"
-              class="input-icon"
-            />
-            <wd-input
-              v-model="loginFormData.captcha"
-              class="form-input input-transparent captcha-input"
-              type="text"
-              prop="captcha"
-              placeholder="请输入验证码"
-              clear-trigger="focus"
-              clearable
-              :rules="[{ required: true, message: '请输入验证码', trigger: 'blur' }]"
-            />
-            <wd-img
-              :src="captchaState.img_base"
-              class="captcha-image"
-              mode="aspectFit"
-              @click="getLoginCaptcha"
-            />
-            <view
-              v-if="!captchaState.img_base && captchaState.enable"
-              class="captcha-placeholder"
-              @click="getLoginCaptcha"
-            >
+            <wd-icon name="lock-on" size="22" :color="themeVars.darkColor3" class="input-icon" />
+            <wd-input v-model="loginFormData.captcha" class="form-input input-transparent captcha-input" type="text"
+              prop="captcha" placeholder="请输入验证码" clear-trigger="focus" clearable
+              :rules="[{ required: true, message: '请输入验证码', trigger: 'blur' }]" />
+            <wd-img :src="captchaState.img_base" class="captcha-image" mode="aspectFit" @click="getLoginCaptcha" />
+            <view v-if="!captchaState.img_base && captchaState.enable" class="captcha-placeholder"
+              @click="getLoginCaptcha">
               <text>点击加载</text>
             </view>
           </view>
-          <!-- <wd-divider /> -->
 
           <!-- 登录按钮 -->
           <view class="footer">
-            <wd-button
-              class="login-btn"
-              type="primary"
-              size="large"
-              :disabled="loading || !isFormValid"
-              :style="{ opacity: loading || !isFormValid ? 0.7 : 1 }"
-              block
-              @click="handleAccountLogin"
-            >
+            <wd-button class="login-btn" type="primary" size="large" :disabled="loading || !isFormValid"
+              :style="{ opacity: loading || !isFormValid ? 0.7 : 1 }" block @click="handleAccountLogin">
               <wd-loading v-if="loading" size="20" color="#fff" />
               {{ loading ? "登录中..." : "账号登录" }}
             </wd-button>
@@ -111,31 +53,26 @@
 
           <!-- 切换登录方式 -->
           <view class="switch-login-type" @click="loginType = 'phone'">
-            <text>使用手机号一键登录</text>
-            <wd-icon name="arrow-right" size="12" />
+            <text class="text-primary">使用手机号一键登录</text>
+            <wd-icon name="arrow-right" size="12" :color="themeVars.colorTheme" />
           </view>
         </wd-form>
 
         <!-- 手机号登录 -->
         <view v-else class="phone-login-form">
-          <view class="phone-login-title">微信一键登录</view>
-          <view class="phone-login-subtitle">授权后将获取您的手机号</view>
+          <view class="phone-login-title theme-text-primary">微信一键登录</view>
+          <view class="phone-login-subtitle theme-text-secondary">授权后将获取您的手机号</view>
 
-          <wd-button
-            class="wechat-phone-btn"
-            :disabled="loading"
-            open-type="getPhoneNumber"
-            size="large"
-            @getphonenumber="handleWechatPhoneLogin"
-          >
+          <wd-button class="wechat-phone-btn" :disabled="loading" open-type="getPhoneNumber" size="large"
+            @getphonenumber="handleWechatPhoneLogin">
             <wd-icon name="weixin" size="24" color="#ffffff" />
             <text>微信一键登录</text>
           </wd-button>
 
           <!-- 切换登录方式 -->
           <view class="switch-login-type" @click="loginType = 'account'">
-            <text>使用账号密码登录</text>
-            <wd-icon name="arrow-right" size="12" />
+            <text class="text-primary">使用账号密码登录</text>
+            <wd-icon name="arrow-right" size="12" :color="themeVars.colorTheme" />
           </view>
         </view>
 
@@ -143,7 +80,7 @@
         <view class="other-login">
           <view class="other-login-title">
             <view class="line"></view>
-            <text class="text">其他登录方式</text>
+            <text class="text theme-text-muted">其他登录方式</text>
             <view class="line"></view>
           </view>
 
@@ -157,9 +94,9 @@
         <!-- 底部协议 -->
         <view class="agreement">
           <wd-checkbox v-model="loginFormData.remember">
-            <wd-text text="我已阅读并同意"></wd-text>
+            <wd-text text="我已阅读并同意" class="theme-text-secondary"></wd-text>
             <wd-text type="primary" text="《用户协议》" @click="navigateToUserAgreement"></wd-text>
-            <wd-text text="和"></wd-text>
+            <wd-text text="和" class="theme-text-secondary"></wd-text>
             <wd-text type="primary" text="《隐私政策》" @click="navigateToPrivacy"></wd-text>
           </wd-checkbox>
         </view>
@@ -177,14 +114,15 @@ import { useToast } from "wot-design-uni";
 import AuthAPI, { type LoginFormData, type CaptchaInfo } from "@/api/auth";
 import { useThemeStore } from "@/store/modules/theme.store";
 
-const useTheme = useThemeStore();
+// 主题相关
+const themeStore = useThemeStore();
+const themeVars = themeStore.themeVars;
 
 const loginFormRef = ref();
 const toast = useToast();
 const loading = ref(false);
 const userStore = useUserStore();
 const loginType = ref<"account" | "phone">("account");
-let theme = useTheme.theme;
 
 // 登录表单数据
 const loginFormData = ref<LoginFormData>({
@@ -282,8 +220,6 @@ const handleWechatLogin = async () => {
   toast.error("微信授权登录功能开发中...");
 };
 
-// 是否暗黑模式
-const isDarkMode = computed(() => theme === "dark");
 
 // 导航函数
 const navigateToUserAgreement = () => {
@@ -316,21 +252,21 @@ onLoad((options) => {
   }
 });
 </script>
-<route lang="json">
-{
+
+<route lang="json">{
   "name": "login",
   "style": {
     "navigationBarTitleText": "登录"
   }
-}
-</route>
+}</route>
+
 <style lang="scss" scoped>
 .app-container {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
+  height: 100%;
   min-height: 100%;
   overflow: hidden;
   background-color: var(--wot-color-bg-container);
@@ -349,13 +285,12 @@ onLoad((options) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 80rpx;
+  margin-top: 30rpx;
 }
 
 .logo {
-  width: 140rpx;
-  height: 140rpx;
-  margin-bottom: 20rpx;
+  width: 250rpx;
+  height: 250rpx;
 }
 
 .title {
@@ -377,8 +312,8 @@ onLoad((options) => {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  width: 90%;
-  margin-top: 80rpx;
+  width: 95%;
+  margin-top: 30rpx;
   overflow: hidden;
   background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
@@ -503,7 +438,7 @@ input.input-transparent {
 .login-btn {
   width: 100%;
   height: 88rpx;
-  margin-top: 60rpx;
+  margin-top: 30rpx;
   font-size: 32rpx;
   font-weight: 500;
   line-height: 88rpx;
@@ -518,7 +453,7 @@ input.input-transparent {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 30rpx;
+  margin-top: 60rpx;
   font-size: 26rpx;
   color: var(--wot-color-theme);
 }

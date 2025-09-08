@@ -1,43 +1,61 @@
 <template>
-  <view class="app-container dark:text-[var(--wot-dark-color)]">
+  <view class="app-container theme-adaptive">
     <!-- 网络状态展示 -->
-    <wd-card custom-style="margin: 20rpx">
+    <wd-card custom-style="margin: 20rpx" class="theme-card">
       <wd-cell-group border>
         <wd-cell title="网络状态">
-          <wd-tag :type="networkType ? 'success' : 'danger'" size="small">
+          <template #title>
+            <text class="theme-text-primary">网络状态</text>
+          </template>
+          <wd-tag :type="networkType ? 'success' : 'danger'">
             {{ networkType ? "在线" : "离线" }}
           </wd-tag>
         </wd-cell>
-        <wd-cell title="网络类型" :value="networkType || '未知'" />
-        <wd-cell title="网络强度" :value="signalStrength" />
+        <wd-cell title="网络类型" :value="networkType || '未知'">
+          <template #title>
+            <text class="theme-text-primary">网络类型</text>
+          </template>
+          <template #value>
+            <text class="theme-text-secondary">{{ networkType || "未知" }}</text>
+          </template>
+        </wd-cell>
+        <wd-cell title="网络强度" :value="signalStrength">
+          <template #title>
+            <text class="theme-text-primary">网络强度</text>
+          </template>
+          <template #value>
+            <text class="theme-text-secondary">{{ signalStrength }}</text>
+          </template>
+        </wd-cell>
       </wd-cell-group>
     </wd-card>
 
     <!-- 网络测试 -->
-    <wd-card title="网络测试" custom-style="margin: 20rpx">
+    <wd-card title="网络测试" custom-style="margin: 20rpx" class="theme-card">
+      <template #title>
+        <text class="theme-text-primary">网络测试</text>
+      </template>
       <view slot="extra">
-        <text class="text-gray-500 text-sm">测试服务器连接情况</text>
+        <text class="theme-text-secondary text-sm">测试服务器连接情况</text>
       </view>
 
       <wd-cell-group border>
         <wd-cell title="延迟">
+          <template #title>
+            <text class="theme-text-primary">延迟</text>
+          </template>
           <view class="flex items-center">
-            <text class="mr-10">{{ pingResult.delay }}ms</text>
-            <wd-tag v-if="getPingStatus" :type="getPingStatusType" size="small">
+            <text class="mr-md theme-text-secondary">{{ pingResult.delay }}ms</text>
+            <wd-tag v-if="getPingStatus" :type="getPingStatusType">
               {{ pingResult.status }}
             </wd-tag>
           </view>
         </wd-cell>
       </wd-cell-group>
 
-      <wd-progress
-        v-if="testing"
-        :percentage="progress"
-        stroke-width="4"
-        custom-style="margin: 30rpx 0"
-      />
+      <wd-progress v-if="testing" :percentage="progress" stroke-width="6" custom-style="margin: 30rpx 0" color="#4D7FFF" />
 
-      <wd-button block type="primary" :loading="testing" @click="startTest">
+      <wd-button block type="primary" :loading="testing" custom-class="test-btn" @click="startTest">
         {{ testing ? "测试中..." : "开始测试" }}
       </wd-button>
     </wd-card>
@@ -104,9 +122,7 @@ const getNetworkType = async () => {
 
     // H5环境
     // #ifdef H5
-    signalStrength.value = (navigator as any).connection
-      ? `${(navigator as any).connection.effectiveType || "未知"}`
-      : "不支持";
+    signalStrength.value = (navigator as any).connection ? `${(navigator as any).connection.effectiveType || "未知"}` : "不支持";
     // #endif
   } catch {
     networkType.value = "获取失败";

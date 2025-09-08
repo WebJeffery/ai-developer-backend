@@ -86,7 +86,7 @@ class IpLocalUtil:
             
         try:
             # 使用ip-api.com API获取IP归属地信息
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=10.0) as client:
                 # 尝试使用 ip9.com.cn API
                 url = f'https://ip9.com.cn/get?ip={ip}'
                 response = await cls._make_api_request(client, url)

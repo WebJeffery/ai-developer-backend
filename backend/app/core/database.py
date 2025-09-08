@@ -3,7 +3,7 @@
 from redis import asyncio as aioredis
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import FastAPI
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
@@ -37,26 +37,21 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # 异步数据库引擎
-def async_db_engine() -> AsyncEngine:
-    """创建异步数据库引擎"""
-    # 创建数据库引擎
-    async_engine = create_async_engine(
-        url=settings.ASYNC_DB_URI,
-        echo=settings.DATABASE_ECHO,
-        echo_pool=settings.ECHO_POOL,
-        pool_pre_ping=settings.POOL_PRE_PING,
-        future=settings.FUTURE,
-        pool_recycle=settings.POOL_RECYCLE,
-        # pool_size=settings.POOL_SIZE,  # sqlite 不支持
-        # max_overflow=settings.MAX_OVERFLOW,  # sqlite 不支持
-        # pool_timeout=settings.POOL_TIMEOUT,  # sqlite 不支持
-    )
+async_engine: AsyncEngine = create_async_engine(
+    url=settings.ASYNC_DB_URI,
+    echo=settings.DATABASE_ECHO,
+    echo_pool=settings.ECHO_POOL,
+    pool_pre_ping=settings.POOL_PRE_PING,
+    future=settings.FUTURE,
+    pool_recycle=settings.POOL_RECYCLE,
+    # pool_size=settings.POOL_SIZE,  # sqlite 不支持
+    # max_overflow=settings.MAX_OVERFLOW,  # sqlite 不支持
+    # pool_timeout=settings.POOL_TIMEOUT,  # sqlite 不支持
+)
 
-    return async_engine
-    
 # 异步数据库会话工厂
-async_session = async_sessionmaker(
-    bind=async_db_engine(),
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine,
     autocommit=settings.AUTOCOMMIT,
     autoflush=settings.AUTOFETCH,
     expire_on_commit=settings.EXPIRE_ON_COMMIT,
@@ -68,7 +63,7 @@ def session_connect() -> AsyncSession:
     try:
         if not settings.SQL_DB_ENABLE:
             raise CustomException(msg="请先开启数据库连接", data="请启用 app/config/setting.py: SQL_DB_ENABLE")
-        return async_session()
+        return AsyncSessionLocal()
     except Exception as e:
         raise CustomException(msg=f"数据库连接失败: {e}")
 

@@ -1,49 +1,42 @@
 <template>
-  <view class="app-container">
-    <wd-text size="small">选填，最多上传3张图片</wd-text>
+  <view class="app-container theme-adaptive">
+    <wd-text size="small" class="theme-text-secondary">选填，最多上传3张图片</wd-text>
     <wd-form ref="formRef" :model="formData" :rules="rules" errorType="toast">
       <!-- 问题类型选择 -->
-      <wd-cell-group title="问题类型" border>
-        <wd-radio-group v-model="formData.feedbackType" inline prop="feedbackType">
-          <wd-radio v-for="item in feedbackTypes" :key="item.value" :value="item.value">
+      <wd-cell-group title="问题类型" custom-class="theme-card mt-md">
+        <wd-radio-group v-model="formData.feedbackType" inline prop="feedbackType" custom-class="p-md">
+          <wd-radio v-for="item in feedbackTypes" :key="item.value" :value="item.value" custom-class="mb-sm">
             {{ item.label }}
           </wd-radio>
         </wd-radio-group>
+      </wd-cell-group>
 
-        <wd-textarea
-          v-model="formData.description"
-          label="问题描述"
-          prop="description"
-          placeholder="请详细描述您遇到的问题或建议..."
-          :maxlength="120"
-          show-word-limit
-        />
+      <!-- 问题描述 -->
+      <wd-cell-group title="问题描述" custom-class="theme-card mt-md">
+        <wd-textarea v-model="formData.description" prop="description" placeholder="请详细描述您遇到的问题或建议..."
+          :maxlength="300" show-word-limit custom-class="p-md" />
+      </wd-cell-group>
 
-        <wd-upload
-          v-model="formData.fileList"
-          label="相关截图"
-          prop="fileList"
-          :max-count="3"
-          :before-read="beforeRead"
-          @delete="handleDelete"
-        />
+      <!-- 相关截图 -->
+      <wd-cell-group title="相关截图" custom-class="theme-card mt-md">
+        <view class="p-md">
+          <wd-text size="small" custom-class="theme-text-secondary mb-sm">选填，最多上传3张图片</wd-text>
+          <wd-upload v-model="formData.fileList" :max-count="3" :before-read="beforeRead"
+            @delete="handleDelete" />
+        </view>
+      </wd-cell-group>
 
-        <wd-input
-          v-model="formData.contact"
-          label="联系方式"
-          prop="contact"
-          placeholder="请输入您的手机号或邮箱"
-          clearable
-          :border="false"
-        />
-        <wd-text size="small">选填，便于我们与您联系</wd-text>
+      <!-- 联系方式 -->
+      <wd-cell-group title="联系方式" custom-class="theme-card mt-md">
+        <view class="p-md">
+          <wd-input v-model="formData.contact" prop="contact" placeholder="请输入您的手机号或邮箱" clearable />
+          <wd-text size="small" custom-class="theme-text-secondary mt-sm">选填，便于我们与您联系</wd-text>
+        </view>
       </wd-cell-group>
 
       <!-- 提交按钮 -->
-      <view class="footer">
-        <wd-button type="primary" size="large" :loading="submitting" block @click="handleSubmit">
-          提交反馈
-        </wd-button>
+      <view class="footer theme-card mt-md">
+        <wd-button type="primary" size="large" :loading="submitting" block custom-class="submit-btn" @click="handleSubmit">提交反馈</wd-button>
       </view>
     </wd-form>
   </view>
@@ -79,6 +72,13 @@ const formData = reactive({
 
 // 表单验证规则
 const rules: FormRules = {
+  feedbackType: [
+    {
+      required: true,
+      message: "请选择问题类型",
+      trigger: "change",
+    },
+  ],
   description: [
     {
       required: true,
@@ -99,9 +99,7 @@ const rules: FormRules = {
         if (!value) return Promise.resolve(); // 非必填
         const emailReg = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
         const phoneReg = /^1[3456789]\d{9}$/;
-        return emailReg.test(value) || phoneReg.test(value)
-          ? Promise.resolve()
-          : Promise.reject("请输入正确的手机号或邮箱");
+        return emailReg.test(value) || phoneReg.test(value) ? Promise.resolve() : Promise.reject("请输入正确的手机号或邮箱");
       },
       message: "请输入正确的手机号或邮箱",
       trigger: "blur",
@@ -145,7 +143,7 @@ const handleSubmit = async () => {
       try {
         // TODO: 调用提交反馈的接口
         await new Promise((resolve) => setTimeout(resolve, 1500)); // 模拟提交
-        toast.success("提交成功");
+        toast.success("提交成功，我们会尽快处理您的反馈");
 
         // 重置表单
         formRef.value.reset();
@@ -170,6 +168,7 @@ const handleSubmit = async () => {
   }
 };
 </script>
+
 <route lang="json">
 {
   "name": "feedback",
@@ -178,12 +177,16 @@ const handleSubmit = async () => {
   }
 }
 </route>
+
 <style lang="scss" scoped>
-:deep(.wd-form-item) {
-  margin-bottom: 12rpx;
+.footer {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .submit-btn {
-  margin: 40rpx 30rpx;
+  height: 88rpx;
+  font-size: 32rpx;
+  border-radius: 44rpx;
 }
 </style>

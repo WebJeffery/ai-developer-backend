@@ -23,6 +23,8 @@ declare module 'vue' {
     WdCell: typeof import('wot-design-uni/components/wd-cell/wd-cell.vue')['default']
     WdCellGroup: typeof import('wot-design-uni/components/wd-cell-group/wd-cell-group.vue')['default']
     WdCheckbox: typeof import('wot-design-uni/components/wd-checkbox/wd-checkbox.vue')['default']
+    WdCollapse: typeof import('wot-design-uni/components/wd-collapse/wd-collapse.vue')['default']
+    WdCollapseItem: typeof import('wot-design-uni/components/wd-collapse-item/wd-collapse-item.vue')['default']
     WdConfigProvider: typeof import('wot-design-uni/components/wd-config-provider/wd-config-provider.vue')['default']
     WdDivider: typeof import('wot-design-uni/components/wd-divider/wd-divider.vue')['default']
     WdForm: typeof import('wot-design-uni/components/wd-form/wd-form.vue')['default']
@@ -37,6 +39,7 @@ declare module 'vue' {
     WdNoticeBar: typeof import('wot-design-uni/components/wd-notice-bar/wd-notice-bar.vue')['default']
     WdNotify: typeof import('wot-design-uni/components/wd-notify/wd-notify.vue')['default']
     WdPopup: typeof import('wot-design-uni/components/wd-popup/wd-popup.vue')['default']
+    WdProgress: typeof import('wot-design-uni/components/wd-progress/wd-progress.vue')['default']
     WdRadio: typeof import('wot-design-uni/components/wd-radio/wd-radio.vue')['default']
     WdRadioGroup: typeof import('wot-design-uni/components/wd-radio-group/wd-radio-group.vue')['default']
     WdSwiper: typeof import('wot-design-uni/components/wd-swiper/wd-swiper.vue')['default']
@@ -45,6 +48,8 @@ declare module 'vue' {
     WdTabbarItem: typeof import('wot-design-uni/components/wd-tabbar-item/wd-tabbar-item.vue')['default']
     WdTag: typeof import('wot-design-uni/components/wd-tag/wd-tag.vue')['default']
     WdText: typeof import('wot-design-uni/components/wd-text/wd-text.vue')['default']
+    WdTextarea: typeof import('wot-design-uni/components/wd-textarea/wd-textarea.vue')['default']
     WdToast: typeof import('wot-design-uni/components/wd-toast/wd-toast.vue')['default']
+    WdUpload: typeof import('wot-design-uni/components/wd-upload/wd-upload.vue')['default']
   }
 }

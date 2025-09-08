@@ -75,29 +75,26 @@ class DemoEnvMiddleware(BaseHTTPMiddleware):
         
         if settings.DEMO_ENABLE and request.method != "GET":
             path = request.scope.get("path")
-            client_ip = request.client.host
+
+            request_ip = None
+            x_forwarded_for = request.headers.get('X-Forwarded-For')
+            if x_forwarded_for:
+                # 取第一个 IP 地址，通常为客户端真实 IP
+                request_ip = x_forwarded_for.split(',')[0].strip()
+            else:
+                # 若没有 X-Forwarded-For 头，则使用 request.client.host
+                request_ip = request.client.host
+
             user_username = request.scope.get("user_username")
+            logger.error(f"用户名称: {user_username}")
 
             # 检查IP是否在白名单，或路径是否在白名单，或用户是否在白名单
-            if (client_ip in settings.DEMO_IP_WHITE_LIST or 
-                path in settings.DEMO_WHITE_LIST_PATH or 
-                (user_username and user_username in settings.DEMO_USER_WHITE_LIST)):
+            if (request_ip in settings.DEMO_IP_WHITE_LIST) or (path in settings.DEMO_WHITE_LIST_PATH):
                 return await call_next(request)
             
             else:
-                try:
-                    response = await call_next(request)
-                    
-                    # 现在检查用户是否有权限执行操作
-                    user_username = request.scope.get("user_username")
-                    if user_username and user_username not in settings.DEMO_USER_WHITE_LIST:
-                        # 如果用户没有权限，返回错误响应
-                        return ErrorResponse(msg="演示环境，禁止操作")
-                    
-                    return response
-                except Exception as e:
-                    # 处理可能的异常
-                    raise e
+                # 非白名单用户，禁止操作
+                return ErrorResponse(msg="演示环境，禁止操作")
 
         return await call_next(request)
 

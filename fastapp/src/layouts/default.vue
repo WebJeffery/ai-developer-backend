@@ -1,30 +1,30 @@
 <script lang="ts" setup>
-import { onLoad } from "@dcloudio/uni-app";
 import { useThemeStore } from "@/store/modules/theme.store";
+import { onMounted, onUnmounted } from "vue";
 
-const useTheme = useThemeStore();
+const themeStore = useThemeStore();
+const theme = themeStore.theme;
+const themeVars = themeStore.themeVars;
 
-let theme = useTheme.theme;
-let themeVars = useTheme.themeVars;
+// 监听主题变化事件
+const handleThemeChange = () => {
+  // 当主题变化时强制更新组件
+  // 这里可以添加一些更新逻辑
+};
 
-onLoad(() => {
-  theme = useTheme.theme;
-  themeVars = useTheme.themeVars;
+onMounted(() => {
+  // 监听主题变化事件
+  uni.$on("theme-change", handleThemeChange);
+});
+
+onUnmounted(() => {
+  // 移除事件监听
+  uni.$off("theme-change", handleThemeChange);
 });
 </script>
 
-<script lang="ts">
-export default {
-  options: {
-    addGlobalClass: true,
-    virtualHost: true,
-    styleIsolation: "shared",
-  },
-};
-</script>
-
 <template>
-  <wd-config-provider :theme-vars="themeVars" :theme="theme" :custom-class="`page-wraper ${theme}`">
+  <wd-config-provider :theme-vars="themeVars" :theme="theme" :custom-class="`page-wrapper theme-adaptive ${theme}`">
     <slot />
     <wd-notify />
     <wd-toast />
@@ -33,13 +33,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.page-wraper {
+.page-wrapper {
   box-sizing: border-box;
   min-height: calc(100vh - var(--window-top));
-  background: #f9f9f9;
+  background-color: var(--bg-color-2);
+  transition: background-color 0.3s ease;
 }
 
-.wot-theme-dark.page-wraper {
-  background: #222;
+.wot-theme-dark.page-wrapper {
+  background-color: var(--bg-color);
 }
 </style>

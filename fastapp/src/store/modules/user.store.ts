@@ -1,14 +1,7 @@
 import { defineStore } from "pinia";
 import UserAPI, { type UserInfo } from "@/api/user";
 import AuthAPI, { type LoginFormData, type LoginResult, type LogoutBody } from "@/api/auth";
-import {
-  getAccessToken,
-  setAccessToken,
-  setRefreshToken,
-  clearAll,
-  getUserInfo,
-  setUserInfo,
-} from "@/utils/auth";
+import { getAccessToken, setAccessToken, setRefreshToken, clearAll, getUserInfo, setUserInfo } from "@/utils/auth";
 
 export const useUserStore = defineStore("appUserInfo", () => {
   const userInfo = ref<UserInfo | undefined>(getUserInfo());

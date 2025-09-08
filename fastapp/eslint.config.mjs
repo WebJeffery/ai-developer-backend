@@ -19,17 +19,7 @@ const autoImportConfig = JSON.parse(fs.readFileSync(".eslintrc-auto-import.json"
 export default [
   // 忽略指定文件
   {
-    ignores: [
-      "node_modules/**",
-      "dist/**",
-      "auto-imports.d.ts",
-      "unpackage/**",
-      "public/**",
-      "static/**",
-      "**/u-charts/**",
-      "**/qiun-**/**",
-      "**/auto-imports.d.ts",
-    ],
+    ignores: ["node_modules/**", "dist/**", "auto-imports.d.ts", "unpackage/**", "public/**", "static/**", "**/u-charts/**", "**/qiun-**/**", "**/auto-imports.d.ts"],
   },
   // 检查文件的配置
   {
@@ -58,7 +48,7 @@ export default [
     rules: {
       ...configPrettier.rules, // 关闭与 Prettier 冲突的规则
       ...pluginPrettier.configs.recommended.rules, // 启用 Prettier 规则
-      "prettier/prettier": "error", // 强制 Prettier 格式化
+      "prettier/prettier": "off", // 完全关闭 Prettier 格式化检查
       "no-unused-vars": [
         "error",
         {
@@ -121,9 +111,7 @@ export default [
     },
     rules: {
       // 禁用所有规则
-      ...Object.fromEntries(
-        Object.keys(pluginVue.configs["vue3-recommended"].rules || {}).map((key) => [key, "off"])
-      ),
+      ...Object.fromEntries(Object.keys(pluginVue.configs["vue3-recommended"].rules || {}).map((key) => [key, "off"])),
       "no-unused-vars": "off",
       "no-prototype-builtins": "off",
       "@typescript-eslint/no-explicit-any": "off",
