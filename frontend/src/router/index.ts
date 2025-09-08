@@ -65,20 +65,19 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: "内部应用", icon: "Monitor", hidden: true, keepAlive: false },
         component: () => import("@/views/application/myapp/components/InternalApp.vue"),
       },
-      // 资源管理相关页面
-      {
-        path: "resource/file",
-        name: "ResourceFile",
-        meta: { title: "文件管理", icon: "folder", keepAlive: true },
-        component: () => import("@/views/resource/file/index.vue"),
-      },
-      {
-        path: "resource/stats",
-        name: "ResourceStats",
-        meta: { title: "资源统计", icon: "chart", keepAlive: true },
-        component: () => import("@/views/resource/stats/index.vue"),
-      },
       // 临时构建后面要删除掉
+      // {
+      //   path: "resource/file",
+      //   name: "ResourceFile",
+      //   meta: { title: "文件管理", icon: "folder", keepAlive: true },
+      //   component: () => import("@/views/resource/file/index.vue"),
+      // },
+      // {
+      //   path: "resource/stats",
+      //   name: "ResourceStats",
+      //   meta: { title: "资源统计", icon: "chart", keepAlive: true },
+      //   component: () => import("@/views/resource/stats/index.vue"),
+      // },
       // {
       //   path: "form-builder",
       //   name: "FormBuilder",
