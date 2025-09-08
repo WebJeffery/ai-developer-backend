@@ -4,7 +4,7 @@ import uuid
 import json
 from pathlib import Path
 from typing import Dict, List
-from sqlalchemy import inspect, select, func
+from sqlalchemy import inspect, select, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.base_model import MappedBase
@@ -60,6 +60,7 @@ class InitializeData:
             RoleMenusModel,
         ]
         self.created_tables = set()
+        
     async def __get_existing_tables(self, db: AsyncSession) -> List[str]:
         return await db.run_sync(
             lambda sync_db: inspect(sync_db.get_bind()).get_table_names()
@@ -111,6 +112,37 @@ class InitializeData:
             except Exception as e:
                 logger.error(f"初始化 {table_name} 表数据失败: {str(e)}")
                 raise
+        
+        # 更新 PostgreSQL 序列值，确保自增 ID 正确
+        if settings.DATABASE_TYPE == "postgresql":
+            await self.__update_postgresql_sequences(db)
+
+    async def __update_postgresql_sequences(self, db: AsyncSession) -> None:
+        """更新 PostgreSQL 序列值，确保自增 ID 正确"""
+        try:
+            # 为每个有初始化数据的表更新序列值
+            for model in self.prepare_init_models:
+                table_name = model.__tablename__
+                
+                # 检查表中是否有数据
+                count_result = await db.execute(select(func.count()).select_from(model))
+                existing_count = count_result.scalar()
+                
+                if existing_count > 0:
+                    # 获取表中最大的 ID 值
+                    max_id_result = await db.execute(select(func.max(model.id)).select_from(model))
+                    max_id = max_id_result.scalar()
+                    
+                    if max_id is not None:
+                        # 更新序列值
+                        sequence_name = f"{table_name}_id_seq"
+                        await db.execute(text(f"SELECT setval('{sequence_name}', {max_id}, true)"))
+                        logger.info(f"已更新 {table_name} 表的序列 {sequence_name} 值为 {max_id}")
+            
+            await db.commit()
+        except Exception as e:
+            logger.error(f"更新 PostgreSQL 序列值失败: {str(e)}")
+            raise
 
     async def __get_data(self, filename: str) -> List[Dict]:
         """读取初始化数据文件"""
@@ -133,4 +165,3 @@ class InitializeData:
         执行完整初始化流程
         """
         await self.__init_model(db)
-

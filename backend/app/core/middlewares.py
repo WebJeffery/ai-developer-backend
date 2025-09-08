@@ -85,19 +85,8 @@ class DemoEnvMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)
             
             else:
-                try:
-                    response = await call_next(request)
-                    
-                    # 现在检查用户是否有权限执行操作
-                    user_username = request.scope.get("user_username")
-                    if user_username and user_username not in settings.DEMO_USER_WHITE_LIST:
-                        # 如果用户没有权限，返回错误响应
-                        return ErrorResponse(msg="演示环境，禁止操作")
-                    
-                    return response
-                except Exception as e:
-                    # 处理可能的异常
-                    raise e
+                # 直接返回错误响应，不继续执行后续操作
+                return ErrorResponse(msg="演示环境，禁止操作")
 
         return await call_next(request)
 
