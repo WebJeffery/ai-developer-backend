@@ -46,10 +46,6 @@ pnpm install
 pnpm run dev
 # 构建前端, 生成 `frontend/dist` 目录
 pnpm run build
-# 运行文档工程
-pnpm run docs:dev
-# 构建文档工程, 生成 `public/docs` 目录
-pnpm run docs:build
 # 运行命令，查看未用到的依赖
 depcheck
 ```

@@ -2,6 +2,7 @@
 
 from openai import AsyncOpenAI, OpenAI
 from openai.types.chat.chat_completion import ChatCompletion
+import httpx
 
 from app.config.setting import settings
 from app.core.logger import logger
@@ -11,10 +12,17 @@ class AIClient:
 
     def __init__(self):
         self.model = settings.QWEN_MODEL
-        # 使用默认的http客户端，避免资源管理问题
+        # 创建一个不带冲突参数的httpx客户端
+        self.http_client = httpx.AsyncClient(
+            timeout=30.0,
+            follow_redirects=True
+        )
+        
+        # 使用自定义的http客户端
         self.client = AsyncOpenAI(
             api_key=settings.QWEN_API_KEY,
             base_url=settings.QWEN_BASE_URL,
+            http_client=self.http_client
         )
 
     async def process(self, query: str):
@@ -34,9 +42,16 @@ class AIClient:
             
             # 流式返回响应
             async for chunk in response:
-                if chunk.choices[0].delta.content is not None:
+                if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
                     
         except Exception as e:
             logger.error(f"AI处理查询失败: {str(e)}")
             yield f"抱歉，处理您的请求时出现了错误: {str(e)}"
+
+    async def close(self):
+        """关闭客户端连接"""
+        if hasattr(self, 'client'):
+            await self.client.close()
+        if hasattr(self, 'http_client'):
+            await self.http_client.aclose()

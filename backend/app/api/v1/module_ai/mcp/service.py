@@ -11,6 +11,10 @@ class MCPService:
         """处理聊天查询"""
         # 创建MCP客户端实例
         mcp_client = AIClient()
-        # 处理消息
-        async for response in mcp_client.process(message):
-            yield response
+        try:
+            # 处理消息
+            async for response in mcp_client.process(message):
+                yield response
+        finally:
+            # 确保关闭客户端连接
+            await mcp_client.close()

@@ -65,7 +65,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: "内部应用", icon: "Monitor", hidden: true, keepAlive: false },
         component: () => import("@/views/application/myapp/components/InternalApp.vue"),
       },
-      // // 临时构建后面要删除掉
+      // 临时构建后面要删除掉
       // {
       //   path: "form-builder",
       //   name: "FormBuilder",

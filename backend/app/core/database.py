@@ -150,4 +150,3 @@ async def mongodb_connect(app: FastAPI, status: bool) -> AsyncIOMotorClient:
     else:
         app.state.mongo_client.close()
         logger.info("MongoDB连接已关闭")
-

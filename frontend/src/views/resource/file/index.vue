@@ -1,49 +1,13 @@
 <template>
-  <div class="resource-management">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-left">
-        <h2>资源管理</h2>
-        <el-breadcrumb separator="/">
-          <el-breadcrumb-item
-            v-for="(item, index) in breadcrumbList"
-            :key="index"
-            @click="handleBreadcrumbClick(item, index)"
-            :class="{ 'is-link': index < breadcrumbList.length - 1 }"
-          >
-            {{ item.name }}
-          </el-breadcrumb-item>
-        </el-breadcrumb>
-      </div>
-      <div class="header-right">
-        <el-button type="primary" @click="handleUpload">
-          <el-icon><Upload /></el-icon>
-          上传文件
-        </el-button>
-        <el-button @click="handleCreateDir">
-          <el-icon><FolderAdd /></el-icon>
-          新建文件夹
-        </el-button>
-        <el-button @click="handleRefresh">
-          <el-icon><Refresh /></el-icon>
-          刷新
-        </el-button>
-      </div>
-    </div>
-
-    <!-- 搜索和筛选 -->
-    <div class="search-section">
-      <el-form :model="searchForm" inline>
-        <el-form-item label="关键词">
-          <el-input
-            v-model="searchForm.keyword"
-            placeholder="请输入文件名或关键词"
-            clearable
-            @keyup.enter="handleSearch"
-          />
+  <div class="app-container">
+    <!-- 搜索区域 -->
+    <div class="search-container">
+      <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":">
+        <el-form-item prop="keyword" label="关键词">
+          <el-input v-model="queryFormData.keyword" placeholder="请输入文件名或关键词" clearable />
         </el-form-item>
-        <el-form-item label="文件类型">
-          <el-select v-model="searchForm.file_type" placeholder="请选择" clearable>
+        <el-form-item prop="file_type" label="文件类型">
+          <el-select v-model="queryFormData.file_type" placeholder="请选择" style="width: 167.5px" clearable>
             <el-option label="图片" value="image" />
             <el-option label="文档" value="document" />
             <el-option label="视频" value="video" />
@@ -51,51 +15,54 @@
             <el-option label="其他" value="other" />
           </el-select>
         </el-form-item>
-        <el-form-item label="文件大小">
+        <el-form-item prop="min_size" label="文件大小">
           <el-input-number
-            v-model="searchForm.min_size"
+            v-model="queryFormData.min_size"
             placeholder="最小"
             :min="0"
             controls-position="right"
+            style="width: 120px"
           />
           <span style="margin: 0 8px">-</span>
           <el-input-number
-            v-model="searchForm.max_size"
+            v-model="queryFormData.max_size"
             placeholder="最大"
             :min="0"
             controls-position="right"
+            style="width: 120px"
           />
         </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button @click="handleResetSearch">
-            <el-icon><RefreshLeft /></el-icon>
-            重置
-          </el-button>
+        <el-form-item class="search-buttons">
+          <el-button type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <!-- 工具栏 -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <el-checkbox
-          v-model="showHiddenFiles"
-          @change="handleShowHiddenChange"
-        >
+    <!-- 内容区域 -->
+    <el-card shadow="hover" class="data-table">
+      <template #header>
+        <div class="card-header">
+          <span>
+            <el-tooltip content="资源文件管理系统">
+              <QuestionFilled class="w-4 h-4 mx-1" />
+            </el-tooltip>
+            文件列表
+          </span>
+        </div>
+      </template>
+
+      <!-- 功能区域 -->
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button type="success" icon="plus" @click="handleUpload">上传文件</el-button>
+          <el-button type="primary" icon="folder-add" @click="handleCreateDir">新建文件夹</el-button>
+          <el-button type="danger" icon="delete" :disabled="selectedItems.length === 0" @click="handleBatchDelete">批量删除</el-button>
+        </div>
+        <div class="data-table__toolbar--tools">
+          <el-checkbox v-model="showHiddenFiles" @change="handleShowHiddenChange">
           显示隐藏文件
         </el-checkbox>
-        <el-checkbox
-          v-model="recursiveMode"
-          @change="handleRecursiveChange"
-        >
-          递归显示
-        </el-checkbox>
-      </div>
-      <div class="toolbar-right">
         <el-button-group>
           <el-button
             :type="viewMode === 'list' ? 'primary' : ''"
@@ -110,66 +77,95 @@
             <el-icon><Grid /></el-icon>
           </el-button>
         </el-button-group>
+          <el-tooltip content="刷新">
+            <el-button type="primary" icon="refresh" circle @click="handleRefresh" />
+          </el-tooltip>
+        </div>
+      </div>
+
+      <!-- 资源路径 -->
+      <div class="breadcrumb-section">
+        <div class="breadcrumb-container">
+          <div class="breadcrumb-header">
+            <el-tooltip content="点击路径可以快速返回上级目录">
+              <el-icon class="breadcrumb-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+            <span class="breadcrumb-label">当前路径：</span>
+          </div>
+          <el-breadcrumb separator="/">
+            <el-breadcrumb-item
+              v-for="(item, index) in breadcrumbList"
+              :key="index"
+              @click="handleBreadcrumbClick(item, index)"
+              :class="{ 'is-link': index < breadcrumbList.length - 1 }"
+            >
+              {{ item.name }}
+            </el-breadcrumb-item>
+          </el-breadcrumb>
       </div>
     </div>
 
-    <!-- 文件列表 -->
-    <div class="file-list">
+      <!-- 表格区域 -->
       <el-table
         v-if="viewMode === 'list'"
-        :data="fileList"
+        ref="dataTableRef"
         v-loading="loading"
-        @selection-change="handleSelectionChange"
-        @row-dblclick="handleRowDoubleClick"
+        :data="fileList"
         row-key="path"
+        class="data-table__content"
+        height="540"
+        border
+        stripe
+        @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55" />
-        <el-table-column label="名称" min-width="200">
+        <template #empty>
+          <el-empty :image-size="80" description="暂无数据" />
+        </template>
+        <el-table-column type="selection" min-width="55" align="center" />
+        <el-table-column type="index" fixed label="序号" min-width="60" />
+        <el-table-column label="名称" prop="name" min-width="200">
           <template #default="{ row }">
             <div class="file-name">
               <el-icon class="file-icon">
                 <Folder v-if="row.is_directory" />
                 <Document v-else />
               </el-icon>
-              <span>{{ row.name }}</span>
+              <span 
+                :class="{ 'file-name-clickable': !row.is_directory }"
+                @click="handleFileNameClick(row)"
+              >
+                {{ row.name }}
+              </span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="大小" width="120">
+        <el-table-column label="大小" prop="size" min-width="120" align="center">
           <template #default="{ row }">
             <span v-if="!row.is_directory">{{ formatFileSize(row.size) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="类型" width="100">
+        <el-table-column label="类型" prop="file_type" min-width="100" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.file_type" size="small">{{ row.file_type }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="修改时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.modified_time) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="修改时间" prop="modified_time" min-width="180" sortable />
+        <el-table-column fixed="right" label="操作" align="center" min-width="200">
           <template #default="{ row }">
             <el-button
               v-if="!row.is_directory"
-              type="primary"
+              type="success"
+              size="small"
               link
+              icon="download"
               @click="handleDownload(row)"
             >
               下载
             </el-button>
-            <el-button type="primary" link @click="handleRename(row)">
+            <el-button type="primary" size="small" link icon="edit" @click="handleRename(row)">
               重命名
             </el-button>
-            <el-button type="primary" link @click="handleMove(row)">
-              移动
-            </el-button>
-            <el-button type="primary" link @click="handleCopy(row)">
-              复制
-            </el-button>
-            <el-button type="danger" link @click="handleDelete(row)">
+            <el-button type="danger" size="small" link icon="delete" @click="handleDelete(row)">
               删除
             </el-button>
           </template>
@@ -182,7 +178,7 @@
           v-for="item in fileList"
           :key="item.path"
           class="grid-item"
-          @dblclick="handleItemDoubleClick(item)"
+          @click="handleItemClick(item)"
         >
           <div class="item-icon">
             <el-icon v-if="item.is_directory" size="48">
@@ -195,23 +191,20 @@
           <div class="item-name">{{ item.name }}</div>
           <div class="item-size" v-if="!item.is_directory">
             {{ formatFileSize(item.size) }}
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- 分页 -->
-    <div class="pagination">
-      <el-pagination
-        v-model:current-page="pagination.page_no"
-        v-model:page-size="pagination.page_size"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+      <!-- 分页区域 -->
+      <template #footer>
+        <pagination
+          v-model:total="total"
+          v-model:page="pagination.page_no"
+          v-model:limit="pagination.page_size"
+          @pagination="handlePagination"
+        />
+      </template>
+    </el-card>
 
     <!-- 上传对话框 -->
     <el-dialog
@@ -303,18 +296,20 @@ import {
   Grid,
   Folder,
   Document,
-  UploadFilled
+  UploadFilled,
+  QuestionFilled
 } from '@element-plus/icons-vue'
-import { ResourceAPI, type ResourceItem, type ResourceListQuery, type ResourceSearchQuery } from '@/api/resource/resource'
+import Pagination from '@/components/Pagination/index.vue'
+import { ResourceAPI, type ResourceItem, type ResourceListQuery, type ResourceSearchQuery, type ResourceListResponse } from '@/api/resource/resource'
+import { RESOURCE_ROOT_PATH } from '@/constants'
 
 // 响应式数据
 const loading = ref(false)
 const fileList = ref<ResourceItem[]>([])
 const selectedItems = ref<ResourceItem[]>([])
-const currentPath = ref('/')
-const breadcrumbList = ref([{ name: '根目录', path: '/' }])
+const currentPath = ref(RESOURCE_ROOT_PATH)
+const breadcrumbList = ref([{ name: '资源根目录', path: RESOURCE_ROOT_PATH }])
 const showHiddenFiles = ref(false)
-const recursiveMode = ref(false)
 const viewMode = ref<'list' | 'grid'>('list')
 const total = ref(0)
 
@@ -325,7 +320,7 @@ const pagination = reactive({
 })
 
 // 搜索表单
-const searchForm = reactive<ResourceSearchQuery>({
+const queryFormData = reactive<ResourceSearchQuery>({
   keyword: '',
   file_type: '',
   min_size: undefined,
@@ -352,10 +347,17 @@ const renameForm = reactive({
   old_path: ''
 })
 
+// 工具函数：确保路径基于根路径
+const ensureRootPath = (path: string) => {
+  if (path.startsWith(RESOURCE_ROOT_PATH)) {
+    return path
+  }
+  return RESOURCE_ROOT_PATH + '/' + path.replace(/^\/+/, '')
+}
+
 // 计算属性
 const currentQuery = computed(() => ({
   path: currentPath.value,
-  recursive: recursiveMode.value,
   include_hidden: showHiddenFiles.value
 }))
 
@@ -364,11 +366,36 @@ const loadFileList = async () => {
   try {
     loading.value = true
     const response = await ResourceAPI.getResourceList(currentQuery.value)
-    fileList.value = response.data.data || []
+    
+    // 根据实际 API 响应结构获取数据
+    const data = response.data?.data?.items || response.data?.data
+    
+    if (Array.isArray(data)) {
+      // 转换数据格式以匹配前端期望的结构
+      fileList.value = data.map(item => ({
+        name: item.name,
+        path: item.path,
+        is_directory: item.is_dir || item.is_directory,
+        size: item.size,
+        file_type: item.file_type,
+        extension: item.file_extension,
+        modified_time: item.modified_time,
+        created_time: item.created_time,
+        is_hidden: item.name.startsWith('.'),
+        resource_type: item.resource_type,
+        file_url: item.file_url,
+        thumbnail_url: item.thumbnail_url
+      }))
     total.value = fileList.value.length
+    } else {
+      fileList.value = []
+      total.value = 0
+    }
   } catch (error) {
     ElMessage.error('加载文件列表失败')
     console.error('Load file list error:', error)
+    fileList.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
@@ -376,36 +403,69 @@ const loadFileList = async () => {
 
 const handleBreadcrumbClick = (item: any, index: number) => {
   if (index < breadcrumbList.value.length - 1) {
-    currentPath.value = item.path
+    currentPath.value = ensureRootPath(item.path)
     updateBreadcrumb()
     loadFileList()
   }
 }
 
 const updateBreadcrumb = () => {
-  const pathParts = currentPath.value.split('/').filter(Boolean)
+  const rootPath = RESOURCE_ROOT_PATH
+  const relativePath = currentPath.value.replace(rootPath, '').replace(/^\/+/, '')
+  const pathParts = relativePath ? relativePath.split('/').filter(Boolean) : []
+  
   breadcrumbList.value = [
-    { name: '根目录', path: '/' },
+    { name: '资源根目录', path: rootPath },
     ...pathParts.map((part, index) => ({
       name: part,
-      path: '/' + pathParts.slice(0, index + 1).join('/')
+      path: rootPath + '/' + pathParts.slice(0, index + 1).join('/')
     }))
   ]
 }
 
-const handleRowDoubleClick = (row: ResourceItem) => {
+const handleFileNameClick = (row: ResourceItem) => {
   if (row.is_directory) {
-    currentPath.value = row.path
+    currentPath.value = ensureRootPath(row.path)
     updateBreadcrumb()
     loadFileList()
+  } else {
+    // 文件预览
+    handleFilePreview(row)
   }
 }
 
-const handleItemDoubleClick = (item: ResourceItem) => {
+const handleItemClick = (item: ResourceItem) => {
   if (item.is_directory) {
-    currentPath.value = item.path
+    currentPath.value = ensureRootPath(item.path)
     updateBreadcrumb()
     loadFileList()
+  } else {
+    // 文件预览
+    handleFilePreview(item)
+  }
+}
+
+// 文件预览
+const handleFilePreview = (file: ResourceItem) => {
+  // 构建文件预览URL，移除/home前缀
+  const relativePath = file.path.replace('/home/static', '')
+  const previewUrl = `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_APP_BASE_API}/static${relativePath}`
+  
+  // 根据文件类型决定预览方式
+  const fileExtension = file.file_extension?.toLowerCase() || ''
+  
+  if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'].includes(fileExtension)) {
+    // 图片预览
+    window.open(previewUrl, '_blank')
+  } else if (['.pdf'].includes(fileExtension)) {
+    // PDF预览
+    window.open(previewUrl, '_blank')
+  } else if (['.txt', '.md', '.json', '.xml', '.html', '.css', '.js', '.ts', '.vue'].includes(fileExtension)) {
+    // 文本文件预览
+    window.open(previewUrl, '_blank')
+  } else {
+    // 其他文件直接下载
+    window.open(previewUrl, '_blank')
   }
 }
 
@@ -434,7 +494,7 @@ const handleUploadConfirm = async () => {
     uploadFileList.value.forEach((file: any) => {
       formData.append('file', file.raw)
     })
-    formData.append('target_path', currentPath.value)
+    formData.append('target_path', ensureRootPath(currentPath.value))
 
     await ResourceAPI.uploadFile(formData)
     ElMessage.success('上传成功')
@@ -466,7 +526,7 @@ const handleCreateDirConfirm = async () => {
 
   try {
     await ResourceAPI.createDirectory({
-      parent_path: currentPath.value,
+      parent_path: ensureRootPath(currentPath.value),
       dir_name: createDirForm.dir_name.trim()
     })
     ElMessage.success('创建成功')
@@ -482,22 +542,47 @@ const handleRefresh = () => {
   loadFileList()
 }
 
-const handleSearch = async () => {
+const handleQuery = async () => {
   try {
     loading.value = true
-    const response = await ResourceAPI.searchResource(searchForm)
-    fileList.value = response.data.data || []
+    const response = await ResourceAPI.searchResource(queryFormData)
+    
+    // 根据实际 API 响应结构获取数据
+    const data = response.data?.data?.items || response.data?.data
+    if (Array.isArray(data)) {
+      // 转换数据格式以匹配前端期望的结构
+      fileList.value = data.map(item => ({
+        name: item.name,
+        path: item.path,
+        is_directory: item.is_dir || item.is_directory,
+        size: item.size,
+        file_type: item.file_type,
+        extension: item.file_extension,
+        modified_time: item.modified_time,
+        created_time: item.created_time,
+        is_hidden: item.name.startsWith('.'),
+        resource_type: item.resource_type,
+        file_url: item.file_url,
+        thumbnail_url: item.thumbnail_url
+      }))
     total.value = fileList.value.length
+    } else {
+      console.warn('搜索 API 返回的数据不是数组类型:', data)
+      fileList.value = []
+      total.value = 0
+    }
   } catch (error) {
     ElMessage.error('搜索失败')
     console.error('Search error:', error)
+    fileList.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
-const handleResetSearch = () => {
-  Object.assign(searchForm, {
+const handleResetQuery = () => {
+  Object.assign(queryFormData, {
     keyword: '',
     file_type: '',
     min_size: undefined,
@@ -510,13 +595,10 @@ const handleShowHiddenChange = () => {
   loadFileList()
 }
 
-const handleRecursiveChange = () => {
-  loadFileList()
-}
-
 const handleDownload = async (item: ResourceItem) => {
   try {
-    const response = await ResourceAPI.downloadFile(item.path)
+    const filePath = ensureRootPath(item.path)
+    const response = await ResourceAPI.downloadFile(filePath)
     const blob = response.data
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -533,7 +615,7 @@ const handleDownload = async (item: ResourceItem) => {
 }
 
 const handleRename = (item: ResourceItem) => {
-  renameForm.old_path = item.path
+  renameForm.old_path = ensureRootPath(item.path)
   renameForm.new_name = item.name
   renameDialogVisible.value = true
 }
@@ -563,10 +645,6 @@ const handleMove = (item: ResourceItem) => {
   ElMessage.info('移动功能待实现')
 }
 
-const handleCopy = (item: ResourceItem) => {
-  // TODO: 实现复制功能
-  ElMessage.info('复制功能待实现')
-}
 
 const handleDelete = async (item: ResourceItem) => {
   try {
@@ -580,7 +658,8 @@ const handleDelete = async (item: ResourceItem) => {
       }
     )
 
-    await ResourceAPI.deleteResource([item.path])
+    const filePath = ensureRootPath(item.path)
+    await ResourceAPI.deleteResource([filePath])
     ElMessage.success('删除成功')
     loadFileList()
   } catch (error) {
@@ -601,9 +680,44 @@ const handleCurrentChange = (page: number) => {
   loadFileList()
 }
 
+const handlePagination = (params: { page: number; limit: number }) => {
+  pagination.page_no = params.page
+  pagination.page_size = params.limit
+  loadFileList()
+}
+
+const handleBatchDelete = async () => {
+  if (selectedItems.value.length === 0) {
+    ElMessage.warning('请选择要删除的文件')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedItems.value.length} 个文件吗？`,
+      '确认删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    const paths = selectedItems.value.map(item => ensureRootPath(item.path))
+    await ResourceAPI.deleteResource(paths)
+    ElMessage.success('删除成功')
+    loadFileList()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+      console.error('Batch delete error:', error)
+    }
+  }
+}
+
 // 工具函数
-const formatFileSize = (size?: number) => {
-  if (!size) return '-'
+const formatFileSize = (size?: number | null) => {
+  if (!size || size === null) return '-'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
   let unitIndex = 0
   let fileSize = size
@@ -627,73 +741,87 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.resource-management {
-  padding: 20px;
-  background: #f5f5f5;
-  min-height: 100vh;
-
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+.app-container {
+  .search-container {
+    margin-bottom: 16px;
     padding: 20px;
-    background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    // 使用系统主题颜色
 
-    .header-left {
-      h2 {
-        margin: 0 0 10px 0;
-        color: #303133;
-      }
-    }
-
-    .header-right {
-      display: flex;
-      gap: 10px;
+    .search-buttons {
+      margin-left: 16px;
     }
   }
 
-  .search-section {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 15px 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    .toolbar-left {
-      display: flex;
-      gap: 20px;
-    }
-  }
-
-  .file-list {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-
-    .file-name {
+  .data-table {
+    .card-header {
       display: flex;
       align-items: center;
-      gap: 8px;
+    }
 
-      .file-icon {
-        color: #409eff;
+    .breadcrumb-section {
+      margin: 16px 0;
+      padding: 12px 0;
+      // 使用系统主题颜色
+
+      .breadcrumb-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .breadcrumb-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+
+          .breadcrumb-icon {
+            font-size: 14px;
+          }
+
+          .breadcrumb-label {
+            font-size: 14px;
+            font-weight: 500;
+          }
+        }
       }
     }
+
+    .data-table__toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+      margin-bottom: 16px;
+
+      .data-table__toolbar--actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .data-table__toolbar--tools {
+      display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+    }
+
+     .data-table__content {
+     .file-name {
+       display: flex;
+       align-items: center;
+       gap: 8px;
+
+       .file-name-clickable {
+         cursor: pointer;
+         color: var(--el-color-primary);
+         
+         &:hover {
+           color: var(--el-color-primary-light-3);
+           text-decoration: underline;
+         }
+       }
+     }
+   }
 
     .grid-view {
       display: grid;
@@ -706,19 +834,13 @@ onMounted(() => {
         flex-direction: column;
         align-items: center;
         padding: 15px;
-        border: 1px solid #e4e7ed;
+        // 使用系统主题颜色
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s;
 
-        &:hover {
-          border-color: #409eff;
-          box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
-        }
-
         .item-icon {
           margin-bottom: 10px;
-          color: #409eff;
         }
 
         .item-name {
@@ -730,26 +852,20 @@ onMounted(() => {
 
         .item-size {
           font-size: 12px;
-          color: #909399;
         }
       }
     }
   }
 
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-  }
 }
 
 :deep(.el-breadcrumb__item) {
   &.is-link {
     cursor: pointer;
-    color: #409eff;
-
+    color: var(--el-color-primary);
+    
     &:hover {
-      color: #66b1ff;
+      color: var(--el-color-primary-light-3);
     }
   }
 }
