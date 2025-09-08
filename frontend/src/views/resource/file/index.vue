@@ -117,7 +117,6 @@
         border
         stripe
         @selection-change="handleSelectionChange"
-        @row-click="handleRowClick"
       >
         <template #empty>
           <el-empty :image-size="80" description="暂无数据" />
@@ -131,7 +130,12 @@
                 <Folder v-if="row.is_directory" />
                 <Document v-else />
               </el-icon>
-              <span>{{ row.name }}</span>
+              <span 
+                :class="{ 'file-name-clickable': !row.is_directory }"
+                @click="handleFileNameClick(row)"
+              >
+                {{ row.name }}
+              </span>
             </div>
           </template>
         </el-table-column>
@@ -160,9 +164,6 @@
             </el-button>
             <el-button type="primary" size="small" link icon="edit" @click="handleRename(row)">
               重命名
-            </el-button>
-            <el-button type="info" size="small" link icon="copy-document" @click="handleCopy(row)">
-              复制
             </el-button>
             <el-button type="danger" size="small" link icon="delete" @click="handleDelete(row)">
               删除
@@ -422,7 +423,7 @@ const updateBreadcrumb = () => {
   ]
 }
 
-const handleRowClick = (row: ResourceItem) => {
+const handleFileNameClick = (row: ResourceItem) => {
   if (row.is_directory) {
     currentPath.value = ensureRootPath(row.path)
     updateBreadcrumb()
@@ -448,7 +449,7 @@ const handleItemClick = (item: ResourceItem) => {
 const handleFilePreview = (file: ResourceItem) => {
   // 构建文件预览URL，移除/home前缀
   const relativePath = file.path.replace('/home/static', '')
-  const previewUrl = `https://service.fastapiadmin.com/api/v1/static${relativePath}`
+  const previewUrl = `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_APP_BASE_API}/static${relativePath}`
   
   // 根据文件类型决定预览方式
   const fileExtension = file.file_extension?.toLowerCase() || ''
@@ -644,10 +645,6 @@ const handleMove = (item: ResourceItem) => {
   ElMessage.info('移动功能待实现')
 }
 
-const handleCopy = (item: ResourceItem) => {
-  // TODO: 实现复制功能
-  ElMessage.info('复制功能待实现')
-}
 
 const handleDelete = async (item: ResourceItem) => {
   try {
@@ -808,14 +805,23 @@ onMounted(() => {
       }
     }
 
-    .data-table__content {
-    .file-name {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+     .data-table__content {
+     .file-name {
+       display: flex;
+       align-items: center;
+       gap: 8px;
 
-      }
-    }
+       .file-name-clickable {
+         cursor: pointer;
+         color: var(--el-color-primary);
+         
+         &:hover {
+           color: var(--el-color-primary-light-3);
+           text-decoration: underline;
+         }
+       }
+     }
+   }
 
     .grid-view {
       display: grid;
@@ -851,19 +857,15 @@ onMounted(() => {
     }
   }
 
-  // 表格行悬停效果
-  :deep(.el-table__row) {
-    cursor: pointer;
-  }
 }
 
 :deep(.el-breadcrumb__item) {
   &.is-link {
     cursor: pointer;
-    color: var(--el-color-primary) !important;
+    color: var(--el-color-primary);
     
     &:hover {
-      color: var(--el-color-primary-light-3) !important;
+      color: var(--el-color-primary-light-3);
     }
   }
 }

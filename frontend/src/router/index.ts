@@ -67,18 +67,6 @@ export const constantRoutes: RouteRecordRaw[] = [
       },
       // 临时构建后面要删除掉
       // {
-      //   path: "resource/file",
-      //   name: "ResourceFile",
-      //   meta: { title: "文件管理", icon: "folder", keepAlive: true },
-      //   component: () => import("@/views/resource/file/index.vue"),
-      // },
-      // {
-      //   path: "resource/stats",
-      //   name: "ResourceStats",
-      //   meta: { title: "资源统计", icon: "chart", keepAlive: true },
-      //   component: () => import("@/views/resource/stats/index.vue"),
-      // },
-      // {
       //   path: "form-builder",
       //   name: "FormBuilder",
       //   meta: { title: "表单构建", icon: "document" },
