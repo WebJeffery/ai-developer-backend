@@ -94,7 +94,7 @@
         </div>
         
         <!-- 空状态 -->
-        <div v-if="applicationList.length === 0 && !loading" class="empty-state">
+        <div v-if="applicationList.length === 0 && !loading" >
           <el-empty :image-size="120" description="暂无应用" />
         </div>
 
@@ -283,6 +283,7 @@ async function handleCurrentChange(page: number) {
 
 // 创建应用
 function handleCreateApp() {
+  console.log('handleCreateApp');
   dialogType.value = 'create';
   resetForm();
   dialogVisible.value = true;
@@ -552,18 +553,6 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
-// 空状态样式
-.empty-state {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-}
 
 .dialog-footer {
   display: flex;

@@ -127,11 +127,11 @@
           <template #default="{ row }">
             <div class="file-name">
               <el-icon class="file-icon">
-                <Folder v-if="row.is_directory" />
+                <Folder v-if="row.is_dir" />
                 <Document v-else />
               </el-icon>
               <span 
-                :class="{ 'file-name-clickable': !row.is_directory }"
+                :class="{ 'file-name-clickable': !row.is_dir }"
                 @click="handleFileNameClick(row)"
               >
                 {{ row.name }}
@@ -141,7 +141,7 @@
         </el-table-column>
         <el-table-column label="大小" prop="size" min-width="120" align="center">
           <template #default="{ row }">
-            <span v-if="!row.is_directory">{{ formatFileSize(row.size) }}</span>
+            <span v-if="!row.is_dir">{{ formatFileSize(row.size) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="类型" prop="file_type" min-width="100" align="center">
@@ -153,7 +153,7 @@
         <el-table-column fixed="right" label="操作" align="center" min-width="200">
           <template #default="{ row }">
             <el-button
-              v-if="!row.is_directory"
+              v-if="!row.is_dir"
               type="success"
               size="small"
               link
@@ -181,7 +181,7 @@
           @click="handleItemClick(item)"
         >
           <div class="item-icon">
-            <el-icon v-if="item.is_directory" size="48">
+            <el-icon v-if="item.is_dir" size="48">
               <Folder />
             </el-icon>
             <el-icon v-else size="48">
@@ -189,7 +189,7 @@
             </el-icon>
           </div>
           <div class="item-name">{{ item.name }}</div>
-          <div class="item-size" v-if="!item.is_directory">
+          <div class="item-size" v-if="!item.is_dir">
             {{ formatFileSize(item.size) }}
         </div>
       </div>
@@ -347,8 +347,14 @@ const renameForm = reactive({
   old_path: ''
 })
 
-// 工具函数：确保路径基于根路径
+// 工具函数：处理路径转换
 const ensureRootPath = (path: string) => {
+  // 如果是HTTP URL，提取相对路径部分
+  if (path.startsWith('http')) {
+    const url = new URL(path)
+    return url.pathname.replace('/api/v1/static', '/home/static')
+  }
+  
   if (path.startsWith(RESOURCE_ROOT_PATH)) {
     return path
   }
@@ -367,26 +373,16 @@ const loadFileList = async () => {
     loading.value = true
     const response = await ResourceAPI.getResourceList(currentQuery.value)
     
-    // 根据实际 API 响应结构获取数据
+    // 根据新的 API 响应结构获取数据
     const data = response.data?.data?.items || response.data?.data
     
     if (Array.isArray(data)) {
-      // 转换数据格式以匹配前端期望的结构
+      // 直接使用后端返回的数据结构，无需转换
       fileList.value = data.map(item => ({
-        name: item.name,
-        path: item.path,
-        is_directory: item.is_dir || item.is_directory,
-        size: item.size,
-        file_type: item.file_type,
-        extension: item.file_extension,
-        modified_time: item.modified_time,
-        created_time: item.created_time,
-        is_hidden: item.name.startsWith('.'),
-        resource_type: item.resource_type,
-        file_url: item.file_url,
-        thumbnail_url: item.thumbnail_url
+        ...item,
+        is_hidden: item.name.startsWith('.')
       }))
-    total.value = fileList.value.length
+      total.value = response.data?.data?.total_files + response.data?.data?.total_dirs || fileList.value.length
     } else {
       fileList.value = []
       total.value = 0
@@ -411,7 +407,15 @@ const handleBreadcrumbClick = (item: any, index: number) => {
 
 const updateBreadcrumb = () => {
   const rootPath = RESOURCE_ROOT_PATH
-  const relativePath = currentPath.value.replace(rootPath, '').replace(/^\/+/, '')
+  let relativePath = currentPath.value
+  
+  // 处理HTTP URL格式的路径
+  if (currentPath.value.startsWith('http')) {
+    const url = new URL(currentPath.value)
+    relativePath = url.pathname.replace('/api/v1/static', '/home/static')
+  }
+  
+  relativePath = relativePath.replace(rootPath, '').replace(/^\/+/, '')
   const pathParts = relativePath ? relativePath.split('/').filter(Boolean) : []
   
   breadcrumbList.value = [
@@ -424,7 +428,7 @@ const updateBreadcrumb = () => {
 }
 
 const handleFileNameClick = (row: ResourceItem) => {
-  if (row.is_directory) {
+  if (row.is_dir) {
     currentPath.value = ensureRootPath(row.path)
     updateBreadcrumb()
     loadFileList()
@@ -435,7 +439,7 @@ const handleFileNameClick = (row: ResourceItem) => {
 }
 
 const handleItemClick = (item: ResourceItem) => {
-  if (item.is_directory) {
+  if (item.is_dir) {
     currentPath.value = ensureRootPath(item.path)
     updateBreadcrumb()
     loadFileList()
@@ -447,9 +451,8 @@ const handleItemClick = (item: ResourceItem) => {
 
 // 文件预览
 const handleFilePreview = (file: ResourceItem) => {
-  // 构建文件预览URL，移除/home前缀
-  const relativePath = file.path.replace('/home/static', '')
-  const previewUrl = `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_APP_BASE_API}/static${relativePath}`
+  // 使用后端返回的完整URL路径进行预览
+  const previewUrl = file.path
   
   // 根据文件类型决定预览方式
   const fileExtension = file.file_extension?.toLowerCase() || ''
@@ -547,25 +550,15 @@ const handleQuery = async () => {
     loading.value = true
     const response = await ResourceAPI.searchResource(queryFormData)
     
-    // 根据实际 API 响应结构获取数据
+    // 根据新的 API 响应结构获取数据
     const data = response.data?.data?.items || response.data?.data
     if (Array.isArray(data)) {
-      // 转换数据格式以匹配前端期望的结构
+      // 直接使用后端返回的数据结构，无需转换
       fileList.value = data.map(item => ({
-        name: item.name,
-        path: item.path,
-        is_directory: item.is_dir || item.is_directory,
-        size: item.size,
-        file_type: item.file_type,
-        extension: item.file_extension,
-        modified_time: item.modified_time,
-        created_time: item.created_time,
-        is_hidden: item.name.startsWith('.'),
-        resource_type: item.resource_type,
-        file_url: item.file_url,
-        thumbnail_url: item.thumbnail_url
+        ...item,
+        is_hidden: item.name.startsWith('.')
       }))
-    total.value = fileList.value.length
+      total.value = response.data?.data?.total_files + response.data?.data?.total_dirs || fileList.value.length
     } else {
       console.warn('搜索 API 返回的数据不是数组类型:', data)
       fileList.value = []
