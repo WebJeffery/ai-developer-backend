@@ -3,7 +3,7 @@
 from redis import asyncio as aioredis
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import FastAPI
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
@@ -27,11 +27,14 @@ from sqlalchemy.exc import (
 from app.core.logger import logger
 from app.config.setting import settings
 from app.core.exceptions import CustomException
+from app.core.base_model import MappedBase
 
 # 同步数据库引擎
-engine = create_engine(
+engine: Engine = create_engine(
     url=settings.DB_URI,
     echo=settings.DATABASE_ECHO,
+    pool_pre_ping=settings.POOL_PRE_PING,
+    pool_recycle=settings.POOL_RECYCLE,
 )
 # 同步数据库会话工厂
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -67,33 +70,18 @@ def session_connect() -> AsyncSession:
     except Exception as e:
         raise CustomException(msg=f"数据库连接失败: {e}")
 
-async def test_db_connection(session: AsyncSession) -> bool:
+async def init_create_table():
+    """
+    应用启动时初始化数据库连接
+
+    :return:
+    """
     try:
-        # 执行简单查询测试连接是否真实可用
-        await session.execute(text("SELECT 1"))
-        return True
-    except OperationalError as e:
-        raise CustomException(msg=f"数据库操作失败: {e}，请检查数据库服务是否正常运行")
-    except TimeoutError as e:
-        raise CustomException(msg=f"数据库连接超时: {e}，请检查网络连接或增加连接超时时间")
-    except DisconnectionError as e:
-        raise CustomException(msg=f"数据库连接中断: {e}，请检查数据库服务状态")
-    except InterfaceError as e:
-        raise CustomException(msg=f"数据库接口错误: {e}，请检查数据库驱动配置")
-    except ProgrammingError as e:
-        raise CustomException(msg=f"SQL语句错误: {e}，请检查SQL语法")
-    except IntegrityError as e:
-        raise CustomException(msg=f"数据完整性错误: {e}，请检查数据约束条件")
-    except DataError as e:
-        raise CustomException(msg=f"数据类型错误: {e}，请检查数据格式")
-    except InternalError as e:
-        raise CustomException(msg=f"数据库内部错误: {e}，请联系数据库管理员")
-    except NotSupportedError as e:
-        raise CustomException(msg=f"数据库不支持该操作: {e}，请检查数据库版本")
-    except InvalidRequestError as e:
-        raise CustomException(msg=f"无效的数据库请求: {e}，请检查请求参数")
+        async with async_engine.begin() as conn:
+            await conn.run_sync(MappedBase.metadata.create_all)
+        logger.info('数据库连接成功...')
     except Exception as e:
-        raise CustomException(msg=f"数据库操作异常: {e}，请联系管理员")
+        raise CustomException(msg=f"数据库连接失败: {e}")
 
 async def redis_connect(app: FastAPI, status: bool) -> aioredis.Redis:
     """创建或关闭Redis连接"""
