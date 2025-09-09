@@ -10,10 +10,15 @@ export const defaultSettings: AppSettings = {
   title: pkg.name,
   // 系统版本
   version: pkg.version,
-  // 是否显示设置
+  // 是否显示设置按钮
   showSettings: true,
-  // 是否显示桌面端工具项
-  showDesktopTools: true,
+  // 桌面端工具项单独控制
+  showMenuSearch: true,
+  showFullscreen: true,
+  showSizeSelect: true,
+  showLangSelect: true,
+  // 是否显示通知
+  showNotification: true,
   // 是否显示标签视图
   showTagsView: true,
   // 是否显示应用Logo

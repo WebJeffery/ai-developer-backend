@@ -105,22 +105,23 @@ class OperationLogRoute(APIRoute):
                 pass
             else:
                 async with session_connect() as session:
-                    auth = AuthSchema(db=session)
-                    await OperationLogService.create_log_service(data=OperationLogCreateSchema(
-                        type = log_type,
-                        request_path = request.url.path,
-                        request_method = request.method,
-                        request_payload = payload,
-                        request_ip = request_ip,
-                        login_location=login_location,
-                        request_os = user_agent.os.family,
-                        request_browser = user_agent.browser.family,
-                        response_code = response.status_code,
-                        response_json = response_data.decode(),
-                        process_time = process_time,
-                        description = route.summary,
-                        creator_id = current_user_id
-                    ), auth = auth) 
+                    async with session.begin():
+                        auth = AuthSchema(db=session)
+                        await OperationLogService.create_log_service(data=OperationLogCreateSchema(
+                            type = log_type,
+                            request_path = request.url.path,
+                            request_method = request.method,
+                            request_payload = payload,
+                            request_ip = request_ip,
+                            login_location=login_location,
+                            request_os = user_agent.os.family,
+                            request_browser = user_agent.browser.family,
+                            response_code = response.status_code,
+                            response_json = response_data.decode(),
+                            process_time = process_time,
+                            description = route.summary,
+                            creator_id = current_user_id
+                        ), auth = auth) 
             
             return response
 

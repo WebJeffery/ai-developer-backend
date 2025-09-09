@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container dark:text-[var(--wot-dark-color)]">
+  <view :key="renderKey" class="app-container dark:text-[var(--wot-dark-color)]">
     <!-- 页面标题 -->
     <view class="page-header">
       <text class="page-title">主题设置</text>
@@ -17,11 +17,14 @@
     <wd-card title="预设主题色">
       <!-- 预设颜色选择 -->
       <view class="color-section">
-        <view class="color-grid">
-          <view v-for="(color, index) in themeOptions" :key="index" class="color-item"
-            :class="{ active: isActiveColor(color.primary) }" @click="selectColor(color)">
+        <view :key="renderKey" class="color-grid">
+          <view v-for="(color, index) in themeOptions" 
+            :key="`${index}-${renderKey}`" 
+            class="color-item" 
+            :class="{ active: isActiveColor(color) }" 
+            @click="selectColor(color)">
             <view class="color-preview" :style="{ backgroundColor: color.primary }">
-              <wd-icon v-if="isActiveColor(color.primary)" name="check" size="20" color="#fff" />
+              <wd-icon v-if="isActiveColor(color)" name="check" size="20" color="#fff" />
             </view>
             <text class="color-name">{{ color.name }}</text>
           </view>
@@ -39,7 +42,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from "vue";
+import { computed, watch,ref } from "vue";
 import { useThemeStore } from "@/store/modules/theme.store";
 
 const themeStore = useThemeStore();
@@ -51,9 +54,14 @@ const isDarkMode = computed({
 });
 const themeOptions = themeStore.themeColorOptions;
 
+// 强制重新渲染的key
+const renderKey = ref(0);
+
 // 检查颜色是否为当前选中颜色
-const isActiveColor = (color: string): boolean => {
-  return themeStore.currentThemeColor.primary.toLowerCase() === color.toLowerCase();
+const isActiveColor = (color: typeof themeOptions[0]): boolean => {
+  const currentColor = themeStore.currentThemeColor.primary.toLowerCase();
+  const compareColor = color.primary.toLowerCase();
+  return currentColor === compareColor;
 };
 
 // 切换暗黑模式
@@ -69,6 +77,10 @@ const handleToggleDarkMode = (value: boolean) => {
 // 选择主题色
 const selectColor = (color: typeof themeOptions[0]) => {
   themeStore.setCurrentThemeColor(color);
+  
+  // 强制重新渲染所有组件
+  renderKey.value++;
+  
   uni.showToast({ title: "主题色已更新", icon: "success", duration: 1000 });
 };
 
@@ -88,10 +100,23 @@ const resetTheme = () => {
 
 // 监听主题变化，强制更新页面
 watch(() => themeStore.isDark, () => {
-  // 触发页面重新渲染
-  setTimeout(() => {
-    // 强制更新页面
-  }, 100);
+  // 主题变化时强制重新渲染
+  renderKey.value++;
+});
+
+// 监听主题色变化
+watch(() => themeStore.currentThemeColor, () => {
+  // 强制重新渲染以更新选中状态
+  renderKey.value++;
+}, { deep: true });
+
+// 监听主题色变量变化
+watch(() => themeStore.themeVars.colorTheme, () => {
+  // 强制重新渲染以更新图标颜色
+  renderKey.value++;
+  
+  // 通知其他页面主题色已变化
+  uni.$emit('global-theme-color-change', themeStore.themeVars.colorTheme);
 });
 </script>
 
@@ -108,7 +133,7 @@ watch(() => themeStore.isDark, () => {
   padding: 40rpx 20rpx;
   margin-bottom: 30rpx;
   text-align: center;
-  background: linear-gradient(135deg, var(--wot-color-theme, #165dff) 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--wot-color-theme, #4D7FFF) 0%, #667eea 100%);
   border-radius: 16rpx;
 
   .page-title {

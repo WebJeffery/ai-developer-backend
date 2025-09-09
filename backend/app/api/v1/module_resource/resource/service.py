@@ -146,7 +146,13 @@ class ResourceService:
             # 生成HTTP URL路径而不是文件系统路径
             if base_url:
                 from urllib.parse import urljoin
-                http_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{relative_path}".lstrip('/')).replace('\\', '/').replace('//', '/')
+                base_part = base_url.rstrip('/')
+                static_part = settings.STATIC_URL.lstrip('/')
+                relative_part = relative_path.lstrip('/')
+                # 手动构建URL而不是使用urljoin，避免双斜杠问题
+                if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                    base_part += '/'
+                http_url = f"{base_part}{static_part}/{relative_part}".replace('\\', '/').replace('//', '/').replace(':/', '://')
             else:
                 http_url = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
             
@@ -186,7 +192,12 @@ class ResourceService:
                 # 对于根目录，返回静态URL路径
                 if base_url:
                     from urllib.parse import urljoin
-                    display_path = urljoin(base_url.rstrip('/') + '/', settings.STATIC_URL.lstrip('/'))
+                    # 修复URL生成逻辑
+                    base_part = base_url.rstrip('/')
+                    static_part = settings.STATIC_URL.lstrip('/')
+                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                        base_part += '/'
+                    display_path = f"{base_part}{static_part}".replace('//', '/').replace(':/', '://')
                 else:
                     display_path = settings.STATIC_URL
             else:
@@ -197,13 +208,24 @@ class ResourceService:
                     relative_path = os.path.relpath(safe_path, resource_root)
                     if base_url:
                         from urllib.parse import urljoin
-                        display_path = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{relative_path}".lstrip('/')).replace('\\', '/').replace('//', '/')
+                        # 修复URL生成逻辑
+                        base_part = base_url.rstrip('/')
+                        static_part = settings.STATIC_URL.lstrip('/')
+                        relative_part = relative_path.lstrip('/')
+                        if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                            base_part += '/'
+                        display_path = f"{base_part}{static_part}/{relative_part}".replace('\\', '/').replace('//', '/').replace(':/', '://')
                     else:
                         display_path = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
                 except ValueError:
                     if base_url:
                         from urllib.parse import urljoin
-                        display_path = urljoin(base_url.rstrip('/') + '/', settings.STATIC_URL.lstrip('/'))
+                        # 修复URL生成逻辑
+                        base_part = base_url.rstrip('/')
+                        static_part = settings.STATIC_URL.lstrip('/')
+                        if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                            base_part += '/'
+                        display_path = f"{base_part}{static_part}".replace('//', '/').replace(':/', '://')
                     else:
                         display_path = settings.STATIC_URL
             
@@ -466,14 +488,27 @@ class ResourceService:
                 # 如果提供了base_url，使用它生成完整URL，否则使用settings.STATIC_URL
                 if base_url:
                     from urllib.parse import urljoin
-                    file_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{file_url_path}".lstrip('/'))
+                    # 修复URL生成逻辑
+                    base_part = base_url.rstrip('/')
+                    static_part = settings.STATIC_URL.lstrip('/')
+                    file_url_part = file_url_path.lstrip('/')
+                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                        base_part += '/'
+                    file_url = f"{base_part}{static_part}/{file_url_part}".replace('//', '/').replace(':/', '://')
                 else:
                     file_url = f"{settings.STATIC_URL}/{file_url_path}".replace('//', '/')
             except ValueError:
                 # 如果无法计算相对路径，使用文件名
+                filename = os.path.basename(file_path)
                 if base_url:
                     from urllib.parse import urljoin
-                    file_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{filename}".lstrip('/'))
+                    # 修复URL生成逻辑
+                    base_part = base_url.rstrip('/')
+                    static_part = settings.STATIC_URL.lstrip('/')
+                    filename_part = filename.lstrip('/')
+                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                        base_part += '/'
+                    file_url = f"{base_part}{static_part}/{filename_part}".replace('//', '/').replace(':/', '://')
                 else:
                     file_url = f"{settings.STATIC_URL}/{filename}"
             
@@ -511,7 +546,13 @@ class ResourceService:
                 # 生成HTTP URL
                 if base_url:
                     from urllib.parse import urljoin
-                    http_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{relative_path}".lstrip('/')).replace('\\', '/').replace('//', '/')
+                    # 修复URL生成逻辑
+                    base_part = base_url.rstrip('/')
+                    static_part = settings.STATIC_URL.lstrip('/')
+                    relative_part = relative_path.lstrip('/')
+                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                        base_part += '/'
+                    http_url = f"{base_part}{static_part}/{relative_part}".replace('\\', '/').replace('//', '/').replace(':/', '://')
                 else:
                     http_url = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
                 logger.info(f"生成文件访问URL: {http_url}")
@@ -521,7 +562,13 @@ class ResourceService:
                 filename = os.path.basename(safe_path)
                 if base_url:
                     from urllib.parse import urljoin
-                    http_url = urljoin(base_url.rstrip('/') + '/', f"{settings.STATIC_URL.lstrip('/')}/{filename}".lstrip('/'))
+                    # 修复URL生成逻辑
+                    base_part = base_url.rstrip('/')
+                    static_part = settings.STATIC_URL.lstrip('/')
+                    filename_part = filename.lstrip('/')
+                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                        base_part += '/'
+                    http_url = f"{base_part}{static_part}/{filename_part}".replace('//', '/').replace(':/', '://')
                 else:
                     http_url = f"{settings.STATIC_URL}/{filename}"
                 logger.info(f"生成文件访问URL: {http_url}")

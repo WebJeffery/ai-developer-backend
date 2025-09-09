@@ -21,7 +21,8 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 async def db_getter() -> AsyncGenerator[AsyncSession, None]:
     """获取数据库会话连接"""
     async with session_connect() as session:
-        yield session
+        async with session.begin():
+            yield session
 
 async def redis_getter(request: Request) -> Redis:
     """获取Redis连接"""

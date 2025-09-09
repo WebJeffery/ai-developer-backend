@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view :key="renderKey" class="app-container theme-adaptive">
     <!-- 用户信息卡片 -->
     <view class="user-profile theme-card">
       <view class="blur-bg"></view>
@@ -146,13 +146,16 @@ import { useToast } from "wot-design-uni";
 import { useRouter } from "uni-mini-router";
 import { useUserStore } from "@/store";
 import { useThemeStore } from "@/store/modules/theme.store";
-import { computed } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 
 const toast = useToast();
 const userStore = useUserStore();
 const themeStore = useThemeStore();
-const themeVars = themeStore.themeVars;
-const currentThemeColor = themeStore.currentThemeColor;
+const themeVars = computed(() => themeStore.themeVars);
+const currentThemeColor = computed(() => themeStore.currentThemeColor);
+
+// 强制重新渲染的key
+const renderKey = ref(0);
 
 const userInfo = computed(() => userStore.userInfo);
 const isLogin = computed(() => !!userInfo.value);
@@ -160,6 +163,19 @@ const defaultAvatar = "/static/images/default-avatar.png";
 const isLoading = ref(false);
 
 const router = useRouter();
+
+// 监听主题色变化
+const handleThemeColorChange = (color: string) => {
+  renderKey.value++;
+};
+
+onMounted(() => {
+  uni.$on('global-theme-color-change', handleThemeColorChange);
+});
+
+onUnmounted(() => {
+  uni.$off('global-theme-color-change', handleThemeColorChange);
+});
 
 // 登录
 const navigateToLoginPage = () => {
