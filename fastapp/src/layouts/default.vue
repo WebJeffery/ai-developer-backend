@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { useThemeStore } from "@/store/modules/theme.store";
-import { onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, computed } from "vue";
 
 const themeStore = useThemeStore();
-const theme = themeStore.theme;
-const themeVars = themeStore.themeVars;
+const theme = computed(() => themeStore.theme);
+const themeVars = computed(() => themeStore.themeVars);
 
 // 监听主题变化事件
-const handleThemeChange = () => {
+const handleThemeChange = (newTheme: string) => {
   // 当主题变化时强制更新组件
   // 这里可以添加一些更新逻辑
 };
