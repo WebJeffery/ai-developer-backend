@@ -16,7 +16,11 @@ export const SHOW_TAGS_VIEW_KEY = "showTagsView";
 export const SHOW_APP_LOGO_KEY = "showAppLogo";
 export const SHOW_WATERMARK_KEY = "showWatermark";
 export const SHOW_SETTINGS_KEY = "showSettings";
-export const SHOW_DESKTOP_TOOLS_KEY = "showDesktopTools";
+export const SHOW_MENU_SEARCH_KEY = "showMenuSearch";
+export const SHOW_FULLSCREEN_KEY = "showFullscreen";
+export const SHOW_SIZE_SELECT_KEY = "showSizeSelect";
+export const SHOW_LANG_SELECT_KEY = "showLangSelect";
+export const SHOW_NOTIFICATION_KEY = "showNotification";
 export const LAYOUT_KEY = "layout";
 export const SIDEBAR_COLOR_SCHEME_KEY = "sidebarColorScheme";
 export const THEME_KEY = "theme";
@@ -42,7 +46,11 @@ export const SETTINGS_KEYS = {
   SHOW_APP_LOGO: SHOW_APP_LOGO_KEY,
   SHOW_WATERMARK: SHOW_WATERMARK_KEY,
   SHOW_SETTINGS: SHOW_SETTINGS_KEY,
-  SHOW_DESKTOP_TOOLS: SHOW_DESKTOP_TOOLS_KEY,
+  SHOW_MENU_SEARCH: SHOW_MENU_SEARCH_KEY,
+  SHOW_FULLSCREEN: SHOW_FULLSCREEN_KEY,
+  SHOW_SIZE_SELECT: SHOW_SIZE_SELECT_KEY,
+  SHOW_LANG_SELECT: SHOW_LANG_SELECT_KEY,
+  SHOW_NOTIFICATION: SHOW_NOTIFICATION_KEY,
   SIDEBAR_COLOR_SCHEME: SIDEBAR_COLOR_SCHEME_KEY,
   LAYOUT: LAYOUT_KEY,
   THEME_COLOR: THEME_COLOR_KEY,

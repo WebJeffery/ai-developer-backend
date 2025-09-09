@@ -74,6 +74,9 @@
           </div> -->
           <!-- 自定义主题颜色选择器 -->
           <div class="theme-color-selector">
+            <div class="color-label">
+              <span class="text-xs">{{ t("settings.themeColor") }}</span>
+            </div>
             <div class="color-options">
               <!-- 预设颜色选项 -->
               <div
@@ -139,6 +142,34 @@
         <div class="flex-x-between">
           <span class="text-xs">{{ t("settings.showWatermark") }}</span>
           <el-switch v-model="settingsStore.showWatermark" />
+        </div>
+
+        <!-- 桌面端工具项控制 -->
+        <el-divider>{{ t("settings.showDesktopTools") }}</el-divider>
+
+        <div class="flex-x-between">
+          <span class="text-xs">{{ t("settings.showMenuSearch") }}</span>
+          <el-switch v-model="settingsStore.showMenuSearch" />
+        </div>
+
+        <div class="flex-x-between">
+          <span class="text-xs">{{ t("settings.showFullscreen") }}</span>
+          <el-switch v-model="settingsStore.showFullscreen" />
+        </div>
+
+        <div class="flex-x-between">
+          <span class="text-xs">{{ t("settings.showSizeSelect") }}</span>
+          <el-switch v-model="settingsStore.showSizeSelect" />
+        </div>
+
+        <div class="flex-x-between">
+          <span class="text-xs">{{ t("settings.showLangSelect") }}</span>
+          <el-switch v-model="settingsStore.showLangSelect" />
+        </div>
+
+        <div class="flex-x-between">
+          <span class="text-xs">{{ t("settings.showNotification") }}</span>
+          <el-switch v-model="settingsStore.showNotification" />
         </div>
         
       </section>
@@ -223,7 +254,7 @@ const colorPresets = themeColorPresets;
 const settingsStore = useSettingsStore();
 
 // 主题颜色选择器相关
-const displayColorPresets = computed(() => themeColorPresets.slice(0, 9)); // 只显示前9个预设颜色
+const displayColorPresets = computed(() => themeColorPresets.slice(0, 7)); // 只显示前9个预设颜色
 const allColorPresets = themeColorPresets; // 所有颜色预设，用于自定义颜色选择器
 
 // 判断当前颜色是否为自定义颜色（不在前7个预设中）
@@ -339,6 +370,11 @@ const generateSettingsCode = (): string => {
     showSettings: true,
     showTagsView: settingsStore.showTagsView,
     showAppLogo: settingsStore.showAppLogo,
+    showMenuSearch: settingsStore.showMenuSearch,
+    showFullscreen: settingsStore.showFullscreen,
+    showSizeSelect: settingsStore.showSizeSelect,
+    showLangSelect: settingsStore.showLangSelect,
+    showNotification: settingsStore.showNotification,
     layout: `LayoutMode.${settingsStore.layout.toUpperCase()}`,
     theme: `ThemeMode.${settingsStore.theme.toUpperCase()}`,
     size: "ComponentSize.DEFAULT",
@@ -355,6 +391,11 @@ const generateSettingsCode = (): string => {
   showSettings: ${settings.showSettings},
   showTagsView: ${settings.showTagsView},
   showAppLogo: ${settings.showAppLogo},
+  showMenuSearch: ${settings.showMenuSearch},
+  showFullscreen: ${settings.showFullscreen},
+  showSizeSelect: ${settings.showSizeSelect},
+  showLangSelect: ${settings.showLangSelect},
+  showNotification: ${settings.showNotification},
   layout: ${settings.layout},
   theme: ${settings.theme},
   size: ${settings.size},
@@ -484,14 +525,14 @@ const handleCloseDrawer = () => {
   height: 80px;
   overflow: hidden;
   cursor: pointer;
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  background: var(--el-bg-color);
   border: 2px solid var(--el-border-color-light);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--el-box-shadow-light);
+  transition: all 0.3s var(--el-transition-duration);
 
   &:hover {
-    background: linear-gradient(145deg, #ffffff 0%, var(--el-color-primary-light-9) 100%);
+    background: var(--el-color-primary-light-9);
     border-color: var(--el-color-primary-light-3);
     transform: translateY(-4px) scale(1.05);
   }
@@ -513,11 +554,7 @@ const handleCloseDrawer = () => {
     right: 4px;
     left: 4px;
     height: 8px;
-    background: linear-gradient(
-      90deg,
-      var(--el-color-primary) 0%,
-      var(--el-color-primary-light-3) 100%
-    );
+    background: var(--el-color-primary);
     border-radius: 2px;
   }
 
@@ -525,17 +562,13 @@ const handleCloseDrawer = () => {
     position: absolute;
     left: 4px;
     width: 12px;
-    background: linear-gradient(
-      180deg,
-      var(--el-color-primary-dark-2) 0%,
-      var(--el-color-primary) 100%
-    );
+    background: var(--el-color-primary-light-3);
     border-radius: 2px;
   }
 
   .layout-main {
     position: absolute;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    background: var(--el-fill-color-light);
     border: 1px solid var(--el-border-color-lighter);
     border-radius: 2px;
   }
@@ -562,7 +595,7 @@ const handleCloseDrawer = () => {
     width: 16px;
     height: 16px;
     font-size: 10px;
-    color: white;
+    color: var(--el-color-white);
     background: var(--el-color-success);
     border-radius: 50%;
   }
@@ -612,11 +645,7 @@ const handleCloseDrawer = () => {
   }
 
   &.is-active {
-    background: linear-gradient(
-      145deg,
-      var(--el-color-primary-light-9) 0%,
-      var(--el-color-primary-light-8) 100%
-    );
+    background: var(--el-color-primary-light-9);
     border-color: var(--el-color-primary);
     transform: translateY(-2px) scale(1.08);
 
@@ -639,33 +668,34 @@ const handleCloseDrawer = () => {
   }
 
   .layout-item {
-    background: linear-gradient(145deg, var(--el-bg-color) 0%, var(--el-bg-color-page) 100%);
+    background: var(--el-bg-color);
     border-color: var(--el-border-color);
 
     &:hover {
-      background: linear-gradient(
-        145deg,
-        var(--el-bg-color-page) 0%,
-        var(--el-color-primary-light-9) 100%
-      );
+      background: var(--el-color-primary-light-9);
     }
 
     &.is-active {
-      background: linear-gradient(
-        145deg,
-        var(--el-color-primary-light-9) 0%,
-        var(--el-color-primary-light-8) 100%
-      );
+      background: var(--el-color-primary-light-9);
     }
 
     .layout-main {
-      background: linear-gradient(135deg, var(--el-fill-color) 0%, var(--el-fill-color-light) 100%);
+      background: var(--el-fill-color);
     }
   }
 }
 
 /* 主题颜色选择器样式 */
 .theme-color-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .color-label {
+    flex-shrink: 0;
+    min-width: 60px;
+  }
+
   .color-options {
     display: flex;
     gap: 8px;
@@ -680,19 +710,19 @@ const handleCloseDrawer = () => {
     cursor: pointer;
     border: 2px solid var(--el-border-color-light);
     border-radius: 6px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s var(--el-transition-duration);
+    box-shadow: var(--el-box-shadow-light);
 
     &:hover {
       transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: var(--el-box-shadow);
       border-color: var(--el-color-primary-light-3);
     }
 
     &.is-active {
       border-color: var(--el-color-primary);
       transform: translateY(-1px) scale(1.08);
-      box-shadow: 0 4px 16px rgba(64, 128, 255, 0.3);
+      box-shadow: var(--el-box-shadow-dark);
     }
 
     .color-check {
@@ -704,43 +734,42 @@ const handleCloseDrawer = () => {
       justify-content: center;
       width: 16px;
       height: 16px;
-      color: white;
-      background: rgba(0, 0, 0, 0.6);
+      color: var(--el-color-white);
+      background: var(--el-overlay-color-lighter);
       border-radius: 50%;
       transform: translate(-50%, -50%);
       font-size: 10px;
-      backdrop-filter: blur(2px);
     }
   }
 
   .color-picker-wrapper {
-    .custom-color-picker {
-      :deep(.el-color-picker__trigger) {
-        width: 22px !important;
-        height: 22px !important;
-        border: 2px solid var(--el-border-color-light) !important;
-        border-radius: 6px !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+      .custom-color-picker {
+        :deep(.el-color-picker__trigger) {
+          width: 22px;
+          height: 22px;
+          border: 2px solid var(--el-border-color-light);
+          border-radius: 6px;
+          transition: all 0.3s var(--el-transition-duration);
+          box-shadow: var(--el-box-shadow-light);
 
-        &:hover {
-          transform: translateY(-2px) scale(1.05) !important;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-          border-color: var(--el-color-primary-light-3) !important;
+          &:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--el-box-shadow);
+            border-color: var(--el-color-primary-light-3);
+          }
         }
-      }
 
       :deep(.el-color-picker__color) {
-        border: none !important;
-        border-radius: 3px !important;
+        border: none;
+        border-radius: 3px;
       }
 
       :deep(.el-color-picker__color-inner) {
-        border-radius: 3px !important;
+        border-radius: 3px;
       }
 
       :deep(.el-color-picker__icon) {
-        font-size: 10px !important;
+        font-size: 10px;
       }
     }
   }
@@ -752,29 +781,30 @@ const handleCloseDrawer = () => {
   .theme-color-selector {
     .color-option {
       border-color: var(--el-border-color);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--el-box-shadow-light);
 
       &:hover {
         border-color: var(--el-color-primary-light-3);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        box-shadow: var(--el-box-shadow);
       }
     }
 
     .color-picker-wrapper {
       .custom-color-picker {
         :deep(.el-color-picker__trigger) {
-          border-color: var(--el-border-color) !important;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+          border-color: var(--el-border-color);
+          box-shadow: var(--el-box-shadow-light);
 
           &:hover {
-            border-color: var(--el-color-primary-light-3) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+            border-color: var(--el-color-primary-light-3);
+            box-shadow: var(--el-box-shadow);
           }
         }
       }
     }
   }
 }
+
 
 /* 复制配置对话框样式 */
 :deep(.copy-config-dialog) {

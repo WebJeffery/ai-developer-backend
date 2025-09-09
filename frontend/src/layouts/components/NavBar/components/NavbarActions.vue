@@ -1,31 +1,31 @@
 <template>
   <div ref="navbar-actions" :class="['navbar-actions', navbarActionsClass]">
     <!-- 桌面端工具项 -->
-    <template v-if="isDesktop && settingStore.showDesktopTools">
+    <template v-if="isDesktop">
       <!-- 搜索 -->
-      <div class="navbar-actions__item">
+      <div v-if="settingStore.showMenuSearch" class="navbar-actions__item">
         <MenuSearch />
       </div>
 
       <!-- 全屏 -->
-      <div class="navbar-actions__item">
+      <div v-if="settingStore.showFullscreen" class="navbar-actions__item">
         <Fullscreen />
       </div>
 
       <!-- 布局大小 -->
-      <div class="navbar-actions__item">
+      <div v-if="settingStore.showSizeSelect" class="navbar-actions__item">
         <SizeSelect />
       </div>
 
       <!-- 语言选择 -->
-      <div class="navbar-actions__item">
+      <div v-if="settingStore.showLangSelect" class="navbar-actions__item">
         <LangSelect />
       </div>
 
     </template>
 
     <!-- 通知 -->
-    <div class="navbar-actions__item">
+    <div v-if="settingStore.showNotification" class="navbar-actions__item">
       <Notification />
     </div>
 
@@ -62,14 +62,6 @@
             <el-dropdown-item @click="handleTourClick">
               <el-icon><Position /></el-icon>
               {{ t("navbar.tour") }}
-            </el-dropdown-item>
-            <el-dropdown-item divided @click="handleToggleSettings">
-              <el-icon><Tools /></el-icon>
-              {{ settingStore.showSettings ? t('navbar.hideSettings') : t('navbar.showSettings') }}
-            </el-dropdown-item>
-            <el-dropdown-item @click="handleToggleDesktopTools">
-              <el-icon><Operation /></el-icon>
-              {{ settingStore.showDesktopTools ? t('navbar.hideDesktopTools') : t('navbar.showDesktopTools') }}
             </el-dropdown-item>
             <el-dropdown-item divided @click="handlelockScreen">
               <el-icon><Lock /></el-icon>
@@ -183,25 +175,6 @@ function handleTourClick() {
   }
 }
 
-/**
- * 切换项目配置显示状态
- */
-function handleToggleSettings() {
-  settingStore.updateSetting('showSettings', !settingStore.showSettings);
-  ElMessage.success(
-    settingStore.showSettings ? t('navbar.settingsEnabled') : t('navbar.settingsDisabled')
-  );
-}
-
-/**
- * 切换桌面端工具项打开状态
- */
-function handleToggleDesktopTools() {
-  settingStore.updateSetting('showDesktopTools', !settingStore.showDesktopTools);
-  ElMessage.success(
-    settingStore.showDesktopTools ? t('navbar.desktopToolsEnabled') : t('navbar.desktopToolsDisabled')
-  );
-}
 
 /**
  * 锁屏

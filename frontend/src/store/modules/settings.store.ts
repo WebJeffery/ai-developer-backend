@@ -12,7 +12,13 @@ interface SettingsState {
   showAppLogo: boolean;
   showWatermark: boolean;
   showSettings: boolean;
-  showDesktopTools: boolean;
+  
+  // 桌面端工具显示设置
+  showMenuSearch: boolean;
+  showFullscreen: boolean;
+  showSizeSelect: boolean;
+  showLangSelect: boolean;
+  showNotification: boolean;
 
   // 布局设置
   layout: LayoutMode;
@@ -31,38 +37,23 @@ export const useSettingsStore = defineStore("setting", () => {
   // 🎯 基础设置 - 非持久化
   const settingsVisible = ref<boolean>(false);
 
-  // 🎯 持久化设置 - 使用分组常量
-  const showTagsView = useStorage<boolean>(
-    SETTINGS_KEYS.SHOW_TAGS_VIEW,
-    defaultSettings.showTagsView
-  );
-
+  // 🎯 界面显示设置 - 持久化
+  const showTagsView = useStorage<boolean>(SETTINGS_KEYS.SHOW_TAGS_VIEW, defaultSettings.showTagsView);
   const showAppLogo = useStorage<boolean>(SETTINGS_KEYS.SHOW_APP_LOGO, defaultSettings.showAppLogo);
+  const showWatermark = useStorage<boolean>(SETTINGS_KEYS.SHOW_WATERMARK, defaultSettings.showWatermark);
+  const showSettings = useStorage<boolean>(SETTINGS_KEYS.SHOW_SETTINGS, defaultSettings.showSettings);
 
-  const showWatermark = useStorage<boolean>(
-    SETTINGS_KEYS.SHOW_WATERMARK,
-    defaultSettings.showWatermark
-  );
+  // 🎯 桌面端工具设置 - 持久化
+  const showMenuSearch = useStorage<boolean>(SETTINGS_KEYS.SHOW_MENU_SEARCH, defaultSettings.showMenuSearch);
+  const showFullscreen = useStorage<boolean>(SETTINGS_KEYS.SHOW_FULLSCREEN, defaultSettings.showFullscreen);
+  const showSizeSelect = useStorage<boolean>(SETTINGS_KEYS.SHOW_SIZE_SELECT, defaultSettings.showSizeSelect);
+  const showLangSelect = useStorage<boolean>(SETTINGS_KEYS.SHOW_LANG_SELECT, defaultSettings.showLangSelect);
+  const showNotification = useStorage<boolean>(SETTINGS_KEYS.SHOW_NOTIFICATION, defaultSettings.showNotification);
 
-  const showSettings = useStorage<boolean>(
-    SETTINGS_KEYS.SHOW_SETTINGS,
-    defaultSettings.showSettings
-  );
-
-  const showDesktopTools = useStorage<boolean>(
-    SETTINGS_KEYS.SHOW_DESKTOP_TOOLS,
-    defaultSettings.showDesktopTools
-  );
-
-  const sidebarColorScheme = useStorage<string>(
-    SETTINGS_KEYS.SIDEBAR_COLOR_SCHEME,
-    defaultSettings.sidebarColorScheme
-  );
-
+  // 🎯 布局和主题设置 - 持久化
+  const sidebarColorScheme = useStorage<string>(SETTINGS_KEYS.SIDEBAR_COLOR_SCHEME, defaultSettings.sidebarColorScheme);
   const layout = useStorage<LayoutMode>(SETTINGS_KEYS.LAYOUT, defaultSettings.layout as LayoutMode);
-
   const themeColor = useStorage<string>(SETTINGS_KEYS.THEME_COLOR, defaultSettings.themeColor);
-
   const theme = useStorage<ThemeMode>(SETTINGS_KEYS.THEME, defaultSettings.theme);
 
   // 🎯 设置项映射
@@ -71,7 +62,11 @@ export const useSettingsStore = defineStore("setting", () => {
     showAppLogo,
     showWatermark,
     showSettings,
-    showDesktopTools,
+    showMenuSearch,
+    showFullscreen,
+    showSizeSelect,
+    showLangSelect,
+    showNotification,
     sidebarColorScheme,
     layout,
   } as const;
@@ -136,11 +131,20 @@ export const useSettingsStore = defineStore("setting", () => {
 
   // 🎯 批量重置设置
   function resetSettings(): void {
+    // 界面显示设置
     showTagsView.value = defaultSettings.showTagsView;
     showAppLogo.value = defaultSettings.showAppLogo;
     showWatermark.value = defaultSettings.showWatermark;
     showSettings.value = defaultSettings.showSettings;
-    showDesktopTools.value = defaultSettings.showDesktopTools;
+    
+    // 桌面端工具设置
+    showMenuSearch.value = defaultSettings.showMenuSearch;
+    showFullscreen.value = defaultSettings.showFullscreen;
+    showSizeSelect.value = defaultSettings.showSizeSelect;
+    showLangSelect.value = defaultSettings.showLangSelect;
+    showNotification.value = defaultSettings.showNotification;
+    
+    // 布局和主题设置
     sidebarColorScheme.value = defaultSettings.sidebarColorScheme;
     layout.value = defaultSettings.layout as LayoutMode;
     themeColor.value = defaultSettings.themeColor;
@@ -148,31 +152,41 @@ export const useSettingsStore = defineStore("setting", () => {
   }
 
   return {
-    // 状态
+    // 🎯 基础状态
     settingsVisible,
+    
+    // 🎯 界面显示状态
     showTagsView,
     showAppLogo,
     showWatermark,
     showSettings,
-    showDesktopTools,
+    
+    // 🎯 桌面端工具状态
+    showMenuSearch,
+    showFullscreen,
+    showSizeSelect,
+    showLangSelect,
+    showNotification,
+    
+    // 🎯 布局和主题状态
     sidebarColorScheme,
     layout,
     themeColor,
     theme,
 
-    // 更新方法
+    // 🎯 更新方法
     updateSetting,
     updateTheme,
     updateThemeColor,
     updateSidebarColorScheme,
     updateLayout,
 
-    // 面板控制
+    // 🎯 面板控制
     toggleSettingsPanel,
     showSettingsPanel,
     hideSettingsPanel,
 
-    // 重置功能
+    // 🎯 重置功能
     resetSettings,
   };
 });

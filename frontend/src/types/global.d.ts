@@ -62,10 +62,18 @@ declare global {
     title: string;
     /** 系统版本 */
     version: string;
-    /** 是否显示设置 */
+    /** 是否显示设置按钮 */
     showSettings: boolean;
-    /** 是否显示桌面端工具项 */
-    showDesktopTools: boolean;
+    /** 是否显示菜单搜索 */
+    showMenuSearch: boolean;
+    /** 是否显示全屏切换 */
+    showFullscreen: boolean;
+    /** 是否显示布局大小 */
+    showSizeSelect: boolean;
+    /** 是否显示语言选择 */
+    showLangSelect: boolean;
+    /** 是否显示通知 */
+    showNotification: boolean;
     /** 是否显示多标签导航 */
     showTagsView: boolean;
     /** 是否显示应用Logo */
