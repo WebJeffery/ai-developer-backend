@@ -80,8 +80,8 @@
       <pagination
         v-if="total > 0"
         v-model:total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
+        v-model:page="queryParams.page_no"
+        v-model:limit="queryParams.page_size"
         @pagination="handleQuery"
       />
     </el-card>
@@ -429,8 +429,8 @@ import GeneratorAPI, {
   FieldConfig,
 } from "@/api/codegen.api";
 
-import DictAPI from "@/api/system/dict.api";
-import MenuAPI from "@/api/system/menu.api";
+import DictAPI from "@/api/system/dict";
+import MenuAPI from "@/api/system/menu";
 
 interface TreeNode {
   label: string;
@@ -441,8 +441,8 @@ const treeData = ref<TreeNode[]>([]);
 
 const queryFormRef = ref();
 const queryParams = reactive<TablePageQuery>({
-  pageNum: 1,
-  pageSize: 10,
+  page_no: 1,
+  page_size: 10,
 });
 
 const loading = ref(false);
@@ -633,7 +633,7 @@ function handleQuery() {
   loading.value = true;
   GeneratorAPI.getTablePage(queryParams)
     .then((data) => {
-      pageData.value = data.list;
+      pageData.value = data.items;
       total.value = data.total;
     })
     .finally(() => {
@@ -644,7 +644,7 @@ function handleQuery() {
 /** 重置查询 */
 function handleResetQuery() {
   queryFormRef.value.resetFields();
-  queryParams.pageNum = 1;
+  queryParams.page_no = 1;
   handleQuery();
 }
 
@@ -653,11 +653,17 @@ async function handleOpenDialog(tableName: string) {
   dialog.visible = true;
   active.value = 0;
 
-  menuOptions.value = await MenuAPI.getOptions(true);
+  menuOptions.value = await MenuAPI.getMenuList({
+    page_no: 1,
+    page_size: 1000,
+  });
 
   currentTableName.value = tableName;
   // 获取字典数据
-  DictAPI.getList().then((data) => {
+  DictAPI.getDictTypeList({
+    page_no: 1,
+    page_size: 1000,
+  }).then((data) => {
     dictOptions.value = data;
     loading.value = true;
     GeneratorAPI.getGenConfig(tableName)

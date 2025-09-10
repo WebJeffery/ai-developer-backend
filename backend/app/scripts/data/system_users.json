@@ -1,22 +1,5 @@
 [
   {
-    "id": 1,
-    "username": "superadmin",
-    "password": "$2b$12$/Df5YczDGF41zCh2F8Xbu.yHTJXGm3tONgsXz1KLUdG0mtpKUOLD2",
-    "name": "超级管理员",
-    "mobile": "15382112620",
-    "email": "948080782@qq.com",
-    "gender": "1",
-    "avatar": "https://service.fastapiadmin.com/api/v1/static/image/avatar.png",
-    "status": true,
-    "is_superuser": true,
-    "last_login": null,
-    "dept_id": 1,
-    "description": "超级管理员",
-    "creator_id": null
-  },
-  {
-    "id": 2,
     "username": "admin",
     "password": "$2b$12$e2IJgS/cvHgJ0H3G7Xa08OXoXnk6N/NX3IZRtubBDElA0VLZhkNOa",
     "name": "管理员",
@@ -25,25 +8,24 @@
     "gender": "0",
     "avatar": "https://service.fastapiadmin.com/api/v1/static/image/avatar.png",
     "status": true,
-    "is_superuser": false,
+    "is_superuser": true,
     "last_login": null,
     "dept_id": 1,
     "description": "管理员",
     "creator_id": 1
   },
   {
-    "id": 3,
     "username": "demo",
     "password": "$2b$12$e2IJgS/cvHgJ0H3G7Xa08OXoXnk6N/NX3IZRtubBDElA0VLZhkNOa",
     "name": "演示用户",
     "mobile": "15382112121",
     "email": "demo@qq.com",
-    "gender": "1",
+    "gender": "0",
     "avatar": "https://service.fastapiadmin.com/api/v1/static/image/avatar.png",
     "status": true,
     "is_superuser": false,
     "last_login": null,
-    "dept_id": 6,
+    "dept_id": 1,
     "description": "演示用户",
     "creator_id": 1
   }

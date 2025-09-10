@@ -186,15 +186,15 @@
           sortable
         />
 
-        <el-table-column fixed="right" label="操作" min-width="240">
+        <el-table-column fixed="right" label="操作" min-width="300">
           <template #default="scope">
             <div class="flex">
               <el-button
-                type="info"
+                type="warning"
                 size="small"
                 link
                 icon="document"
-                @click="handleOpenDialog('log', scope.row.id)"
+                @click="handleOpenLogDrawer(scope.row.id, scope.row.name)"
               >
                 日志
               </el-button>
@@ -315,9 +315,6 @@
           <el-descriptions-item label="结束时间" :span="2">{{
             detailFormData.end_date
           }}</el-descriptions-item>
-          <el-descriptions-item label="日志信息" :span="2">{{
-            detailFormData.message
-          }}</el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">{{
             detailFormData.creator?.name
           }}</el-descriptions-item>
@@ -351,7 +348,8 @@
           </el-form-item>
           <el-form-item label="任务函数" prop="func" style="width: 40%">
             <el-select v-model="formData.func" placeholder="请选择任务函数">
-                <el-option v-for="item in dictStore.getDictArray('sys_job_function')"
+                <el-option
+                  v-for="item in dictStore.getDictArray('sys_job_function')"
                   :key="item.dict_value"
                   :label="item.dict_label"
                   :value="item.dict_value"
@@ -360,7 +358,8 @@
           </el-form-item>
           <el-form-item label="存储器" prop="jobstore" style="width: 40%">
             <el-select v-model="formData.jobstore" placeholder="请选择存储器">
-                <el-option v-for="item in dictStore.getDictArray('sys_job_store')"
+                <el-option 
+                  v-for="item in dictStore.getDictArray('sys_job_store')"
                   :key="item.dict_value"
                   :label="item.dict_label"
                   :value="item.dict_value"
@@ -369,7 +368,8 @@
           </el-form-item>
           <el-form-item label="执行器" prop="executor" style="width: 40%">
             <el-select v-model="formData.executor" placeholder="请选择执行器">
-                <el-option v-for="item in dictStore.getDictArray('sys_job_executor')"
+                <el-option 
+                  v-for="item in dictStore.getDictArray('sys_job_executor')"
                   :key="item.dict_value"
                   :label="item.dict_label"
                   :value="item.dict_value"
@@ -410,7 +410,8 @@
           </el-form-item>
           <el-form-item label="触发器" prop="trigger" style="width: 40%">
             <el-select v-model="formData.trigger" placeholder="请选择触发器">
-                <el-option v-for="item in dictStore.getDictArray('sys_job_trigger')"
+                <el-option
+                  v-for="item in dictStore.getDictArray('sys_job_trigger')"
                   :key="item.dict_value"
                   :label="item.dict_label"
                   :value="item.dict_value"
@@ -458,9 +459,9 @@
               </template>
               <IntervalTab
                 ref="intervalTabRef"
+                :cron-value="formData.trigger_args"
                 @confirm="handleIntervalConfirm"
                 @cancel="openIntervalTab = false"
-                :cron-value="formData.trigger_args"
               />
             </el-popover>
           </el-form-item>
@@ -493,10 +494,10 @@
                 />
               </template>
               <vue3CronPlus
+                i18n="cn"
+                max-height="500px"
                 @change="handlechangeCron"
                 @close="openCron = false"
-                max-height="500px"
-                i18n="cn"
               ></vue3CronPlus>
             </el-popover>
           </el-form-item>
@@ -566,6 +567,9 @@
       </template>
     </el-dialog>
   </div>
+
+  <JobLogDrawer v-if="drawerVisible" v-model="drawerVisible" :job-id="currentJobId" :job-name="currentJobName" />
+
 </template>
 
 <script lang="ts" setup>
@@ -579,6 +583,7 @@ import IntervalTab from "@/components/IntervalTab/index.vue";
 import { useDictStore } from "@/store/index";
 import { vue3CronPlus } from "vue3-cron-plus";
 import "vue3-cron-plus/dist/index.css"; // 引入样式
+import  JobLogDrawer from "@/views/monitor/job/components/JobLogDrawer.vue"
 
 const dictStore = useDictStore();
 
@@ -600,7 +605,7 @@ const intervalTabRef = ref();
 const pageTableData = ref<JobTable[]>([]);
 
 // 详情表单
-const detailFormData = ref<JobTable>({});
+const detailFormData = ref<JobTable>({} as JobTable);
 
 // 分页查询参数
 const queryFormData = reactive<JobPageQuery>({
@@ -628,7 +633,6 @@ const formData = reactive<JobForm>({
   start_date: undefined,
   end_date: undefined,
   status: undefined,
-  message: undefined,
   description: undefined,
 });
 
@@ -638,6 +642,9 @@ const dialogVisible = reactive({
   visible: false,
   type: "create" as "create" | "update" | "detail" | "log",
 });
+
+// 抽屉显隐
+const drawerVisible = ref(false);
 
 // 表单验证规则
 const rules = reactive({
@@ -713,7 +720,6 @@ const initialFormData: JobForm = {
   start_date: undefined,
   end_date: undefined,
   status: undefined,
-  message: undefined,
   description: undefined,
 }
 
@@ -740,7 +746,7 @@ async function handleCloseDialog() {
 
 // 打开弹窗
 async function handleOpenDialog(
-  type: "create" | "update" | "detail" | "log",
+  type: "create" | "update" | "detail",
   id?: number
 ) {
   dialogVisible.type = type;
@@ -752,10 +758,6 @@ async function handleOpenDialog(
     } else if (type === "update") {
       dialogVisible.title = "修改任务";
       Object.assign(formData, response.data.data);
-    } else if (type === "log") {
-      // 处理可以参考字典数据
-      dialogVisible.title = "任务日志";
-      ElMessage.success("开发中...");
     }
   } else {
     dialogVisible.title = "新增任务";
@@ -910,6 +912,15 @@ const handleOption = (id: number, option: number) => {
     loadingData();
   });
 };
+
+const currentJobId = ref<number>(0);
+const currentJobName = ref<string>("");
+
+function handleOpenLogDrawer(jobId: number, jobName: string) {
+  currentJobId.value = jobId;
+  currentJobName.value = jobName;
+  drawerVisible.value = true;
+}
 
 onMounted(async () => {
   // 加载字典数据

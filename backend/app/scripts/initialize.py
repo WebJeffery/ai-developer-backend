@@ -46,13 +46,7 @@ class InitializeData:
             # 基础表（无外键依赖）
             ConfigModel,
             DictTypeModel,
-            NoticeModel,
-            OperationLogModel,
             DictDataModel,
-            JobModel,
-            JobLogModel,
-            DemoModel,
-            ApplicationModel,
             # 关联表（依赖基础表）
             UserPositionsModel,
             UserRolesModel,

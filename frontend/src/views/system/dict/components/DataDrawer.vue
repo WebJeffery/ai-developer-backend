@@ -198,7 +198,7 @@
             <el-input-number v-model="formData.dict_sort" controls-position="right" :min="1" />
           </el-form-item>
           <el-form-item label="状态" prop="status">
-            <el-switch v-model="formData.status" inline-prompt :active-icon="Check" :inactive-icon="Close" active-text="启用" inactive-text="停用" active-value="true" inactive-value="false" />
+            <el-switch v-model="formData.status" inline-prompt active-value="true" inactive-value="false" />
           </el-form-item>
 
           <el-form-item label="描述" prop="description">
@@ -235,7 +235,6 @@ const props = defineProps({
 
 import DictAPI, { DictDataTable, DictDataForm, DictDataPageQuery } from "@/api/system/dict";
 import { ElMessageBox } from "element-plus";
-import { Check, Close } from '@element-plus/icons-vue'
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 

@@ -22,6 +22,9 @@ interface ImportMetaEnv {
 
   /** 资源管理根路径 */
   VITE_RESOURCE_ROOT_PATH: string;
+
+  /** ws 端点 */
+  VITE_APP_WS_ENDPOINT: string;
 }
 
 interface ImportMeta {
