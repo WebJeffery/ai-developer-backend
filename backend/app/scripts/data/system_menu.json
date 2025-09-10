@@ -2033,7 +2033,7 @@
     "keep_alive": true,
     "hidden": false,
     "always_show": false,
-    "title": "文件管理",
+    "title": "存储监控",
     "params": null,
     "affix": false,
     "redirect": null,
