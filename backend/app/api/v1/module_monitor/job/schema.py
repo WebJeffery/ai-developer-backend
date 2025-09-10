@@ -24,7 +24,6 @@ class JobCreateSchema(BaseModel):
     end_date: Optional[str] = Field(default=None, description='结束时间')
     description: Optional[str] = Field(default=None, description='备注说明')
     status: Optional[bool] = Field(default=False, description='任务状态:启动,停止')
-    message: Optional[str] = Field(default=None, max_length=500, description='日志信息')
 
 
 class JobUpdateSchema(JobCreateSchema):

@@ -36,61 +36,94 @@
 
         <!-- 应用网格 -->
         <div v-loading="loading" class="app-grid">
-        <div 
-          v-for="app in applicationList" 
-          :key="app.id"
-          class="app-card"
-        >
-          <div class="app-card-header">
-            <el-avatar :size="48" :src="app.icon_url" class="app-avatar">
-              <el-icon size="24"><Monitor /></el-icon>
-            </el-avatar>
-            <div class="app-info">
-              <h3 class="app-name">{{ app.name }}</h3>
-              <el-tag :type="app.status ? 'success' : 'danger'" size="small">
-                {{ app.status ? '启用' : '停用' }}
-              </el-tag>
+          <el-card 
+            v-for="app in applicationList" 
+            :key="app.id"
+            class="app-card-el"
+            :body-style="{ padding: '12px' }"
+            shadow="hover"
+          >
+            <template #header>
+              <div class="app-card-header-el">
+                <div class="app-info-header">
+                  <el-avatar 
+                    :size="40" 
+                    :src="app.icon_url" 
+                    class="app-avatar-el"
+                  >
+                    <el-icon size="20"><Monitor /></el-icon>
+                  </el-avatar>
+                  <div class="app-title-section">
+                    <h3 class="app-name-el">{{ app.name }}</h3>
+                    <el-tag 
+                      :type="app.status ? 'success' : 'danger'" 
+                      size="small"
+                      class="app-status-tag"
+                    >
+                      {{ app.status ? '启用' : '停用' }}
+                    </el-tag>
+                  </div>
+                </div>
+                <el-dropdown 
+                  trigger="click" 
+                  @command="(command) => handleAppAction(command, app)"
+                >
+                  <el-button 
+                    type="text" 
+                    icon="MoreFilled" 
+                    size="small"
+                    class="app-menu-btn"
+                  />
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="edit" icon="Edit">编辑</el-dropdown-item>
+                      <el-dropdown-item command="delete" icon="Delete" divided>删除</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+            </template>
+
+            <div class="app-card-content">
+              <p class="app-description">{{ app.description || '暂无描述' }}</p>
+              
+              <div class="app-meta-info">
+                <div class="app-meta-row">
+                  <div class="meta-item left">
+                    <el-icon size="14" class="meta-icon"><User /></el-icon>
+                    <span>{{ app.creator?.name || '未知' }}</span>
+                  </div>
+                  <div class="meta-item right">
+                    <el-icon size="14" class="meta-icon"><Clock /></el-icon>
+                    <span>{{ formatTime(app.created_at) }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <el-dropdown trigger="click" @command="(command) => handleAppAction(command, app)">
-              <el-button type="text" icon="MoreFilled" size="small" />
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="edit" icon="Edit">编辑</el-dropdown-item>
-                  <el-dropdown-item command="delete" icon="Delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-          
-          <div class="app-card-body">
-            <p class="app-desc">{{ app.description || '暂无描述' }}</p>
-            <div class="app-meta">
-              <span class="app-creator">{{ app.creator?.name || '未知' }}</span>
-              <span class="app-time">{{ formatTime(app.created_at) }}</span>
+
+            <div class="app-card-actions">
+              <el-button 
+                type="primary" 
+                icon="Link" 
+                size="small"
+                :disabled="!app.status"
+                class="action-btn"
+                @click="openAppExternal(app.access_url)"
+              >
+                外部打开
+              </el-button>
+              <el-button 
+                type="default" 
+                icon="View" 
+                size="small"
+                :disabled="!app.status"
+                class="action-btn"
+                @click="openAppInternal(app)"
+              >
+                内部打开
+              </el-button>
             </div>
-          </div>
-          
-          <div class="app-card-footer">
-            <el-button 
-              type="primary" 
-              icon="Link" 
-              size="small"
-              @click="openAppExternal(app.access_url)"
-              :disabled="!app.status"
-            >
-              外部打开
-            </el-button>
-            <el-button 
-              type="default" 
-              icon="View" 
-              size="small"
-              @click="openAppInternal(app)"
-              :disabled="!app.status"
-            >
-              内部打开
-            </el-button>
-          </div>
-        </div>
+          </el-card>
         </div>
         
         <!-- 空状态 -->
@@ -180,6 +213,7 @@ import { useAppStore } from "@/store/modules/app.store";
 import { useTagsViewStore } from "@/store";
 import { useRouter } from "vue-router";
 import { DeviceEnum } from "@/enums/settings/device.enum";
+import { Monitor, User, Clock } from '@element-plus/icons-vue';
 import ApplicationAPI, { type ApplicationForm, type ApplicationInfo, type ApplicationPageQuery } from "@/api/application/myapp";
 import { formatToDateTime } from "@/utils/dateUtil";
 
@@ -460,66 +494,82 @@ onMounted(() => {
 }
 
 .app-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
-  padding: 20px 0;
-  flex: 1;
-  overflow-y: auto;
-}
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 20px 0;
+    flex: 1;
+  }
 
-.app-card {
-  border: 1px solid var(--el-border-color);
+.app-card-el {
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
-  padding: 10px;
-  background: var(--el-bg-color);
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
+  transition: all 0.3s ease;
+  min-height: 180px;
+  width: 100%;
   
   &:hover {
-    border-color: var(--el-color-primary);
-    box-shadow: var(--el-box-shadow-light);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 }
 
-.app-card-header {
+.app-card-header-el {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  justify-content: space-between;
 }
 
-.app-avatar {
-  flex-shrink: 0;
-}
-
-.app-info {
+.app-info-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
   min-width: 0;
 }
 
-.app-name {
-  font-size: 13px;
+.app-avatar-el {
+  flex-shrink: 0;
+}
+
+.app-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-name-el {
+  font-size: 16px;
   font-weight: 600;
   color: var(--el-text-color-primary);
-  margin: 0 0 3px 0;
+  margin: 0 0 4px 0;
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.app-card-body {
-  flex: 1;
-  margin-bottom: 8px;
+.app-status-tag {
+  margin-top: 2px;
 }
 
-.app-desc {
-  font-size: 11px;
+.app-menu-btn {
+  padding: 4px;
+  color: var(--el-text-color-secondary);
+  
+  &:hover {
+    color: var(--el-color-primary);
+  }
+}
+
+.app-card-content {
+  margin: 12px 0;
+}
+
+.app-description {
+  font-size: 14px;
   color: var(--el-text-color-regular);
-  margin: 0 0 4px 0;
-  line-height: 1.3;
+
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -527,23 +577,63 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.app-meta {
+.app-meta-info {
   display: flex;
-  align-items: center;
-  font-size: 10px;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
+}
+
+.app-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
 }
 
-.app-card-footer {
+.meta-item {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.meta-item.left {
+  flex: 1;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.meta-item.right {
+  flex: 1;
+  justify-content: flex-end;
+  text-align: right;
+  min-width: 0;
+}
+
+.meta-icon {
+  color: var(--el-text-color-placeholder);
+  flex-shrink: 0;
+}
+
+.meta-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.app-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
   
-  .el-button {
-    font-size: 11px;
-    padding: 3px 6px;
+  .action-btn {
     flex: 1;
-    width: 40%;
+    font-size: 12px;
+    padding: 4px 8px;
   }
 }
 

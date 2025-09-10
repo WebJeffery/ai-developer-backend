@@ -18,21 +18,21 @@ from .schema import ConfigCreateSchema, ConfigUpdateSchema
 from .service import ConfigService
 
 
-ConfigRouter = APIRouter(route_class=OperationLogRoute, prefix="/config", tags=["系统配置"])
+ConfigRouter = APIRouter(route_class=OperationLogRoute, prefix="/param", tags=["参数管理"])
 
-@ConfigRouter.get("/detail/{id}", summary="获取系统配置详情", description="获取系统配置详情")
+@ConfigRouter.get("/detail/{id}", summary="获取参数详情", description="获取参数详情")
 async def get_type_detail_controller(
-    id: int = Path(..., description="系统配置ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:query"]))
+    id: int = Path(..., description="参数ID"),
+    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:query"]))
 ) -> JSONResponse:
     result_dict = await ConfigService.get_obj_detail_service(id=id, auth=auth)
-    logger.info(f"获取系统配置详情成功 {id}")
-    return SuccessResponse(data=result_dict, msg="获取系统配置详情成功")
+    logger.info(f"获取参数详情成功 {id}")
+    return SuccessResponse(data=result_dict, msg="获取参数详情成功")
 
 
 @ConfigRouter.get("/list", summary="获取配置", description="获取配置")
 async def get_obj_list_controller(
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:query"])),
+    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:query"])),
     page: PaginationQueryParams = Depends(),
     search: ConfigQueryParams = Depends(),
 ) -> JSONResponse:
@@ -42,49 +42,49 @@ async def get_obj_list_controller(
     return SuccessResponse(data=result_dict, msg="查询配置列表成功")
 
 
-@ConfigRouter.post("/create", summary="创建系统配置", description="创建系统配置")
+@ConfigRouter.post("/create", summary="创建参数", description="创建参数")
 async def create_obj_controller(
     data: ConfigCreateSchema,
     redis: Redis = Depends(redis_getter),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:create"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:create"]))
 ) -> JSONResponse:
     result_dict = await ConfigService.create_obj_service(auth=auth, redis=redis, data=data)
-    logger.info(f"创建系统配置成功: {result_dict}")
-    return SuccessResponse(data=result_dict, msg="创建系统配置成功")
+    logger.info(f"创建参数成功: {result_dict}")
+    return SuccessResponse(data=result_dict, msg="创建参数成功")
 
 
 @ConfigRouter.put("/update/{id}", summary="修改配置", description="修改配置")
 async def update_objs_controller(
     data: ConfigUpdateSchema,
-    id: int = Path(..., description="系统配置ID"),
+    id: int = Path(..., description="参数ID"),
     redis: Redis = Depends(redis_getter), 
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:update"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:update"]))
 ) -> JSONResponse:
     result_dict = await ConfigService.update_obj_service(auth=auth, redis=redis, id=id, data=data)
     logger.info(f"更新配置成功 {result_dict}")
     return SuccessResponse(data=result_dict, msg="更新配置成功")
 
 
-@ConfigRouter.delete("/delete", summary="删除系统配置", description="删除系统配置")
-async def delete_type_controller(
+@ConfigRouter.delete("/delete", summary="删除参数", description="删除参数")
+async def delete_obj_controller(
     redis: Redis = Depends(redis_getter),
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:delete"]))
 ) -> JSONResponse:
     await ConfigService.delete_obj_service(auth=auth, redis=redis, ids=ids)
-    logger.info(f"删除系统配置成功: {ids}")
-    return SuccessResponse(msg="删除系统配置成功")
+    logger.info(f"删除参数成功: {ids}")
+    return SuccessResponse(msg="删除参数成功")
 
 
-@ConfigRouter.post('/export', summary="导出系统配置", description="导出系统配置")
-async def export_type_list_controller(
+@ConfigRouter.post('/export', summary="导出参数", description="导出参数")
+async def export_obj_list_controller(
     search: ConfigQueryParams = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:config:export"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:export"]))
 ) -> StreamingResponse:
     # 获取全量数据
     result_dict_list = await ConfigService.get_obj_list_service(search=search, auth=auth)
     export_result = await ConfigService.export_obj_service(data_list=result_dict_list)
-    logger.info('导出系统配置成功')
+    logger.info('导出参数成功')
 
     return StreamResponse(
         data=bytes2file_response(export_result),
@@ -105,10 +105,10 @@ async def upload_file_controller(
     return SuccessResponse(data=result_str, msg='上传文件成功')
 
 
-@ConfigRouter.get("/info", summary="获取初始化缓存系统配置", description="获取初始化缓存系统配置")
-async def get_init_config_controller(
+@ConfigRouter.get("/info", summary="获取初始化缓存参数", description="获取初始化缓存参数")
+async def get_init_obj_controller(
     redis: Redis = Depends(redis_getter),
 ) -> JSONResponse:
     result_dict = await ConfigService.get_init_config_service(redis=redis)
-    logger.info(f"获取初始化缓存系统配置成功 {result_dict}")
-    return SuccessResponse(data=result_dict, msg="获取初始化缓存系统配置成功")
+    logger.info(f"获取初始化缓存参数成功 {result_dict}")
+    return SuccessResponse(data=result_dict, msg="获取初始化缓存参数成功")

@@ -5,7 +5,7 @@
       <!-- 顶部导航栏 -->
       <div class="chat-navbar">
         <div class="navbar-left">
-          <h2>FVA智能助手</h2>
+          <h2>FA智能助手</h2>
         </div>
         <div class="navbar-right">
           <div class="connection-status">
@@ -17,9 +17,9 @@
             <span class="status-text">{{ connectionStatusText }}</span>
           </div>
           <el-button 
+            v-if="messages.length > 0"
             text 
             @click="clearCurrentChat"
-            v-if="messages.length > 0"
           >
             <el-icon><Delete /></el-icon>
             清空对话
@@ -35,14 +35,14 @@
       </div>
 
       <!-- 聊天消息区域 -->
-      <div class="chat-messages" ref="messagesContainer">
+      <div ref="messagesContainer" class="chat-messages">
         <!-- 欢迎界面 -->
         <div v-if="messages.length === 0" class="welcome-screen">
           <div class="welcome-content">
             <div class="ai-logo">
               <el-icon size="64"><ChatDotRound /></el-icon>
             </div>
-            <h1>FVA智能助手</h1>
+            <h1>FA智能助手</h1>
             <p class="welcome-subtitle">我是您的专属AI助手，可以帮您回答问题、处理任务和进行智能对话</p>
             
             <div class="example-prompts">
@@ -50,17 +50,17 @@
                 <h4>系统介绍</h4>
                 <p>请介绍一下FastAPI Vue3 Admin系统</p>
               </div>
-              <div class="prompt-card" @click="setPrompt('如何在FVA系统中创建新的模块？')">
+              <div class="prompt-card" @click="setPrompt('如何在系统中创建新的模块？')">
                 <h4>开发指导</h4>
-                <p>如何在FVA系统中创建新的模块？</p>
+                <p>如何在系统中创建新的模块？</p>
               </div>
-              <div class="prompt-card" @click="setPrompt('FVA系统的权限管理是如何工作的？')">
+              <div class="prompt-card" @click="setPrompt('系统的权限管理是如何工作的？')">
                 <h4>权限管理</h4>
-                <p>FVA系统的权限管理是如何工作的？</p>
+                <p>FA系统的权限管理是如何工作的？</p>
               </div>
-              <div class="prompt-card" @click="setPrompt('如何优化FVA系统的性能？')">
+              <div class="prompt-card" @click="setPrompt('如何优化FA系统的性能？')">
                 <h4>性能优化</h4>
-                <p>如何优化FVA系统的性能？</p>
+                <p>如何优化系统的性能？</p>
               </div>
             </div>
           </div>
@@ -84,7 +84,7 @@
             <div class="message-content">
               <div class="message-header">
                 <strong class="sender-name">
-                  {{ message.type === 'user' ? 'You' : 'FVA助手' }}
+                  {{ message.type === 'user' ? 'You' : 'FA助手' }}
                 </strong>
               </div>
               <div class="message-body">
@@ -97,11 +97,11 @@
                 </div>
                 <div v-else class="message-text" v-html="formatMessage(message.content)"></div>
               </div>
-              <div class="message-actions" v-if="!message.loading">
+              <div v-if="!message.loading" class="message-actions">
                 <el-button text size="small" @click="copyMessage(message.content)">
                   <el-icon><CopyDocument /></el-icon>
                 </el-button>
-                <el-button text size="small" v-if="message.type === 'assistant'">
+                <el-button v-if="message.type === 'assistant'" text size="small">
                   <el-icon><RefreshLeft /></el-icon>
                 </el-button>
               </div>
@@ -115,8 +115,8 @@
             :title="error"
             type="error"
             :closable="true"
-            @close="error = ''"
             show-icon
+            @close="error = ''"
           />
         </div>
       </div>
@@ -127,23 +127,23 @@
           <div class="input-container">
             <el-input
               v-model="inputMessage"
-              :placeholder="isConnected ? '向FVA助手发送消息...' : '请先连接到服务器'"
+              :placeholder="isConnected ? '向FA助手发送消息...' : '请先连接到服务器'"
               :disabled="!isConnected || sending"
               type="textarea"
               :rows="1"
               :autosize="{ minRows: 1, maxRows: 6 }"
+              resize="none"
+              class="message-input"
               @keydown.enter.exact.prevent="sendMessage"
               @keydown.shift.enter.exact="inputMessage += '\n'"
-              class="message-input"
-              resize="none"
             />
             <el-button
               :disabled="!inputMessage.trim() || !isConnected || sending"
               :loading="sending"
-              @click="sendMessage"
               class="send-button"
               type="primary"
               circle
+              @click="sendMessage"
             >
               <el-icon><Promotion /></el-icon>
             </el-button>
@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   ChatDotRound,
@@ -195,7 +195,7 @@ const messagesContainer = ref<HTMLElement>()
 
 // WebSocket 连接
 let ws: WebSocket | null = null
-const WS_URL = 'ws://service.fastapiadmin.com/api/v1/ai/mcp/ws/chat'
+const WS_URL =  import.meta.env.VITE_APP_WS_ENDPOINT + '/api/v1/ai/ws/mcp/chat'
 
 // 计算属性
 const connectionStatusText = computed(() => {
@@ -241,11 +241,6 @@ const connectWebSocket = () => {
       console.log('WebSocket 连接已关闭', event.code, event.reason)
       isConnected.value = false
       connectionStatus.value = 'disconnected'
-      
-      if (event.code !== 1000) {
-        error.value = '连接意外断开，请检查网络连接'
-        ElMessage.error('连接断开')
-      }
     }
 
     ws.onerror = (error) => {

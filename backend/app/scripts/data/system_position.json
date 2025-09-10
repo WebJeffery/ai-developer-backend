@@ -5,47 +5,5 @@
     "order": 1,
     "description": "董事长岗位",
     "creator_id": 1
-  },
-  {
-    "name": "运营岗",
-    "status": true,
-    "order": 2,
-    "description": "运营岗位",
-    "creator_id": 1
-  },
-  {
-    "name": "销售岗",
-    "status": true,
-    "order": 3,
-    "description": "销售岗",
-    "creator_id": 1
-  },
-  {
-    "name": "人事行政岗",
-    "status": true,
-    "order": 4,
-    "description": "人事行政岗",
-    "creator_id": 1
-  },
-  {
-    "name": "开发岗",
-    "status": true,
-    "order": 5,
-    "description": "开发岗",
-    "creator_id": 1
-  },
-  {
-    "name": "测试岗",
-    "status": true,
-    "order": 6,
-    "description": "测试岗",
-    "creator_id": 1
-  },
-  {
-    "name": "演示岗",
-    "status": true,
-    "order": 7,
-    "description": "演示岗",
-    "creator_id": 1
   }
 ]

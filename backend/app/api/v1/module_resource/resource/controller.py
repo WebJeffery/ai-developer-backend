@@ -161,7 +161,7 @@ async def create_directory_controller(
 @ResourceRouter.get("/stats", summary="获取资源统计", description="获取资源统计信息")
 async def get_resource_stats_controller(
     request: Request,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:query"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:stats:query"]))
 ) -> JSONResponse:
     """获取资源统计"""
     result_dict = await ResourceService.get_stats_service(

@@ -12,10 +12,10 @@ from .service import MCPService
 from .schema import ChatQuerySchema
 
 
-MCPRouter = APIRouter(route_class=OperationLogRoute, prefix="/mcp", tags=["MCP智能助手"])
+MCPRouter = APIRouter(route_class=OperationLogRoute, prefix="", tags=["MCP智能助手"])
 
 
-@MCPRouter.post("/chat", summary="智能对话", description="与MCP智能助手进行对话")
+@MCPRouter.post("/mcp/chat", summary="智能对话", description="与MCP智能助手进行对话")
 async def chat_controller(
     query: ChatQuerySchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["ai:mcp:chat"]))
@@ -36,7 +36,7 @@ async def chat_controller(
     return StreamingResponse(generate_response(), media_type="text/plain; charset=utf-8")
 
 
-@MCPRouter.websocket("/ws/chat", name="WebSocket聊天")
+@MCPRouter.websocket("/ws/mcp/chat", name="WebSocket聊天")
 async def websocket_chat_controller(
     websocket: WebSocket,
 ):

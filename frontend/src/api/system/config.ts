@@ -3,7 +3,7 @@ import request from "@/utils/request";
 const ConfigAPI = {
   uploadFile(body: any) {
     return request<ApiResponse<UploadFilePath>>({
-      url: `/system/config/upload`,
+      url: `/system/param/upload`,
       method: "post",
       data: body,
       headers: { "Content-Type": "multipart/form-data" },
@@ -12,14 +12,14 @@ const ConfigAPI = {
 
   getInitConfig() {
     return request<ApiResponse<ConfigTable[]>>({
-      url: `/system/config/info`,
+      url: `/system/param/info`,
       method: "get",
     });
   },
 
   getConfigList(query: ConfigPageQuery) {
     return request<ApiResponse<PageResult<ConfigTable[]>>>({
-      url: `/system/config/list`,
+      url: `/system/param/list`,
       method: "get",
       params: query,
     });
@@ -27,14 +27,14 @@ const ConfigAPI = {
 
   getConfigDetail(query: number) {
     return request<ApiResponse<ConfigTable>>({
-      url: `/system/config/detail/${query}`,
+      url: `/system/param/detail/${query}`,
       method: "get",
     });
   },
 
   createConfig(body: ConfigForm) {
     return request<ApiResponse>({
-      url: `/system/config/create`,
+      url: `/system/param/create`,
       method: "post",
       data: body,
     });
@@ -42,7 +42,7 @@ const ConfigAPI = {
 
   updateConfig(id: number, body: ConfigForm) {
     return request<ApiResponse>({
-      url: `/system/config/update/${id}`,
+      url: `/system/param/update/${id}`,
       method: "put",
       data: body,
     });
@@ -50,7 +50,7 @@ const ConfigAPI = {
 
   deleteConfig(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/config/delete`,
+      url: `/system/param/delete`,
       method: "delete",
       data: body,
     });
@@ -58,7 +58,7 @@ const ConfigAPI = {
 
   exportConfig(body: ConfigPageQuery) {
     return request<Blob>({
-      url: `/system/config/export`,
+      url: `/system/param/export`,
       method: "post",
       data: body,
       responseType: "blob",

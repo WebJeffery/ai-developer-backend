@@ -1,6 +1,5 @@
 [
   {
-    "id": 1,
     "dict_name": "用户性别",
     "dict_type": "sys_user_sex",
     "status": true,
@@ -8,7 +7,6 @@
     "creator_id": 1
   },
   {
-    "id": 2,
     "dict_name": "系统是否",
     "dict_type": "sys_yes_no",
     "status": true,
@@ -16,7 +14,6 @@
     "creator_id": 1
   },
   {
-    "id": 3,
     "dict_name": "系统状态",
     "dict_type": "sys_common_status",
     "status": true,
@@ -24,7 +21,6 @@
     "creator_id": 1
   },
   {
-    "id": 4,
     "dict_name": "通知类型",
     "dict_type": "sys_notice_type",
     "status": true,
@@ -32,7 +28,6 @@
     "creator_id": 1
   },
   {
-    "id": 5,
     "dict_name": "操作类型",
     "dict_type": "sys_oper_type",
     "status": true,
@@ -40,7 +35,6 @@
     "creator_id": 1
   },
   {
-    "id": 6,
     "dict_name": "任务存储器",
     "dict_type": "sys_job_store",
     "status": true,
@@ -48,7 +42,6 @@
     "creator_id": 1
   },
   {
-    "id": 7,
     "dict_name": "任务执行器",
     "dict_type": "sys_job_executor",
     "status": true,
@@ -56,7 +49,6 @@
     "creator_id": 1
   },
   {
-    "id": 8,
     "dict_name": "任务函数",
     "dict_type": "sys_job_function",
     "status": true,
@@ -64,7 +56,6 @@
     "creator_id": 1
   },
   {
-    "id": 9,
     "dict_name": "任务触发器",
     "dict_type": "sys_job_trigger",
     "status": true,
@@ -72,7 +63,6 @@
     "creator_id": 1
   },
   {
-    "id": 10,
     "dict_name": "表格回显样式",
     "dict_type": "sys_list_class",
     "status": true,
