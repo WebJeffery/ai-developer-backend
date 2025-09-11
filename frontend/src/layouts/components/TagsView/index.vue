@@ -400,13 +400,13 @@ const refreshSelectedTag = (tag: TagView | null) => {
  * 关闭标签
  */
 const closeSelectedTag = (tag: TagView | null) => {
-  // 总是使用当前路由对应的标签
-  const currentTag = routePathMap.value.get(route.path);
-  if (!currentTag) return;
+  // 如果传入了具体的标签，使用传入的标签；否则使用当前路由对应的标签
+  const targetTag = tag || routePathMap.value.get(route.path);
+  if (!targetTag) return;
 
-  tagsViewStore.delView(currentTag).then((result: any) => {
-    if (tagsViewStore.isActive(currentTag)) {
-      tagsViewStore.toLastView(result.visitedViews, currentTag);
+  tagsViewStore.delView(targetTag).then((result: any) => {
+    if (tagsViewStore.isActive(targetTag)) {
+      tagsViewStore.toLastView(result.visitedViews, targetTag);
     }
     // 关闭标签后重置滚动状态，以便下次可以重新判断是否需要滚动
     nextTick(() => {

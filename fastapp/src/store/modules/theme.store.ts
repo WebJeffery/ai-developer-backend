@@ -105,7 +105,8 @@ export const useThemeStore = defineStore("appTheme", () => {
 
   // 更新CSS变量
   const updateCSSVariables = () => {
-    if (typeof document !== 'undefined') {
+    // 确保在客户端环境且DOM已准备好
+    if (typeof window !== 'undefined' && typeof document !== 'undefined' && document.documentElement) {
       const root = document.documentElement;
       const isDark = theme.value === 'dark';
       
@@ -166,13 +167,18 @@ export const useThemeStore = defineStore("appTheme", () => {
     // 更新主题变量
     updateThemeVars();
     
-    // 更新CSS变量
-    updateCSSVariables();
-
-    // 设置导航栏颜色
+    // 延迟更新CSS变量，确保DOM已准备好
     nextTick(() => {
+      updateCSSVariables();
       setNavigationBarColor();
     });
+    
+    // 为了兼容性，在更长的延迟后再次尝试
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        updateCSSVariables();
+      }, 100);
+    }
   };
 
   // 监听主题变化，自动更新CSS变量

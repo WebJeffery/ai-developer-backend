@@ -6,12 +6,18 @@ import { useThemeStore } from "@/store";
 const themeStore = useThemeStore();
 
 onLaunch(() => {
-  // 初始化主题
-  themeStore.initTheme();
+  // 延迟初始化主题，确保DOM完全加载
+  setTimeout(() => {
+    themeStore.initTheme();
+  }, 50);
 });
 
 onShow(() => {
   console.log("App Show");
+  // 在应用显示时也尝试初始化主题，处理可能的初始化失败
+  setTimeout(() => {
+    themeStore.initTheme();
+  }, 10);
 });
 
 onHide(() => {
