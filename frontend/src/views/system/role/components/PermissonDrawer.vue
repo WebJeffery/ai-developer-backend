@@ -170,7 +170,7 @@ const drawerVisible = computed({
   }
 })
 const isExpanded = ref(true);
-const parentChildLinked = ref(true)
+const parentChildLinked = ref(false)
 const loading = ref<boolean>(false);
 const deptTreeData = ref<permissionDeptType[]>([]);
 const menuTreeData = ref<permissionMenuType[]>([]);
@@ -204,6 +204,9 @@ const init = async () => {
       data_scope: roleResponse.data.data.data_scope || 1,
       dept_ids: roleResponse.data.data.depts?.map(dept => dept.id) || []
     };
+
+    // 根据保存的权限数据判断是否应该开启父子联动
+    parentChildLinked.value = checkParentChildLinked(permissionState.value.menu_ids, menuTreeData.value);
 
     // 回显菜单树选中项
     if (permTreeRef.value) {
@@ -293,6 +296,67 @@ function handleFilter(
 ) {
   if (!value) return true;
   return data.label.includes(value);
+}
+
+// 检查权限数据是否遵循父子联动模式
+function checkParentChildLinked(menuIds: number[], menuTreeData: permissionMenuType[]): boolean {
+  if (!menuIds.length || !menuTreeData.length) return false;
+  
+  // 创建一个映射来快速查找菜单项
+  const menuMap = new Map<number, permissionMenuType>();
+  const buildMenuMap = (menus: permissionMenuType[]) => {
+    menus.forEach(menu => {
+      menuMap.set(menu.id, menu);
+      if (menu.children) {
+        buildMenuMap(menu.children);
+      }
+    });
+  };
+  buildMenuMap(menuTreeData);
+  
+  let hasParentChildConflict = false;
+  
+  // 检查每个选中的菜单项
+  for (const menuId of menuIds) {
+    const menu = menuMap.get(menuId);
+    if (!menu) continue;
+    
+    // 如果选中了父菜单，检查是否有子菜单未被选中
+    if (menu.children && menu.children.length > 0) {
+      const hasUnselectedChildren = menu.children.some(child => !menuIds.includes(child.id));
+      if (hasUnselectedChildren) {
+        hasParentChildConflict = true;
+        break; // 发现冲突，直接返回false
+      }
+    }
+    
+    // 如果选中了子菜单，检查父菜单是否也被选中
+    const parentMenu = findParentMenu(menuId, menuTreeData);
+    if (parentMenu && !menuIds.includes(parentMenu.id)) {
+      hasParentChildConflict = true;
+      break; // 发现冲突，直接返回false
+    }
+  }
+  
+  // 如果没有发现父子冲突，说明是父子联动模式
+  return !hasParentChildConflict;
+}
+
+// 查找父菜单
+function findParentMenu(menuId: number, menuTreeData: permissionMenuType[]): permissionMenuType | null {
+  for (const menu of menuTreeData) {
+    if (menu.children) {
+      for (const child of menu.children) {
+        if (child.id === menuId) {
+          return menu;
+        }
+        // 递归查找更深层的父菜单
+        const found = findParentMenu(menuId, [child]);
+        if (found) return found;
+      }
+    }
+  }
+  return null;
 }
 
 // 父子菜单节点是否联动
