@@ -4,6 +4,7 @@ import os
 import shutil
 import hashlib
 import io
+import psutil
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
@@ -734,10 +735,10 @@ class ResourceService:
             stats_root = cls._get_resource_root()
             
             # 获取磁盘空间信息
-            statvfs = os.statvfs(stats_root)
-            total_space = statvfs.f_frsize * statvfs.f_blocks
-            free_space = statvfs.f_frsize * statvfs.f_bavail
-            used_space = total_space - free_space
+            disk_usage = psutil.disk_usage(stats_root)
+            total_space = disk_usage.total
+            free_space = disk_usage.free
+            used_space = disk_usage.used
             
             # 统计文件信息
             total_files = 0
