@@ -46,36 +46,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     logger.info(settings.BANNER + '\n' + f'{settings.TITLE} 服务开始启动...')
     
     try:
-        # 初始化数据库表
         await init_create_table()
-
-        # 使用单个会话完成所有初始化操作
-        async with session_connect() as session:
-            async with session.begin():
-
-                # 初始化数据库数据
-                await InitializeData().init_db(db=session)
-                logger.info("初始化数据完成...")
-
-                # 初始化全局事件
-                await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=True)
-                
-                # 初始化系统配置
-                await ConfigService().init_config_service(redis=app.state.redis, db=session)
-                logger.info("初始化系统配置完成...")
-                
-                # 初始化数据字典
-                await DictDataService().init_dict_service(redis=app.state.redis, db=session)
-                logger.info('初始化数据字典完成...')
-                
-                # 初始化定时任务
-                await SchedulerUtil.init_system_scheduler(db=session)
-                logger.info('初始化定时任务完成...')
+        logger.info('数据库连接成功...')
+        await InitializeData().init_db()
+        logger.info("初始化数据完成...")
+        await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=True)
+        logger.info("初始化全局事件完成...")
+        await ConfigService().init_config_service(redis=app.state.redis)
+        logger.info("初始化系统配置完成...")
+        await DictDataService().init_dict_service(redis=app.state.redis)
+        logger.info('初始化数据字典完成...')
+        await SchedulerUtil.init_system_scheduler()
+        logger.info('初始化定时任务完成...')
 
         logger.info(f'{settings.TITLE} 服务成功启动...')
     except Exception as e:
         logger.error(f'{settings.TITLE} 服务启动失败: {str(e)}')
         raise e
+    
     yield
 
     await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=False)

@@ -4,10 +4,9 @@ import uuid
 import json
 from pathlib import Path
 from typing import Dict, List
-from sqlalchemy import inspect, select, func
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.base_model import MappedBase
 from app.core.logger import logger
 from app.config.setting import settings
 
@@ -16,13 +15,9 @@ from app.api.v1.module_system.role.model import RoleModel, RoleDeptsModel, RoleM
 from app.api.v1.module_system.position.model import PositionModel
 from app.api.v1.module_system.dept.model import DeptModel
 from app.api.v1.module_system.menu.model import MenuModel
-from app.api.v1.module_system.log.model import OperationLogModel
-from app.api.v1.module_system.notice.model import NoticeModel
 from app.api.v1.module_system.config.model import ConfigModel
 from app.api.v1.module_system.dict.model import DictTypeModel, DictDataModel
-from app.api.v1.module_monitor.job.model import JobModel, JobLogModel
-from app.api.v1.module_example.demo.model import DemoModel
-from app.api.v1.module_application.myapp.model import ApplicationModel
+from app.core.database import AsyncSessionLocal
 
 
 class InitializeData:
@@ -53,7 +48,6 @@ class InitializeData:
             RoleDeptsModel,
             RoleMenusModel,
         ]
-
 
     async def __init_data(self, db: AsyncSession) -> None:
         """初始化基础数据"""
@@ -100,9 +94,12 @@ class InitializeData:
             logger.error(f"读取 {json_path} 失败: {str(e)}")
             raise
 
-    async def init_db(self, db: AsyncSession) -> None:
+    async def init_db(self) -> None:
         """
         执行完整初始化流程
         """
-        await self.__init_data(db)
-
+        # 使用单个会话完成所有初始化操作
+        async with AsyncSessionLocal() as session:
+            # async with session.begin():
+            await self.__init_data(session)
+    

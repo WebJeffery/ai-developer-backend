@@ -118,7 +118,7 @@ class SchedulerUtil:
                 session.close()
 
     @classmethod
-    async def init_system_scheduler(cls, db):
+    async def init_system_scheduler(cls):
         """
         应用启动时初始化定时任务
 
@@ -126,15 +126,15 @@ class SchedulerUtil:
         """
         # 延迟导入避免循环导入
         from app.api.v1.module_monitor.job.crud import JobCRUD
-        from app.api.v1.module_monitor.job.model import JobModel
         from app.api.v1.module_system.auth.schema import AuthSchema
         
         scheduler.start()
-        auth = AuthSchema(db=db)
-        job_list = await JobCRUD(auth).get_obj_list_crud()
-        for item in job_list:
-            cls.remove_job(job_id=item.id)  # 删除旧任务
-            cls.add_job(item)
+        async with AsyncSessionLocal() as session:
+            auth = AuthSchema(db=session)
+            job_list = await JobCRUD(auth).get_obj_list_crud()
+            for item in job_list:
+                cls.remove_job(job_id=item.id)  # 删除旧任务
+                cls.add_job(item)
         scheduler.add_listener(cls.scheduler_event_listener, EVENT_ALL)
 
     @classmethod

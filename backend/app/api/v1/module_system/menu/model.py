@@ -42,12 +42,12 @@ class MenuModel(ModelMixin):
     affix: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, comment='是否固定标签页(True:是 False:否)')
     
     parent_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('system_menu.id', ondelete='SET NULL'), default=None, index=True, comment='父菜单ID')
-    parent: Mapped[Optional['MenuModel']] = relationship(cascade='all, delete-orphan', primaryjoin="MenuModel.parent_id == MenuModel.id", uselist=False)
+    # parent: Mapped[Optional['MenuModel']] = relationship(cascade='all, delete-orphan', primaryjoin="MenuModel.parent_id == MenuModel.id", uselist=False)
     
     # 角色关联关系
     roles: Mapped[List["RoleModel"]] = relationship(secondary="system_role_menus", back_populates="menus", lazy="selectin")
     
     # link: Mapped[Optional[str]] = mapped_column(String(255),  comment='外链地址')
     # iframe: Mapped[Optional[str]] = mapped_column(String(255),  comment='内嵌iframe地址')
-    # parent: Mapped[Optional['MenuModel']] = relationship(init=False, back_populates='children', remote_side=[id])
-    # children: Mapped[Optional[list['MenuModel']]] = relationship(init=False, back_populates='parent')
+    parent: Mapped[Optional['MenuModel']] = relationship(init=False, back_populates='children', remote_side=[id])
+    children: Mapped[Optional[list['MenuModel']]] = relationship(init=False, back_populates='parent')

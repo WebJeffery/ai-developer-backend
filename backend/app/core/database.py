@@ -3,25 +3,13 @@
 from redis import asyncio as aioredis
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import FastAPI
-from sqlalchemy import create_engine, text, Engine
+from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     async_sessionmaker,
     AsyncSession,
     AsyncEngine
-)
-from sqlalchemy.exc import (
-    OperationalError,
-    TimeoutError,
-    DisconnectionError,
-    InterfaceError,
-    ProgrammingError,
-    IntegrityError,
-    DataError,
-    InternalError,
-    NotSupportedError,
-    InvalidRequestError
 )
 
 from app.core.logger import logger
@@ -79,7 +67,6 @@ async def init_create_table():
     try:
         async with async_engine.begin() as conn:
             await conn.run_sync(MappedBase.metadata.create_all)
-        logger.info('数据库连接成功...')
     except Exception as e:
         raise CustomException(msg=f"数据库连接失败: {e}")
 
