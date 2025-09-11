@@ -566,9 +566,10 @@
         </div>
       </template>
     </el-dialog>
+    <JobLogDrawer v-if="drawerVisible" v-model="drawerVisible" :job-id="currentJobId" :job-name="currentJobName" />
   </div>
 
-  <JobLogDrawer v-if="drawerVisible" v-model="drawerVisible" :job-id="currentJobId" :job-name="currentJobName" />
+
 
 </template>
 
