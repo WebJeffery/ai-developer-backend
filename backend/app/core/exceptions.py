@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from typing import Any, Optional
+from typing import Any, Optional, List, Tuple, Union
 from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError, ResponseValidationError
 from pydantic_validation_decorator import FieldValidationError
 from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
+from pydantic_core import ErrorDetails
+from pydantic import ValidationError
 
 from app.common.constant import RET
 from app.common.response import ErrorResponse
@@ -57,17 +59,10 @@ async def HttpExceptionHandler(request: Request, exc: HTTPException) -> JSONResp
 
 async def ValidationExceptionHandler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """请求参数验证异常处理器"""
-    error_mapping = {
-        "Field required": "请求失败，缺少必填项！",
-        "value is not a valid list": "类型错误，提交参数应该为列表！", 
-        "value is not a valid int": "类型错误，提交参数应该为整数！",
-        "value could not be parsed to a boolean": "类型错误，提交参数应该为布尔值！",
-        "Input should be a valid list": "类型错误，输入应该是一个有效的列表！"
-    }
-    
-    msg = error_mapping.get(exc.errors()[0].get('msg'), exc.errors()[0].get('msg'))
+    msg:List[ErrorDetails] = custom_convert_errors(exc)
+
     logger.error(f"请求地址: {request.url}, 错误信息: {msg}, 错误详情: {exc}")
-    return ErrorResponse(msg=msg, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, data=exc.body)
+    return ErrorResponse(msg=str(msg), status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, data=exc.body)
 
 async def ResponseValidationHandle(request: Request, exc: ResponseValidationError) -> JSONResponse:
     logger.error(f"请求地址: {request.url}, 错误详情: {exc}")
@@ -96,3 +91,75 @@ async def AllExceptionHandler(request: Request, exc: Exception) -> JSONResponse:
     """全局异常处理器"""
     logger.error(f"请求地址: {request.url}, 错误详情: {exc}")
     return ErrorResponse(msg='服务器内部错误', status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, data=str(exc))
+
+ERROR_MAPPING = {
+    "missing": "请求失败，缺少必填项！",
+    # 字符串
+    "string_pattern_mismatch": "值错误，提交参数不满足正则表达式{pattern}！",
+    "string_too_long": "值错误，提交参数长度必须小于等于{max_length}！",
+    "string_too_short": "值错误，提交参数长度必须大于等于{min_length}！",
+    "string_type": "类型错误，提交参数应该为字符串！",
+    # 列表
+    "list_type": "类型错误，提交参数应该为列表！",
+    # 字典
+    "dict_type": "类型错误，提交参数应该为字典！",
+    # 集合
+    "set_type": "类型错误，提交参数应该为集合！",
+    # 元组
+    "tuple_type": "类型错误，提交参数应该为元组！",
+    # 元素数量
+    "too_long": "数量错误，提交参数的元素数量必须小于等于{max_length}！",
+    "too_short": "数量错误，提交参数的元素数量必须大于等于{min_length}！",
+    # 大小比值
+    "less_than_equal": "值错误，提交参数必须小于等于{le}！",
+    "greater_than_equal": "值错误，提交参数必须大于等于{ge}！",
+    "less_than": "值错误，提交参数必须小于{lt}！",
+    "greater_than": "值错误，提交参数必须大于{gt}！",
+    # 布尔值
+    "bool_type": "类型错误，提交参数应该为布尔值！",
+    "bool_parsing": "类型错误，提交参数应该为布尔值！",
+    # 字节
+    "bytes_type": "类型错误，提交参数应该为字节！",
+    "bytes_too_long": "值错误，提交参数长度必须小于等于{max_length}！",
+    "bytes_too_short": "值错误，提交参数长度必须大于等于{min_length}！",
+    # 整数
+    "int_parsing": "类型错误，提交参数应该为整数！",
+    "int_type": "类型错误，提交参数应该为整数！",
+    # 浮点数
+    "float_parsing": "类型错误，提交参数应该为浮点数！",
+    "float_type": "类型错误，提交参数应该为浮点数！",
+    # 日期时间
+    "date_parsing": "类型错误，提交参数应该为日期！",
+    "date_type": "类型错误，提交参数应该为日期！",
+    "time_parsing": "类型错误，提交参数应该为时间！",
+    "time_type": "类型错误，提交参数应该为时间！",
+    # 其他
+    "literal_error": "值错误，提交参数值在为{expected}中一个！",
+    "extra_forbidden": "值错误，提交参数值不在允许范围内！",
+}
+
+def custom_convert_errors(e: ValidationError | RequestValidationError) -> List[ErrorDetails]:
+    new_errors: List[ErrorDetails] = []
+    for error in e.errors():
+        error['loc'] = loc_to_dot_sep(error['loc'])
+        custom_message = ERROR_MAPPING.get(error['type'])
+        if custom_message:
+            ctx = error.get('ctx')
+            error['msg'] = (
+                custom_message.format(**ctx) if ctx else custom_message
+            )
+        new_errors.append(error)
+    return new_errors
+
+def loc_to_dot_sep(loc: Tuple[Union[str, int], ...]) -> str:
+    path = ''
+    for i, x in enumerate(loc):
+        if isinstance(x, str):
+            if i > 0:
+                path += '.'
+            path += x
+        elif isinstance(x, int):
+            path += f'[{x}]'
+        else:
+            raise TypeError('Unexpected type')
+    return path
