@@ -30,6 +30,21 @@ class ParamsService:
         obj = await ParamsCRUD(auth).get_obj_by_id_crud(id=id)
         return ParamsOutSchema.model_validate(obj).model_dump()
     
+    @classmethod
+    async def get_obj_by_key_service(cls, auth: AuthSchema, config_key: str) -> Dict:
+        """根据配置键获取配置详情"""
+        obj = await ParamsCRUD(auth).get_obj_by_key_crud(key=config_key)
+        if not obj:
+            raise CustomException(msg=f'配置键 {config_key} 不存在')
+        return ParamsOutSchema.model_validate(obj).model_dump()
+    
+    @classmethod
+    async def get_config_value_by_key_service(cls, auth: AuthSchema, config_key: str) -> str:
+        """根据配置键获取配置值"""
+        obj = await ParamsCRUD(auth).get_obj_by_key_crud(key=config_key)
+        if not obj:
+            raise CustomException(msg=f'配置键 {config_key} 不存在')
+        return obj.config_value
 
     @classmethod
     async def get_obj_list_service(cls, auth: AuthSchema, search: ParamsQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:

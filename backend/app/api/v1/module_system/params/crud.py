@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Sequence
 from app.core.base_crud import CRUDBase
 from ..auth.schema import AuthSchema
 from .model import ParamsModel
-from .schema import ParamsCreateSchema,ParamsUpdateSchema
+from .schema import ParamsCreateSchema, ParamsUpdateSchema
 
 
 class ParamsCRUD(CRUDBase[ParamsModel, ParamsCreateSchema, ParamsUpdateSchema]):
@@ -22,7 +22,7 @@ class ParamsCRUD(CRUDBase[ParamsModel, ParamsCreateSchema, ParamsUpdateSchema]):
     
     async def get_obj_by_key_crud(self, key: str) -> Optional[ParamsModel]:
         """根据key获取配置管理型详情"""
-        return await self.get(key=key)
+        return await self.get(config_key=key)
     
     async def get_obj_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[ParamsModel]:
         """获取配置管理型列表"""
