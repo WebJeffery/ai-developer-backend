@@ -215,8 +215,8 @@ pnpm run docs:build
 ### docker 部署
 
 ```sh
-# 复制脚本 `fastapi_vue3_amdin/start.sh` 脚本文件到服务器, 并赋予执行权限
-chmod +x start.sh
+# 复制脚本 `fastapi_vue3_amdin/deploy.sh` 脚本文件到服务器, 并赋予执行权限
+chmod +x deploy.sh
 # 执行脚本
 ./deploy.sh
 # 查看镜像:

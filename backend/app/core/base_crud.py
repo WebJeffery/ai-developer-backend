@@ -52,7 +52,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             conditions = await self.__build_conditions(**kwargs)
             sql = (select(self.model)
                   .where(*conditions))
-            if hasattr(self.model, "creator"):
+            # 只有继承自CreatorMixin的模型才有creator关系
+            if hasattr(self.model, "creator_id"):
                 sql = sql.options(selectinload(self.model.creator))
             
             # sql = await self.__filter_permissions(sql)
@@ -86,8 +87,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             sql = (select(self.model)
                   .where(*conditions)
                   .order_by(*self.__order_by(order)))
-            # 预加载creator关系
-            if hasattr(self.model, "creator"):
+            # 只有继承自CreatorMixin的模型才有creator关系
+            if hasattr(self.model, "creator_id"):
                 sql = sql.options(selectinload(self.model.creator))
             sql = await self.__filter_permissions(sql)
             result: Result = await self.db.execute(sql)
@@ -112,7 +113,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             obj_dict = data if isinstance(data, dict) else data.model_dump()
             obj = self.model(**obj_dict)
             
-            if hasattr(self.model, "creator") and self.current_user:
+            # 只有继承自CreatorMixin的模型才有creator关系
+            if hasattr(self.model, "creator_id") and self.current_user:
                 # 设置创建人ID
                 obj.creator_id = self.current_user.id
                 # 设置创建人对象
@@ -231,7 +233,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             return sql
 
         # 1. 如果模型没有创建人creator字段,则不需要权限判断
-        if not hasattr(self.model, "creator"):
+        if not hasattr(self.model, "creator_id"):
             return sql
         
         sql = sql.options(selectinload(self.model.creator))
@@ -257,8 +259,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         
         # 获取当前用户所绑定角色的数据权限范围
         for role in self.current_user.roles:
-            for dept in role.depts:
-                dept_ids.add(dept.id)
+            # 检查role是否有depts属性
+            if hasattr(role, 'depts'):
+                for dept in role.depts:
+                    dept_ids.add(dept.id)
 
             data_scopes.add(role.data_scope)
         
@@ -286,7 +290,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 dept_ids.add(child_id)
 
         # 5、自定义权限
-        return sql.where(self.model.creator.has(UserModel.dept_id.in_(list(dept_ids))))
+        # 检查UserModel是否有dept_id属性
+        if hasattr(UserModel, 'dept_id'):
+            return sql.where(self.model.creator.has(UserModel.dept_id.in_(list(dept_ids))))
+        else:
+            # 如果没有dept_id属性，回退到只显示自己的数据
+            return sql.where(self.model.creator_id == self.current_user.id)
 
     def __order_by(self, order_by: List[Dict[str, str]]) -> List[ColumnElement]:
         """
@@ -344,3 +353,41 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             else:
                 conditions.append(attr == value)
         return conditions
+
+    async def get_tree_list(self, search: Dict = None, order_by: List[Dict[str, str]] = None, children_attr: str = 'children') -> Sequence[ModelType]:
+        """
+        获取树形结构数据列表
+        
+        Args:
+            search: 查询条件
+            order_by: 排序字段
+            children_attr: 子节点属性名
+            
+        Returns:
+            Sequence[ModelType]: 树形结构数据列表
+            
+        Raises:
+            CustomException: 查询失败时抛出异常
+        """
+        try:
+            from sqlalchemy.orm import selectinload
+            
+            conditions = await self.__build_conditions(**search) if search else []
+            order = order_by or [{'id': 'asc'}]
+            sql = (select(self.model)
+                  .where(*conditions)
+                  .order_by(*self.__order_by(order)))
+            
+            # 如果模型有children属性，则预加载该关系
+            if hasattr(self.model, children_attr):
+                sql = sql.options(selectinload(getattr(self.model, children_attr)))
+            
+            # 只有继承自CreatorMixin的模型才有creator关系
+            if hasattr(self.model, "creator_id"):
+                sql = sql.options(selectinload(self.model.creator))
+                
+            sql = await self.__filter_permissions(sql)
+            result: Result = await self.db.execute(sql)
+            return result.scalars().all()
+        except Exception as e:
+            raise CustomException(msg=f"树形列表查询失败: {str(e)}")

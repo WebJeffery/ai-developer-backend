@@ -105,6 +105,7 @@
           </template>
         </el-table-column>
         <el-table-column v-if="tableColumns.find(col => col.prop === 'name')?.show" key="name" label="角色名称" prop="name" min-width="100" />
+        <el-table-column v-if="tableColumns.find(col => col.prop === 'code')?.show" key="code" label="角色编码" prop="code" min-width="100" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'data_scope')?.show" key="data_scope" label="数据权限" prop="data_scope" min-width="200">
           <template #default="scope">
             <el-tag v-if="scope.row.data_scope === 1" type="primary">仅本人数据权限</el-tag>
@@ -183,6 +184,7 @@
           <el-descriptions-item label="排序" :span="2">
             {{ detailFormData.order }}
           </el-descriptions-item>
+          <el-descriptions-item label="角色编码" :span="2">{{ detailFormData.code }}</el-descriptions-item>
           <el-descriptions-item label="数据权限" :span="2">
             <el-tag v-if="detailFormData.data_scope === 1" type="primary">仅本人数据权限</el-tag>
             <el-tag v-else-if="detailFormData.data_scope === 2" type="info">本部门数据权限</el-tag>
@@ -210,6 +212,10 @@
 
           <el-form-item label="排序" prop="order">
             <el-input-number v-model="formData.order" controls-position="right" :min="0" style="width: 100px" />
+          </el-form-item>
+
+          <el-form-item label="角色编码" prop="code">
+            <el-input v-model="formData.code" placeholder="请输入角色编码" />
           </el-form-item>
 
           <el-form-item label="状态" prop="status">
@@ -269,6 +275,7 @@ const tableColumns = ref([
   { prop: 'name', label: '角色名称', show: true },
   { prop: 'data_scope', label: '数据权限', show: true },
   { prop: 'order', label: '排序', show: true },
+  { prop: 'code', label: '角色编码', show: true },
   { prop: 'status', label: '状态', show: true },
   { prop: 'description', label: '描述', show: true },
   { prop: 'created_at', label: '创建时间', show: true },
@@ -297,6 +304,7 @@ const formData = reactive<RoleForm>({
   id: undefined,
   name: undefined,
   order: 1,
+  code: undefined,
   status: true,
   description: undefined,
 });
@@ -360,6 +368,7 @@ const initialFormData: RoleForm = {
   id: undefined,
   name: undefined,
   order: 1,
+  code: undefined,
   status: true,
   description: undefined,
 }

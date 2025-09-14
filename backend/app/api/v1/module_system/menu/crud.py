@@ -51,6 +51,16 @@ class MenuCRUD(CRUDBase[MenuModel, MenuCreateSchema, MenuUpdateSchema]):
                     obj.parent_name = parent_map.get(obj.parent_id)
         return obj_list
 
+    async def get_tree_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[MenuModel]:
+        """
+        获取菜单树形列表
+        
+        :param search: 搜索条件
+        :param order_by: 排序字段
+        :return: 菜单树形列表
+        """
+        return await self.get_tree_list(search=search, order_by=order_by, children_attr='children')
+
     async def set_available_crud(self, ids: List[int], status: bool) -> None:
         """
         批量设置菜单可用状态

@@ -568,7 +568,8 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
 
   // 获取部门树
   const deptResponse = await DeptAPI.getDeptList(queryFormData);
-  const treeData = listToTree(deptResponse.data.data.items);
+  // const treeData = listToTree(deptResponse.data.data.items);
+  const treeData = deptResponse.data.data;
   deptOptions.value = formatTree(treeData);
 
   // 获取角色列表

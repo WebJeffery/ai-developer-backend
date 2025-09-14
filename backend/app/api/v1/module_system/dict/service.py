@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import RedisInitKeyConfig
 from app.utils.excel_util import ExcelUtil
+from app.core.database import AsyncSessionLocal
 from app.core.base_schema import BatchSetAvailable
 from app.core.redis_crud import RedisCURD
 from app.core.exceptions import CustomException
@@ -185,35 +186,36 @@ class DictDataService:
         return [DictDataOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
-    async def init_dict_service(cls, redis: Redis, db: AsyncSession):
+    async def init_dict_service(cls, redis: Redis):
         """应用初始化: 获取所有字典类型对应的字典数据信息并缓存service"""
-
-        auth = AuthSchema(db=db)
-        obj_list = await DictTypeCRUD(auth).get_obj_list_crud()
-        if not obj_list:
-            logger.warning("未找到任何字典类型数据")
-            return
-        for obj in obj_list:
-            dict_type = obj.dict_type
-            dict_data_list = await DictDataCRUD(auth).get_obj_list_crud(search={'dict_type': dict_type})
+        async with AsyncSessionLocal() as session:
+            async with session.begin():
+                auth = AuthSchema(db=session)
+                obj_list = await DictTypeCRUD(auth).get_obj_list_crud()
+                if not obj_list:
+                    logger.warning("未找到任何字典类型数据")
+                    return
+                for obj in obj_list:
+                    dict_type = obj.dict_type
+                    dict_data_list = await DictDataCRUD(auth).get_obj_list_crud(search={'dict_type': dict_type})
+                    
+                    if not dict_data_list:
+                        logger.warning(f"字典类型 {dict_type} 未找到对应的字典数据")
+                        continue
+                    
+                    dict_data = [DictDataOutSchema.model_validate(row).model_dump() for row in dict_data_list if row]
             
-            if not dict_data_list:
-                logger.warning(f"字典类型 {dict_type} 未找到对应的字典数据")
-                continue
-            
-            dict_data = [DictDataOutSchema.model_validate(row).model_dump() for row in dict_data_list if row]
-    
-            # 保存到Redis并设置过期时间
-            redis_key = f"{RedisInitKeyConfig.SYSTEM_DICT.key}:{dict_type}"
-            try:
-                value = json.dumps(dict_data, ensure_ascii=False)
-                await RedisCURD(redis).set(
-                        key=redis_key,
-                        value=value,
-                    )
-            except Exception as e:
-                logger.error(f"初始化字典数据失败: {e}")
-                raise CustomException(msg=f"初始化字典数据失败 {e}")
+                    # 保存到Redis并设置过期时间
+                    redis_key = f"{RedisInitKeyConfig.SYSTEM_DICT.key}:{dict_type}"
+                    try:
+                        value = json.dumps(dict_data, ensure_ascii=False)
+                        await RedisCURD(redis).set(
+                                key=redis_key,
+                                value=value,
+                            )
+                    except Exception as e:
+                        logger.error(f"初始化字典数据失败: {e}")
+                        raise CustomException(msg=f"初始化字典数据失败 {e}")
     
     @classmethod
     async def get_init_dict_service(cls, redis: Redis, dict_type: str)->List[Dict]:

@@ -82,6 +82,7 @@ export interface RoleTable {
   id: number;
   name: string;
   order?: number;
+  code?: string;
   data_scope?: number;
   status?: boolean;
   menus?: permissionMenuType[];
@@ -96,6 +97,7 @@ export interface RoleForm {
   id?: number;
   name?: string;
   order?: number;
+  code?: string;
   status?: boolean;
   description?: string;
   created_at?: string;

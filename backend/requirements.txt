@@ -35,3 +35,5 @@ cryptography==45.0.2        # mysql8 密码加密
 openai==1.55.2              # ai 大模型
 oss2==2.18.4                # 阿里云对象存储
 python-magic==0.4.27        # 文件类型识别
+sqlalchemy-crud-plus==1.12.0
+rich==13.9.4

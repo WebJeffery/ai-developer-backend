@@ -90,13 +90,14 @@
       </div>
 
       <!-- 表格区域：系统配置列表 -->
-      <el-table ref="dataTableRef" v-loading="loading" row-key="id" :data="pageTableData" :tree-props="{children: 'children',hasChildren: 'hasChildren'}" highlight-current-row class="data-table__content" height="540" border stripe @selection-change="handleSelectionChange">
+      <el-table ref="dataTableRef" v-loading="loading" row-key="id" :data="pageTableData" :tree-props="{children: 'children'}" highlight-current-row class="data-table__content" height="540" border stripe @selection-change="handleSelectionChange">
         <template #empty>
           <el-empty :image-size="80" description="暂无数据" />
         </template>
         <el-table-column v-if="tableColumns.find(col => col.prop === 'selection')?.show" type="selection" min-width="55" align="center" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'index')?.show" type="index" fixed label="序号" min-width="60" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'name')?.show" key="name" label="部门名称" prop="name" min-width="120" />
+        <el-table-column v-if="tableColumns.find(col => col.prop === 'code')?.show" key="code" label="部门编码" prop="code" min-width="120" />')
         <el-table-column v-if="tableColumns.find(col => col.prop === 'status')?.show" key="status" label="状态" prop="status" min-width="60">
           <template #default="scope">
             <el-tag :type="scope.row.status === true ? 'success' : 'danger'">
@@ -127,6 +128,7 @@
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
           <el-descriptions-item label="部门名称" :span="2">{{ detailFormData.name }}</el-descriptions-item>
+          <el-descriptions-item label="部门编码" :span="2">{{ detailFormData.code }}</el-descriptions-item>
           <el-descriptions-item label="上级部门" :span="2">{{ detailFormData.parent_name }}</el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status ? 'success' : 'danger'">
@@ -144,6 +146,9 @@
         <el-form ref="dataFormRef" :model="formData" :rules="rules" label-suffix=":" label-width="auto" label-position="right">
           <el-form-item label="部门名称" prop="name">
             <el-input v-model="formData.name" placeholder="请输入部门名称" :maxlength="50" />
+          </el-form-item>
+          <el-form-item label="部门编码" prop="code">
+            <el-input v-model="formData.code" placeholder="请输入部门编码" :maxlength="50" />
           </el-form-item>
           <el-form-item label="上级部门" prop="parent_id">
             <el-tree-select v-model="formData.parent_id" placeholder="请选择上级部门" :data="deptOptions" filterable check-strictly :render-after-expand="false" />
@@ -184,11 +189,10 @@ defineOptions({
 
 import DeptAPI, { DeptTable, DeptForm, DeptPageQuery } from "@/api/system/dept";
 import { ElMessageBox } from "element-plus";
-import { listToTree, formatTree } from "@/utils/common";
+import { formatTree } from "@/utils/common";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
-const total = ref(0);
 const selectIds = ref<number[]>([]);
 const loading = ref(false);
 
@@ -206,6 +210,7 @@ const tableColumns = ref([
   { prop: 'selection', label: '选择框', show: true },
   { prop: 'index', label: '序号', show: true },
   { prop: 'name', label: '部门名称', show: true },
+  { prop: 'code', label: '部门编码', show: true },
   { prop: 'order', label: '排序', show: true },
   { prop: 'status', label: '状态', show: true },
   { prop: 'description', label: '描述', show: true },
@@ -229,6 +234,7 @@ const queryFormData = reactive<DeptPageQuery>({
 const formData = reactive<DeptForm>({
   id: undefined,
   name: undefined,
+  code: undefined,
   order: 1,
   parent_id: undefined,
   status: true,
@@ -254,9 +260,7 @@ async function handleRefresh () {
   loading.value = true;
   try {
     const response = await DeptAPI.getDeptList(queryFormData);
-    const treeData = listToTree(response.data.data.items);
-    pageTableData.value = treeData;
-    total.value = response.data.data.total;
+    pageTableData.value = response.data.data;
   } catch (error: any) {
     console.error(error);
   } finally {
@@ -269,11 +273,9 @@ async function loadingData() {
   loading.value = true;
   try {
     const response = await DeptAPI.getDeptList(queryFormData);
-    const treeData = listToTree(response.data.data.items);
-    pageTableData.value = treeData;
-    total.value = response.data.data.total;
+    pageTableData.value = response.data.data;
     // 加载部门选项
-    deptOptions.value = formatTree(treeData);
+    deptOptions.value = formatTree(response.data.data);
   }
   catch (error: any) {
     console.error(error);

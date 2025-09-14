@@ -26,7 +26,7 @@ class MenuCreateSchema(BaseModel):
     params: Optional[list[dict[str, str]]] = Field(default=None, description="路由参数，格式为[{key: string, value: string}]")
     affix: bool = Field(default=False, description="是否固定标签页(True:是 False:否)")
     parent_id: Optional[int] = Field(default=None, ge=1, description="父菜单ID")
-    description: Optional[str] = Field(default=None, max_length=500, description="备注说明")
+    description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
     @model_validator(mode='after')
     def validate_fields(self):
@@ -41,5 +41,5 @@ class MenuUpdateSchema(MenuCreateSchema):
 class MenuOutSchema(MenuCreateSchema, BaseSchema):
     """菜单响应模型"""
     model_config = ConfigDict(from_attributes=True)
-    
+
     parent_name: Optional[str] = Field(default=None, max_length=50, description="父菜单名称")

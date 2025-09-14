@@ -13,10 +13,11 @@ from ..menu.schema import MenuOutSchema
 class RoleCreateSchema(BaseModel):
     """角色创建模型"""
     name: str = Field(..., max_length=40, description="角色名称")
+    code: Optional[str] = Field(default=None, max_length=40, description="角色编码")
     order: Optional[int] = Field(default=1, ge=1, description='显示排序')
     data_scope: Optional[int] = Field(default=1, ge=1, le=5, description='数据权限范围')
     status: bool = Field(default=True, description="是否启用")
-    description: Optional[str] = Field(None, max_length=255, description="角色描述")
+    description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
 
 class RolePermissionSettingSchema(BaseModel):

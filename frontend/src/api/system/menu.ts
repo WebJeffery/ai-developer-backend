@@ -2,8 +2,8 @@ import request from "@/utils/request";
 
 const MenuAPI = {
   getMenuList(query?: MenuPageQuery) {
-    return request<ApiResponse<PageResult<MenuTable[]>>>({
-      url: `/system/menu/list`,
+    return request<ApiResponse<MenuTable[]>>({
+      url: `/system/menu/tree`,
       method: "get",
       params: query,
     });
@@ -51,7 +51,7 @@ const MenuAPI = {
 
 export default MenuAPI;
 
-export interface MenuPageQuery extends PageQuery {
+export interface MenuPageQuery {
   name?: string;
   status?: boolean;
   /** 开始时间 */

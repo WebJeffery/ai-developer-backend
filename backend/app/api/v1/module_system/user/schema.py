@@ -29,7 +29,7 @@ class UserRegisterSchema(BaseModel):
     password: str = Field(..., max_length=128, description="密码哈希值")
     role_ids: Optional[List[int]] = Field(default=[2], description='角色ID')
     creator_id: Optional[int] = Field(default=1, description='创建人ID')
-    description: Optional[str] = Field(default=f'注册用户{username}', max_length=255, description="备注")
+    description: Optional[str] = Field(default=None, max_length=255, description="备注")
 
     @field_validator("mobile")
     @classmethod
@@ -69,7 +69,7 @@ class UserCreateSchema(CurrentUserUpdateSchema):
     password: str = Field(..., max_length=128, description="密码哈希值")
     status: bool = Field(default=True, description="是否可用")
     is_superuser: bool = Field(default=False, description="是否超管")
-    description: Optional[str] = Field(None, max_length=255, description="备注")
+    description: Optional[str] = Field(default=None, max_length=255, description="备注")
     
     dept_id: Optional[int] = Field(default=None, description='部门ID')
     role_ids: Optional[List[int]] = Field(default=[], description='角色ID')
