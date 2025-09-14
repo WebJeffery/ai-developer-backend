@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { UploadRawFile, UploadRequestOptions, ElMessage } from "element-plus";
-import ConfigAPI from '@/api/system/config';
+import ParamsAPI from '@/api/system/params';
 
 const props = defineProps({
   /**
@@ -149,7 +149,7 @@ async function handleUpload(options: UploadRequestOptions) {
       formData.append(key, String(value));
     }
 
-    const response = await ConfigAPI.uploadFile(formData);
+    const response = await ParamsAPI.uploadFile(formData);
 
     if (response.data.code === 0 && response.data) {
       const fileInfo: UploadFilePath = response.data.data;

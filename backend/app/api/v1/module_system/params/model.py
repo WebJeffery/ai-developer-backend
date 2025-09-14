@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.base_model import CreatorMixin
 
 
-class ConfigModel(CreatorMixin):
+class ParamsModel(CreatorMixin):
     """
     系统配置表
     """

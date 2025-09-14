@@ -15,7 +15,7 @@ from app.api.v1.module_system.role.model import RoleModel, RoleDeptsModel, RoleM
 from app.api.v1.module_system.position.model import PositionModel
 from app.api.v1.module_system.dept.model import DeptModel
 from app.api.v1.module_system.menu.model import MenuModel
-from app.api.v1.module_system.config.model import ConfigModel
+from app.api.v1.module_system.params.model import ParamsModel
 from app.api.v1.module_system.dict.model import DictTypeModel, DictDataModel
 
 
@@ -38,7 +38,7 @@ class InitializeData:
             # 岗位表（无外键依赖）
             PositionModel,
             # 基础表（无外键依赖）
-            ConfigModel,
+            ParamsModel,
             DictTypeModel,
             DictDataModel,
             # 关联表（依赖基础表）

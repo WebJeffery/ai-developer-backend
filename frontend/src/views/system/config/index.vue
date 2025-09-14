@@ -190,7 +190,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import ConfigAPI, { ConfigTable, ConfigForm, ConfigPageQuery } from "@/api/system/config";
+import ParamsAPI, { ConfigTable, ConfigForm, ConfigPageQuery } from "@/api/system/params";
 import { ElMessageBox } from "element-plus";
 
 const queryFormRef = ref();
@@ -284,7 +284,7 @@ async function handleRefresh () {
 async function loadingData() {
   loading.value = true;
   try {
-    const response = await ConfigAPI.getConfigList(queryFormData);
+    const response = await ParamsAPI.getConfigList(queryFormData);
     pageTableData.value = response.data.data.items;
     total.value = response.data.data.total;
   }
@@ -344,7 +344,7 @@ async function handleCloseDialog() {
 async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: number) {
   dialogVisible.type = type;
   if (id) {
-    const response = await ConfigAPI.getConfigDetail(id);
+    const response = await ParamsAPI.getConfigDetail(id);
     if (type === 'detail') {
       dialogVisible.title = "系统配置详情";
       Object.assign(detailFormData.value, response.data.data);
@@ -369,7 +369,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await ConfigAPI.updateConfig(id, formData)
+          await ParamsAPI.updateConfig(id, formData)
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();
@@ -380,7 +380,7 @@ async function handleSubmit() {
         }
       } else {
         try {
-          await ConfigAPI.createConfig(formData)
+          await ParamsAPI.createConfig(formData)
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();
@@ -403,7 +403,7 @@ async function handleDelete(ids: number[]) {
   }).then(async () => {
     try {
       loading.value = true;
-      await ConfigAPI.deleteConfig(ids);
+      await ParamsAPI.deleteConfig(ids);
       handleResetQuery();
     } catch (error: any) {
       console.error(error);
@@ -427,7 +427,7 @@ async function handleExport() {
     try {
       loading.value = true;
 
-      const response = await ConfigAPI.exportConfig(queryFormData);
+      const response = await ParamsAPI.exportConfig(queryFormData);
       const fileData = response.data;
       const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
       const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";

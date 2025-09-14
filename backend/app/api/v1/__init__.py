@@ -10,7 +10,7 @@ from .module_system.user.controller import UserRouter
 from .module_system.log.controller import LogRouter
 from .module_system.position.controller import PositionRouter
 from .module_system.notice.controller import NoticeRouter
-from .module_system.config.controller import ConfigRouter
+from .module_system.params.controller import ParamsRouter
 from .module_system.dict.controller import DictRouter
 
 from .module_monitor.cache.controller import CacheRouter
@@ -41,7 +41,7 @@ SYSTEM_MODULES = [
     {"router": LogRouter},
     {"router": PositionRouter},
     {"router": NoticeRouter},
-    {"router": ConfigRouter},
+    {"router": ParamsRouter},
     {"router": DictRouter},
 ]
 

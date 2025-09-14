@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const ConfigAPI = {
+const ParamsAPI = {
   uploadFile(body: any) {
     return request<ApiResponse<UploadFilePath>>({
       url: `/system/param/upload`,
@@ -66,7 +66,7 @@ const ConfigAPI = {
   },
 };
 
-export default ConfigAPI;
+export default ParamsAPI;
 
 export interface ConfigPageQuery extends PageQuery {
   /** 配置名称 */

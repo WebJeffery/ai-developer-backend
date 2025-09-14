@@ -47,7 +47,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, computed } from 'vue';
-import ConfigAPI, { type ConfigTable } from '@/api/system/config';
+import ParamsAPI, { type ConfigTable } from '@/api/system/params';
 import { useConfigStore } from "@/store";
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -101,7 +101,7 @@ const submitChanges = async () => {
     // 并行处理所有修改请求，提高性能
     const updatePromises = keysToSubmit.map(key => {
       const item = systemConfigs.value[key as keyof typeof systemConfigs.value] || logoConfigs.value[key as keyof typeof logoConfigs.value];
-      return item && item.id ? ConfigAPI.updateConfig(item.id, { ...item }) : Promise.resolve();
+      return item && item.id ? ParamsAPI.updateConfig(item.id, { ...item }) : Promise.resolve();
     });
 
     await Promise.all(updatePromises);

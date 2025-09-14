@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import json
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from redis.asyncio.client import Redis
 from fastapi import UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio.client import Redis
 
 from app.common.enums import RedisInitKeyConfig
@@ -17,40 +16,40 @@ from app.core.base_schema import UploadResponseSchema
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 from ..auth.schema import AuthSchema
-from .param import ConfigQueryParams
-from .schema import ConfigOutSchema, ConfigUpdateSchema, ConfigCreateSchema, UpdataSystemConfigSchema
-from .crud import ConfigCRUD
+from .param import ParamsQueryParams
+from .schema import ParamsOutSchema, ParamsUpdateSchema, ParamsCreateSchema, UpdateSystemParamsSchema
+from .crud import ParamsCRUD
 
 
-class ConfigService:
+class ParamsService:
     """
     配置管理模块服务层
     """
     @classmethod
     async def get_obj_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
-        obj = await ConfigCRUD(auth).get_obj_by_id_crud(id=id)
-        return ConfigOutSchema.model_validate(obj).model_dump()
+        obj = await ParamsCRUD(auth).get_obj_by_id_crud(id=id)
+        return ParamsOutSchema.model_validate(obj).model_dump()
     
 
     @classmethod
-    async def get_obj_list_service(cls, auth: AuthSchema, search: ConfigQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_obj_list_service(cls, auth: AuthSchema, search: ParamsQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         if order_by:
             order_by = eval(order_by)
         obj_list = None
         if search:
-            obj_list = await ConfigCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
+            obj_list = await ParamsCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
         else:
-            obj_list = await ConfigCRUD(auth).get_obj_list_crud()
-        return [ConfigOutSchema.model_validate(obj).model_dump() for obj in obj_list]
+            obj_list = await ParamsCRUD(auth).get_obj_list_crud()
+        return [ParamsOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
     @classmethod
-    async def create_obj_service(cls, auth: AuthSchema, redis: Redis, data: ConfigCreateSchema) -> Dict:
-        exist_obj = await ConfigCRUD(auth).get(config_key=data.config_key)
+    async def create_obj_service(cls, auth: AuthSchema, redis: Redis, data: ParamsCreateSchema) -> Dict:
+        exist_obj = await ParamsCRUD(auth).get(config_key=data.config_key)
         if exist_obj:
             raise CustomException(msg='创建失败，该配置key已存在')
-        obj = await ConfigCRUD(auth).create_obj_crud(data=data)
+        obj = await ParamsCRUD(auth).create_obj_crud(data=data)
 
-        new_obj_dict = ConfigOutSchema.model_validate(obj).model_dump()
+        new_obj_dict = ParamsOutSchema.model_validate(obj).model_dump()
 
         # 同步redis
         redis_key = f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{data.config_key}"
@@ -69,15 +68,15 @@ class ConfigService:
         return new_obj_dict
     
     @classmethod
-    async def update_obj_service(cls, auth: AuthSchema, redis: Redis, id:int, data: ConfigUpdateSchema) -> Dict:
-        exist_obj = await ConfigCRUD(auth).get_obj_by_id_crud(id=id)
+    async def update_obj_service(cls, auth: AuthSchema, redis: Redis, id:int, data: ParamsUpdateSchema) -> Dict:
+        exist_obj = await ParamsCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该数系统配置不存在')
         if exist_obj.config_key != data.config_key:
             raise CustomException(msg='更新失败，系统配置key不允许修改')
         
-        new_obj = await ConfigCRUD(auth).update_obj_crud(id=id, data=data)
-        new_obj_dict = ConfigOutSchema.model_validate(new_obj).model_dump()
+        new_obj = await ParamsCRUD(auth).update_obj_crud(id=id, data=data)
+        new_obj_dict = ParamsOutSchema.model_validate(new_obj).model_dump()
 
         # 同步redis
         redis_key = f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{new_obj.config_key}"
@@ -101,7 +100,7 @@ class ConfigService:
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
-            exist_obj = await ConfigCRUD(auth).get_obj_by_id_crud(id=id)
+            exist_obj = await ParamsCRUD(auth).get_obj_by_id_crud(id=id)
             if not exist_obj:
                 raise CustomException(msg='删除失败，该数据字典类型不存在')
             # 检查是否是否初始化类型
@@ -109,7 +108,7 @@ class ConfigService:
                 # 如果有字典数据，不能删除
                 raise CustomException(msg=f'{exist_obj.config_name} 删除失败，系统初始化配置不可以删除')
         
-        await ConfigCRUD(auth).delete_obj_crud(ids=ids)
+        await ParamsCRUD(auth).delete_obj_crud(ids=ids)
         # 同步删除Redis缓存
         redis_key = f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{exist_obj.config_key}"
         try:
@@ -163,14 +162,14 @@ class ConfigService:
         async with AsyncSessionLocal() as session:
             async with session.begin():
                 auth = AuthSchema(db=session)
-                config_obj = await ConfigCRUD(auth).get_obj_list_crud()
+                config_obj = await ParamsCRUD(auth).get_obj_list_crud()
                 if not config_obj:
                     raise CustomException(msg="系统配置不存在")
                 try:
                     # 保存到Redis并设置过期时间
                     for config in config_obj:
                         redis_key = (f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{config.config_key}")
-                        config_obj_dict = ConfigOutSchema.model_validate(config).model_dump()
+                        config_obj_dict = ParamsOutSchema.model_validate(config).model_dump()
                         value = json.dumps(config_obj_dict, ensure_ascii=False)
                         result = await RedisCURD(redis).set(
                             key=redis_key,

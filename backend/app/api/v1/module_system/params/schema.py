@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.core.base_schema import BaseSchema
 
 
-class ConfigCreateSchema(BaseModel):
+class ParamsCreateSchema(BaseModel):
     """配置创建模型"""
     config_name: str = Field(..., max_length=255, description="参数名称")
     config_key: str = Field(..., max_length=255, description="参数键名")
@@ -15,17 +15,17 @@ class ConfigCreateSchema(BaseModel):
     description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
 
-class ConfigUpdateSchema(ConfigCreateSchema):
+class ParamsUpdateSchema(ParamsCreateSchema):
     """配置更新模型"""
     ...
 
 
-class ConfigOutSchema(ConfigCreateSchema, BaseSchema):
+class ParamsOutSchema(ParamsCreateSchema, BaseSchema):
     """配置响应模型"""
     model_config = ConfigDict(from_attributes=True)
 
 
-class UpdataSystemConfigSchema(BaseModel):
+class UpdateSystemParamsSchema(BaseModel):
     """更新系统配置"""
     sys_web_title: str = Field(description="网站标题") 
     sys_web_description: str = Field(description="网站描述")
