@@ -4,16 +4,14 @@
 提供跨数据库兼容的基础模型类和类型装饰器
 """
 
-import uuid
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-import json
 from sqlalchemy import Boolean, String, Integer, DateTime, ForeignKey, Text, BigInteger
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, declared_attr, mapped_column
-from sqlalchemy.types import TypeDecorator
+
 
 
 class MappedBase(AsyncAttrs, DeclarativeBase):
@@ -65,5 +63,6 @@ class CreatorMixin(ModelMixin):
             primaryjoin=f"{cls.__name__}.creator_id == UserModel.id",
             lazy="selectin",
             foreign_keys=[cls.creator_id],
-            viewonly=True
+            viewonly=True,
+            uselist=False  # 明确指定返回单个对象
         )

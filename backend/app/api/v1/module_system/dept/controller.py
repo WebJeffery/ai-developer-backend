@@ -22,16 +22,14 @@ from .schema import (
 DeptRouter = APIRouter(route_class=OperationLogRoute, prefix="/dept", tags=["部门管理"])
 
 
-@DeptRouter.get("/list", summary="查询部门", description="查询部门")
-async def get_obj_list_controller(
-    page: PaginationQueryParams = Depends(),
+@DeptRouter.get("/tree", summary="查询部门树", description="查询部门树")
+async def get_dept_tree_controller(
     search: DeptQueryParams = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:query"]))
 ) -> JSONResponse:
-    result_dict_list = await DeptService.get_dept_list_service(search=search, auth=auth, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
-    logger.info(f"查询部门成功")
-    return SuccessResponse(data=result_dict, msg="查询部门成功")
+    result_dict_list = await DeptService.get_dept_tree_service(search=search, auth=auth)
+    logger.info(f"查询部门树成功")
+    return SuccessResponse(data=result_dict_list, msg="查询部门树成功")
 
 
 @DeptRouter.get("/detail/{id}", summary="查询部门详情", description="查询部门详情")

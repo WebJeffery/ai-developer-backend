@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import uuid
 import json
 from pathlib import Path
 from typing import Dict, List
@@ -8,6 +7,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logger import logger
+from app.core.database import AsyncSessionLocal
 from app.config.setting import settings
 
 from app.api.v1.module_system.user.model import UserModel, UserRolesModel, UserPositionsModel
@@ -17,7 +17,6 @@ from app.api.v1.module_system.dept.model import DeptModel
 from app.api.v1.module_system.menu.model import MenuModel
 from app.api.v1.module_system.config.model import ConfigModel
 from app.api.v1.module_system.dict.model import DictTypeModel, DictDataModel
-from app.core.database import AsyncSessionLocal
 
 
 class InitializeData:
@@ -48,7 +47,7 @@ class InitializeData:
             RoleDeptsModel,
             RoleMenusModel,
         ]
-
+    
     async def __init_data(self, db: AsyncSession) -> None:
         """初始化基础数据"""
         for model in self.prepare_init_models:
@@ -68,8 +67,14 @@ class InitializeData:
                 continue
             
             try:
-                # 表为空，直接插入全部数据
-                objs = [model(**item) for item in data]
+                # 特殊处理具有嵌套 children 数据的表
+                if table_name in ["system_dept", "system_menu"]:
+                    # 获取对应的模型类
+                    model_class = DeptModel if table_name == "system_dept" else MenuModel
+                    objs = self.__create_objects_with_children(data, model_class)
+                else:
+                    # 表为空，直接插入全部数据
+                    objs = [model(**item) for item in data]
                 db.add_all(objs)
                 await db.flush()
                 logger.info(f"已向 {table_name} 表写入 {len(objs)} 条记录")
@@ -77,6 +82,28 @@ class InitializeData:
             except Exception as e:
                 logger.error(f"初始化 {table_name} 表数据失败: {str(e)}")
                 raise
+
+    def __create_objects_with_children(self, data: List[Dict], model_class) -> List:
+        """通用递归创建对象函数，处理嵌套的 children 数据"""
+        objs = []
+        
+        def create_object(obj_data: Dict):
+            # 分离 children 数据
+            children_data = obj_data.pop('children', [])
+            
+            # 创建当前对象
+            obj = model_class(**obj_data)
+            
+            # 递归处理子对象
+            if children_data:
+                obj.children = [create_object(child) for child in children_data]
+                
+            return obj
+        
+        for item in data:
+            objs.append(create_object(item))
+            
+        return objs
 
     async def __get_data(self, filename: str) -> List[Dict]:
         """读取初始化数据文件"""
@@ -100,6 +127,6 @@ class InitializeData:
         """
         # 使用单个会话完成所有初始化操作
         async with AsyncSessionLocal() as session:
-            # async with session.begin():
-            await self.__init_data(session)
+            async with session.begin():
+                await self.__init_data(session)
     

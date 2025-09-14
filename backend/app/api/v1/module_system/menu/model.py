@@ -24,7 +24,7 @@ class MenuModel(ModelMixin):
     """
     __tablename__ = "system_menu"
     __table_args__ = ({'comment': '菜单表'})
-
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
     name: Mapped[str] = mapped_column(String(50), nullable=False, comment='菜单名称', unique=True)
     type: Mapped[int] = mapped_column(Integer, nullable=False, default=2, comment='菜单类型(1:目录 2:菜单 3:按钮/权限 4:链接)')
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=999, comment='显示排序')
@@ -42,12 +42,11 @@ class MenuModel(ModelMixin):
     affix: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, comment='是否固定标签页(True:是 False:否)')
     
     parent_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('system_menu.id', ondelete='SET NULL'), default=None, index=True, comment='父菜单ID')
-    # parent: Mapped[Optional['MenuModel']] = relationship(cascade='all, delete-orphan', primaryjoin="MenuModel.parent_id == MenuModel.id", uselist=False)
+    parent: Mapped[Optional['MenuModel']] = relationship(back_populates='children', remote_side=[id], uselist=False)
+    children: Mapped[Optional[List['MenuModel']]] = relationship(back_populates='parent')
     
     # 角色关联关系
     roles: Mapped[List["RoleModel"]] = relationship(secondary="system_role_menus", back_populates="menus", lazy="selectin")
     
     # link: Mapped[Optional[str]] = mapped_column(String(255),  comment='外链地址')
     # iframe: Mapped[Optional[str]] = mapped_column(String(255),  comment='内嵌iframe地址')
-    parent: Mapped[Optional['MenuModel']] = relationship(init=False, back_populates='children', remote_side=[id])
-    children: Mapped[Optional[list['MenuModel']]] = relationship(init=False, back_populates='parent')

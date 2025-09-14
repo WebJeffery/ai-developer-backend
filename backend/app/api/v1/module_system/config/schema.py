@@ -8,11 +8,11 @@ from app.core.base_schema import BaseSchema
 
 class ConfigCreateSchema(BaseModel):
     """配置创建模型"""
-    config_name: str = Field(..., max_length=500, description="参数名称")
-    config_key: str = Field(..., max_length=500, description="参数键名")
-    config_value: str = Field(..., max_length=500, description="参数键值")
+    config_name: str = Field(..., max_length=255, description="参数名称")
+    config_key: str = Field(..., max_length=255, description="参数键名")
+    config_value: str = Field(..., max_length=255, description="参数键值")
     config_type: bool = Field(..., description="系统内置((True:是 False:否))")
-    description: Optional[str] = Field(None, max_length=500, description="备注说明")
+    description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
 
 class ConfigUpdateSchema(ConfigCreateSchema):

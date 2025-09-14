@@ -2,6 +2,7 @@
   {
     "name": "管理员角色",
     "data_scope": 4,
+    "code": "ADMIN",
     "status": true,
     "order": 1,
     "description": "管理员",

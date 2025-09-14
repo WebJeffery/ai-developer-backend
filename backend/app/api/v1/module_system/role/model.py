@@ -10,8 +10,6 @@ from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.core.base_model import MappedBase, CreatorMixin
-from app.api.v1.module_system.dept.model import DeptModel
-from app.api.v1.module_system.menu.model import MenuModel
 
 
 class RoleMenusModel(MappedBase):

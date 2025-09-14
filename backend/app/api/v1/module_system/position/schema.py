@@ -11,7 +11,7 @@ class PositionCreateSchema(BaseModel):
     name: str = Field(..., max_length=40, description="岗位名称")
     order: Optional[int] = Field(default=1, ge=1, description='显示排序')
     status: bool = Field(default=True, description="是否启用(True:启用 False:禁用)")
-    description: Optional[str] = Field(default=None, description="备注说明")
+    description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
 
 class PositionUpdateSchema(PositionCreateSchema):

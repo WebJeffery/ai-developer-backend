@@ -8,7 +8,8 @@ from app.utils.common_util import (
     get_parent_id_map,
     get_parent_recursion,
     get_child_id_map,
-    get_child_recursion
+    get_child_recursion,
+    traversal_to_tree
 )
 from ..auth.schema import AuthSchema
 from .param import MenuQueryParams
@@ -32,35 +33,25 @@ class MenuService:
         return menu_dict
 
     @classmethod
-    async def get_menu_list_service(cls, auth: AuthSchema, search: MenuQueryParams, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_menu_tree_service(cls, auth: AuthSchema, search: MenuQueryParams, order_by: List[Dict] = None) -> List[Dict]:
+        """
+        获取菜单树形列表service
+        
+        :param auth: 认证对象
+        :param search: 查询参数对象
+        :param order_by: 排序参数
+        :return: 菜单树形列表对象
+        """
         if order_by:
             order_by = eval(order_by)
         else:
             order_by = [{"order": "asc"}]
-        menu_list = await MenuCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
+        # 使用树形结构查询，预加载children关系
+        menu_list = await MenuCRUD(auth).get_tree_list_crud(search=search.__dict__, order_by=order_by)
+        # 转换为字典列表
         menu_dict_list = [MenuOutSchema.model_validate(menu).model_dump() for menu in menu_list]
-        return menu_dict_list
-
-    @staticmethod
-    async def convert_to_menu(menu_list):
-        menu_dict = {}
-        result = []
-
-        for menu in menu_list:
-            if isinstance(menu, dict):
-                menu_dict[menu['id']] = menu
-                menu['key']=menu['id']
-        for menu in menu_list:
-            if isinstance(menu, dict):
-                parent_id = menu.get('parent_id')
-                if parent_id is None or parent_id not in menu_dict:
-                    result.append(menu)
-                else:
-                    parent_menu = menu_dict[parent_id]
-                    if 'children' not in parent_menu:
-                        parent_menu['children'] = []
-                    parent_menu['children'].append(menu)
-        return result
+        # 使用traversal_to_tree构建树形结构
+        return traversal_to_tree(menu_dict_list)
 
     @classmethod
     async def create_menu_service(cls, auth: AuthSchema, data: MenuCreateSchema) -> Dict:

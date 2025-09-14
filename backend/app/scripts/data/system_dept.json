@@ -1,9 +1,58 @@
 [
   {
     "name": "集团总公司",
+    "code": "GROUP001",
     "order": 1,
     "status": true,
     "parent_id": null,
-    "description": "集团总公司"
+    "description": "集团总公司",
+    "children": [
+      {
+        "name": "北京分公司",
+        "code": "BJ001",
+        "order": 1,
+        "status": true,
+        "description": "北京分公司",
+        "children": [
+          {
+            "name": "技术部",
+            "code": "TECH001",
+            "order": 1,
+            "status": true,
+            "description": "技术部"
+          },
+          {
+            "name": "销售部",
+            "code": "SALES001",
+            "order": 2,
+            "status": true,
+            "description": "销售部"
+          }
+        ]
+      },
+      {
+        "name": "上海分公司",
+        "code": "SH001",
+        "order": 2,
+        "status": true,
+        "description": "上海分公司",
+        "children": [
+          {
+            "name": "市场部",
+            "code": "MARKET001",
+            "order": 1,
+            "status": true,
+            "description": "市场部"
+          },
+          {
+            "name": "人事部",
+            "code": "HR001",
+            "order": 2,
+            "status": true,
+            "description": "人事部"
+          }
+        ]
+      }
+    ]
   }
 ]

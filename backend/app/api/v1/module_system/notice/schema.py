@@ -12,7 +12,7 @@ class NoticeCreateSchema(BaseModel):
     notice_type: str = Field(..., description='公告类型（1通知 2公告）')
     notice_content: str = Field(..., description='公告内容')
     status: bool = Field(default=True, description="是否启用(True:启用 False:禁用)")
-    description: Optional[str] = Field(default=None, max_length=255, description="公告描述")
+    description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
 
 class NoticeUpdateSchema(NoticeCreateSchema):

@@ -130,11 +130,12 @@ class SchedulerUtil:
         
         scheduler.start()
         async with AsyncSessionLocal() as session:
-            auth = AuthSchema(db=session)
-            job_list = await JobCRUD(auth).get_obj_list_crud()
-            for item in job_list:
-                cls.remove_job(job_id=item.id)  # 删除旧任务
-                cls.add_job(item)
+            async with session.begin():
+                auth = AuthSchema(db=session)
+                job_list = await JobCRUD(auth).get_obj_list_crud()
+                for item in job_list:
+                    cls.remove_job(job_id=item.id)  # 删除旧任务
+                    cls.add_job(item)
         scheduler.add_listener(cls.scheduler_event_listener, EVENT_ALL)
 
     @classmethod

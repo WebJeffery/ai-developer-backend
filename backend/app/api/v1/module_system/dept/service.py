@@ -8,7 +8,8 @@ from app.utils.common_util import (
     get_parent_id_map,
     get_parent_recursion,
     get_child_id_map,
-    get_child_recursion
+    get_child_recursion,
+    traversal_to_tree
 )
 from ..auth.schema import AuthSchema
 from .crud import DeptCRUD
@@ -38,21 +39,25 @@ class DeptService:
         return DeptOutSchema.model_validate(dept).model_dump()
 
     @classmethod
-    async def get_dept_list_service(cls, auth: AuthSchema, search: DeptQueryParams, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_dept_tree_service(cls, auth: AuthSchema, search: DeptQueryParams, order_by: List[Dict] = None) -> List[Dict]:
         """
-        获取部门列表service
+        获取部门树形列表service
         
         :param auth: 认证对象
         :param search: 查询参数对象
         :param order_by: 排序参数
-        :return: 部门列表对象
+        :return: 部门树形列表对象
         """
         if order_by:
             order_by = eval(order_by)
         else:
             order_by = [{"order": "asc"}]
-        dept_list = await DeptCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
-        return [DeptOutSchema.model_validate(dept).model_dump() for dept in dept_list]
+        # 使用树形结构查询，预加载children关系
+        dept_list = await DeptCRUD(auth).get_tree_list_crud(search=search.__dict__, order_by=order_by)
+        # 转换为字典列表
+        dept_dict_list = [DeptOutSchema.model_validate(dept).model_dump() for dept in dept_list]
+        # 使用traversal_to_tree构建树形结构
+        return traversal_to_tree(dept_dict_list)
 
     @classmethod
     async def create_dept_service(cls, auth: AuthSchema, data: DeptCreateSchema) -> Dict:

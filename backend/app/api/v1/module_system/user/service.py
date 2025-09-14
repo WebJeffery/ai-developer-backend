@@ -9,6 +9,7 @@ from app.core.exceptions import CustomException
 from app.core.hash_bcrpy import PwdUtil
 from app.core.base_schema import BatchSetAvailable, UploadResponseSchema
 from app.core.logger import logger
+from app.utils.common_util import traversal_to_tree
 from app.utils.excel_util import ExcelUtil
 from app.utils.upload_util import UploadUtil
 from ..position.crud import PositionCRUD
@@ -184,16 +185,25 @@ class UserService:
 
         # 获取菜单权限
         if auth.user.is_superuser:
-            menu_all = await MenuCRUD(auth).get_list_crud(search={'type': ('in', [1, 2, 4]), 'status': True})
+            # 使用树形结构查询，预加载children关系
+            menu_all = await MenuCRUD(auth).get_tree_list_crud(search={'type': ('in', [1, 2, 4]), 'status': True})
             menus = [MenuOutSchema.model_validate(menu).model_dump() for menu in menu_all]
+            
         else:
-            menus = [
-                MenuOutSchema.model_validate(menu).model_dump()
-                for role in auth.user.roles
-                for menu in role.menus
-                if menu.status and menu.type in [1, 2, 4]
-            ]
-        user_dict["menus"] = menus
+            # 收集用户所有角色的菜单ID
+            menu_ids = []
+            for role in auth.user.roles:
+                for menu in role.menus:
+                    if menu.status and menu.type in [1, 2, 4]:
+                        menu_ids.append(menu.id)
+            
+            # 使用树形结构查询，预加载children关系
+            if menu_ids:
+                menu_all = await MenuCRUD(auth).get_tree_list_crud(search={'id': ('in', menu_ids)})
+                menus = [MenuOutSchema.model_validate(menu).model_dump() for menu in menu_all]
+            else:
+                menus = []
+        user_dict["menus"] = traversal_to_tree(menus)
         return user_dict
 
     @classmethod

@@ -161,26 +161,27 @@ class ConfigService:
     @classmethod
     async def init_config_service(cls, redis: Redis) -> bool:
         async with AsyncSessionLocal() as session:
-            auth = AuthSchema(db=session)
-            config_obj = await ConfigCRUD(auth).get_obj_list_crud()
-            if not config_obj:
-                raise CustomException(msg="系统配置不存在")
-            try:
-                # 保存到Redis并设置过期时间
-                for config in config_obj:
-                    redis_key = (f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{config.config_key}")
-                    config_obj_dict = ConfigOutSchema.model_validate(config).model_dump()
-                    value = json.dumps(config_obj_dict, ensure_ascii=False)
-                    result = await RedisCURD(redis).set(
-                        key=redis_key,
-                        value=value,
-                    )
-                    if not result:
-                        logger.error(f"初始化系统配置失败: {config_obj_dict}")
-                        raise CustomException(msg="初始化系统配置失败")
-            except Exception as e:
-                logger.error(f"初始化系统配置失败: {e}")
-                raise CustomException(msg="初始化系统配置失败")
+            async with session.begin():
+                auth = AuthSchema(db=session)
+                config_obj = await ConfigCRUD(auth).get_obj_list_crud()
+                if not config_obj:
+                    raise CustomException(msg="系统配置不存在")
+                try:
+                    # 保存到Redis并设置过期时间
+                    for config in config_obj:
+                        redis_key = (f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{config.config_key}")
+                        config_obj_dict = ConfigOutSchema.model_validate(config).model_dump()
+                        value = json.dumps(config_obj_dict, ensure_ascii=False)
+                        result = await RedisCURD(redis).set(
+                            key=redis_key,
+                            value=value,
+                        )
+                        if not result:
+                            logger.error(f"初始化系统配置失败: {config_obj_dict}")
+                            raise CustomException(msg="初始化系统配置失败")
+                except Exception as e:
+                    logger.error(f"初始化系统配置失败: {e}")
+                    raise CustomException(msg="初始化系统配置失败")
 
     @classmethod
     async def get_init_config_service(cls, redis: Redis) -> Dict:

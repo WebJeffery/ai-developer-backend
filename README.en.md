@@ -215,8 +215,8 @@ pnpm run docs:build
 ### Docker Build
 
 ```sh
-# Copy the script `fastapi_vue3_admin/start.sh` to the server and grant execution permissions
-chmod +x start.sh
+# Copy the script `fastapi_vue3_admin/deploy.sh` to the server and grant execution permissions
+chmod +x deploy.sh
 # Execute the script
 ./deploy.sh
 # View images:

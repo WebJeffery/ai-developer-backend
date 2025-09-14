@@ -76,8 +76,9 @@ const loading = ref(true);
 onBeforeMount(() => {
   loading.value = true;
   DeptAPI.getDeptList(queryFormData).then((response) => {
-    const treeData = listToTree(response.data.data.items);
-    deptOptions.value = formatTree(treeData);
+    // const treeData = listToTree(response.data.data.items);
+    // deptOptions.value = formatTree(treeData);
+    deptOptions.value = formatTree(response.data.data);
   }).finally(() => {
     loading.value = false;
   });

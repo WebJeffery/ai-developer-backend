@@ -234,7 +234,7 @@
       <!-- 新增、编辑表单 -->
       <template v-else>
         <el-form ref="dataFormRef" :model="formData" :rules="rules" label-suffix=":" label-width="auto" label-position="right">
-          <el-form-item label="父级菜单" prop="parent_id" if v-if="formData.type !== MenuTypeEnum.CATALOG">
+          <el-form-item v-if="formData.type !== MenuTypeEnum.CATALOG" label="父级菜单" prop="parent_id" if >
             <el-tree-select v-model="formData.parent_id" placeholder="选择上级菜单" :data="menuOptions" filterable check-strictly :render-after-expand="false" />
           </el-form-item>
 
@@ -473,14 +473,13 @@ import { DeviceEnum } from "@/enums/settings/device.enum";
 
 import MenuAPI, { MenuPageQuery, MenuForm, MenuTable } from "@/api/system/menu";
 import { MenuTypeEnum } from "@/enums/system/menu.enum";
-import { formatTree, listToTree } from "@/utils/common";
+import { formatTree } from "@/utils/common";
 
 const appStore = useAppStore();
 const userStore = useUserStore();
 
 const queryFormRef = ref();
 const dataFormRef = ref();
-const total = ref(0);
 const selectIds = ref<number[]>([]);
 const loading = ref(false);
 
@@ -495,8 +494,6 @@ const detailFormData = ref<MenuTable>({});
 
 // 分页查询参数
 const queryFormData = reactive<MenuPageQuery>({
-  page_no: 1,
-  page_size: 10,
   name: undefined,
   status: undefined,
   start_time: undefined,
@@ -578,9 +575,7 @@ async function handleRefresh () {
   loading.value = true;
   try {
     const response = await MenuAPI.getMenuList(queryFormData);
-    const treeData = listToTree(response.data.data.items);
-    pageTableData.value = treeData;
-    total.value = response.data.data.total;
+    pageTableData.value = response.data.data
   } catch (error: any) {
     console.error(error);
   } finally {
@@ -603,11 +598,9 @@ async function loadingData() {
   loading.value = true;
   try {
     const response = await MenuAPI.getMenuList(queryFormData);
-    const treeData = listToTree(response.data.data.items);
-    pageTableData.value = treeData;
-    total.value = response.data.data.total;
-    // 加载部门选项，只显示目录、菜单
-    menuOptions.value = formatTree(filterMenuTypes(treeData));
+    pageTableData.value = response.data.data
+    // 加载菜单选项，只显示目录、菜单
+    menuOptions.value = formatTree(filterMenuTypes(response.data.data));
   }
   catch (error: any) {
     console.error(error);

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.core.base_schema import BaseSchema
@@ -10,9 +10,10 @@ class DeptCreateSchema(BaseModel):
     """部门创建模型"""
     name: str = Field(..., max_length=40, description="部门名称")
     order: int = Field(default=1, ge=0, description="显示顺序")
+    code: Optional[str] = Field(default=None, max_length=60, description="部门编码")
     status: bool = Field(default=True, description="是否启用(True:启用 False:禁用)")
     parent_id: Optional[int] = Field(default=None, ge=0, description="父部门ID")
-    description: Optional[str] = Field(default=None, max_length=500, description="备注说明")
+    description: Optional[str] = Field(default=None, max_length=255, description="备注说明")
 
     @field_validator('name')
     @classmethod

@@ -22,7 +22,7 @@ class JobCreateSchema(BaseModel):
     trigger_args: Optional[str] = Field(default=None, description='触发器参数')
     start_date: Optional[str] = Field(default=None, description='开始时间')
     end_date: Optional[str] = Field(default=None, description='结束时间')
-    description: Optional[str] = Field(default=None, description='备注说明')
+    description: Optional[str] = Field(default=None, max_length=255, description='描述')
     status: Optional[bool] = Field(default=False, description='任务状态:启动,停止')
 
 

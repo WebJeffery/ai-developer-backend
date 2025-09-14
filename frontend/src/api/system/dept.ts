@@ -2,8 +2,8 @@ import request from "@/utils/request";
 
 const DeptAPI = {
   getDeptList(query?: DeptPageQuery) {
-    return request<ApiResponse<PageResult<DeptTable[]>>>({
-      url: `/system/dept/list`,
+    return request<ApiResponse<DeptTable[]>>({
+      url: `/system/dept/tree`,
       method: "get",
       params: query,
     });
@@ -65,6 +65,7 @@ export interface DeptTable {
   id?: number;
   name?: string;
   order?: number;
+  code?: string;
   parent_id?: number;
   parent_name?: string;
   status?: boolean;
@@ -79,6 +80,7 @@ export interface DeptForm {
   id?: number;
   name?: string;
   order?: number;
+  code?: string;
   parent_id?: number;
   status?: boolean;
   description?: string;

@@ -13,7 +13,7 @@ class DictTypeCreateSchema(BaseModel):
     dict_name: str = Field(..., min_length=1, max_length=100, description='字典名称')
     dict_type: str = Field(..., min_length=1, max_length=100, description='字典类型')
     status: Optional[bool] = Field(default=None, description='状态（1正常 0停用）')
-    description: Optional[str] = Field(None, max_length=255, description="描述")
+    description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
     @field_validator('dict_name')
     def validate_dict_name(cls, value: str):
