@@ -1,5 +1,5 @@
 import { store } from "@/store";
-import ConfigAPI, { ConfigTable } from "@/api/system/config";
+import ParamsAPI, { ConfigTable } from "@/api/system/params";
 
 interface ConfigState {
   sys_git_code: ConfigTable;
@@ -24,7 +24,7 @@ export const useConfigStore = defineStore("config", {
 
   actions: {
     async getConfig() {
-      const response = await ConfigAPI.getInitConfig();
+      const response = await ParamsAPI.getInitConfig();
       response.data.data.forEach((item: ConfigTable) => {
         // 确保所有配置项都正确映射到 configData
         if (item.config_value !== undefined) {
