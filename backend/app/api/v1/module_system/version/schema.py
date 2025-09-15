@@ -1,42 +1,30 @@
-from pydantic import BaseModel
+# -*- coding: utf-8 -*-
+
 from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
+from app.core.base_schema import BaseSchema
 
-class VersionCreate(BaseModel):
+
+class VersionCreateSchema(BaseModel):
     """创建版本"""
-    version_number: str
-    title: str
-    description: Optional[str] = None
-    release_notes: Optional[str] = None
-    status: Optional[str] = "draft"
-    project: Optional[str] = None
-    released_at: Optional[datetime] = None
+    version_number: str = Field(..., max_length=50, description='版本号')
+    title: str = Field(..., max_length=255, description='版本标题')
+    release_notes: Optional[str] = Field(default=None, description='发布说明')
+    description: Optional[str] = Field(default=None, description='工单描述')
+    status: Optional[bool] = Field(default=True, description='1、启动 2、停止')
+    version_status: Optional[str] = Field(default='draft', description='版本状态(draft, released, archived)')
+    project: Optional[str] = Field(default=None, max_length=100, description='所属项目')
+    released_at: Optional[datetime] = Field(default=None, description='发布时间')
 
 
-class VersionUpdate(BaseModel):
+class VersionUpdateSchema(VersionCreateSchema):
     """更新版本"""
-    version_number: Optional[str] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
-    release_notes: Optional[str] = None
-    status: Optional[str] = None
-    project: Optional[str] = None
-    released_at: Optional[datetime] = None
+    ...
 
 
-class VersionOut(BaseModel):
+class VersionOutSchema(VersionCreateSchema, BaseSchema):
     """版本输出"""
-    id: int
-    version_number: str
-    title: str
-    description: Optional[str] = None
-    release_notes: Optional[str] = None
-    status: str
-    project: Optional[str] = None
-    released_at: Optional[datetime] = None
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+    ...

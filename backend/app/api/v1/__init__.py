@@ -2,101 +2,36 @@
 
 from fastapi import APIRouter
 
-from .module_system.auth.controller import AuthRouter
-from .module_system.menu.controller import MenuRouter
-from .module_system.dept.controller import DeptRouter
-from .module_system.role.controller import RoleRouter
-from .module_system.user.controller import UserRouter
-from .module_system.log.controller import LogRouter
-from .module_system.position.controller import PositionRouter
-from .module_system.notice.controller import NoticeRouter
-from .module_system.params.controller import ParamsRouter
-from .module_system.dict.controller import DictRouter
-from .module_system.ticket.controller import router as TicketRouter
-from .module_system.version.controller import router as VersionRouter
+# 系统管理模块
+from .module_system import SystemRouter
 
-from .module_monitor.cache.controller import CacheRouter
-from .module_monitor.job.controller import JobRouter
-from .module_monitor.online.controller import OnlineRouter
-from .module_monitor.server.controller import ServerRouter
+# 监控管理模块
+from .module_monitor import MonitorRouter
 
-from .module_common.file.controller import FileRouter
+# 通用模块
+from .module_common import CommonRouter
 
-from .module_resource.resource.controller import ResourceRouter
+# 资源管理模块
+from .module_resource import ResourceRouter
 
-from .module_example.demo.controller import DemoRouter
+# 示例模块
+from .module_example import ExampleRouter
 
-from .module_application.myapp.controller import MyAppRouter
+# 应用模块
+from .module_application import ApplicationRouter
 
-from .module_ai.mcp.controller import MCPRouter
+# AI模块
+from .module_ai import AIRouter
 
 
-# 定义路由模块映射，按模块分组
-SYSTEM_MODULES = [
-    {"router": AuthRouter},
-    {"router": MenuRouter},
-    {"router": DeptRouter},
-    {"router": RoleRouter},
-    {"router": UserRouter},
-    {"router": LogRouter},
-    {"router": PositionRouter},
-    {"router": NoticeRouter},
-    {"router": ParamsRouter},
-    {"router": DictRouter},
-    {"router": TicketRouter},
-    {"router": VersionRouter},
-]
-
-MONITOR_MODULES = [
-    {"router": JobRouter},
-    {"router": CacheRouter},
-    {"router": OnlineRouter},
-    {"router": ServerRouter},
-]
-
-COMMON_MODULES = [{"router": FileRouter}]
-
-RESOURCE_MODULES = [{"router": ResourceRouter}]
-
-EXAMPLE_MODULES = [{"router": DemoRouter}]
-
-APPLICATION_MODULES = [{"router": MyAppRouter}]
-
-AI_MODULES = [{"router": MCPRouter}]
-
-
+# 创建主路由
 router = APIRouter()
-for module in SYSTEM_MODULES:
-    router.include_router(
-        router=module["router"], prefix="/system"
-    )
 
-for module in MONITOR_MODULES:
-    router.include_router(
-        router=module["router"], prefix="/monitor"
-    )
-
-for module in COMMON_MODULES:
-    router.include_router(
-        router=module["router"], prefix="/common"
-    )
-
-for module in EXAMPLE_MODULES:
-    router.include_router(
-        router=module["router"], prefix="/example"
-    )
-
-for module in APPLICATION_MODULES:
-    router.include_router(
-        router=module["router"], prefix="/application"
-    )
-
-for module in RESOURCE_MODULES:
-    router.include_router(
-        router=module["router"], prefix="/resource"
-    )
-
-for module in AI_MODULES:
-    router.include_router(
-        router=module["router"], prefix="/ai"
-    )
+# 注册各模块路由
+router.include_router(SystemRouter)
+router.include_router(MonitorRouter)
+router.include_router(CommonRouter)
+router.include_router(ResourceRouter)
+router.include_router(ExampleRouter)
+router.include_router(ApplicationRouter)
+router.include_router(AIRouter)
