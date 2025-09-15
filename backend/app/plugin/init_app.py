@@ -33,7 +33,7 @@ from app.core.exceptions import (
 )
 from app.core.database import session_connect, init_create_table
 from app.scripts.initialize import InitializeData
-from app.api.v1.module_system.config.service import ConfigService
+from app.api.v1.module_system.params.service import ParamsService
 from app.api.v1.module_system.dict.service import DictDataService
 from app.api.v1 import router
 
@@ -52,7 +52,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
         logger.info("初始化数据完成...")
         await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=True)
         logger.info("初始化全局事件完成...")
-        await ConfigService().init_config_service(redis=app.state.redis)
+        await ParamsService().init_config_service(redis=app.state.redis)
         logger.info("初始化系统配置完成...")
         await DictDataService().init_dict_service(redis=app.state.redis)
         logger.info('初始化数据字典完成...')
