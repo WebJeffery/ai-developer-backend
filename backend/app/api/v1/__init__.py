@@ -12,6 +12,8 @@ from .module_system.position.controller import PositionRouter
 from .module_system.notice.controller import NoticeRouter
 from .module_system.params.controller import ParamsRouter
 from .module_system.dict.controller import DictRouter
+from .module_system.ticket.controller import router as TicketRouter
+from .module_system.version.controller import router as VersionRouter
 
 from .module_monitor.cache.controller import CacheRouter
 from .module_monitor.job.controller import JobRouter
@@ -28,8 +30,6 @@ from .module_application.myapp.controller import MyAppRouter
 
 from .module_ai.mcp.controller import MCPRouter
 
-from .module_resource.resource.controller import ResourceRouter
-
 
 # 定义路由模块映射，按模块分组
 SYSTEM_MODULES = [
@@ -43,6 +43,8 @@ SYSTEM_MODULES = [
     {"router": NoticeRouter},
     {"router": ParamsRouter},
     {"router": DictRouter},
+    {"router": TicketRouter},
+    {"router": VersionRouter},
 ]
 
 MONITOR_MODULES = [
