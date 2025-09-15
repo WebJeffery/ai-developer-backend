@@ -25,5 +25,4 @@ class PositionModel(CreatorMixin):
     # 用户关联关系
     users: Mapped[List["UserModel"]] = relationship(secondary="system_user_positions", back_populates="positions", lazy="selectin")
 
-    # users: Mapped[List["UserModel"]] = relationship(secondary="system_user_positions", back_populates="positions", lazy="select")
 

@@ -23,10 +23,6 @@ class PositionOutSchema(PositionCreateSchema, BaseSchema):
     """岗位信息响应模型"""
     model_config = ConfigDict(from_attributes=True)
 
-
-class PositionOptionsOut(PositionCreateSchema):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int = Field(..., description="主键ID")
     created_at: DateTimeStr = Field(..., description="创建时间")
     updated_at: DateTimeStr = Field(..., description="更新时间")
