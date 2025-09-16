@@ -13,7 +13,8 @@ from app.core.exceptions import CustomException
 DateTimeStr = Annotated[
     datetime,
     AfterValidator(lambda x: datetime_validator(x)),
-    PlainSerializer(lambda x: x.strftime('%Y-%m-%d %H:%M:%S') if isinstance(x, datetime) else x, return_type=str),
+    PlainSerializer(lambda x: x, return_type=str),
+    # PlainSerializer(lambda x: x.strftime('%Y-%m-%d %H:%M:%S') if isinstance(x, datetime) else x, return_type=str),
     WithJsonSchema({'type': 'string'}, mode='serialization')
 ]
 
