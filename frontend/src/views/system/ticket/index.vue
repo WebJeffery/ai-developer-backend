@@ -76,6 +76,9 @@
           <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
         </div>
         <div class="data-table__toolbar--tools">
+          <el-tooltip content="刷新">
+            <el-button type="primary" icon="refresh" circle @click="handleRefresh" />
+          </el-tooltip>
           <el-tooltip content="列表筛选">
             <el-dropdown trigger="click">
               <el-button type="default" icon="operation" circle />
