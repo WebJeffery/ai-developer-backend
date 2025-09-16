@@ -41,7 +41,6 @@ class ModelMixin(MappedBase):
     __abstract__ = True
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
-    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="备注说明")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, comment='创建时间')
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now, comment='更新时间')

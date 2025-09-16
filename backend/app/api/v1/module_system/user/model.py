@@ -72,6 +72,7 @@ class UserModel(CreatorMixin):
     username: Mapped[str] = mapped_column(String(32),nullable=False,unique=True,comment="用户名/登录账号")
     password: Mapped[str] = mapped_column(String(255),nullable=False,comment="密码哈希")
     name: Mapped[str] = mapped_column(String(32),nullable=False,comment="昵称")
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     mobile: Mapped[Optional[str]] = mapped_column(String(20),nullable=True,unique=True,comment="手机号")
     email: Mapped[Optional[str]] = mapped_column(String(64),nullable=True,unique=True,comment="邮箱")
     gender: Mapped[Optional[str]] = mapped_column(String(1), default='0',nullable=True,comment="性别(0:男 1:女 2:未知)")

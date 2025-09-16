@@ -11,8 +11,7 @@ class TicketCreateSchema(BaseModel):
     """创建工单"""
     title: str = Field(..., max_length=255, description='工单标题')
     description: Optional[str] = Field(default=None, description='工单描述')
-    status: Optional[bool] = Field(default=True, description='1、启动 2、停止')
-    ticket_status: Optional[str] = Field(default='1', description='工单处理状态(1:待处理 2:处理中 3:已解决 4:已关闭)')
+    status: Optional[str] = Field(default='pending', description='工单处理状态(pending:待处理 progress:处理中 resolved:已解决 closed:已关闭)')
     priority: Optional[str] = Field(default='medium', description='优先级(low, medium, high, urgent)')
     type: Optional[str] = Field(default='bug', description='工单类型(bug, feature, task)')
     assignee_id: Optional[int] = Field(default=None, description='指派给用户ID')

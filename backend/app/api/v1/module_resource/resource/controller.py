@@ -23,10 +23,10 @@ from .schema import (
 from .service import ResourceService
 
 
-ResourceRouter = APIRouter(route_class=OperationLogRoute, prefix="/resource", tags=["资源管理"])
+ResourceFileRouter = APIRouter(route_class=OperationLogRoute, prefix="/resource", tags=["资源管理"])
 
 
-@ResourceRouter.get("/list", summary="获取目录列表", description="获取指定目录下的文件和子目录列表")
+@ResourceFileRouter.get("/list", summary="获取目录列表", description="获取指定目录下的文件和子目录列表")
 async def get_directory_list_controller(
     request: Request,
     path: Optional[str] = Query(None, description="目录路径"),
@@ -44,7 +44,7 @@ async def get_directory_list_controller(
     return SuccessResponse(data=result_dict, msg="获取目录列表成功")
 
 
-@ResourceRouter.post("/search", summary="搜索资源", description="根据条件搜索资源")
+@ResourceFileRouter.post("/search", summary="搜索资源", description="根据条件搜索资源")
 async def search_resources_controller(
     request: Request,
     search: ResourceSearchSchema,
@@ -60,7 +60,7 @@ async def search_resources_controller(
     return SuccessResponse(data=result_list, msg=f"搜索成功，找到 {len(result_list)} 个结果")
 
 
-@ResourceRouter.post("/upload", summary="上传文件", description="上传文件到指定目录")
+@ResourceFileRouter.post("/upload", summary="上传文件", description="上传文件到指定目录")
 async def upload_file_controller(
     file: UploadFile,
     request: Request,
@@ -78,7 +78,7 @@ async def upload_file_controller(
     return SuccessResponse(data=result_dict, msg="上传文件成功")
 
 
-@ResourceRouter.get("/download", summary="下载文件", description="下载指定文件")
+@ResourceFileRouter.get("/download", summary="下载文件", description="下载指定文件")
 async def download_file_controller(
     request: Request,
     path: str = Query(..., description="文件路径"),
@@ -103,7 +103,7 @@ async def download_file_controller(
     )
 
 
-@ResourceRouter.delete("/delete", summary="删除文件", description="删除指定文件或目录")
+@ResourceFileRouter.delete("/delete", summary="删除文件", description="删除指定文件或目录")
 async def delete_files_controller(
     paths: List[str] = Body(..., description="文件路径列表"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:delete"]))
@@ -114,7 +114,7 @@ async def delete_files_controller(
     return SuccessResponse(msg="删除文件成功")
 
 
-@ResourceRouter.post("/move", summary="移动文件", description="移动文件或目录")
+@ResourceFileRouter.post("/move", summary="移动文件", description="移动文件或目录")
 async def move_file_controller(
     data: ResourceMoveSchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:move"]))
@@ -125,7 +125,7 @@ async def move_file_controller(
     return SuccessResponse(msg="移动文件成功")
 
 
-@ResourceRouter.post("/copy", summary="复制文件", description="复制文件或目录")
+@ResourceFileRouter.post("/copy", summary="复制文件", description="复制文件或目录")
 async def copy_file_controller(
     data: ResourceCopySchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:copy"]))
@@ -136,7 +136,7 @@ async def copy_file_controller(
     return SuccessResponse(msg="复制文件成功")
 
 
-@ResourceRouter.post("/rename", summary="重命名文件", description="重命名文件或目录")
+@ResourceFileRouter.post("/rename", summary="重命名文件", description="重命名文件或目录")
 async def rename_file_controller(
     data: ResourceRenameSchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:rename"]))
@@ -147,7 +147,7 @@ async def rename_file_controller(
     return SuccessResponse(msg="重命名文件成功")
 
 
-@ResourceRouter.post("/create-dir", summary="创建目录", description="在指定路径创建新目录")
+@ResourceFileRouter.post("/create-dir", summary="创建目录", description="在指定路径创建新目录")
 async def create_directory_controller(
     data: ResourceCreateDirSchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:create_dir"]))
@@ -158,7 +158,7 @@ async def create_directory_controller(
     return SuccessResponse(msg="创建目录成功")
 
 
-@ResourceRouter.get("/stats", summary="获取资源统计", description="获取资源统计信息")
+@ResourceFileRouter.get("/stats", summary="获取资源统计", description="获取资源统计信息")
 async def get_resource_stats_controller(
     request: Request,
     auth: AuthSchema = Depends(AuthPermission(permissions=["resource:stats:query"]))
@@ -172,7 +172,7 @@ async def get_resource_stats_controller(
     return SuccessResponse(data=result_dict, msg="获取资源统计成功")
 
 
-@ResourceRouter.post("/export", summary="导出资源列表", description="导出资源列表")
+@ResourceFileRouter.post("/export", summary="导出资源列表", description="导出资源列表")
 async def export_resource_list_controller(
     request: Request,
     search: ResourceSearchSchema,

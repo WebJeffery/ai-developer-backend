@@ -1,36 +1,18 @@
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-from config.database import Base
 from sqlalchemy import Boolean, Column, ForeignKey, String, Integer, Text, DateTime
 
-from app.core.base_model import BaseMixin
-from sqlalchemy import Boolean, Column, ForeignKey, String, Integer, Text, DateTime
-from sqlalchemy.orm import relationship
-
-from app.core.base_model import BaseMixin
-
-from sqlalchemy import Boolean, Column, ForeignKey, String, Integer, Text, DateTime
-
-from app.core.base_model import BaseMixin
+from app.core.base_model import CreatorMixin
 
 
-class PageModel(BaseMixin):
-    __tablename__ = "gen_page"
-    
-    page_name = Column(String(length=255), comment='页面名称')
-    
-    keywords = Column(String(length=500), comment='页面关键词')
-    
-    title = Column(String(length=500), comment='页面title标题')
-
-
-class GenTable(Base):
+class GenTable(CreatorMixin):
     """
-    代码生成业务表
+    代码生成表
     """
-
     __tablename__ = 'gen_table'
+    __table_args__ = ({'comment': '代码生成表'})
 
     table_id = Column(Integer, primary_key=True, autoincrement=True, comment='编号')
     table_name = Column(String(200), nullable=True, default='', comment='表名称')
@@ -39,9 +21,7 @@ class GenTable(Base):
     sub_table_fk_name = Column(String(64), nullable=True, comment='子表关联的外键名')
     class_name = Column(String(100), nullable=True, default='', comment='实体类名称')
     tpl_category = Column(String(200), nullable=True, default='crud', comment='使用的模板（crud单表操作 tree树表操作）')
-    tpl_web_type = Column(
-        String(30), nullable=True, default='', comment='前端模板类型（element-ui模版 element-plus模版）'
-    )
+    tpl_web_type = Column(String(30), nullable=True, default='', comment='前端模板类型（element-ui模版 element-plus模版）')
     package_name = Column(String(100), nullable=True, comment='生成包路径')
     module_name = Column(String(30), nullable=True, comment='生成模块名')
     business_name = Column(String(30), nullable=True, comment='生成业务名')
@@ -59,7 +39,7 @@ class GenTable(Base):
     columns = relationship('GenTableColumn', order_by='GenTableColumn.sort', back_populates='tables')
 
 
-class GenTableColumn(Base):
+class GenTableColumn(CreatorMixin):
     """
     代码生成业务表字段
     """

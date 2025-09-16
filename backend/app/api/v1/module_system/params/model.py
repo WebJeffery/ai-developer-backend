@@ -19,5 +19,6 @@ class ParamsModel(CreatorMixin):
     config_key: Mapped[str] = mapped_column(String(500), nullable=False, unique=True, comment='参数键名')
     config_value: Mapped[Optional[str]] = mapped_column(String(500), comment='参数键值')
     config_type: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True, comment="系统内置(True:是 False:否)")
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
 
 

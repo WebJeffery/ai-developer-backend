@@ -13,8 +13,7 @@ class TicketQueryParams:
     def __init__(
         self,
         title: Optional[str] = Query(None, description="工单标题"),
-        status: Optional[bool] = Query(None, description="状态"),
-        ticket_status: Optional[str] = Query(None, description="工单状态"),
+        status: Optional[bool] = Query(None, description="工单状态"),
         priority: Optional[str] = Query(None, description="优先级"),
         creator: Optional[int] = Query(None, description="创建人"),
         start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2023-01-01 00:00:00"),
@@ -28,7 +27,6 @@ class TicketQueryParams:
         # 精确查询字段
         self.creator_id = creator
         self.status = status
-        self.ticket_status = ticket_status  # 使用 ticket_status 而不是 status
         self.priority = priority
         
         # 时间范围查询

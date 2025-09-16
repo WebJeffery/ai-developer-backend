@@ -13,8 +13,7 @@ class VersionQueryParams:
     def __init__(
         self,
         title: Optional[str] = Query(None, description="版本标题"),
-        status: Optional[bool] = Query(None, description="状态"),
-        version_status: Optional[str] = Query(None, description="版本状态"),
+        status: Optional[str] = Query(None, description="版本状态"),
         creator: Optional[int] = Query(None, description="创建人"),
         start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2023-01-01 00:00:00"),
         end_time: Optional[DateTimeStr] = Query(None, description="结束时间", example="2023-12-31 23:59:59"),
@@ -26,9 +25,7 @@ class VersionQueryParams:
 
         # 精确查询字段
         self.creator_id = creator
-
         self.status = status
-        self.version_status = version_status  # 使用 version_status 而不是 status
         
         # 时间范围查询
         if start_time and end_time:

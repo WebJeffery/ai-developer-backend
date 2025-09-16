@@ -70,7 +70,7 @@ class VersionService:
         await VersionCRUD(auth).delete_crud(ids=ids)
 
     @classmethod
-    async def get_version_by_status_service(cls, auth: AuthSchema, status: str, search: Optional[VersionQueryParams] = None, order_by: Optional[Union[str, List[Dict[str, str]]]] = None) -> List[Dict]:
+    async def get_version_by_status_service(cls, auth: AuthSchema, search: Optional[VersionQueryParams] = None, order_by: Optional[Union[str, List[Dict[str, str]]]] = None) -> List[Dict]:
         """根据状态获取版本列表"""
         # 处理排序参数
         processed_order_by = None
@@ -81,7 +81,6 @@ class VersionService:
                 processed_order_by = order_by
                 
         obj_list = await VersionCRUD(auth).get_by_status_crud(
-            status=status, 
             search=search.__dict__ if search else None, 
             order_by=processed_order_by
         )
