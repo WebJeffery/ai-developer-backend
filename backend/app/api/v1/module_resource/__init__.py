@@ -2,10 +2,10 @@
 
 from fastapi import APIRouter
 
-from .resource import ResourceRouter
+from .resource.controller import ResourceFileRouter
 
 
 ResourceRouter = APIRouter(prefix="/resource")
 
 # 包含所有子路由
-ResourceRouter.include_router(ResourceRouter)
+ResourceRouter.include_router(ResourceFileRouter)

@@ -19,6 +19,6 @@ class VersionModel(CreatorMixin):
     version_number: Mapped[str] = mapped_column(String(50), nullable=False, comment='版本号')
     title: Mapped[str] = mapped_column(String(255), nullable=False, comment='版本标题')
     release_notes: Mapped[Optional[str]] = mapped_column(Text, comment='发布说明')
-    version_status: Mapped[str] = mapped_column(String(50), default='draft', comment='版本状态(draft, released, archived)')
+    status: Mapped[str] = mapped_column(String(50), default='draft', comment='版本状态(draft: 草稿, released: 已发布, archived: 已归档)')
     project: Mapped[Optional[str]] = mapped_column(String(100), comment='所属项目')
     released_at: Mapped[Optional[datetime]] = mapped_column(DateTime, comment='发布时间')

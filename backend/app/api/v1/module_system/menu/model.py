@@ -28,6 +28,7 @@ class MenuModel(ModelMixin):
     name: Mapped[str] = mapped_column(String(50), nullable=False, comment='菜单名称', unique=True)
     type: Mapped[int] = mapped_column(Integer, nullable=False, default=2, comment='菜单类型(1:目录 2:菜单 3:按钮/权限 4:链接)')
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=999, comment='显示排序')
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     permission: Mapped[Optional[str]] = mapped_column(String(100), comment='权限标识(如：system:user:list)')
     icon: Mapped[Optional[str]] = mapped_column(String(50), comment='菜单图标')
     route_name: Mapped[Optional[str]] = mapped_column(String(100), comment='路由名称')

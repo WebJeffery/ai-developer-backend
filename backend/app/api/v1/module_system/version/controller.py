@@ -15,7 +15,7 @@ from .service import VersionService
 from .schema import VersionCreateSchema, VersionUpdateSchema
 
 
-VersionRouter = APIRouter(route_class=OperationLogRoute, prefix="/versions", tags=["版本管理"])
+VersionRouter = APIRouter(route_class=OperationLogRoute, prefix="/version", tags=["版本管理"])
 
 
 @VersionRouter.get("/detail/{id}", summary="获取版本详情", description="获取版本详情")

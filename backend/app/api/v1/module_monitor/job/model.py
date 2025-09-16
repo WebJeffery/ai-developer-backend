@@ -26,7 +26,7 @@ class JobModel(CreatorMixin):
     max_instances: Mapped[int] = mapped_column(Integer, nullable=True, default=1, comment='最大实例数:允许的最大并发执行实例数 工作')
     start_date: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, comment='开始时间')
     end_date: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, comment='结束时间')
-    
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     job_logs: Mapped[Optional[list['JobLogModel']]] = relationship(back_populates="job", lazy="selectin")
 
 

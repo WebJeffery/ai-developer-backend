@@ -6,7 +6,7 @@
 
 from typing import Optional, List
 
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import Boolean, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.core.base_model import MappedBase, CreatorMixin
@@ -75,6 +75,7 @@ class RoleModel(CreatorMixin):
     name: Mapped[str] = mapped_column(String(40), nullable=False, unique=True, comment="角色名称")
     code: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, unique=True, comment="角色编码")
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=999, comment="显示排序")
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     data_scope: Mapped[int] = mapped_column(Integer, nullable=False, default=1, comment="数据权限范围")
 
     menus: Mapped[List["MenuModel"]] = relationship(secondary="system_role_menus", back_populates="roles", lazy="selectin")

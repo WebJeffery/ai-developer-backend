@@ -17,6 +17,7 @@ class DictTypeModel(CreatorMixin):
 
     dict_name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, comment='字典名称')
     dict_type: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, comment='字典类型')
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     dict_datas: Mapped[List["DictDataModel"]] = relationship(back_populates="dict_type_rel", lazy="selectin")
 
 
@@ -32,6 +33,7 @@ class DictDataModel(CreatorMixin):
     dict_label: Mapped[str] = mapped_column(String(100), nullable=False, comment='字典标签')
     dict_value: Mapped[str] = mapped_column(String(100), nullable=False, comment='字典键值')
     dict_type: Mapped[str] = mapped_column(String(100), nullable=False, comment='字典类型')
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     css_class: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment='样式属性（其他样式扩展）')
     list_class: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment='表格回显样式')
     is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, comment='是否默认（True是 False否）')

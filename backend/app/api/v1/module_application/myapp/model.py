@@ -16,6 +16,9 @@ class ApplicationModel(CreatorMixin):
 
     # 基本信息（必备字段）
     name: Mapped[str] = mapped_column(String(64), nullable=False, comment='应用名称', unique=True)
+
+    # 状态
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     
     # 访问地址（核心字段）
     access_url: Mapped[str] = mapped_column(String(500), nullable=False, comment='访问地址')

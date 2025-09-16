@@ -6,7 +6,7 @@
 
 from typing import Optional
 
-from sqlalchemy import String, Text
+from sqlalchemy import Boolean, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import CreatorMixin
@@ -26,3 +26,4 @@ class NoticeModel(CreatorMixin):
     notice_title: Mapped[str] = mapped_column(String(50), nullable=False, comment='公告标题')
     notice_type: Mapped[str] = mapped_column(String(50), nullable=False, comment='公告类型（1通知 2公告）')
     notice_content: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment='公告内容')
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")

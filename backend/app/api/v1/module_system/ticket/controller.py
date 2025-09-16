@@ -15,7 +15,7 @@ from .service import TicketService
 from .schema import TicketCreateSchema, TicketUpdateSchema
 
 
-TicketRouter = APIRouter(route_class=OperationLogRoute, prefix="/tickets", tags=["工单管理"])
+TicketRouter = APIRouter(route_class=OperationLogRoute, prefix="/ticket", tags=["工单管理"])
 
 
 @TicketRouter.get("/detail/{id}", summary="获取工单详情", description="获取工单详情")
