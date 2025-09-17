@@ -6,7 +6,7 @@ from fastapi import Query
 
 from app.core.validator import DateTimeStr
 
-class MenuQueryParams:
+class MenuQueryParam:
     """菜单管理查询参数"""
 
     def __init__(

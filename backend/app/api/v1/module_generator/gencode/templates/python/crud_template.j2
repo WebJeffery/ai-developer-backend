@@ -15,7 +15,7 @@ from utils.page_util import PageUtil, PageResponseModel
 from utils.common_util import CamelCaseUtil
 
 
-class {{ tableName|snake_to_pascal_case }}Dao:
+class {{ tableName|snake_to_pascal_case }}CRUD:
 
     @classmethod
     async def get_by_id(cls, db: AsyncSession, {{ tableName }}_id: int) -> {{ tableName|snake_to_pascal_case }}:

@@ -50,9 +50,9 @@ class RedisInitKeyConfig(Enum):
     @property
     def key(self) -> str:
         """获取Redis键名"""
-        return self.value.get('key')
+        return self.value.get('key', '')
 
     @property 
     def remark(self) -> str:
         """获取Redis键名说明"""
-        return self.value.get('remark')
+        return self.value.get('remark', '')

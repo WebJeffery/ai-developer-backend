@@ -7,12 +7,12 @@ from typing import List, Optional
 from app.common.request import PaginationService
 from app.common.response import StreamResponse, SuccessResponse
 from app.utils.common_util import bytes2file_response
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from app.core.dependencies import AuthPermission
 from app.core.router_class import OperationLogRoute
 from app.core.logger import logger
 from ...module_system.auth.schema import AuthSchema
-from .param import ResourceQueryParams
+from .param import ResourceQueryParam
 from .schema import (
     ResourceSearchSchema,
     ResourceMoveSchema,

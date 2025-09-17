@@ -1,19 +1,22 @@
+# -*- coding:utf-8 -*-
+
 from datetime import datetime, time
 from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlglot.expressions import Expression
 from typing import List
+
+from .model import GenTable, GenTableColumn
 from config.env import DataBaseConfig
-from module_generator.entity.do.gen_do import GenTable, GenTableColumn
-from module_generator.entity.vo.gen_vo import (
+from utils.page_util import PageUtil
+from .schema import (
     GenTableBaseModel,
     GenTableColumnBaseModel,
     GenTableColumnModel,
     GenTableModel,
     GenTablePageQueryModel,
 )
-from utils.page_util import PageUtil
 
 
 class GenTableDao:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Any, Mapping, Optional, Dict, Union
+from typing import Any, Mapping, Optional
 from fastapi import status
 from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from starlette.background import BackgroundTask
@@ -22,7 +22,7 @@ class SuccessResponse(JSONResponse):
     def __init__(
             self,
             data: Optional[Any] = None,
-            msg: Optional[str] = RET.OK.msg,
+            msg: str = RET.OK.msg,
             code: int = RET.OK.code,
             status_code: int = status.HTTP_200_OK,
             success: bool = True
@@ -51,7 +51,7 @@ class ErrorResponse(JSONResponse):
     def __init__(
             self,
             data: Optional[Any] = None,
-            msg: Optional[str] = RET.ERROR.msg,
+            msg: str = RET.ERROR.msg,
             code: int = RET.ERROR.code,
             status_code: int = status.HTTP_400_BAD_REQUEST,
             success: bool = False
@@ -111,7 +111,7 @@ class UploadFileResponse(FileResponse):
             file_path: str,
             filename: str,
             media_type: str = "application/octet-stream",
-            headers: Optional[Dict[str, Union[str, int]]] = None,
+            headers: Optional[Mapping[str, str]] = None,
             background: Optional[BackgroundTask] = None,
             status_code: int = 200
     ):

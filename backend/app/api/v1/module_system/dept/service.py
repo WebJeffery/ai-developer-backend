@@ -13,7 +13,7 @@ from app.utils.common_util import (
 )
 from ..auth.schema import AuthSchema
 from .crud import DeptCRUD
-from .param import DeptQueryParams
+from .param import DeptQueryParam
 from .schema import (
     DeptCreateSchema,
     DeptUpdateSchema,
@@ -39,7 +39,7 @@ class DeptService:
         return DeptOutSchema.model_validate(dept).model_dump()
 
     @classmethod
-    async def get_dept_tree_service(cls, auth: AuthSchema, search: DeptQueryParams, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_dept_tree_service(cls, auth: AuthSchema, search: DeptQueryParam, order_by: List[Dict] = None) -> List[Dict]:
         """
         获取部门树形列表service
         

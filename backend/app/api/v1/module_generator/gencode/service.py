@@ -1,3 +1,6 @@
+# -*- coding:utf-8 -*-
+
+from app.api.v1.module_generator.gencode.schema import GenTableSchema
 import io
 import json
 import os
@@ -6,23 +9,24 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlglot import parse as sqlglot_parse
 from sqlglot.expressions import Add, Alter, Create, Delete, Drop, Expression, Insert, Table, TruncateTable, Update
-from typing import List
-from config.constant import GenConstant
-from config.env import DataBaseConfig, GenConfig
-from exceptions.exception import ServiceException
-from module_admin.entity.vo.common_vo import CrudResponseModel
-from module_admin.entity.vo.user_vo import CurrentUserModel
-from module_generator.entity.vo.gen_vo import (
-    DeleteGenTableModel,
-    EditGenTableModel,
-    GenTableColumnModel,
-    GenTableModel,
-    GenTablePageQueryModel,
+from typing import Any, List
+
+from app.config.setting import settings
+from app.core.exceptions import CustomException
+from app.utils.common_util import CamelCaseUtil
+from app.utils.gen_util import GenUtils
+from app.utils.template_util import TemplateInitializer, TemplateUtils
+from app.common.constant import GenConstant
+from app.common.response import SuccessResponse, ErrorResponse
+from app.api.v1.module_system.user.schema import UserOutSchema
+from .schema import (
+    DeleteGenTableSchema,
+    EditGenTableSchema,
+    GenTableColumnSchema,
+    GenTableSchema,
+    GenTablePageQuerySchema,
 )
-from module_generator.dao.gen_dao import GenTableColumnDao, GenTableDao
-from utils.common_util import CamelCaseUtil
-from utils.gen_util import GenUtils
-from utils.template_util import TemplateInitializer, TemplateUtils
+from .crud import GenTableColumnDao, GenTableDao
 
 
 class GenTableService:
@@ -32,7 +36,7 @@ class GenTableService:
 
     @classmethod
     async def get_gen_table_list_services(
-        cls, query_db: AsyncSession, query_object: GenTablePageQueryModel, is_page: bool = False
+        cls, query_db: AsyncSession, query_object: GenTablePageQuerySchema, is_page: bool = False
     ):
         """
         获取代码生成业务表列表信息service
@@ -48,7 +52,7 @@ class GenTableService:
 
     @classmethod
     async def get_gen_db_table_list_services(
-        cls, query_db: AsyncSession, query_object: GenTablePageQueryModel, is_page: bool = False
+        cls, query_db: AsyncSession, query_object: GenTablePageQuerySchema, is_page: bool = False
     ):
         """
         获取数据库列表信息service
@@ -63,7 +67,7 @@ class GenTableService:
         return gen_db_table_list_result
 
     @classmethod
-    async def get_gen_db_table_list_by_name_services(cls, query_db: AsyncSession, table_names: List[str]):
+    async def get_gen_db_table_list_by_name_services(cls, query_db: AsyncSession, table_names: List[str]) -> list[GenTableSchema]:
         """
         根据表名称组获取数据库列表信息service
 
@@ -71,13 +75,13 @@ class GenTableService:
         :param table_names: 表名称组
         :return: 数据库列表信息对象
         """
-        gen_db_table_list_result = await GenTableDao.get_gen_db_table_list_by_names(query_db, table_names)
+        gen_db_table_list_result = await GenTableDao.get_gen_db_table_list_by_names(db=query_db, table_names)
 
-        return [GenTableModel(**gen_table) for gen_table in CamelCaseUtil.transform_result(gen_db_table_list_result)]
+        return [GenTableSchema(**gen_table) for gen_table in CamelCaseUtil.transform_result(gen_db_table_list_result)]
 
     @classmethod
     async def import_gen_table_services(
-        cls, query_db: AsyncSession, gen_table_list: List[GenTableModel], current_user: CurrentUserModel
+        cls, query_db: AsyncSession, gen_table_list: List[GenTableSchema], current_user: UserOutSchema
     ):
         """
         导入表结构service
@@ -91,24 +95,24 @@ class GenTableService:
             for table in gen_table_list:
                 table_name = table.table_name
                 GenUtils.init_table(table, current_user.user.user_name)
-                add_gen_table = await GenTableDao.add_gen_table_dao(query_db, table)
+                add_gen_table = await GenTableDao.add_gen_table_dao(db=query_db, gen_table=table)
                 if add_gen_table:
                     table.table_id = add_gen_table.table_id
-                    gen_table_columns = await GenTableColumnDao.get_gen_db_table_columns_by_name(query_db, table_name)
+                    gen_table_columns = await GenTableColumnDao.get_gen_db_table_columns_by_name(db=query_db, table_name)
                     for column in [
-                        GenTableColumnModel(**gen_table_column)
+                        GenTableColumnSchema(**gen_table_column)
                         for gen_table_column in CamelCaseUtil.transform_result(gen_table_columns)
                     ]:
                         GenUtils.init_column_field(column, table)
-                        await GenTableColumnDao.add_gen_table_column_dao(query_db, column)
+                        await GenTableColumnDao.add_gen_table_column_dao(db=query_db, gen_table_column=column)
             await query_db.commit()
-            return CrudResponseModel(is_success=True, message='导入成功')
+            return SuccessResponse(msg='导入成功')
         except Exception as e:
             await query_db.rollback()
-            raise ServiceException(message=f'导入失败, {str(e)}')
+            raise CustomException(msg=f'导入失败, {str(e)}')
 
     @classmethod
-    async def edit_gen_table_services(cls, query_db: AsyncSession, page_object: EditGenTableModel):
+    async def edit_gen_table_services(cls, query_db: AsyncSession, page_object: EditGenTableSchema) -> Any:
         """
         编辑业务表信息service
 
@@ -134,10 +138,10 @@ class GenTableService:
                 await query_db.rollback()
                 raise e
         else:
-            raise ServiceException(message='业务表不存在')
+            raise CustomException(msg='业务表不存在')
 
     @classmethod
-    async def delete_gen_table_services(cls, query_db: AsyncSession, page_object: DeleteGenTableModel):
+    async def delete_gen_table_services(cls, query_db: AsyncSession, page_object: DeleteGenTableSchema) -> SuccessResponse:
         """
         删除业务表信息service
 
@@ -149,20 +153,20 @@ class GenTableService:
             table_id_list = page_object.table_ids.split(',')
             try:
                 for table_id in table_id_list:
-                    await GenTableDao.delete_gen_table_dao(query_db, GenTableModel(tableId=table_id))
+                    await GenTableDao.delete_gen_table_dao(query_db, GenTableSchema(tableId=table_id))
                     await GenTableColumnDao.delete_gen_table_column_by_table_id_dao(
-                        query_db, GenTableColumnModel(tableId=table_id)
+                        query_db, GenTableColumnSchema(tableId=table_id)
                     )
                 await query_db.commit()
-                return CrudResponseModel(is_success=True, message='删除成功')
+                return SuccessResponse(msg='删除成功')
             except Exception as e:
                 await query_db.rollback()
                 raise e
         else:
-            raise ServiceException(message='传入业务表id为空')
+            raise CustomException(msg='传入业务表id为空')
 
     @classmethod
-    async def get_gen_table_by_id_services(cls, query_db: AsyncSession, table_id: int):
+    async def get_gen_table_by_id_services(cls, query_db: AsyncSession, table_id: int) -> GenTableSchema:
         """
         获取需要生成的业务表详细信息service
 
@@ -171,12 +175,12 @@ class GenTableService:
         :return: 需要生成的业务表id对应的信息
         """
         gen_table = await GenTableDao.get_gen_table_by_id(query_db, table_id)
-        result = await cls.set_table_from_options(GenTableModel(**CamelCaseUtil.transform_result(gen_table)))
+        result = await cls.set_table_from_options(GenTableSchema(**CamelCaseUtil.transform_result(gen_table)))
 
         return result
 
     @classmethod
-    async def get_gen_table_all_services(cls, query_db: AsyncSession):
+    async def get_gen_table_all_services(cls, query_db: AsyncSession) -> list[GenTableSchema]:
         """
         获取所有业务表信息service
 
@@ -184,12 +188,12 @@ class GenTableService:
         :return: 所有业务表信息
         """
         gen_table_all = await GenTableDao.get_gen_table_all(query_db)
-        result = [GenTableModel(**gen_table) for gen_table in CamelCaseUtil.transform_result(gen_table_all)]
+        result = [GenTableSchema(**gen_table) for gen_table in CamelCaseUtil.transform_result(gen_table_all)]
 
         return result
 
     @classmethod
-    async def create_table_services(cls, query_db: AsyncSession, sql: str, current_user: CurrentUserModel):
+    async def create_table_services(cls, query_db: AsyncSession, sql: str, current_user: UserOutSchema) -> SuccessResponse:
         """
         创建表结构service
 
@@ -206,11 +210,11 @@ class GenTableService:
                 gen_table_list = await cls.get_gen_db_table_list_by_name_services(query_db, table_names)
                 await cls.import_gen_table_services(query_db, gen_table_list, current_user)
 
-                return CrudResponseModel(is_success=True, message='创建表结构成功')
+                return SuccessResponse(msg='创建表结构成功')
             except Exception as e:
-                raise ServiceException(message=f'创建表结构异常，详细错误信息：{str(e)}')
+                raise CustomException(msg=f'创建表结构异常，详细错误信息：{str(e)}')
         else:
-            raise ServiceException(message='建表语句不合法')
+            raise CustomException(msg='建表语句不合法')
 
     @classmethod
     def __is_valid_create_table(cls, sql_statements: List[Expression]):
@@ -233,7 +237,7 @@ class GenTableService:
         return True
 
     @classmethod
-    def __get_table_names(cls, sql_statements: List[Expression]):
+    def __get_table_names(cls, sql_statements: List[Expression]) -> list[Any]:
         """
         获取sql语句中所有的建表表名
 
@@ -247,7 +251,7 @@ class GenTableService:
         return table_names
 
     @classmethod
-    async def preview_code_services(cls, query_db: AsyncSession, table_id: int):
+    async def preview_code_services(cls, query_db: AsyncSession, table_id: int) -> dict[Any, Any]:
         """
         预览代码service
 
@@ -255,7 +259,7 @@ class GenTableService:
         :param table_id: 业务表id
         :return: 预览数据列表
         """
-        gen_table = GenTableModel(
+        gen_table = GenTableSchema(
             **CamelCaseUtil.transform_result(await GenTableDao.get_gen_table_by_id(query_db, table_id))
         )
         await cls.set_sub_table(query_db, gen_table)
@@ -270,7 +274,7 @@ class GenTableService:
         return preview_code_result
 
     @classmethod
-    async def generate_code_services(cls, query_db: AsyncSession, table_name: str):
+    async def generate_code_services(cls, query_db: AsyncSession, table_name: str) -> SuccessResponse:
         """
         生成代码至指定路径service
 
@@ -288,14 +292,12 @@ class GenTableService:
                 with open(gen_path, 'w', encoding='utf-8') as f:
                     f.write(render_content)
             except Exception as e:
-                raise ServiceException(
-                    message=f'渲染模板失败，表名：{render_info[3].table_name}，详细错误信息：{str(e)}'
-                )
+                raise CustomException(msg=f'渲染模板失败，表名：{render_info[3].table_name}，详细错误信息：{str(e)}')
 
-        return CrudResponseModel(is_success=True, message='生成代码成功')
+        return SuccessResponse(msg='生成代码成功')
 
     @classmethod
-    async def batch_gen_code_services(cls, query_db: AsyncSession, table_names: List[str]):
+    async def batch_gen_code_services(cls, query_db: AsyncSession, table_names: List[str]) -> bytes:
         """
         批量生成代码service
 
@@ -317,7 +319,7 @@ class GenTableService:
         return zip_data
 
     @classmethod
-    async def __get_gen_render_info(cls, query_db: AsyncSession, table_name: str):
+    async def __get_gen_render_info(cls, query_db: AsyncSession, table_name: str) -> list[Any]:
         """
         获取生成代码渲染模板相关信息
 
@@ -325,7 +327,7 @@ class GenTableService:
         :param table_name: 业务表名称
         :return: 生成代码渲染模板相关信息
         """
-        gen_table = GenTableModel(
+        gen_table = GenTableSchema(
             **CamelCaseUtil.transform_result(await GenTableDao.get_gen_table_by_name(query_db, table_name))
         )
         await cls.set_sub_table(query_db, gen_table)
@@ -337,7 +339,7 @@ class GenTableService:
         return [template_list, output_files, context, gen_table]
 
     @classmethod
-    def __get_gen_path(cls, gen_table: GenTableModel, template: str):
+    def __get_gen_path(cls, gen_table: GenTableSchema, template: str):
         """
         根据GenTableModel对象和模板名称生成路径
 
@@ -352,7 +354,7 @@ class GenTableService:
             return os.path.join(gen_path, TemplateUtils.get_file_name(template, gen_table))
 
     @classmethod
-    async def sync_db_services(cls, query_db: AsyncSession, table_name: str):
+    async def sync_db_services(cls, query_db: AsyncSession, table_name: str) -> SuccessResponse:
         """
         同步数据库service
 
@@ -369,7 +371,7 @@ class GenTableService:
             GenTableColumnModel(**column) for column in CamelCaseUtil.transform_result(query_db_table_columns)
         ]
         if not db_table_columns:
-            raise ServiceException('同步数据失败，原表结构不存在')
+            raise CustomException('同步数据失败，原表结构不存在')
         db_table_column_names = [column.column_name for column in db_table_columns]
         try:
             for column in db_table_columns:
@@ -396,13 +398,13 @@ class GenTableService:
                 for column in del_columns:
                     await GenTableColumnDao.delete_gen_table_column_by_column_id_dao(query_db, column)
             await query_db.commit()
-            return CrudResponseModel(is_success=True, message='同步成功')
+            return SuccessResponse(msg='同步成功')
         except Exception as e:
             await query_db.rollback()
             raise e
 
     @classmethod
-    async def set_sub_table(cls, query_db: AsyncSession, gen_table: GenTableModel):
+    async def set_sub_table(cls, query_db: AsyncSession, gen_table: GenTableSchema) -> None:
         """
         设置主子表信息
 
@@ -412,10 +414,10 @@ class GenTableService:
         """
         if gen_table.sub_table_name:
             sub_table = await GenTableDao.get_gen_table_by_name(query_db, gen_table.sub_table_name)
-            gen_table.sub_table = GenTableModel(**CamelCaseUtil.transform_result(sub_table))
+            gen_table.sub_table = GenTableSchema(**CamelCaseUtil.transform_result(sub_table))
 
     @classmethod
-    async def set_pk_column(cls, gen_table: GenTableModel):
+    async def set_pk_column(cls, gen_table: GenTableSchema) -> None:
         """
         设置主键列信息
 
@@ -437,7 +439,7 @@ class GenTableService:
                 gen_table.sub_table.pk_column = gen_table.sub_table.columns[0]
 
     @classmethod
-    async def set_table_from_options(cls, gen_table: GenTableModel):
+    async def set_table_from_options(cls, gen_table: GenTableSchema) -> GenTableSchema:
         """
         设置代码生成其他选项值
 
@@ -455,7 +457,7 @@ class GenTableService:
         return gen_table
 
     @classmethod
-    async def validate_edit(cls, edit_gen_table: EditGenTableModel):
+    async def validate_edit(cls, edit_gen_table: EditGenTableSchema):
         """
         编辑保存参数校验
 
@@ -465,16 +467,16 @@ class GenTableService:
             params_obj = edit_gen_table.params.model_dump(by_alias=True)
 
             if GenConstant.TREE_CODE not in params_obj:
-                raise ServiceException(message='树编码字段不能为空')
+                raise CustomException(msg='树编码字段不能为空')
             elif GenConstant.TREE_PARENT_CODE not in params_obj:
-                raise ServiceException(message='树父编码字段不能为空')
+                raise CustomException(msg='树父编码字段不能为空')
             elif GenConstant.TREE_NAME not in params_obj:
-                raise ServiceException(message='树名称字段不能为空')
+                raise CustomException(msg='树名称字段不能为空')
             elif edit_gen_table.tpl_category == GenConstant.TPL_SUB:
                 if not edit_gen_table.sub_table_name:
-                    raise ServiceException(message='关联子表的表名不能为空')
+                    raise CustomException(msg='关联子表的表名不能为空')
                 elif not edit_gen_table.sub_table_fk_name:
-                    raise ServiceException(message='子表关联的外键名不能为空')
+                    raise CustomException(msg='子表关联的外键名不能为空')
 
 
 class GenTableColumnService:
@@ -494,6 +496,6 @@ class GenTableColumnService:
         gen_table_column_list_result = await GenTableColumnDao.get_gen_table_column_list_by_table_id(query_db, table_id)
 
         return [
-            GenTableColumnModel(**gen_table_column)
+            GenTableColumnSchema(**gen_table_column)
             for gen_table_column in CamelCaseUtil.transform_result(gen_table_column_list_result)
         ]

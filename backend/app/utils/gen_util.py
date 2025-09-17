@@ -1,17 +1,18 @@
 import re
 from datetime import datetime
 from typing import List
-from config.constant import GenConstant
-from config.env import GenConfig
-from module_generator.entity.vo.gen_vo import GenTableColumnModel, GenTableModel
-from utils.string_util import StringUtil
+
+from app.common.constant import GenConstant
+from app.config.setting import settings
+from app.api.v1.module_generator.gencode.schema import GenTableColumnSchema, GenTableSchema
+from .string_util import StringUtil
 
 
 class GenUtils:
     """代码生成器工具类"""
 
     @classmethod
-    def init_table(cls, gen_table: GenTableModel, oper_name: str) -> None:
+    def init_table(cls, gen_table: GenTableSchema, oper_name: str) -> None:
         """
         初始化表信息
 
@@ -20,18 +21,18 @@ class GenUtils:
         :return:
         """
         gen_table.class_name = cls.convert_class_name(gen_table.table_name)
-        gen_table.package_name = GenConfig.package_name
-        gen_table.module_name = cls.get_module_name(GenConfig.package_name)
+        gen_table.package_name = settings.package_name
+        gen_table.module_name = cls.get_module_name(settings.package_name)
         gen_table.business_name = cls.get_business_name(gen_table.table_name)
         gen_table.function_name = cls.replace_text(gen_table.table_comment)
-        gen_table.function_author = GenConfig.author
+        gen_table.function_author = settings.author
         gen_table.create_by = oper_name
         gen_table.create_time = datetime.now()
         gen_table.update_by = oper_name
         gen_table.update_time = datetime.now()
 
     @classmethod
-    def init_column_field(cls, column: GenTableColumnModel, table: GenTableModel) -> None:
+    def init_column_field(cls, column: GenTableColumnSchema, table: GenTableSchema) -> None:
         """
         初始化列属性字段
 
@@ -143,8 +144,8 @@ class GenUtils:
         param table_name: 业务表名
         :return: Python类名
         """
-        auto_remove_pre = GenConfig.auto_remove_pre
-        table_prefix = GenConfig.table_prefix
+        auto_remove_pre = settings.auto_remove_pre
+        table_prefix = settings.table_prefix
         if auto_remove_pre and table_prefix:
             search_list = table_prefix.split(',')
             table_name = cls.replace_first(table_name, search_list)

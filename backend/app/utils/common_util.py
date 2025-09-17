@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import importlib
+import os
 import uuid
 import re
 
 from sqlalchemy.orm import DeclarativeBase
 from typing import Any, List, Dict, Sequence, Optional
 
+from app.config import setting
 from app.core.logger import logger
 from app.core.exceptions import CustomException
 
@@ -201,3 +203,18 @@ def bytes2file_response(bytes_info: bytes):
     """生成文件响应"""
     yield bytes_info
 
+
+def get_filepath_from_url(url: str):
+    """
+    工具方法：根据请求参数获取文件路径
+
+    :param url: 请求参数中的url参数
+    :return: 文件路径
+    """
+    file_info = url.split('?')[1].split('&')
+    task_id = file_info[0].split('=')[1]
+    file_name = file_info[1].split('=')[1]
+    task_path = file_info[2].split('=')[1]
+    filepath = setting.settings.STATIC_ROOT.joinpath(task_path, task_id, file_name)
+
+    return filepath

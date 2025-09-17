@@ -2,12 +2,12 @@
 
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from sqlalchemy import Boolean, Column, ForeignKey, String, Integer, Text, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, String, Integer, Text, DateTime, text
 
 from app.core.base_model import CreatorMixin
 
 
-class GenTable(CreatorMixin):
+class GenTableModel(CreatorMixin):
     """
     代码生成表
     """
@@ -30,21 +30,24 @@ class GenTable(CreatorMixin):
     gen_type = Column(String(1), nullable=True, default='0', comment='生成代码方式（0zip压缩包 1自定义路径）')
     gen_path = Column(String(200), nullable=True, default='/', comment='生成路径（不填默认项目路径）')
     options = Column(String(1000), nullable=True, comment='其它生成选项')
+    
+    del_flag = Column(String(1), nullable=False, default='0', server_default=text("'0'"), comment='删除标志（0代表存在 2代表删除）')
     create_by = Column(String(64), default='', comment='创建者')
     create_time = Column(DateTime, nullable=True, default=datetime.now(), comment='创建时间')
     update_by = Column(String(64), default='', comment='更新者')
     update_time = Column(DateTime, nullable=True, default=datetime.now(), comment='更新时间')
-    remark = Column(String(500), nullable=True, default=None, comment='备注')
+    remark = Column(Text, nullable=True, default=None, comment='备注')
 
-    columns = relationship('GenTableColumn', order_by='GenTableColumn.sort', back_populates='tables')
+    columns = relationship('GenTableColumnModel', order_by='GenTableColumnModel.sort', back_populates='tables')
 
 
-class GenTableColumn(CreatorMixin):
+class GenTableColumnModel(CreatorMixin):
     """
     代码生成业务表字段
     """
 
     __tablename__ = 'gen_table_column'
+    __table_args__ = ({'comment': '代码生成业务表字段'})
 
     column_id = Column(Integer, primary_key=True, autoincrement=True, comment='编号')
     table_id = Column(Integer, ForeignKey('gen_table.table_id'), nullable=True, comment='归属表编号')
@@ -62,14 +65,15 @@ class GenTableColumn(CreatorMixin):
     is_list = Column(String(1), nullable=True, comment='是否列表字段（1是）')
     is_query = Column(String(1), nullable=True, comment='是否查询字段（1是）')
     query_type = Column(String(200), nullable=True, default='EQ', comment='查询方式（等于、不等于、大于、小于、范围）')
-    html_type = Column(
-        String(200), nullable=True, comment='显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）'
-    )
+    html_type = Column(String(200), nullable=True, comment='显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）')
     dict_type = Column(String(200), nullable=True, default='', comment='字典类型')
     sort = Column(Integer, nullable=True, comment='排序')
+
+    del_flag = Column(String(1), nullable=False, default='0', server_default=text("'0'"), comment='删除标志（0代表存在 2代表删除）')
     create_by = Column(String(64), default='', comment='创建者')
     create_time = Column(DateTime, nullable=True, default=datetime.now(), comment='创建时间')
     update_by = Column(String(64), default='', comment='更新者')
     update_time = Column(DateTime, nullable=True, default=datetime.now(), comment='更新时间')
+    remark = Column(Text, nullable=True, default=None, comment='备注')
 
     tables = relationship('GenTable', back_populates='columns')

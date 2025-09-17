@@ -1,24 +1,17 @@
+# -*- coding:utf-8 -*-
+
 from datetime import datetime
+from typing import List, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
 from pydantic_validation_decorator import NotBlank
-from typing import List, Literal, Optional
-from config.constant import GenConstant
+
 from module_admin.annotation.pydantic_annotation import as_query
 from utils.string_util import StringUtil
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic.alias_generators import to_camel
-from typing import List, Literal, Optional, Union
-from module_admin.annotation.pydantic_annotation import as_query
-# -*- coding:utf-8 -*-
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic.alias_generators import to_camel
-from typing import List, Literal, Optional, Union
-from module_admin.annotation.pydantic_annotation import as_query
+from app.common.constant import GenConstant
 
 
-class GenTableBaseModel(BaseModel):
+class GenTableBaseSchema(BaseModel):
     """
     代码生成业务表对应pydantic模型
     """
@@ -41,6 +34,7 @@ class GenTableBaseModel(BaseModel):
     gen_type: Optional[Literal['0', '1']] = Field(default=None, description='生成代码方式（0zip压缩包 1自定义路径）')
     gen_path: Optional[str] = Field(default=None, description='生成路径（不填默认项目路径）')
     options: Optional[str] = Field(default=None, description='其它生成选项')
+    
     create_by: Optional[str] = Field(default=None, description='创建者')
     create_time: Optional[datetime] = Field(default=None, description='创建时间')
     update_by: Optional[str] = Field(default=None, description='更新者')
@@ -90,7 +84,7 @@ class GenTableBaseModel(BaseModel):
         self.get_function_author()
 
 
-class GenTableModel(GenTableBaseModel):
+class GenTableSchema(GenTableBaseSchema):
     """
     代码生成业务表模型
     """
@@ -115,7 +109,7 @@ class GenTableModel(GenTableBaseModel):
         return self
 
 
-class EditGenTableModel(GenTableModel):
+class EditGenTableSchema(GenTableSchema):
     """
     修改代码生成业务表模型
     """
@@ -123,7 +117,7 @@ class EditGenTableModel(GenTableModel):
     params: Optional['GenTableParamsModel'] = Field(default=None, description='业务表参数')
 
 
-class GenTableParamsModel(BaseModel):
+class GenTableParamsSchema(BaseModel):
     """
     代码生成业务表参数模型
     """
@@ -136,7 +130,7 @@ class GenTableParamsModel(BaseModel):
     parent_menu_id: Optional[int] = Field(default=None, description='上级菜单ID字段')
 
 
-class GenTableQueryModel(GenTableBaseModel):
+class GenTableQuerySchema(GenTableBaseSchema):
     """
     代码生成业务表不分页查询模型
     """
@@ -145,17 +139,7 @@ class GenTableQueryModel(GenTableBaseModel):
     end_time: Optional[str] = Field(default=None, description='结束时间')
 
 
-@as_query
-class GenTablePageQueryModel(GenTableQueryModel):
-    """
-    代码生成业务表分页查询模型
-    """
-
-    page_num: int = Field(default=1, description='当前页码')
-    page_size: int = Field(default=10, description='每页记录数')
-
-
-class DeleteGenTableModel(BaseModel):
+class DeleteGenTableSchema(BaseModel):
     """
     删除代码生成业务表模型
     """
@@ -165,7 +149,7 @@ class DeleteGenTableModel(BaseModel):
     table_ids: str = Field(description='需要删除的代码生成业务表ID')
 
 
-class GenTableColumnBaseModel(BaseModel):
+class GenTableColumnBaseSchema(BaseModel):
     """
     代码生成业务表字段对应pydantic模型
     """
@@ -188,9 +172,7 @@ class GenTableColumnBaseModel(BaseModel):
     is_list: Optional[str] = Field(default=None, description='是否列表字段（1是）')
     is_query: Optional[str] = Field(default=None, description='是否查询字段（1是）')
     query_type: Optional[str] = Field(default=None, description='查询方式（等于、不等于、大于、小于、范围）')
-    html_type: Optional[str] = Field(
-        default=None, description='显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）'
-    )
+    html_type: Optional[str] = Field(default=None, description='显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）')
     dict_type: Optional[str] = Field(default=None, description='字典类型')
     sort: Optional[int] = Field(default=None, description='排序')
     create_by: Optional[str] = Field(default=None, description='创建者')
@@ -206,7 +188,7 @@ class GenTableColumnBaseModel(BaseModel):
         self.get_python_field()
 
 
-class GenTableColumnModel(GenTableColumnBaseModel):
+class GenTableColumnSchema(GenTableColumnBaseSchema):
     """
     代码生成业务表字段模型
     """
@@ -245,7 +227,7 @@ class GenTableColumnModel(GenTableColumnBaseModel):
         return self
 
 
-class GenTableColumnQueryModel(GenTableColumnBaseModel):
+class GenTableColumnQuerySchema(GenTableColumnBaseSchema):
     """
     代码生成业务表字段不分页查询模型
     """
@@ -254,17 +236,7 @@ class GenTableColumnQueryModel(GenTableColumnBaseModel):
     end_time: Optional[str] = Field(default=None, description='结束时间')
 
 
-@as_query
-class GenTableColumnPageQueryModel(GenTableColumnQueryModel):
-    """
-    代码生成业务表字段分页查询模型
-    """
-
-    page_num: int = Field(default=1, description='当前页码')
-    page_size: int = Field(default=10, description='每页记录数')
-
-
-class DeleteGenTableColumnModel(BaseModel):
+class DeleteGenTableColumnSchema(BaseModel):
     """
     删除代码生成业务表字段模型
     """

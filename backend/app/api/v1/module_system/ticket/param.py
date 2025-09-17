@@ -7,7 +7,7 @@ from fastapi import Query
 from app.core.validator import DateTimeStr
 
 
-class TicketQueryParams:
+class TicketQueryParam:
     """工单管理查询参数"""
 
     def __init__(

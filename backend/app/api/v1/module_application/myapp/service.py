@@ -7,7 +7,7 @@ from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
 from .schema import ApplicationCreateSchema, ApplicationUpdateSchema, ApplicationOutSchema
-from .param import ApplicationQueryParams
+from .param import ApplicationQueryParam
 from .crud import ApplicationCRUD
 
 
@@ -25,7 +25,7 @@ class ApplicationService:
         return ApplicationOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_application_list_service(cls, auth: AuthSchema, search: ApplicationQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_application_list_service(cls, auth: AuthSchema, search: ApplicationQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         """应用列表查询"""
         if order_by:
             order_by = eval(order_by) if isinstance(order_by, str) else order_by

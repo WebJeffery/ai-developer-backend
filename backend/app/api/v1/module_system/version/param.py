@@ -7,7 +7,7 @@ from fastapi import Query
 from app.core.validator import DateTimeStr
 
 
-class VersionQueryParams:
+class VersionQueryParam:
     """版本管理查询参数"""
 
     def __init__(

@@ -9,9 +9,9 @@ from app.core.router_class import OperationLogRoute
 from app.core.dependencies import AuthPermission
 from app.core.base_schema import BatchSetAvailable
 from app.core.logger import logger
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from ..auth.schema import AuthSchema
-from .param import DeptQueryParams
+from .param import DeptQueryParam
 from .service import DeptService
 from .schema import (
     DeptCreateSchema,
@@ -24,7 +24,7 @@ DeptRouter = APIRouter(route_class=OperationLogRoute, prefix="/dept", tags=["部
 
 @DeptRouter.get("/tree", summary="查询部门树", description="查询部门树")
 async def get_dept_tree_controller(
-    search: DeptQueryParams = Depends(),
+    search: DeptQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:query"]))
 ) -> JSONResponse:
     result_dict_list = await DeptService.get_dept_tree_service(search=search, auth=auth)

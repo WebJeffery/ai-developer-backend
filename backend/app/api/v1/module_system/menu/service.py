@@ -12,7 +12,7 @@ from app.utils.common_util import (
     traversal_to_tree
 )
 from ..auth.schema import AuthSchema
-from .param import MenuQueryParams
+from .param import MenuQueryParam
 from .crud import MenuCRUD
 from .schema import (
     MenuCreateSchema,
@@ -33,7 +33,7 @@ class MenuService:
         return menu_dict
 
     @classmethod
-    async def get_menu_tree_service(cls, auth: AuthSchema, search: MenuQueryParams, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_menu_tree_service(cls, auth: AuthSchema, search: MenuQueryParam, order_by: List[Dict] = None) -> List[Dict]:
         """
         获取菜单树形列表service
         

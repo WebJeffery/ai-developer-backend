@@ -7,13 +7,13 @@ from app.common.response import StreamResponse, SuccessResponse
 from app.common.request import PaginationService
 from app.utils.common_util import bytes2file_response
 from app.core.router_class import OperationLogRoute
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from app.core.dependencies import AuthPermission
 from app.core.base_schema import BatchSetAvailable
 from app.core.logger import logger
 from ..auth.schema import AuthSchema
 from .service import RoleService
-from .param import RoleQueryParams
+from .param import RoleQueryParam
 from .schema import (
     RoleCreateSchema,
     RoleUpdateSchema,
@@ -26,8 +26,8 @@ RoleRouter = APIRouter(route_class=OperationLogRoute, prefix="/role", tags=["角
 
 @RoleRouter.get("/list", summary="查询角色", description="查询角色")
 async def get_obj_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: RoleQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: RoleQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:query"])),
 ) -> JSONResponse:
     result_dict_list = await RoleService.get_role_list_service(search=search, auth=auth, order_by=page.order_by)
@@ -99,7 +99,7 @@ async def set_role_permission_controller(
 
 @RoleRouter.post('/export', summary="导出角色", description="导出角色")
 async def export_obj_list_controller(
-    search: RoleQueryParams = Depends(),
+    search: RoleQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:export"])),
 ) -> StreamingResponse:
     # 获取全量数据

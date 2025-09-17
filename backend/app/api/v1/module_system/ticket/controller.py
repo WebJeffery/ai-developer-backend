@@ -6,11 +6,11 @@ from fastapi.responses import JSONResponse
 from app.common.response import SuccessResponse
 from app.common.request import PaginationService
 from app.core.router_class import OperationLogRoute
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from app.core.dependencies import AuthPermission
 from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
-from .param import TicketQueryParams
+from .param import TicketQueryParam
 from .service import TicketService
 from .schema import TicketCreateSchema, TicketUpdateSchema
 
@@ -30,8 +30,8 @@ async def get_ticket_detail_controller(
 
 @TicketRouter.get("/list", summary="查询工单列表", description="查询工单列表")
 async def get_ticket_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: TicketQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: TicketQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:ticket:query"]))
 ) -> JSONResponse:
     result_dict_list = await TicketService.get_ticket_list_service(auth=auth, search=search, order_by=page.order_by)

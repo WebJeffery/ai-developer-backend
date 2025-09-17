@@ -15,7 +15,7 @@ class ResourceType(Enum):
     OTHER = "other"  # 其他
 
 
-class ResourceQueryParams(BaseModel):
+class ResourceQueryParam(BaseModel):
     """资源查询参数模型"""
     path: Optional[str] = Field(None, description="文件路径")
     keyword: Optional[str] = Field(None, description="关键词搜索")

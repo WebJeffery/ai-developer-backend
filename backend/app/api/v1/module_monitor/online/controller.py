@@ -7,10 +7,10 @@ from redis.asyncio.client import Redis
 from app.common.request import PaginationService
 from app.common.response import SuccessResponse,ErrorResponse
 from app.core.dependencies import AuthPermission, redis_getter
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from app.core.router_class import OperationLogRoute
 from app.core.logger import logger
-from .param import OnlineQueryParams
+from .param import OnlineQueryParam
 from .service import OnlineService
 
 
@@ -25,8 +25,8 @@ OnlineRouter = APIRouter(route_class=OperationLogRoute, prefix="/online", tags=[
 )
 async def get_online_list_controller(
     redis: Redis = Depends(redis_getter), 
-    paging_query: PaginationQueryParams = Depends(),
-    search: OnlineQueryParams = Depends()
+    paging_query: PaginationQueryParam = Depends(),
+    search: OnlineQueryParam = Depends()
 )->JSONResponse:
     # 获取全量数据
     result_dict_list = await OnlineService.get_online_list_service(redis=redis, search=search)

@@ -7,7 +7,7 @@ from app.core.exceptions import CustomException
 from app.utils.excel_util import ExcelUtil
 from ..auth.schema import AuthSchema
 from .crud import RoleCRUD
-from .param import RoleQueryParams
+from .param import RoleQueryParam
 from .schema import (
     RoleCreateSchema,
     RoleUpdateSchema,
@@ -26,7 +26,7 @@ class RoleService:
         return RoleOutSchema.model_validate(role).model_dump()
 
     @classmethod
-    async def get_role_list_service(cls, auth: AuthSchema, search: RoleQueryParams, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_role_list_service(cls, auth: AuthSchema, search: RoleQueryParam, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         """获取角色列表"""
         if order_by:
             order_by = eval(order_by)

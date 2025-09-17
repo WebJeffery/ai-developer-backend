@@ -12,7 +12,7 @@ from app.common.response import ErrorResponse
 from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
 from .schema import DemoCreateSchema, DemoUpdateSchema, DemoOutSchema
-from .param import DemoQueryParams
+from .param import DemoQueryParam
 from .crud import DemoCRUD
 
 
@@ -28,7 +28,7 @@ class DemoService:
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_demo_list_service(cls, auth: AuthSchema, search: DemoQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_demo_list_service(cls, auth: AuthSchema, search: DemoQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         """列表查询"""
         if order_by:
             order_by = eval(order_by)

@@ -144,7 +144,7 @@ class Settings(BaseSettings):
     CAPTCHA_ENABLE: bool = True         # 是否启用验证码
     CAPTCHA_EXPIRE_SECONDS: int = 60 * 1    # 验证码过期时间(秒) 1分钟
     CAPTCHA_FONT_SIZE: int = 40         # 字体大小
-    CAPTCHA_FONT_PATH: Path = 'static/assets/font/Arial.ttf'  # 字体路径
+    CAPTCHA_FONT_PATH: str = 'static/assets/font/Arial.ttf'  # 字体路径
 
     # ================================================= #
     # ********************* 日志配置 ******************* #
@@ -230,7 +230,6 @@ class Settings(BaseSettings):
     ALI_OSS_END_POINT: str = 'xxxx'
     ALI_OSS_PRE: str = 'xxxx'
     ALI_OSS_BUCKET: str = 'xxxx'
-    UPLOAD_METHOD: str = 'xxxx'
 
     # ================================================= #
     # ***************** Swagger配置 ***************** #
@@ -254,11 +253,8 @@ class Settings(BaseSettings):
     table_prefix: str = 'sys_'
     allow_overwrite: bool = False
 
-    GEN_PATH: str = 'gen_code/gen_path'
+    GEN_PATH: Path = BASE_DIR.joinpath('app/api/v1/module_generator/gen_backend_code')
 
-    # def __init__(self):
-    #     if not os.path.exists(self.GEN_PATH):
-    #         os.makedirs(self.GEN_PATH)
 
     # ================================================= #
     # ******************* AI大模型配置 ****************** #
@@ -297,44 +293,33 @@ class Settings(BaseSettings):
     def ASYNC_DB_URI(self) -> str:
         """获取异步数据库连接"""
         if self.DATABASE_TYPE == "mysql":
-            uri: MySQLDsn = f"mysql+asyncmy://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset={self.DATABASE_CHARSET}"
-            return uri
+            return f"mysql+asyncmy://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset={self.DATABASE_CHARSET}"
         elif self.DATABASE_TYPE == "postgresql":
-            uri: PostgresDsn = f"postgresql+asyncpg://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
-            return uri
+            return f"postgresql+asyncpg://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         elif self.DATABASE_TYPE == "sqlite":
-            uri = f"sqlite+aiosqlite:///{self.BASE_DIR.joinpath(self.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
-            return uri
+            return f"sqlite+aiosqlite:///{self.BASE_DIR.joinpath(self.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
         else:
-            supported_db_drivers = ['mysql', 'postgresql', 'sqlite']
-            raise ValueError(f"数据库驱动不支持: {self.DATABASE_TYPE}, 请选择 {supported_db_drivers}")
+            raise ValueError(f"数据库驱动不支持: {self.DATABASE_TYPE}, 请选择 请选择 mysql、postgresql、sqlite")
 
     @property
     def DB_URI(self) -> str:
         """获取同步数据库连接"""
         if self.DATABASE_TYPE == "mysql":
-            uri: MySQLDsn = f"mysql+pymysql://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset={self.DATABASE_CHARSET}"
-            return uri
+            return f"mysql+pymysql://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset={self.DATABASE_CHARSET}"
         elif self.DATABASE_TYPE == "postgresql":
-            uri: PostgresDsn = f"postgresql+psycopg2://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
-            return uri
+            return f"postgresql+psycopg2://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         elif self.DATABASE_TYPE == "sqlite":
-            uri: str = f"sqlite:///{self.BASE_DIR.joinpath(self.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
-            return uri
+            return f"sqlite:///{self.BASE_DIR.joinpath(self.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
         else:
-            supported_db_drivers = ['mysql', 'postgresql', 'sqlite']
-            raise ValueError(f"数据库驱动不支持: {self.DATABASE_TYPE}, 请选择 {supported_db_drivers}")
+            raise ValueError(f"数据库驱动不支持: {self.DATABASE_TYPE}, 请选择 mysql、postgresql、sqlite")
 
     @property
-    def MONGO_DB_URI(self) -> MongoDsn:
+    def MONGO_DB_URI(self) -> str:
         """获取MongoDB连接"""
-        if settings.MONGO_DB_USER and settings.MONGO_DB_PASSWORD:
-            return f"mongodb://{settings.MONGO_DB_USER}:{settings.MONGO_DB_PASSWORD}@{settings.MONGO_DB_HOST}:{settings.MONGO_DB_PORT}/{settings.MONGO_DB_NAME}"
-        else:
-            return f"mongodb://{settings.MONGO_DB_HOST}:{settings.MONGO_DB_PORT}/{settings.MONGO_DB_NAME}"
+        return f"mongodb://{settings.MONGO_DB_USER}:{settings.MONGO_DB_PASSWORD}@{settings.MONGO_DB_HOST}:{settings.MONGO_DB_PORT}/{settings.MONGO_DB_NAME}"
     
     @property
-    def REDIS_URI(self) -> RedisDsn:
+    def REDIS_URI(self) -> str:
         """获取Redis连接"""
         return f"redis://{settings.REDIS_USER}:{self.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_NAME}"
     

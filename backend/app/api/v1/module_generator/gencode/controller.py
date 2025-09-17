@@ -1,28 +1,28 @@
+# -*- coding:utf-8 -*-
+
 from datetime import datetime
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic_validation_decorator import ValidateFields
 from sqlalchemy.ext.asyncio import AsyncSession
-from config.enums import BusinessType
+from app.common.enums import BusinessType
 from config.env import GenConfig
 from config.get_db import get_db
 from module_admin.annotation.log_annotation import Log
 from module_admin.aspect.interface_auth import CheckRoleInterfaceAuth, CheckUserInterfaceAuth
-from module_admin.service.login_service import LoginService
+from app.api.v1.module_system.auth.service import LoginService
 from module_admin.entity.vo.user_vo import CurrentUserModel
-from module_generator.entity.vo.gen_vo import DeleteGenTableModel, EditGenTableModel, GenTablePageQueryModel
-from module_generator.service.gen_service import GenTableColumnService, GenTableService
-from utils.common_util import bytes2file_response
-from utils.log_util import logger
-from utils.page_util import PageResponseModel
-from utils.response_util import ResponseUtil
+from .schema import DeleteGenTableModel, EditGenTableModel, GenTablePageQueryModel
+from .service import GenTableColumnService, GenTableService
+from app.utils.common_util import bytes2file_response
+from app.core.logger import logger
+from app.utils.page_util import PageResponseModel
+from app.utils.response_util import ResponseUtil
 
 
 genController = APIRouter(prefix='/tool/gen', dependencies=[Depends(LoginService.get_current_user)])
 
 
-@genController.get(
-    '/list', response_model=PageResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('tool:gen:list'))]
-)
+@genController.get('/list', response_model=PageResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('tool:gen:list'))])
 async def get_gen_table_list(
     request: Request,
     gen_page_query: GenTablePageQueryModel = Depends(GenTablePageQueryModel.as_query),
@@ -35,9 +35,7 @@ async def get_gen_table_list(
     return ResponseUtil.success(model_content=gen_page_query_result)
 
 
-@genController.get(
-    '/db/list', response_model=PageResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('tool:gen:list'))]
-)
+@genController.get('/db/list', response_model=PageResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('tool:gen:list'))])
 async def get_gen_db_table_list(
     request: Request,
     gen_page_query: GenTablePageQueryModel = Depends(GenTablePageQueryModel.as_query),

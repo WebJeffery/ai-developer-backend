@@ -10,12 +10,12 @@ from app.common.request import PaginationService
 from app.utils.common_util import bytes2file_response
 from app.core.router_class import OperationLogRoute
 from app.core.dependencies import db_getter, get_current_user, AuthPermission
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from app.core.base_schema import BatchSetAvailable
 from app.core.logger import logger
 from ..auth.schema import AuthSchema
 from .service import UserService
-from .param import UserQueryParams
+from .param import UserQueryParam
 from .schema import (
     CurrentUserUpdateSchema,
     ResetPasswordSchema,
@@ -101,8 +101,8 @@ async def forget_password_controller(
 
 @UserRouter.get("/list", summary="查询用户", description="查询用户")
 async def get_obj_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: UserQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: UserQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:user:query"])),
 ) -> JSONResponse:
     result_dict_list = await UserService.get_user_list_service(search=search, auth=auth, order_by=page.order_by)
@@ -179,8 +179,8 @@ async def export_obj_template_controller()-> StreamingResponse:
 
 @UserRouter.post('/export', summary="导出用户", description="导出用户")
 async def export_obj_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: UserQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: UserQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:user:export"])),
 ) -> StreamingResponse:
     # 获取全量数据
