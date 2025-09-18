@@ -35,7 +35,7 @@ class OperationLogRoute(APIRoute):
                 return response
             if request.method not in settings.OPERATION_RECORD_METHOD:
                 return response
-            route: APIRoute = request.scope.get("route")
+            route: APIRoute = request.scope.get("route", None)
             if route.name in settings.IGNORE_OPERATION_FUNCTION:
                 return response
             
@@ -66,7 +66,6 @@ class OperationLogRoute(APIRoute):
                     oper_param['path_params'] = dict(path_params)
                 
                 payload = json.dumps(oper_param, ensure_ascii=False)
-                # payload = str(oper_param)
 
                 # 日志表请求参数字段长度最大为2000，因此在此处判断长度
                 if len(payload) > 2000:
@@ -89,19 +88,18 @@ class OperationLogRoute(APIRoute):
                 request_ip = x_forwarded_for.split(',')[0].strip()
             else:
                 # 若没有 X-Forwarded-For 头，则使用 request.client.host
-                request_ip = request.client.host
+                if request.client:
+                    request_ip = request.client.host
             
-            login_location = await IpLocalUtil.get_ip_location(request_ip)
+            login_location = await IpLocalUtil.get_ip_location(request_ip) if request_ip else None
             
             # 判断请求是否来自api文档
-            request_from_swagger = (
-                request.headers.get('referer').endswith('docs') if request.headers.get('referer') else False
-            )
-            request_from_redoc = (
-                request.headers.get('referer').endswith('redoc') if request.headers.get('referer') else False
-            )
+            referer = request.headers.get('referer')
+            request_from_swagger = referer and referer.endswith('docs')
+            request_from_redoc = referer and referer.endswith('redoc')
             
             if request_from_swagger or request_from_redoc:
+                # 如果请求来自api文档，则不记录日志
                 pass
             else:
                 async with session_connect() as session:
@@ -117,7 +115,7 @@ class OperationLogRoute(APIRoute):
                             request_os = user_agent.os.family,
                             request_browser = user_agent.browser.family,
                             response_code = response.status_code,
-                            response_json = response_data.decode(),
+                            response_json = response_data.decode() if isinstance(response_data, (bytes, bytearray)) else str(response_data),
                             process_time = process_time,
                             description = route.summary,
                             creator_id = current_user_id

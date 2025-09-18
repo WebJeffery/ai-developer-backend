@@ -23,7 +23,7 @@ class PaginationService:
     """分页服务类"""
 
     @staticmethod
-    async def get_page_obj(data_list: List[Any], page_no: Optional[int] = None, page_size: Optional[int] = None) -> Dict[str, Any]:
+    async def paginate(data_list: List[Any], page_no: Optional[int] = None, page_size: Optional[int] = None) -> Dict[str, Any]:
         """
         输入数据列表data_list和分页信息，返回分页或非分页数据列表结果。
         如果未传入page_no和page_size，则返回全部数据。

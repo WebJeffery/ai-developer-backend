@@ -8,6 +8,7 @@ from fastapi import Depends, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi import Depends
 
+from app.api.v1.module_system.user.schema import UserOutSchema
 from app.common.enums import RedisInitKeyConfig
 from app.core.exceptions import CustomException
 from app.core.database import session_connect
@@ -95,7 +96,7 @@ async def get_current_user(
     if hasattr(user, 'positions'):
         user.positions = [pos for pos in user.positions if pos.status]
 
-    auth.user = user
+    auth.user = UserOutSchema.model_validate(user)
     return auth
 
 
@@ -133,7 +134,7 @@ class AuthPermission:
         auth.check_data_scope = self.check_data_scope
 
         # 超级管理员直接通过
-        if auth.user.is_superuser:
+        if auth.user and auth.user.is_superuser:
             return auth
 
         # 无需验证权限

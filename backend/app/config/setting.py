@@ -275,7 +275,6 @@ class Settings(BaseSettings):
             "app.core.middlewares.CustomCORSMiddleware" if self.CORS_ORIGIN_ENABLE else None,
             "app.core.middlewares.RequestLogMiddleware" if self.OPERATION_LOG_RECORD else None,
             "app.core.middlewares.CustomGZipMiddleware" if self.GZIP_ENABLE else None,
-            "app.core.middlewares.DemoEnvMiddleware" if self.DEMO_ENABLE else None,
         ]
         return MIDDLEWARES
 

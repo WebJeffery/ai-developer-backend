@@ -42,7 +42,7 @@ async def get_type_list_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_type:query"]))
 ) -> JSONResponse:
     result_dict_list = await DictTypeService.get_obj_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
+    result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
     logger.info(f"查询字典类型列表成功")
     return SuccessResponse(data=result_dict, msg="查询字典类型列表成功")
 
@@ -128,7 +128,7 @@ async def get_data_list_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_data:query"]))
 ) -> JSONResponse:
     result_dict_list = await DictDataService.get_obj_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
+    result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
     logger.info(f"查询字典数据列表成功")
     return SuccessResponse(data=result_dict, msg="查询字典数据列表成功")
 

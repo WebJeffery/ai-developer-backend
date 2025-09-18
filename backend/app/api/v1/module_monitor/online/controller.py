@@ -30,7 +30,7 @@ async def get_online_list_controller(
 )->JSONResponse:
     # 获取全量数据
     result_dict_list = await OnlineService.get_online_list_service(redis=redis, search=search)
-    result_dict = await PaginationService.get_page_obj(data_list= result_dict_list, page_no= paging_query.page_no, page_size = paging_query.page_size)
+    result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= paging_query.page_no, page_size = paging_query.page_size)
     logger.info('获取成功')
 
     return SuccessResponse(data=result_dict,msg='获取成功')

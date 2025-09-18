@@ -45,7 +45,6 @@ class GenTableColumnModel(CreatorMixin):
     """
     代码生成业务表字段
     """
-
     __tablename__ = 'gen_table_column'
     __table_args__ = ({'comment': '代码生成业务表字段'})
 

@@ -1,6 +1,6 @@
 import re
 
-from module_gen.constants.gen_constants import GenConstants
+from app.common.constant import GenConstants
 
 
 def snake_to_pascal_case(value):

@@ -32,7 +32,6 @@ from .schema import (
 )
 
 
-
 class UserService:
     """用户模块服务层"""
 

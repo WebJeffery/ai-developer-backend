@@ -57,7 +57,7 @@ async def get_obj_list_controller(
     search: ParamsQueryParam = Depends(),
 ) -> JSONResponse:
     result_dict_list = await ParamsService.get_obj_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
+    result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
     logger.info(f"获取参数列表成功")
     return SuccessResponse(data=result_dict, msg="查询参数列表成功")
 

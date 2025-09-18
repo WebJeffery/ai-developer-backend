@@ -1,20 +1,64 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 
-@as_query
-class GenTablePageQuerySchema(GenTableQuerySchema):
-    """
-    代码生成业务表分页查询模型
-    """
+from datetime import datetime
+from typing import Optional
+from fastapi import Query
 
-    page_num: int = Field(default=1, description='当前页码')
-    page_size: int = Field(default=10, description='每页记录数')
+from app.core.validator import DateTimeStr
+from app.common.request import PageResultSchema
+from .schema import GenTableBaseSchema, GenTableColumnBaseSchema
 
 
-@as_query
-class GenTableColumnPageQuerySchema(GenTableColumnQuerySchema):
-    """
-    代码生成业务表字段分页查询模型
-    """
+class GenTableQueryParam(PageResultSchema, GenTableBaseSchema):
+    """数据库表查询参数"""
 
-    page_num: int = Field(default=1, description='当前页码')
-    page_size: int = Field(default=10, description='每页记录数')
+    def __init__(
+        self,
+        name: Optional[str] = Query(None, description="名称"),
+        status: Optional[bool] = Query(None, description="是否启用"),
+        creator: Optional[int] = Query(None, description="创建人"),
+        start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2023-01-01 00:00:00"),
+        end_time: Optional[DateTimeStr] = Query(None, description="结束时间", example="2023-12-31 23:59:59"),
+    ) -> None:
+        super().__init__()
+        
+        # 模糊查询字段
+        self.name = ("like", name)
+
+        # 精确查询字段
+        self.creator_id = creator
+        self.status = status
+
+        # 时间范围查询
+        if start_time and end_time:
+            start_datetime = datetime.strptime(str(start_time), '%Y-%m-%d %H:%M:%S')
+            end_datetime = datetime.strptime(str(end_time), '%Y-%m-%d %H:%M:%S')
+            self.created_at = ("between", (start_datetime, end_datetime))
+
+
+class GenTableColumnQueryParam(PageResultSchema, GenTableColumnBaseSchema):
+    """数据库表字段查询参数"""
+
+    def __init__(
+        self,
+        name: Optional[str] = Query(None, description="名称"),
+        status: Optional[bool] = Query(None, description="是否启用"),
+        creator: Optional[int] = Query(None, description="创建人"),
+        start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2023-01-01 00:00:00"),
+        end_time: Optional[DateTimeStr] = Query(None, description="结束时间", example="2023-12-31 23:59:59"),
+    ) -> None:
+        super().__init__()
+        
+        # 模糊查询字段
+        self.name = ("like", name)
+
+        # 精确查询字段
+        self.creator_id = creator
+        self.status = status
+
+        # 时间范围查询
+        if start_time and end_time:
+            start_datetime = datetime.strptime(str(start_time), '%Y-%m-%d %H:%M:%S')
+            end_datetime = datetime.strptime(str(end_time), '%Y-%m-%d %H:%M:%S')
+            self.created_at = ("between", (start_datetime, end_datetime))
+

@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
 from pydantic_validation_decorator import NotBlank
 
-from module_admin.annotation.pydantic_annotation import as_query
 from utils.string_util import StringUtil
 from app.common.constant import GenConstant
 
@@ -89,9 +88,9 @@ class GenTableSchema(GenTableBaseSchema):
     代码生成业务表模型
     """
 
-    pk_column: Optional['GenTableColumnModel'] = Field(default=None, description='主键信息')
-    sub_table: Optional['GenTableModel'] = Field(default=None, description='子表信息')
-    columns: Optional[List['GenTableColumnModel']] = Field(default=None, description='表列信息')
+    pk_column: Optional['GenTableColumnSchema'] = Field(default=None, description='主键信息')
+    sub_table: Optional['GenTableSchema'] = Field(default=None, description='子表信息')
+    columns: Optional[List['GenTableColumnSchema']] = Field(default=None, description='表列信息')
     tree_code: Optional[str] = Field(default=None, description='树编码字段')
     tree_parent_code: Optional[str] = Field(default=None, description='树父编码字段')
     tree_name: Optional[str] = Field(default=None, description='树名称字段')
@@ -102,7 +101,7 @@ class GenTableSchema(GenTableBaseSchema):
     crud: Optional[bool] = Field(default=None, description='是否为单表')
 
     @model_validator(mode='after')
-    def check_some_is(self) -> 'GenTableModel':
+    def check_some_is(self) -> 'GenTableSchema':
         self.sub = True if self.tpl_category and self.tpl_category == GenConstant.TPL_SUB else False
         self.tree = True if self.tpl_category and self.tpl_category == GenConstant.TPL_TREE else False
         self.crud = True if self.tpl_category and self.tpl_category == GenConstant.TPL_CRUD else False
@@ -114,7 +113,7 @@ class EditGenTableSchema(GenTableSchema):
     修改代码生成业务表模型
     """
 
-    params: Optional['GenTableParamsModel'] = Field(default=None, description='业务表参数')
+    params: Optional['GenTableParamsSchema'] = Field(default=None, description='业务表参数')
 
 
 class GenTableParamsSchema(BaseModel):
@@ -128,15 +127,6 @@ class GenTableParamsSchema(BaseModel):
     tree_parent_code: Optional[str] = Field(default=None, description='树父编码字段')
     tree_name: Optional[str] = Field(default=None, description='树名称字段')
     parent_menu_id: Optional[int] = Field(default=None, description='上级菜单ID字段')
-
-
-class GenTableQuerySchema(GenTableBaseSchema):
-    """
-    代码生成业务表不分页查询模型
-    """
-
-    begin_time: Optional[str] = Field(default=None, description='开始时间')
-    end_time: Optional[str] = Field(default=None, description='结束时间')
 
 
 class DeleteGenTableSchema(BaseModel):
@@ -206,7 +196,7 @@ class GenTableColumnSchema(GenTableColumnBaseSchema):
     usable_column: Optional[bool] = Field(default=None, description='是否为基类字段白名单')
 
     @model_validator(mode='after')
-    def check_some_is(self) -> 'GenTableModel':
+    def check_some_is(self) -> 'GenTableSchema':
         self.cap_python_field = self.python_field[0].upper() + self.python_field[1:] if self.python_field else None
         self.pk = True if self.is_pk and self.is_pk == '1' else False
         self.increment = True if self.is_increment and self.is_increment == '1' else False
@@ -225,15 +215,6 @@ class GenTableColumnSchema(GenTableColumnBaseSchema):
             True if StringUtil.equals_any_ignore_case(self.python_field, ['parentId', 'orderNum', 'remark']) else False
         )
         return self
-
-
-class GenTableColumnQuerySchema(GenTableColumnBaseSchema):
-    """
-    代码生成业务表字段不分页查询模型
-    """
-
-    begin_time: Optional[str] = Field(default=None, description='开始时间')
-    end_time: Optional[str] = Field(default=None, description='结束时间')
 
 
 class DeleteGenTableColumnSchema(BaseModel):
