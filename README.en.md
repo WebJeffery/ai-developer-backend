@@ -287,16 +287,16 @@ For more details, please check the [Official Documentation](https://service.fast
 
 Thanks to the contributions and support of the following projects, which have enabled the successful completion of this project:
 
-- [FastAPI Project](https://fastapi.tiangolo.com/)
-- [Vue3 Project](https://v3.cn.vuejs.org/)
-- [KInit Project](https://gitee.com/ktianc/kinit)
-- [Fastapi-Vue3-Admin Project](https://gitee.com/senqi666/fastapi-vue-admin)
-- [Vue-FastAPI-Admin Project](https://gitee.com/mizhexiaoxiao/vue-fastapi-admin)
-- [RuoYi-Vue3-FastAPI Project](https://gitee.com/insistence2022/RuoYi-Vue3-FastAPI)
-- [APScheduler Project](https://github.com/agronholm/apscheduler)
-- [Vite Project](https://github.com/vitejs/vite)
-- [Vue3-element-admin Project](https://gitee.com/youlaiorg/vue3-element-admin)
-- [Vue3-element-plus-admin Project](https://gitee.com/kailong110120130/vue-element-plus-admin)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [Pydantic](https://docs.pydantic.dev/)
+- [SQLAlchemy](https://www.sqlalchemy.org/)
+- [APScheduler](https://github.com/agronholm/apscheduler)
+- [Vue3](https://cn.vuejs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://github.com/vitejs/vite)
+- [Element Plus](https://element-plus.org/)
+- [UniApp](https://uniapp.dcloud.net.cn/)
+- [Wot-Design-UI](https://wot-ui.cn/)
 
 ## 🎨 Community
 

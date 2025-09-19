@@ -289,16 +289,16 @@ fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 
 感谢以下项目的贡献和支持，使本项目得以顺利完成：
 
-- [FastAPI 项目](https://fastapi.tiangolo.com/)
-- [Vue3 项目](https://v3.cn.vuejs.org/)
-- [KInit 项目](https://gitee.com/ktianc/kinit)
-- [Fastapi-Vue3-Admin 项目](https://gitee.com/senqi666/fastapi-vue-admin)
-- [Vue-FastAPI-Admin 项目](https://gitee.com/mizhexiaoxiao/vue-fastapi-admin)
-- [RuoYi-Vue3-FastAPI 项目](https://gitee.com/insistence2022/RuoYi-Vue3-FastAPI)
-- [APScheduler 项目](https://github.com/agronholm/apscheduler)
-- [Vite 项目](https://github.com/vitejs/vite)
-- [Vue3-element-admin 项目](https://gitee.com/youlaiorg/vue3-element-admin)
-- [Vue3-element-plus-admin 项目](https://gitee.com/kailong110120130/vue-element-plus-admin)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [Pydantic](https://docs.pydantic.dev/)
+- [SQLAlchemy](https://www.sqlalchemy.org/)
+- [APScheduler](https://github.com/agronholm/apscheduler)
+- [Vue3](https://cn.vuejs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://github.com/vitejs/vite)
+- [Element Plus](https://element-plus.org/)
+- [UniApp](https://uniapp.dcloud.net.cn/)
+- [Wot-Design-UI](https://wot-ui.cn/)
 
 ## 🎨 社区
 
