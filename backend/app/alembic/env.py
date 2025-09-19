@@ -1,9 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy.ext.asyncio import (
-    create_async_engine
-)
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import pool
 
 from alembic import context
@@ -11,10 +9,6 @@ from alembic import context
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-
-from app.config.setting import settings
-config.set_main_option("sqlalchemy.url", settings.ASYNC_DB_URI)
-
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -25,7 +19,6 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-
 from app.core.base_model import MappedBase
 target_metadata = MappedBase.metadata
 
@@ -33,6 +26,8 @@ target_metadata = MappedBase.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+from app.config.setting import settings
+config.set_main_option("sqlalchemy.url", settings.ASYNC_DB_URI)
 
 
 def run_migrations_offline() -> None:
@@ -48,6 +43,10 @@ def run_migrations_offline() -> None:
 
     """
     url = config.get_main_option("sqlalchemy.url")
+    # 确保URL不为None
+    if url is None:
+        raise ValueError("数据库URL未正确配置，请检查环境配置文件")
+        
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -66,7 +65,12 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = create_async_engine(config.get_main_option("sqlalchemy.url"), poolclass=pool.NullPool)
+    url = config.get_main_option("sqlalchemy.url")
+    # 确保URL不为None
+    if url is None:
+        raise ValueError("数据库URL未正确配置，请检查环境配置文件")
+        
+    connectable = create_async_engine(url, poolclass=pool.NullPool)
     
     async def run_async_migrations():
         async with connectable.connect() as connection:
