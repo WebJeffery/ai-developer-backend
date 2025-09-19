@@ -14,7 +14,7 @@ from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
 from app.api.v1.module_system.dict.schema import DictDataCreateSchema,DictDataOutSchema,DictDataUpdateSchema,DictTypeCreateSchema,DictTypeOutSchema,DictTypeUpdateSchema
-from app.api.v1.module_system.dict.param import DictDataQueryParams, DictTypeQueryParams
+from app.api.v1.module_system.dict.param import DictDataQueryParam, DictTypeQueryParam
 from app.api.v1.module_system.dict.crud import DictDataCRUD, DictTypeCRUD
 
 
@@ -29,7 +29,7 @@ class DictTypeService:
         return DictTypeOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_obj_list_service(cls, auth: AuthSchema, search: DictTypeQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_obj_list_service(cls, auth: AuthSchema, search: DictTypeQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         if order_by:
             order_by = eval(order_by)
         obj_list = None
@@ -179,7 +179,7 @@ class DictDataService:
         return DictDataOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_obj_list_service(cls, auth: AuthSchema, search: DictDataQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_obj_list_service(cls, auth: AuthSchema, search: DictDataQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         if order_by:
             order_by = eval(order_by)
         obj_list = await DictDataCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)

@@ -7,7 +7,7 @@ from datetime import datetime
 from app.core.validator import DateTimeStr
 
 
-class DictTypeQueryParams:
+class DictTypeQueryParam:
     """字典类型查询参数"""
 
     def __init__(
@@ -36,7 +36,7 @@ class DictTypeQueryParams:
             self.created_at = ("between", (start_datetime, end_datetime))
 
 
-class DictDataQueryParams:
+class DictDataQueryParam:
     """字典数据查询参数"""
 
     def __init__(

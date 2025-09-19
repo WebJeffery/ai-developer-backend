@@ -1,7 +1,7 @@
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 import os
 
-from module_gen.utils.jinja2_tools import snake_to_pascal_case, snake_to_camel, snake_2_colon, is_base_column, \
+from .jinja2_tools import snake_to_pascal_case, snake_to_camel, snake_2_colon, is_base_column, \
     get_sqlalchemy_type, get_column_options
 
 

@@ -8,7 +8,7 @@ from app.utils.cron_util import CronUtil
 from app.utils.excel_util import ExcelUtil
 from app.api.v1.module_system.auth.schema import AuthSchema
 from .schema import JobCreateSchema, JobUpdateSchema, JobOutSchema, JobLogOutSchema
-from .param import JobQueryParams, JobLogQueryParams
+from .param import JobQueryParam, JobLogQueryParam
 from .crud import JobCRUD, JobLogCRUD
 
 
@@ -23,7 +23,7 @@ class JobService:
         return JobOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_job_list_service(cls, auth: AuthSchema, search: JobQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_job_list_service(cls, auth: AuthSchema, search: JobQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         if order_by:
             order_by = eval(order_by)
         obj_list = await JobCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
@@ -130,7 +130,7 @@ class JobLogService:
         return JobLogOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_job_log_list_service(cls, auth: AuthSchema, search: JobLogQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_job_log_list_service(cls, auth: AuthSchema, search: JobLogQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         """获取定时任务日志列表"""
         if order_by:
             order_by = eval(order_by)

@@ -37,7 +37,7 @@ class {{ tableName|snake_to_pascal_case }}PageModel({{ tableName|snake_to_pascal
 
 
 {% if subTable %}
-class {{ subTable.table_name | snake_to_pascal_case }}Model(BaseModel):
+class {{ subTable.table_name | snake_to_pascal_case }}Schema(BaseModel):
     """
     {{ subTable.function_name }}表对应pydantic模型
     """

@@ -6,7 +6,7 @@ from fastapi import Query
 
 from app.core.validator import DateTimeStr
 
-class ParamsQueryParams:
+class ParamsQueryParam:
     """配置管理查询参数"""
 
     def __init__(

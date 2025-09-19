@@ -3,7 +3,7 @@
 from pydantic import BaseModel
 from typing import TypeVar, Sequence, Generic, Dict, Any, List, Union, Optional
 from sqlalchemy.sql.elements import ColumnElement
-from sqlalchemy.orm import selectinload, DeclarativeBase
+from sqlalchemy.orm import Session, selectinload, DeclarativeBase
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import asc, func, select, delete, Select, desc, update, or_, and_
@@ -32,7 +32,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
         self.auth = auth
-        self.db: AsyncSession = auth.db
+        self.db: AsyncSession | Session | None = auth.db
         self.current_user = auth.user
     
     async def get(self, **kwargs) -> Optional[ModelType]:

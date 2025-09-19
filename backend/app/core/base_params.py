@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import Query
 
 
-class PaginationQueryParams:
+class PaginationQueryParam:
     """分页查询参数基类"""
 
     def __init__(

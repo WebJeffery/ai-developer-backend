@@ -6,7 +6,7 @@ from datetime import datetime
 
 from app.core.validator import DateTimeStr
 
-class OperationLogQueryParams:
+class OperationLogQueryParam:
     """操作日志查询参数"""
 
     def __init__(

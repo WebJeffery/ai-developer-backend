@@ -148,7 +148,7 @@ class RedisCURD:
     async def hash_set(self, name: str, key: str, value: Any) -> bool:
         """设置哈希缓存"""
         try:
-            await self.redis.hset(name=name, key=key, value=value)
+            self.redis.hset(name=name, key=key, value=value)
             return True
         except Exception as e:
             logger.error(f"设置哈希缓存失败: {str(e)}")
@@ -157,7 +157,7 @@ class RedisCURD:
     async def hash_get(self, name: str, keys: list[str]) -> Optional[list[Any]]:
         """获取哈希缓存"""
         try:
-            return await self.redis.hmget(name=name, keys=keys)
+            return self.redis.hmget(name=name, keys=keys)
         except Exception as e:
             logger.error(f"获取哈希缓存失败: {str(e)}")
             return None

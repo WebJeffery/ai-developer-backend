@@ -9,7 +9,7 @@ from app.core.base_schema import BatchSetAvailable
 from app.core.router_class import OperationLogRoute
 from app.core.logger import logger
 from ..auth.schema import AuthSchema
-from .param import MenuQueryParams
+from .param import MenuQueryParam
 from .service import MenuService
 from .schema import (
     MenuCreateSchema,
@@ -21,7 +21,7 @@ MenuRouter = APIRouter(route_class=OperationLogRoute, prefix="/menu", tags=["菜
 
 @MenuRouter.get("/tree", summary="查询菜单树", description="查询菜单树")
 async def get_menu_tree_controller(
-        search: MenuQueryParams = Depends(),
+        search: MenuQueryParam = Depends(),
         auth: AuthSchema = Depends(AuthPermission(permissions=["system:menu:query"]))
 ) -> JSONResponse:
     result_dict_list = await MenuService.get_menu_tree_service(search=search, auth=auth)

@@ -8,14 +8,14 @@ from app.common.enums import RedisInitKeyConfig
 from app.core.redis_crud import RedisCURD
 from app.core.security import decode_access_token
 from app.core.logger import logger
-from .param import OnlineQueryParams
+from .param import OnlineQueryParam
 from .schema import OnlineOutSchema
 
 class OnlineService:
     """在线用户管理模块服务层"""
 
     @classmethod
-    async def get_online_list_service(cls, redis: Redis, search: Optional[OnlineQueryParams] = None) ->  List[Dict]:
+    async def get_online_list_service(cls, redis: Redis, search: Optional[OnlineQueryParam] = None) ->  List[Dict]:
         """
         获取在线用户列表信息（支持分页和搜索）
         """
@@ -64,7 +64,7 @@ class OnlineService:
 
     
     @staticmethod
-    def _match_search_conditions(online_info: Dict, search: Optional[OnlineQueryParams]) -> bool:
+    def _match_search_conditions(online_info: Dict, search: Optional[OnlineQueryParam]) -> bool:
         """检查是否匹配搜索条件"""
         if not search:
             return True

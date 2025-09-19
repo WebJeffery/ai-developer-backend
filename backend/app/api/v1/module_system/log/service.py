@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 from app.core.exceptions import CustomException
 from app.utils.excel_util import ExcelUtil
 from ..auth.schema import AuthSchema
-from .param import OperationLogQueryParams
+from .param import OperationLogQueryParam
 from .crud import OperationLogCRUD
 from .schema import (
     OperationLogCreateSchema,
@@ -26,7 +26,7 @@ class OperationLogService:
         return log_dict
 
     @classmethod
-    async def get_log_list_service(cls, auth: AuthSchema, search: OperationLogQueryParams, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_log_list_service(cls, auth: AuthSchema, search: OperationLogQueryParam, order_by: List[Dict] = None) -> List[Dict]:
         """获取日志列表"""
         if order_by:
             order_by = eval(order_by)

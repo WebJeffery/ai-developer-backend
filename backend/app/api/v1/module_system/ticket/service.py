@@ -5,7 +5,7 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.exceptions import CustomException
 from .crud import TicketCRUD
 from .schema import TicketCreateSchema, TicketUpdateSchema, TicketOutSchema
-from .param import TicketQueryParams
+from .param import TicketQueryParam
 
 
 class TicketService:
@@ -18,7 +18,7 @@ class TicketService:
         return TicketOutSchema.model_validate(obj).model_dump()
 
     @classmethod
-    async def get_ticket_list_service(cls, auth: AuthSchema, search: Optional[TicketQueryParams] = None, order_by: Optional[Union[str, List[Dict[str, str]]]] = None) -> List[Dict]:
+    async def get_ticket_list_service(cls, auth: AuthSchema, search: Optional[TicketQueryParam] = None, order_by: Optional[Union[str, List[Dict[str, str]]]] = None) -> List[Dict]:
         """获取工单列表"""
         # 处理排序参数
         processed_order_by = None

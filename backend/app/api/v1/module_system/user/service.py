@@ -18,7 +18,7 @@ from ..menu.crud import MenuCRUD
 from ..dept.crud import DeptCRUD
 from ..auth.schema import AuthSchema
 from ..menu.schema import MenuOutSchema
-from .param import UserQueryParams
+from .param import UserQueryParam
 from .crud import UserCRUD
 from .schema import (
     CurrentUserUpdateSchema,
@@ -30,7 +30,6 @@ from .schema import (
     UserRegisterSchema,
     UserForgetPasswordSchema
 )
-
 
 
 class UserService:
@@ -53,7 +52,7 @@ class UserService:
         return UserOutSchema.model_validate(user).model_dump()
 
     @classmethod
-    async def get_user_list_service(cls, auth: AuthSchema, search: UserQueryParams, order_by: List[Dict]= None) -> List[Dict]:
+    async def get_user_list_service(cls, auth: AuthSchema, search: UserQueryParam, order_by: List[Dict]= None) -> List[Dict]:
         if order_by:
             order_by = eval(order_by)
         user_list = await UserCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)

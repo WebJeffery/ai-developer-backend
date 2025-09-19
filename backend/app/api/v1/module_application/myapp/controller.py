@@ -5,13 +5,13 @@ from fastapi.responses import JSONResponse
 
 from app.common.response import SuccessResponse
 from app.common.request import PaginationService
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from app.core.dependencies import AuthPermission
 from app.core.router_class import OperationLogRoute
 from app.core.base_schema import BatchSetAvailable
 from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
-from .param import ApplicationQueryParams
+from .param import ApplicationQueryParam
 from .service import ApplicationService
 from .schema import (
     ApplicationCreateSchema,
@@ -32,12 +32,12 @@ async def get_obj_detail_controller(
 
 @MyAppRouter.get("/list", summary="查询应用列表", description="查询应用列表")
 async def get_obj_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: ApplicationQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: ApplicationQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["application:myapp:query"]))
 ) -> JSONResponse:
     result_dict_list = await ApplicationService.get_application_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
+    result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
     logger.info(f"查询应用列表成功")
     return SuccessResponse(data=result_dict, msg="查询应用列表成功")
 

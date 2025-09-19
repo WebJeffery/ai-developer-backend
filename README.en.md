@@ -23,21 +23,19 @@
           <img src="https://img.shields.io/badge/-CSS3-1572B6?style=flat-square&logo=css3"/> 
           <img src="https://img.shields.io/badge/-JavaScript-563D7C?style=flat-square&logo=bootstrap"/> 
      </p>
-</div>
-
----
 
 English | [Chinese](./README.md)
 
----
+</div>
 
-## 📘 Project Introduction (Author: @1014TaoTao)
+## 📘 Project Introduction
 
 **Fastapi-Vue3-Admin** is a **completely open-source, highly modular, and technologically advanced modern rapid development platform**. Its aim is to help developers efficiently build high-quality enterprise-level mid - and back - end systems. This project adopts a **front - end and back - end separation architecture**, integrating the Python back - end framework `FastAPI` and the mainstream front - end framework `Vue3` to achieve unified development across multiple terminals, providing a one - stop out - of - the - box development experience.
 
 > **Original Design Concept**: With modularity and loose coupling at its core, it pursues rich functional modules, simple and easy - to - use interfaces, detailed development documentation, and convenient maintenance methods. By unifying frameworks and components, it reduces the cost of technology selection, follows development specifications and design patterns, builds a powerful code hierarchical model, and comes with comprehensive local Chinese support. It is specifically tailored for team and enterprise development scenarios.
 
 ## 📦Engineering Structures
+
 ```sh
 fastapi_vue3_admin
 ├─ backend        # Backend project
@@ -52,8 +50,6 @@ fastapi_vue3_admin
 └─ README.md      # Chinese documentation
 ```
 
----
-
 ## ✨ Core Highlights
 
 | Feature | Description |
@@ -67,8 +63,6 @@ fastapi_vue3_admin
 | 🚀 Rapid Deployment | Supports one-click deployment with Docker/Docker Compose/Nginx. |
 | 📄 Developer-friendly | Provides comprehensive Chinese documentation, a Chinese interface, and a visual toolchain to reduce the learning curve. |
 | 🧩 Quick Access | Based on mainstream front-end technology stacks such as Vue3, Vite5, Pinia, and ElementPlus, it's ready to use out of the box. |
-
----
 
 ## 🛠️ Technology Stack Overview
 
@@ -85,8 +79,6 @@ fastapi_vue3_admin
 | Documentation     | Swagger / Redoc     | Automatically generate API documentation. |
 | Deployment     | Docker / Nginx / Docker Compose | Rapidly deploy projects. |
 
----
-
 ## 📌 Built-in Modules
 
 | Module Name     | Sub-module Name | Description |
@@ -96,17 +88,12 @@ fastapi_vue3_admin
 | Monitoring Management  | Online users, server monitoring, cache monitoring | System monitoring and management functions |
 | Public Management  | Interface management, document management | Project interface documentation |
 
----
-
 ## 🍪 Demo Environment
 
 - Official website: <https://service.fastapiadmin.com>
 - Web address: <https://service.fastapiadmin.com/web>
 - App address: <https://service.fastapiadmin.com/app>
-- Admin account: `admin` Password: `123456`
-- Demo account: `demo` Password: `123456`
-
----
+- Account: `admin` Password: `123456`
 
 ## 👷 Installation and Usage
 
@@ -125,8 +112,6 @@ fastapi_vue3_admin
 | Database | MySQL                | 8.0 (It is recommended to use the latest version.) |
 | Middleware | Redis              | 7.0 (It is recommended to use the latest version.) |
 
----
-
 ### Get Code
 
 ```sh
@@ -135,8 +120,6 @@ git clone https://gitee.com/tao__tao/fastapi_vue3_admin.git
 或
 git clone https://github.com/1014TaoTao/fastapi_vue3_admin.git
 ```
-
----
 
 ### Local Backend Start
 
@@ -155,8 +138,6 @@ python3 main.py revision "Initial migration" --env=dev (default is dev if not sp
 python3 main.py upgrade --env=dev (default is dev if not specified)
 ```
 
----
-
 ### Local Frontend Start
 
 ```sh
@@ -169,8 +150,6 @@ pnpm run dev
 # Build the frontend and generate the `frontend/dist` directory
 pnpm run build
 ```
-
----
 
 ### Local App H5 Start
 
@@ -185,8 +164,6 @@ pnpm run dev:h5
 pnpm run build:h5
 ```
 
----
-
 ### Local Project Website Start
 
 ```sh
@@ -200,8 +177,6 @@ pnpm run docs:dev
 pnpm run docs:build
 ```
 
----
-
 ### Local Access Address
 
 - Project official website address: <http://localhost:5180>
@@ -209,8 +184,6 @@ pnpm run docs:build
 - App frontend address: <http://localhost:5180/app>
 - Admin account: `admin` Password: `123456`
 - Demo account: `demo` Password: `123456`
-
----
 
 ### Docker Build
 
@@ -244,8 +217,6 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 
 ```
 
----
-
 ## 🔧 Models
 
 | Module | Screenshot |
@@ -270,13 +241,12 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 | Document   | ![Document](./fastdocs/src/public/help.png) |
 | Lock       | ![Lock](./fastdocs/src/public/lock.png) |
 
-### 移动端
+### Mobile
 
 | Module <div style="width:60px"/> | Details | Module <div style="width:60px"/> | Details | Module <div style="width:60px"/> | Details |
 |----------|------|----------|------|----------|------|
 | Login    | ![Mobile Login](./fastdocs/src/public/app_login.png) | Home      | ![Mobile Home](./fastdocs/src/public/app_home.png) | Profile      | ![Mobile Profile](./fastdocs/src/public/app_mine.png) |
 | Personal  | ![Mobile Personal Info](./fastdocs/src/public/app_profile.png) | Settings   | ![Mobile Settings](./fastdocs/src/public/app_setting.png) | Workbench      | ![Mobile Workbench](./fastdocs/src/public/app_work.png) |
----
 
 ## 🛠️ Secondary Development Tutorial
 
@@ -303,8 +273,15 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 1. **Configure the mobile access address for backend interfaces**: Write the code in `fastapp/src/api`.
 2. **Write mobile pages**: Write the code in `fastapp/src/pages`.
 
+## ℹ️ Help
 
----
+For more details, please check the [Official Documentation](https://service.fastapiadmin.com)
+
+## 👥 Contributors
+
+<a href="https://github.com/1014TaoTao/fastapi_vue3_admin/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=1014TaoTao/fastapi_vue3_admin"/>
+</a>
 
 ## 🙏 Thanks
 
@@ -321,16 +298,14 @@ Thanks to the contributions and support of the following projects, which have en
 - [Vue3-element-admin Project](https://gitee.com/youlaiorg/vue3-element-admin)
 - [Vue3-element-plus-admin Project](https://gitee.com/kailong110120130/vue-element-plus-admin)
 
----
-
 ## 🎨 Community
 
 | WeChat QR Code | Group QR Code | WeChat Pay QR Code |
 | --- | --- | --- |
 | ![WeChat QR Code](./fastdocs/src/public/wechat.jpg) | ![Group QR Code](./fastdocs/src/public/group.jpg) | ![WeChat Pay QR Code](./fastdocs/src/public/wechatPay.jpg) |
 
----
-
 ## ❤️ Star
 
 If you like this project, please give it a ⭐️ Star to show your support! Thank you very much!
+
+[![Stargazers over time](https://starchart.cc/1014TaoTao/fastapi_vue3_admin.svg?variant=adaptive)](https://starchart.cc/1014TaoTao/fastapi_vue3_admin)

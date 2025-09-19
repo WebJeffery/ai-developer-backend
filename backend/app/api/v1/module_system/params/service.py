@@ -16,7 +16,7 @@ from app.core.base_schema import UploadResponseSchema
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 from ..auth.schema import AuthSchema
-from .param import ParamsQueryParams
+from .param import ParamsQueryParam
 from .schema import ParamsOutSchema, ParamsUpdateSchema, ParamsCreateSchema, UpdateSystemParamsSchema
 from .crud import ParamsCRUD
 
@@ -47,7 +47,7 @@ class ParamsService:
         return obj.config_value
 
     @classmethod
-    async def get_obj_list_service(cls, auth: AuthSchema, search: ParamsQueryParams = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_obj_list_service(cls, auth: AuthSchema, search: ParamsQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
         if order_by:
             order_by = eval(order_by)
         obj_list = None

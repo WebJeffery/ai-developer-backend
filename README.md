@@ -23,21 +23,19 @@
           <img src="https://img.shields.io/badge/-CSS3-1572B6?style=flat-square&logo=css3"/> 
           <img src="https://img.shields.io/badge/-JavaScript-563D7C?style=flat-square&logo=bootstrap"/> 
      </p>
-</div>
-
----
 
 简体中文 | [English](./README.en.md)
 
----
+</div>
 
-## 📘 项目介绍（作者：@1014TaoTao）
+## 📘 项目介绍
 
 **Fastapi-Vue3-Admin** 是一套 **完全开源、高度模块化、技术先进的现代化快速开发平台**，旨在帮助开发者高效搭建高质量的企业级中后台系统。该项目采用 **前后端分离架构**，融合 Python 后端框架 `FastAPI` 和前端主流框架 `Vue3` 实现多端统一开发，提供了一站式开箱即用的开发体验。
 
 > **设计初心**: 以模块化、松耦合为核心，追求丰富的功能模块、简洁易用的接口、详尽的开发文档和便捷的维护方式。通过统一框架和组件，降低技术选型成本，遵循开发规范和设计模式，构建强大的代码分层模型，搭配完善的本地中文化支持，专为团队和企业开发场景量身定制。
 
 ## 📦工程结构概览
+
 ```sh
 fastapi_vue3_admin
 ├─ backend               # 后端工程
@@ -52,8 +50,6 @@ fastapi_vue3_admin
 └─ README.md             # 中文文档
 ```
 
----
-
 ## ✨ 核心亮点
 
 | 特性 | 描述 |
@@ -67,8 +63,6 @@ fastapi_vue3_admin
 | 🚀 快速部署 | 支持 Docker/Docker Compose/Nginx 一键部署 |
 | 📄 开发友好 | 提供完善的中文文档 + 中文化界面 + 可视化工具链，降低学习成本 |
 | 🧩 快速接入 |基于 Vue3、Vite5、Pinia、ElementPlus 等主流前端技术栈，开箱即用。|
-
----
 
 ## 🛠️ 技术栈概览
 
@@ -85,8 +79,6 @@ fastapi_vue3_admin
 | 文档     | Swagger / Redoc     | 自动生成 API 文档。 |
 | 部署     | Docker / Nginx / Docker Compose | 快速部署项目。 |
 
----
-
 ## 📌 内置模块
 
 | 模块名     | 子模块名 | 描述 |
@@ -96,17 +88,12 @@ fastapi_vue3_admin
 | 监控管理  | 在线用户、服务器监控、缓存监控 |系统监控管理功能 |
 | 公共管理  | 接口管理、文档管理|项目接口文档 |
 
----
-
 ## 🍪  演示环境
 
 - 官网地址：<https://service.fastapiadmin.com>
 - 演示地址：<https://service.fastapiadmin.com/web>
 - 小程序地址：<https://service.fastapiadmin.com/app>
-- 管理员账号：`admin` 密码：`123456`
-- 演示账号：`demo` 密码：`123456`
-
----
+- 登录账号：`admin` 密码：`123456`
 
 ## 👷 安装和使用
 
@@ -125,8 +112,6 @@ fastapi_vue3_admin
 | 数据库   | MySQL           | 8.0 （推荐使用最新版）|
 | 中间件   | Redis           | 7.0 （推荐使用最新版）|
 
----
-
 ### 获取代码  
 
 ```sh
@@ -135,8 +120,6 @@ git clone https://gitee.com/tao__tao/fastapi_vue3_admin.git
 或
 git clone https://github.com/1014TaoTao/fastapi_vue3_admin.git
 ```
-
----
 
 ### 本地后端启动
 
@@ -155,8 +138,6 @@ python3 main.py revision "初始化迁移" --env=dev(不加默认为dev)
 python3 main.py upgrade --env=dev(不加默认为dev)
 ```
 
----
-
 ### 本地前端启动
 
 ```sh
@@ -169,8 +150,6 @@ pnpm run dev
 # 构建前端, 生成 `frontend/dist` 目录
 pnpm run build
 ```
-
----
 
 ### 本地小程序h5启动
 
@@ -185,8 +164,6 @@ pnpm run dev:h5
 pnpm run build:h5
 ```
 
----
-
 ### 本地项目官网启动
 
 ```sh
@@ -200,8 +177,6 @@ pnpm run docs:dev
 pnpm run docs:build
 ```
 
----
-
 ### 本地访问地址
 
 - 项目官网地址: <http://localhost:5180>
@@ -209,8 +184,6 @@ pnpm run docs:build
 - 小程序h5前端地址: <http://localhost:5180/app>
 - 管理员账号：`admin` 密码：`123456`
 - 演示账号：`demo` 密码：`123456`
-
----
 
 ### docker 部署
 
@@ -243,8 +216,6 @@ fastapi_vue3_amdin/docker-compose.yaml
 fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 
 ```
-
----
 
 ## 🔧 模块展示
 
@@ -279,8 +250,6 @@ fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 | 登录    | ![移动端登录](./fastdocs/src/public/app_login.png) | 首页      | ![移动端首页](./fastdocs/src/public/app_home.png) | 我的      | ![移动端个人中心](./fastdocs/src/public/app_mine.png) |
 | 个人  | ![移动端个人信息](./fastdocs/src/public/app_profile.png) | 设置   | ![移动端设置](./fastdocs/src/public/app_setting.png) | 工作台      | ![移动端工作台](./fastdocs/src/public/app_work.png) |
 
----
-
 ## 🛠️ 二开教程
 
 ### 后端部分
@@ -306,7 +275,15 @@ fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 1. **移动端接入后端接口地址**：在 `fastapp/src/api` 中编写
 2. **编写移动端页面**：在 `fastapp/src/pages` 中编写
 
----
+## ℹ️ 帮助
+
+更多详情请查看 [官方文档](https://service.fastapiadmin.com)
+
+## 👥 贡献者
+
+<a href="https://github.com/1014TaoTao/fastapi_vue3_admin/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=1014TaoTao/fastapi_vue3_admin"/>
+</a>
 
 ## 🙏 特别鸣谢
 
@@ -329,8 +306,8 @@ fastapi_vue3_amdin/devops/devops/nginx/nginx.conf
 | --- | --- | --- |
 | ![微信二维码](./fastdocs/src/public/wechat.jpg) | ![群组二维码](./fastdocs/src/public/group.jpg) | ![微信支付二维码](./fastdocs/src/public/wechatPay.jpg) |
 
----
-
 ## ❤️ Star 支持我
 
    如果你喜欢这个项目，请给我一个 ⭐️ Star 支持一下吧！非常感谢！
+
+[![Stargazers over time](https://starchart.cc/1014TaoTao/fastapi_vue3_admin.svg?variant=adaptive)](https://starchart.cc/1014TaoTao/fastapi_vue3_admin)

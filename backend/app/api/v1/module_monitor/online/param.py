@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import Query
 
 
-class OnlineQueryParams:
+class OnlineQueryParam:
     """在线用户查询参数"""
 
     def __init__(

@@ -6,7 +6,7 @@ from config.database import BaseMixin, Base
 from sqlalchemy.orm import relationship
 {% endif %}
 
-class {{ tableName|snake_to_pascal_case }}(Base, BaseMixin):
+class {{ tableName|snake_to_pascal_case }}Model(Base, BaseMixin):
     """
     {{ functionName }}表
     """

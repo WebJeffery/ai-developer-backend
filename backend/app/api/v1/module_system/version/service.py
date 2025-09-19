@@ -5,7 +5,7 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.exceptions import CustomException
 from .crud import VersionCRUD
 from .schema import VersionCreateSchema, VersionUpdateSchema, VersionOutSchema
-from .param import VersionQueryParams
+from .param import VersionQueryParam
 
 
 class VersionService:
@@ -18,7 +18,7 @@ class VersionService:
         return VersionOutSchema.model_validate(obj).model_dump()
 
     @classmethod
-    async def get_version_list_service(cls, auth: AuthSchema, search: Optional[VersionQueryParams] = None, order_by: Optional[Union[str, List[Dict[str, str]]]] = None) -> List[Dict]:
+    async def get_version_list_service(cls, auth: AuthSchema, search: Optional[VersionQueryParam] = None, order_by: Optional[Union[str, List[Dict[str, str]]]] = None) -> List[Dict]:
         """获取版本列表"""
         # 处理排序参数
         processed_order_by = None
@@ -70,7 +70,7 @@ class VersionService:
         await VersionCRUD(auth).delete_crud(ids=ids)
 
     @classmethod
-    async def get_version_by_status_service(cls, auth: AuthSchema, search: Optional[VersionQueryParams] = None, order_by: Optional[Union[str, List[Dict[str, str]]]] = None) -> List[Dict]:
+    async def get_version_by_status_service(cls, auth: AuthSchema, search: Optional[VersionQueryParam] = None, order_by: Optional[Union[str, List[Dict[str, str]]]] = None) -> List[Dict]:
         """根据状态获取版本列表"""
         # 处理排序参数
         processed_order_by = None

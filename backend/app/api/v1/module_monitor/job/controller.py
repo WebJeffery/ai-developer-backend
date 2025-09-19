@@ -6,12 +6,12 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from app.common.response import StreamResponse, SuccessResponse
 from app.common.request import PaginationService
 from app.utils.common_util import bytes2file_response
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from app.core.dependencies import AuthPermission
 from app.core.router_class import OperationLogRoute
 from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
-from .param import JobQueryParams, JobLogQueryParams
+from .param import JobQueryParam, JobLogQueryParam
 from .service import JobService, JobLogService
 from .schema import (
     JobCreateSchema,
@@ -33,12 +33,12 @@ async def get_obj_detail_controller(
 
 @JobRouter.get("/list", summary="查询定时任务", description="查询定时任务")
 async def get_obj_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: JobQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: JobQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:query"]))
 ) -> JSONResponse:
     result_dict_list = await JobService.get_job_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
+    result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
     logger.info(f"查询定时任务列表成功")
     return SuccessResponse(data=result_dict, msg="查询定时任务列表成功")
 
@@ -72,7 +72,7 @@ async def delete_obj_controller(
 
 @JobRouter.post('/export', summary="导出定时任务", description="导出定时任务")
 async def export_obj_list_controller(
-    search: JobQueryParams = Depends(),
+    search: JobQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:export"]))
 ) -> StreamingResponse:
     # 获取全量数据
@@ -143,12 +143,12 @@ async def get_job_log_detail_controller(
 
 @JobRouter.get("/log/list", summary="查询定时任务日志", description="查询定时任务日志")
 async def get_job_log_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: JobLogQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: JobLogQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:query"]))
 ) -> JSONResponse:
     result_dict_list = await JobLogService.get_job_log_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
+    result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
     logger.info(f"查询定时任务日志列表成功")
     return SuccessResponse(data=result_dict, msg="查询定时任务日志列表成功")
 
@@ -174,7 +174,7 @@ async def clear_job_log_controller(
 
 @JobRouter.post('/log/export', summary="导出定时任务日志", description="导出定时任务日志")
 async def export_job_log_list_controller(
-    search: JobLogQueryParams = Depends(),
+    search: JobLogQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:job:export"]))
 ) -> StreamingResponse:
     # 获取全量数据

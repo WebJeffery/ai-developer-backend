@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from redis.asyncio.client import Redis
 
 from app.common.response import StreamResponse, SuccessResponse
-from app.core.base_params import PaginationQueryParams
+from app.core.base_params import PaginationQueryParam
 from app.core.base_schema import BatchSetAvailable
 from app.core.dependencies import AuthPermission, redis_getter
 from app.core.router_class import OperationLogRoute
@@ -14,7 +14,7 @@ from app.core.logger import logger
 from app.common.request import PaginationService
 from app.utils.common_util import bytes2file_response
 from ..auth.schema import AuthSchema
-from .param import DictTypeQueryParams, DictDataQueryParams
+from .param import DictTypeQueryParam, DictDataQueryParam
 from .service import DictTypeService, DictDataService
 from .schema import (
     DictTypeCreateSchema,
@@ -37,17 +37,17 @@ async def get_type_detail_controller(
 
 @DictRouter.get("/type/list", summary="查询字典类型", description="查询字典类型")
 async def get_type_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: DictTypeQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: DictTypeQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_type:query"]))
 ) -> JSONResponse:
     result_dict_list = await DictTypeService.get_obj_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
+    result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
     logger.info(f"查询字典类型列表成功")
     return SuccessResponse(data=result_dict, msg="查询字典类型列表成功")
 
 @DictRouter.get("/type/optionselect", summary="获取全部字典类型", description="获取全部字典类型")
-async def get_type_list_controller(
+async def get_type_loptionselect_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_type:query"]))
 ) -> JSONResponse:
     result_dict_list = await DictTypeService.get_obj_list_service(auth=auth)
@@ -96,7 +96,7 @@ async def batch_set_available_obj_controller(
 
 @DictRouter.post('/type/export', summary="导出字典类型", description="导出字典类型")
 async def export_type_list_controller(
-    search: DictTypeQueryParams = Depends(),
+    search: DictTypeQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_type:export"]))
 ) -> StreamingResponse:
     # 获取全量数据
@@ -123,12 +123,12 @@ async def get_data_detail_controller(
 
 @DictRouter.get("/data/list", summary="查询字典数据", description="查询字典数据")
 async def get_data_list_controller(
-    page: PaginationQueryParams = Depends(),
-    search: DictDataQueryParams = Depends(),
+    page: PaginationQueryParam = Depends(),
+    search: DictDataQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_data:query"]))
 ) -> JSONResponse:
     result_dict_list = await DictDataService.get_obj_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.get_page_obj(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
+    result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
     logger.info(f"查询字典数据列表成功")
     return SuccessResponse(data=result_dict, msg="查询字典数据列表成功")
 
@@ -174,8 +174,8 @@ async def batch_set_available_obj_controller(
 
 @DictRouter.post('/data/export', summary="导出字典数据", description="导出字典数据")
 async def export_data_list_controller(
-    search: DictDataQueryParams = Depends(),
-    page: PaginationQueryParams = Depends(),
+    search: DictDataQueryParam = Depends(),
+    page: PaginationQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_data:export"]))
 ) -> StreamingResponse:
     # 获取全量数据

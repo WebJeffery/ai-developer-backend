@@ -28,7 +28,7 @@ if not MAGIC_AVAILABLE:
 from app.utils.excel_util import ExcelUtil
 from app.config.setting import settings
 from ...module_system.auth.schema import AuthSchema
-from .param import ResourceQueryParams
+from .param import ResourceQueryParam
 from .schema import (
     ResourceItemSchema,
     ResourceDirectorySchema,

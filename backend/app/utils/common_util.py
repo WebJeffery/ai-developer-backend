@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
+
+
 import importlib
+import os
 import uuid
 import re
 
 from sqlalchemy.orm import DeclarativeBase
-from typing import Any, List, Dict, Sequence, Optional
+from typing import Any, Generator, List, Dict, Sequence, Optional
 
+from app.config import setting
 from app.core.logger import logger
 from app.core.exceptions import CustomException
 
@@ -40,6 +45,7 @@ def import_module(module: str, desc: str) -> Any:
         logger.error(f"导入{desc}失败,未找到模块方法:{module}")
         raise AttributeError(f"导入{desc}失败,未找到模块方法:{module}")
 
+
 async def import_modules_async(modules: list, desc: str, **kwargs):
     """
     异步导入模块列表
@@ -62,9 +68,11 @@ async def import_modules_async(modules: list, desc: str, **kwargs):
             logger.error(f"导入{desc}失败,未找到模块方法:{module}")
             raise AttributeError(f"导入{desc}失败,未找到模块方法:{module}")
 
+
 def get_random_character() -> str:
     """生成随机字符串"""
     return uuid.uuid4().hex
+
 
 def get_parent_id_map(model_list: Sequence[DeclarativeBase]) -> Dict[int, int]:
     """
@@ -73,6 +81,7 @@ def get_parent_id_map(model_list: Sequence[DeclarativeBase]) -> Dict[int, int]:
     :return: {id: parent_id} 映射字典
     """
     return {item.id: item.parent_id for item in model_list}
+
 
 def get_parent_recursion(
         id: int,
@@ -95,6 +104,7 @@ def get_parent_recursion(
         get_parent_recursion(parent_id, id_map, ids)
     return ids
 
+
 def get_child_id_map(model_list: Sequence[DeclarativeBase]) -> Dict[int, List[int]]:
     """
     获取子级ID映射字典
@@ -107,6 +117,7 @@ def get_child_id_map(model_list: Sequence[DeclarativeBase]) -> Dict[int, List[in
         if model.parent_id:
             data_map.setdefault(model.parent_id, []).append(model.id)
     return data_map
+
 
 def get_child_recursion(
         id: int,
@@ -197,7 +208,99 @@ def bytes2human(n: int, format_str: str = '%(value).1f%(symbol)s') -> str:
             return format_str % locals()
     return format_str % dict(symbol=symbols[0], value=n)
 
-def bytes2file_response(bytes_info: bytes):
+
+def bytes2file_response(bytes_info: bytes) -> Generator[bytes, Any, None]:
     """生成文件响应"""
     yield bytes_info
 
+
+def get_filepath_from_url(url: str) -> Path:
+    """
+    工具方法：根据请求参数获取文件路径
+
+    :param url: 请求参数中的url参数
+    :return: 文件路径
+    """
+    file_info = url.split('?')[1].split('&')
+    task_id = file_info[0].split('=')[1]
+    file_name = file_info[1].split('=')[1]
+    task_path = file_info[2].split('=')[1]
+    filepath = setting.settings.STATIC_ROOT.joinpath(task_path, task_id, file_name)
+
+    return filepath
+
+
+def export_list2excel(list_data: List) -> Any:
+    """
+    工具方法：将需要导出的list数据转化为对应excel的二进制数据
+
+    :param list_data: 数据列表
+    :return: 字典信息对应excel的二进制数据
+    """
+    df = pd.DataFrame(list_data)
+    binary_data = io.BytesIO()
+    df.to_excel(binary_data, index=False, engine='openpyxl')
+    binary_data = binary_data.getvalue()
+
+    return binary_data
+
+
+def get_excel_template(header_list: List, selector_header_list: List, option_list: List[dict]) -> Any:
+    """
+    工具方法：将需要导出的list数据转化为对应excel的二进制数据
+
+    :param header_list: 表头数据列表
+    :param selector_header_list: 需要设置为选择器格式的表头数据列表
+    :param option_list: 选择器格式的表头预设的选项列表
+    :return: 模板excel的二进制数据
+    """
+    # 创建Excel工作簿
+    wb = Workbook()
+    # 选择默认的活动工作表
+    ws = wb.active
+
+    # 设置表头文字
+    headers = header_list
+
+    # 设置表头背景样式为灰色，前景色为白色
+    header_fill = PatternFill(start_color='ababab', end_color='ababab', fill_type='solid')
+
+    # 将表头写入第一行
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.value = header
+        cell.fill = header_fill
+        # 设置列宽度为16
+        ws.column_dimensions[chr(64 + col_num)].width = 12
+        # 设置水平居中对齐
+        cell.alignment = Alignment(horizontal='center')
+
+    # 设置选择器的预设选项
+    options = option_list
+
+    # 获取selector_header的字母索引
+    for selector_header in selector_header_list:
+        column_selector_header_index = headers.index(selector_header) + 1
+
+        # 创建数据有效性规则
+        header_option = []
+        for option in options:
+            if option.get(selector_header):
+                header_option = option.get(selector_header)
+        dv = DataValidation(type='list', formula1=f'"{",".join(header_option)}"')
+        # 设置数据有效性规则的起始单元格和结束单元格
+        dv.add(
+            f'{get_column_letter(column_selector_header_index)}2:{get_column_letter(column_selector_header_index)}1048576'
+        )
+        # 添加数据有效性规则到工作表
+        ws.add_data_validation(dv)
+
+    # 保存Excel文件为字节类型的数据
+    file = io.BytesIO()
+    wb.save(file)
+    file.seek(0)
+
+    # 读取字节数据
+    excel_data = file.getvalue()
+
+    return excel_data

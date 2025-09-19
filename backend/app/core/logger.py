@@ -8,6 +8,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from typing import Optional, Dict, Any
 from pathlib import Path
+import typing
 
 from app.config.setting import settings
 
@@ -29,7 +30,7 @@ class CustomTimedRotatingFileHandler(TimedRotatingFileHandler):
         # 使用流上下文管理确保资源正确释放
         if self.stream:
             self.stream.close()
-            self.stream = None
+            self.stream = None  # type: ignore
         
         try:
             # 计算轮换时间（使用缓存避免重复计算）

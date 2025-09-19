@@ -7,7 +7,7 @@ from datetime import datetime
 from app.core.validator import DateTimeStr
 
 
-class JobQueryParams:
+class JobQueryParam:
     """定时任务查询参数"""
 
     def __init__(
@@ -34,7 +34,7 @@ class JobQueryParams:
             self.created_at = ("between", (start_datetime, end_datetime))
 
 
-class JobLogQueryParams:
+class JobLogQueryParam:
     """定时任务查询参数"""
 
     def __init__(

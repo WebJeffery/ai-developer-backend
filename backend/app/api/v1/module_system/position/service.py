@@ -6,7 +6,7 @@ from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.utils.excel_util import ExcelUtil
 from ..auth.schema import AuthSchema
-from .param import PositionQueryParams
+from .param import PositionQueryParam
 from .crud import PositionCRUD
 from .schema import (
     PositionCreateSchema,
@@ -25,7 +25,7 @@ class PositionService:
         return PositionOutSchema.model_validate(position).model_dump()
 
     @classmethod
-    async def get_position_list_service(cls, auth: AuthSchema, search: PositionQueryParams, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_position_list_service(cls, auth: AuthSchema, search: PositionQueryParam, order_by: List[Dict] = None) -> List[Dict]:
         """获取岗位列表"""
         if order_by:
             order_by = eval(order_by)

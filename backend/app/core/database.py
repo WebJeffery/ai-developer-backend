@@ -24,6 +24,7 @@ engine: Engine = create_engine(
     pool_pre_ping=settings.POOL_PRE_PING,
     pool_recycle=settings.POOL_RECYCLE,
 )
+
 # 同步数据库会话工厂
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -58,7 +59,7 @@ def session_connect() -> AsyncSession:
     except Exception as e:
         raise CustomException(msg=f"数据库连接失败: {e}")
 
-async def init_create_table():
+async def init_create_table() -> None:
     """
     应用启动时初始化数据库连接
 
@@ -77,7 +78,6 @@ async def redis_connect(app: FastAPI, status: bool) -> aioredis.Redis:
 
     if status:
         try:
-            
             rd = await aioredis.from_url(
                 url=settings.REDIS_URI,
                 encoding='utf-8',
