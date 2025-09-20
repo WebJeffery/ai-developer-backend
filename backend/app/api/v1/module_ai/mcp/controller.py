@@ -1,5 +1,19 @@
 # -*- coding: utf-8 -*-
 
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Path, Query
+from starlette.responses import StreamingResponse
+
+from backend.common.pagination import DependsPagination, PageData, paging_data
+from backend.common.response.response_schema import ResponseModel, ResponseSchemaModel, response_base
+from backend.common.security.jwt import DependsJwtAuth
+from backend.common.security.permission import RequestPermission
+from backend.common.security.rbac import DependsRBAC
+from backend.database.db import CurrentSession
+from .schema import CreateMcpParam, GetMcpDetail, McpChatParam, UpdateMcpParam
+from .service import mcp_service
+
 from fastapi import APIRouter, Depends, WebSocket
 from fastapi.responses import JSONResponse, StreamingResponse
 
@@ -60,3 +74,48 @@ async def websocket_chat_controller(
         logger.error(f"WebSocket聊天出错: {str(e)}")
     finally:
         await websocket.close()
+
+
+@MCPRouter.get('/{pk}', summary='获取 MCP 服务器详情', dependencies=[DependsJwtAuth])
+async def get_mcp(pk: Annotated[int, Path(description='MCP ID')]) -> ResponseSchemaModel[GetMcpDetail]:
+    mcp = await mcp_service.get(pk=pk)
+    return response_base.success(data=mcp)
+
+
+@MCPRouter.get('', summary='分页获取所有 MCP 服务器', dependencies=[DependsJwtAuth, DependsPagination])
+async def get_pagination_mcps(
+    db: CurrentSession,
+    name: Annotated[str | None, Query(description='MCP 名称')] = None,
+    type: Annotated[int | None, Query(description='MCP 类型')] = None,
+) -> ResponseSchemaModel[PageData[GetMcpDetail]]:
+    mcp_select = await mcp_service.get_select(name=name, type=type)
+    page_data = await paging_data(db, mcp_select)
+    return response_base.success(data=page_data)
+
+
+@MCPRouter.post('', summary='创建 MCP 服务器', dependencies=[Depends(RequestPermission('sys:mcp:add')), DependsRBAC])
+async def create_mcp(obj: CreateMcpParam) -> ResponseModel:
+    await mcp_service.create(obj=obj)
+    return response_base.success()
+
+
+@MCPRouter.put('/{pk}', summary='更新 MCP 服务器', dependencies=[ Depends(RequestPermission('sys:mcp:edit')), DependsRBAC])
+async def update_mcp(pk: Annotated[int, Path(description='MCP ID')], obj: UpdateMcpParam) -> ResponseModel:
+    count = await mcp_service.update(pk=pk, obj=obj)
+    if count > 0:
+        return response_base.success()
+    return response_base.fail()
+
+
+@MCPRouter.delete('/{pk}',summary='删除 MCP 服务器',dependencies=[Depends(RequestPermission('sys:mcp:del')), DependsRBAC])
+async def delete_mcp(pk: Annotated[int, Path(description='MCP ID')]) -> ResponseModel:
+    count = await mcp_service.delete(pk=pk)
+    if count > 0:
+        return response_base.success()
+    return response_base.fail()
+
+
+@MCPRouter.post('/chat',summary='MCP ChatGPT', dependencies=[Depends(RequestPermission('sys:mcp:chat')), DependsRBAC])
+async def mcp_chat(obj: McpChatParam) -> StreamingResponse:
+    data = await mcp_service.chat(obj=obj)
+    return StreamingResponse(data, media_type='text/event-stream')

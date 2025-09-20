@@ -56,3 +56,20 @@ class RedisInitKeyConfig(Enum):
     def remark(self) -> str:
         """获取Redis键名说明"""
         return self.value.get('remark', '')
+
+
+class McpType(Enum):
+    """Mcp 服务器类型"""
+
+    stdio = 0
+    sse = 1
+
+
+class McpLLMProvider(Enum):
+    """MCP 大语言模型供应商"""
+
+    openai = 'openai'
+    deepseek = 'deepseek'
+    anthropic = 'anthropic'
+    gemini = 'gemini'
+    qwen = 'qwen'
