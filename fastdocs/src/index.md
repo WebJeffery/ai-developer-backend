@@ -21,14 +21,14 @@ hero:
       text: 在线演示
       link: https://service.fastapiadmin.com/web
     - theme: alt
-      text: 代码仓库
-      link: https://github.com/1014TaoTao/fastapi_vue3_admin
+      text: 小程序演示
+      link: https://service.fastapiadmin.com/app
 
 features:
-  - icon: 🔭
+  - icon: ✨
     title: 快速开发
     details: 一套完全开源的现代化快速开发平台，帮助开发者高效搭建高质量的中后台系统。
-  - icon: 🌐
+  - icon: 🛠️
     title: 全栈整合
     details: 前后端分离，融合 Python (FastAPI) + Vue3 多端开发，提供一站式开箱即用体验。
   - icon: 🧱
