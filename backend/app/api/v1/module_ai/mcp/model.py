@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import JSON, String
-from sqlalchemy.dialects.mysql import LONGTEXT
-from sqlalchemy.dialects.postgresql import TEXT
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import CreatorMixin

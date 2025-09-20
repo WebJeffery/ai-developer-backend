@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from pydantic import ConfigDict, Field, HttpUrl, BaseModel, Field
 
 from app.core.base_schema import BaseSchema
