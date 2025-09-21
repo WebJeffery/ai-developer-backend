@@ -1,4 +1,13 @@
 # -*- coding:utf-8 -*-
+
+from datetime import datetime
+from typing import List, Optional
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic.alias_generators import to_camel
+
+from app.core.base_params import PageBaseParam
+from app.core.base_schema import PageBaseSchema
+# -*- coding:utf-8 -*-
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -61,3 +70,42 @@ class {{ subTable.table_name | snake_to_pascal_case }}Schema(BaseModel):
 
 {% endif %}
 
+
+
+class {{ tableName|snake_to_pascal_case }}BaseModel(BaseModel):
+    """
+    {{ functionName }}对应pydantic模型
+    """
+
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
+
+    {% for column in columns %}
+    {{ column.columnName }}: Optional[{{ column.pythonType }}] = Field(default=None, description='{{ column.columnComment }}')
+    {% endfor %}
+
+
+class {{ tableName|snake_to_pascal_case }}Model({{ tableName|snake_to_pascal_case }}BaseModel):
+    """
+    {{ functionName }}表模型
+    """
+    
+    id: Optional[int] = Field(default=None, description='编号')
+    create_by: Optional[str] = Field(default=None, description='创建者')
+    create_time: Optional[datetime] = Field(default=None, description='创建时间')
+    update_by: Optional[str] = Field(default=None, description='更新者')
+    update_time: Optional[datetime] = Field(default=None, description='更新时间')
+    remark: Optional[str] = Field(default=None, description='备注')
+
+
+class {{ tableName|snake_to_pascal_case }}PageModel(PageBaseParam, {{ tableName|snake_to_pascal_case }}BaseModel):
+    """
+    {{ functionName }}分页查询模型
+    """
+    pass
+
+
+class {{ tableName|snake_to_pascal_case }}PageObject(PageBaseSchema, {{ tableName|snake_to_pascal_case }}Model):
+    """
+    {{ functionName }}分页查询结果模型
+    """
+    pass

@@ -5,11 +5,11 @@ from typing import Optional
 from fastapi import Query
 
 from app.core.validator import DateTimeStr
-from app.common.request import PageResultSchema
+from app.core.base_params import PaginationQueryParam
 from .schema import GenTableBaseSchema, GenTableColumnBaseSchema
 
 
-class GenTableQueryParam(PageResultSchema, GenTableBaseSchema):
+class GenTableQueryParam(PaginationQueryParam, GenTableBaseSchema):
     """数据库表查询参数"""
 
     def __init__(
@@ -36,7 +36,7 @@ class GenTableQueryParam(PageResultSchema, GenTableBaseSchema):
             self.created_at = ("between", (start_datetime, end_datetime))
 
 
-class GenTableColumnQueryParam(PageResultSchema, GenTableColumnBaseSchema):
+class GenTableColumnQueryParam(PaginationQueryParam, GenTableColumnBaseSchema):
     """数据库表字段查询参数"""
 
     def __init__(
@@ -61,4 +61,3 @@ class GenTableColumnQueryParam(PageResultSchema, GenTableColumnBaseSchema):
             start_datetime = datetime.strptime(str(start_time), '%Y-%m-%d %H:%M:%S')
             end_datetime = datetime.strptime(str(end_time), '%Y-%m-%d %H:%M:%S')
             self.created_at = ("between", (start_datetime, end_datetime))
-

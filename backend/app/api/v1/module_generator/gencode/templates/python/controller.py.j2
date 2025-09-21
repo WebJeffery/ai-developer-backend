@@ -1,0 +1,94 @@
+# -*- coding:utf-8 -*-
+
+from fastapi import APIRouter, Depends, Form
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
+from typing import List
+from app.common.enums import BusinessType
+from app.core.dependencies import get_db
+from app.common.response import SuccessResponse
+from app.core.dependencies import AuthPermission
+from app.api.v1.module_system.auth.schema import AuthSchema
+from app.api.v1.module_system.user.schema import UserOutSchema
+from app.utils.common_util import bytes2file_response
+
+from {{ packageName }}.entity.vo.{{ tableName }}_vo import {{ tableName|snake_to_pascal_case }}PageModel, {{ tableName|snake_to_pascal_case }}Model
+from {{ packageName }}.service.{{ tableName }}_service import {{ tableName|snake_to_pascal_case }}Service
+
+{{ tableName|snake_to_camel }}Controller = APIRouter(prefix='/{{ moduleName }}/{{ businessName }}', tags=["{{ functionName }}模块"])
+
+
+@{{ tableName|snake_to_camel }}Controller.get('/list', summary="查询{{ functionName }}列表", description="查询{{ functionName }}列表")
+async def get_{{ tableName }}_list(
+        auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:list"])),
+        page_query: {{ tableName|snake_to_pascal_case }}PageModel = Depends({{ tableName|snake_to_pascal_case }}PageModel.as_query)
+):
+    {{ tableName }}_result = await {{ tableName|snake_to_pascal_case }}Service.get_{{ tableName }}_list_services(auth, page_query)
+
+    return SuccessResponse(data={{ tableName }}_result)
+
+
+@{{ tableName|snake_to_camel }}Controller.get('/{id}', summary="获取{{ functionName }}详细信息", description="获取{{ functionName }}详细信息")
+async def get_{{ tableName }}_by_id(
+        id: int,
+        auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:query"]))
+):
+    {{ tableName }} = await {{ tableName|snake_to_pascal_case }}Service.get_{{ tableName }}_by_id_services(auth, id)
+    return SuccessResponse(data={{ tableName }})
+
+
+@{{ tableName|snake_to_camel }}Controller.post('', summary="新增{{ functionName }}", description="新增{{ functionName }}")
+async def add_{{ tableName }} (
+    add_model: {{ tableName|snake_to_pascal_case }}Model,
+    auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:add"])),
+    current_user: UserOutSchema = Depends(lambda auth: auth.user)
+):
+    add_model.create_by = current_user.username
+    add_result = await {{ tableName|snake_to_pascal_case }}Service.add_{{ tableName }}_services(auth, add_model)
+    return SuccessResponse(msg="新增成功")
+
+
+@{{ tableName|snake_to_camel }}Controller.put('', summary="修改{{ functionName }}", description="修改{{ functionName }}")
+async def update_{{ tableName }}(
+    edit_model: {{ tableName|snake_to_pascal_case }}Model,
+    auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:edit"])),
+    current_user: UserOutSchema = Depends(lambda auth: auth.user)
+):
+    edit_model.update_by = current_user.username
+    update_result = await {{ tableName|snake_to_pascal_case }}Service.update_{{ tableName }}_services(auth, edit_model)
+    return SuccessResponse(msg="修改成功")
+
+
+@{{ tableName|snake_to_camel }}Controller.delete('/{ids}', summary="删除{{ functionName }}", description="删除{{ functionName }}")
+async def del_{{ tableName }}(
+    ids: str,
+    auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:remove"]))
+):
+    id_list = ids.split(',')
+    del_result = await {{ tableName|snake_to_pascal_case }}Service.del_{{ tableName }}_services(auth, id_list)
+    return SuccessResponse(msg="删除成功")
+
+
+@{{ tableName|snake_to_camel }}Controller.post('/export', summary="导出{{ functionName }}", description="导出{{ functionName }}")
+async def export_{{ tableName }}(
+    {{ tableName }}_form: {{ tableName|snake_to_pascal_case }}PageModel = Form(),
+    auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:export"]))
+):
+    # 获取全量数据
+    export_result = await {{ tableName|snake_to_pascal_case }}Service.export_{{ tableName }}_list_services(
+        auth, {{ tableName }}_form
+    )
+    return bytes2file_response(export_result)
+
+
+@{{ tableName|snake_to_camel }}Controller.post('/import', dependencies=[Depends(CheckUserInterfaceAuth('{{ permissionPrefix }}:import'))])
+async def import_{{ tableName }}(request: Request,
+                      import_model: ImportModel,
+                      query_db: AsyncSession = Depends(get_db),
+                      current_user: CurrentUserModel = Depends(LoginService.get_current_user)
+    ):
+    """
+    导入数据
+    """
+    await ImportService.import_data(query_db, import_model, current_user)
+    return ResponseUtil.success()

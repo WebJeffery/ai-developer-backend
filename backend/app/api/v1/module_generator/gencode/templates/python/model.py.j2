@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+from datetime import datetime
+from typing import Optional
+from sqlalchemy import String, Integer, Text, DateTime
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.base_model import Base
 # -*- coding:utf-8 -*-
 
 from sqlalchemy import Column, ForeignKey, {{ importList }}
@@ -39,3 +47,21 @@ class {{ subClassName }}(Base, BaseMixin):
     {% endif %}
 {% endif %}
 
+
+
+
+class {{ tableName|snake_to_pascal_case }}Model(Base):
+    """
+    {{ functionName }}
+    """
+    
+    __tablename__ = '{{ tableName }}'
+        
+    __table_args__ = {'comment': '{{ functionName }}'}
+
+    {% for column in columns %}
+    {{ column.columnName }}: Mapped[Optional[{{ column.pythonType }}]] = mapped_column({{ column.columnType|get_sqlalchemy_type }}, nullable=True, comment='{{ column.columnComment }}')
+    {% endfor %}
+    
+    def __repr__(self):
+        return f"<{{ tableName|snake_to_pascal_case }}Model(id={self.id})>"

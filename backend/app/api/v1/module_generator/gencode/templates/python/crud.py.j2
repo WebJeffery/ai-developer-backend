@@ -1,5 +1,15 @@
 # -*- coding:utf-8 -*-
 
+from typing import List, Optional
+from sqlalchemy import delete, func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from {{ packageName }}.entity.do.{{ tableName }}_do import {{ tableName|snake_to_pascal_case }}Model
+from {{ packageName }}.entity.vo.{{ tableName }}_vo import {{ tableName|snake_to_pascal_case }}PageModel, {{ tableName|snake_to_pascal_case }}Model
+from app.core.base_crud import CRUDBase
+from app.api.v1.module_system.auth.schema import AuthSchema
+# -*- coding:utf-8 -*-
+
 from typing import List
 from datetime import datetime, time
 from module_admin.entity.do.role_do import SysRoleDept
@@ -110,3 +120,66 @@ class {{ tableName|snake_to_pascal_case }}CRUD:
         await db.flush()
         if auto_commit:
             await db.commit()
+
+
+class {{ tableName|snake_to_pascal_case }}Dao(CRUDBase[{{ tableName|snake_to_pascal_case }}Model, {{ tableName|snake_to_pascal_case }}Model, {{ tableName|snake_to_pascal_case }}Model]):
+    """
+    {{ functionName }}模块数据库操作层
+    """
+
+    def __init__(self, auth: AuthSchema) -> None:
+        """初始化CRUD"""
+        super().__init__(model={{ tableName|snake_to_pascal_case }}Model(), auth=auth)
+
+    async def get_{{ tableName }}_by_id(self, db: AsyncSession, {{ tableName }}_id: int) -> Optional[{{ tableName|snake_to_pascal_case }}Model]:
+        """
+        根据{{ tableName }}id获取{{ functionName }}信息
+
+        :param db: orm对象
+        :param {{ tableName }}_id: {{ tableName }}id
+        :return: {{ functionName }}信息对象
+        """
+        {{ tableName }}_info = (
+            (
+                await db.execute(
+                    select({{ tableName|snake_to_pascal_case }}Model)
+                    .where({{ tableName|snake_to_pascal_case }}Model.id == {{ tableName }}_id)
+                )
+            )
+            .scalars()
+            .first()
+        )
+
+        return {{ tableName }}_info
+
+    async def get_{{ tableName }}_list(self, db: AsyncSession, query_object: {{ tableName|snake_to_pascal_case }}PageModel, is_page: bool = False):
+        """
+        根据查询参数获取{{ functionName }}列表信息
+
+        :param db: orm对象
+        :param query_object: 查询参数对象
+        :param is_page: 是否开启分页
+        :return: {{ functionName }}列表信息对象
+        """
+        query = select({{ tableName|snake_to_pascal_case }}Model)
+        
+        # 执行查询
+        result = await db.execute(query)
+        all_data = list(result.scalars().all())
+        
+        # 使用PaginationService.paginate进行分页
+        if is_page:
+            paginated_result = await PaginationService.paginate(
+                data_list=all_data, 
+                page_no=query_object.page_no, 
+                page_size=query_object.page_size
+            )
+            return paginated_result
+        else:
+            return {
+                "items": all_data,
+                "total": len(all_data),
+                "page_no": None,
+                "page_size": None,
+                "has_next": False
+            }

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, List, Dict, Optional, Sequence
 
 from app.config.setting import settings
+from app.core.base_model import CamelCaseUtil
 from app.core.exceptions import CustomException
 from app.utils.gen_util import GenUtils
 from app.utils.template_util import TemplateInitializer, TemplateUtils
@@ -116,7 +117,7 @@ class GenTableService:
                 GenUtils.init_table(table, current_user.username)  # 使用username而不是user.user_name
                 add_gen_table = await gen_table_dao.create(data=table.model_dump())
                 if add_gen_table:
-                    table.table_id = add_gen_table.table_id
+                    table.table_id = add_gen_table.id
                     gen_table_columns = await gen_table_column_dao.get_gen_db_table_columns_by_name(auth.db, table_name or "")
                     for column in [
                         GenTableColumnSchema(**gen_table_column)
@@ -217,7 +218,7 @@ class GenTableService:
                     # 这里需要先查询出所有相关的column_id，然后删除
                     columns = await gen_table_column_dao.get_gen_table_column_list_by_table_id(auth.db, int(table_id))
                     if columns:
-                        column_ids = [column.column_id for column in columns]
+                        column_ids = [column.id for column in columns]
                         await gen_table_column_dao.delete(ids=column_ids)
                 if isinstance(auth.db, AsyncSession):
                     await auth.db.commit()
@@ -281,8 +282,25 @@ class GenTableService:
         :param current_user: 当前用户信息对象
         :return: 创建表结构结果
         """
-        # 移除sqlglot相关代码，因为导入失败
-        raise CustomException(msg='建表功能暂不可用')
+        # 确保db是AsyncSession类型
+        if not isinstance(auth.db, AsyncSession):
+            raise CustomException(msg='数据库会话类型不正确')
+            
+        gen_table_dao = GenTableDao(auth=auth)
+        
+        try:
+            # 执行SQL语句创建表
+            await gen_table_dao.create_table_by_sql_dao(auth.db, [sql])
+            if isinstance(auth.db, AsyncSession):
+                await auth.db.commit()
+            return SuccessResponse(msg='创建表结构成功')
+        except Exception as e:
+            if isinstance(auth.db, AsyncSession):
+                try:
+                    await auth.db.rollback()
+                except:
+                    pass  # 忽略回滚错误
+            raise CustomException(msg=f'创建表结构失败: {str(e)}')
 
     @classmethod
     async def preview_code_services(cls, auth: AuthSchema, table_id: int) -> dict[Any, Any]:

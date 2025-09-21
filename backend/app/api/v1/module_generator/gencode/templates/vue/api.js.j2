@@ -10,9 +10,9 @@ export function list{{BusinessName}}(query) {
 }
 
 // 查询{{functionName}}详细
-export function get{{BusinessName}}({{pkColumn.pythonField | snake_to_camel}}) {
+export function get{{BusinessName}}(id) {
   return request({
-    url: '/{{moduleName}}/{{businessName}}/getById/' + {{pkColumn.pythonField | snake_to_camel}},
+    url: '/{{moduleName}}/{{businessName}}/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function get{{BusinessName}}({{pkColumn.pythonField | snake_to_camel}}) {
 // 新增{{functionName}}
 export function add{{BusinessName}}(data) {
   return request({
-    url: '/{{moduleName}}/{{businessName}}/add',
+    url: '/{{moduleName}}/{{businessName}}/create',
     method: 'post',
     data: data
   })
@@ -36,9 +36,9 @@ export function update{{BusinessName}}(data) {
 }
 
 // 删除{{functionName}}
-export function del{{BusinessName}}({{pkColumn.pythonField | snake_to_camel}}) {
+export function del{{BusinessName}}(ids) {
   return request({
-    url: '/{{moduleName}}/{{businessName}}/delete/' + {{pkColumn.pythonField | snake_to_camel}},
+    url: '/{{moduleName}}/{{businessName}}/' + ids,
     method: 'delete'
   })
 }

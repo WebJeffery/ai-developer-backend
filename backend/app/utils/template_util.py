@@ -24,7 +24,9 @@ class TemplateInitializer:
         :return: Jinja2 环境对象
         """
         try:
-            template_dir = os.path.join(os.getcwd(), 'module_generator', 'templates')
+            # 修复模板路径，使用正确的相对路径
+            template_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'v1', 'module_generator', 'gencode', 'templates')
+            template_dir = os.path.abspath(template_dir)
             env = Environment(
                 loader=FileSystemLoader(template_dir),
                 keep_trailing_newline=True,
@@ -147,8 +149,12 @@ class TemplateUtils:
         sub_table = gen_table.sub_table
         sub_table_name = gen_table.sub_table_name
         sub_table_fk_name = gen_table.sub_table_fk_name
-        sub_class_name = sub_table.class_name
-        sub_table_fk_class_name = StringUtil.convert_to_camel_case(sub_table_fk_name)
+        # 修复类型检查问题，确保sub_table存在
+        if sub_table:
+            sub_class_name = sub_table.class_name or ""
+        else:
+            sub_class_name = ""
+        sub_table_fk_class_name = StringUtil.convert_to_camel_case(sub_table_fk_name or "")
         context['subTable'] = sub_table
         context['subTableName'] = sub_table_name
         context['subTableFkName'] = sub_table_fk_name
@@ -170,20 +176,20 @@ class TemplateUtils:
         if tpl_web_type == 'element-plus':
             use_web_type = 'vue/v3'
         templates = [
-            'python/controller.py.jinja2',
-            'python/dao.py.jinja2',
-            'python/do.py.jinja2',
-            'python/service.py.jinja2',
-            'python/vo.py.jinja2',
-            'sql/sql.jinja2',
-            'js/api.js.jinja2',
+            'python/controller.py.j2',
+            'python/crud.py.j2',
+            'python/model.py.j2',
+            'python/schema.py.j2',
+            'python/service.py.j2',
+            'sql/sql.j2',
+            'vue/api.js.j2',
         ]
         if tpl_category == GenConstant.TPL_CRUD:
-            templates.append(f'{use_web_type}/index.vue.jinja2')
+            templates.append(f'{use_web_type}/index.vue.j2')
         elif tpl_category == GenConstant.TPL_TREE:
-            templates.append(f'{use_web_type}/index-tree.vue.jinja2')
+            templates.append(f'{use_web_type}/index-tree.vue.j2')
         elif tpl_category == GenConstant.TPL_SUB:
-            templates.append(f'{use_web_type}/index.vue.jinja2')
+            templates.append(f'{use_web_type}/index.vue.j2')
             # templates.append('python/sub-domain.python.jinja2')
         return templates
 
@@ -203,21 +209,21 @@ class TemplateUtils:
         vue_path = cls.FRONTEND_PROJECT_PATH
         python_path = f'{cls.BACKEND_PROJECT_PATH}/{package_name.replace(".", "/")}'
 
-        if 'controller.py.jinja2' in template:
-            return f'{python_path}/controller/{business_name}_controller.py'
-        elif 'dao.py.jinja2' in template:
-            return f'{python_path}/dao/{business_name}_dao.py'
-        elif 'do.py.jinja2' in template:
-            return f'{python_path}/entity/do/{business_name}_do.py'
-        elif 'service.py.jinja2' in template:
-            return f'{python_path}/service/{business_name}_service.py'
-        elif 'vo.py.jinja2' in template:
-            return f'{python_path}/entity/vo/{business_name}_vo.py'
-        elif 'sql.jinja2' in template:
+        if 'controller.py.j2' in template:
+            return f'{python_path}/{business_name}_controller.py'
+        elif 'crud.py.j2' in template:
+            return f'{python_path}/{business_name}_crud.py'
+        elif 'model.py.j2' in template:
+            return f'{python_path}/{business_name}_model.py'
+        elif 'service.py.j2' in template:
+            return f'{python_path}/{business_name}_service.py'
+        elif 'schema.py.j2' in template:
+            return f'{python_path}/{business_name}_schema.py'
+        elif 'sql.j2' in template:
             return f'{cls.BACKEND_PROJECT_PATH}/sql/{business_name}_menu.sql'
-        elif 'api.js.jinja2' in template:
+        elif 'api.js.j2' in template:
             return f'{vue_path}/api/{module_name}/{business_name}.js'
-        elif 'index.vue.jinja2' in template or 'index-tree.vue.jinja2' in template:
+        elif 'index.vue.j2' in template or 'index-tree.vue.j2' in template:
             return f'{vue_path}/views/{module_name}/{business_name}/index.vue'
         return ''
 
@@ -246,7 +252,8 @@ class TemplateUtils:
                 import_list.add(f'from datetime import {column.python_type}')
             elif column.python_type == GenConstant.TYPE_DECIMAL:
                 import_list.add('from decimal import Decimal')
-        if gen_table.sub:
+        # 修复类型检查问题，确保sub_table存在且有columns属性
+        if gen_table.sub and gen_table.sub_table:
             sub_columns = gen_table.sub_table.columns or []
             for sub_column in sub_columns:
                 if sub_column.python_type in GenConstant.TYPE_DATE:
@@ -273,7 +280,8 @@ class TemplateUtils:
             import_list.add(
                 f'from sqlalchemy import {StringUtil.get_mapping_value_by_key_ignore_case(GenConstant.DB_TO_SQLALCHEMY_TYPE_MAPPING, data_type)}'
             )
-        if gen_table.sub:
+        # 修复类型检查问题，确保sub_table存在且有columns属性
+        if gen_table.sub and gen_table.sub_table:
             import_list.add('from sqlalchemy import ForeignKey')
             sub_columns = gen_table.sub_table.columns or []
             for sub_column in sub_columns:

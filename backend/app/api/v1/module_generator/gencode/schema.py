@@ -89,7 +89,7 @@ class GenTableSchema(GenTableBaseSchema):
     """
 
     pk_column: Optional['GenTableColumnSchema'] = Field(default=None, description='主键信息')
-    sub_table: 'GenTableSchema' = Field(default=..., description='子表信息')
+    sub_table: Optional['GenTableSchema'] = Field(default=None, description='子表信息')
     columns: List['GenTableColumnSchema'] = Field(default=..., description='表列信息')
     tree_code: Optional[str] = Field(default=None, description='树编码字段')
     tree_parent_code: Optional[str] = Field(default=None, description='树父编码字段')

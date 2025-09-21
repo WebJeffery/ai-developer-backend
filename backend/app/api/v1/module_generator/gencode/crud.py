@@ -27,7 +27,7 @@ class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema
 
     def __init__(self, auth: AuthSchema) -> None:
         """初始化CRUD"""
-        super().__init__(model=GenTableModel, auth=auth)
+        super().__init__(model=GenTableModel(), auth=auth)
 
     async def get_gen_table_by_id(self, db: AsyncSession, table_id: int) -> Optional[GenTableModel]:
         """
@@ -40,7 +40,7 @@ class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema
         gen_table_info = (
             (
                 await db.execute(
-                    select(GenTableModel).options(selectinload(GenTableModel.columns)).where(GenTableModel.table_id == table_id)
+                    select(GenTableModel).options(selectinload(GenTableModel.columns)).where(GenTableModel.id == table_id)
                 )
             )
             .scalars()
@@ -156,7 +156,7 @@ class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema
         """
         if settings.DATABASE_TYPE == 'postgresql':
             query_sql = """
-                table_name as table_name, 
+                SELECT table_name as table_name, 
                 table_comment as table_comment, 
                 create_time as create_time, 
                 update_time as update_time
@@ -169,7 +169,7 @@ class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema
             """
         else:
             query_sql = """
-                table_name as table_name, 
+                SELECT table_name as table_name, 
                 table_comment as table_comment, 
                 create_time as create_time, 
                 update_time as update_time
@@ -185,22 +185,16 @@ class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema
             query_sql += """and lower(table_name) like lower(concat('%', :table_name, '%'))"""
         if query_object.table_comment:
             query_sql += """and lower(table_comment) like lower(concat('%', :table_comment, '%'))"""
-        if hasattr(query_object, 'created_at') and query_object.created_at:
-            if isinstance(query_object.created_at, tuple) and query_object.created_at[0] == "between":
-                # 这里需要特殊处理时间范围查询
-                pass
+        # 修复查询参数处理
+        query_params = {
+            k: v for k, v in query_object.model_dump(exclude_none=True, exclude={'page_no', 'page_size'}).items()
+        }
+        
         query_sql += """order by create_time desc"""
-        query = select(
-            text(query_sql).bindparams(
-                **{
-                    k: v
-                    for k, v in query_object.model_dump(exclude_none=True, exclude={'page_no', 'page_size'}).items()
-                }
-            )
-        )
+        query = text(query_sql).bindparams(**query_params)
         
         # 执行查询
-        result = await db.execute(query)
+        result = await db.execute(select(query))
         all_data = list(result.fetchall())
         
         # 使用PaginationService.paginate进行分页
@@ -270,7 +264,7 @@ class GenTableColumnDao(CRUDBase[GenTableColumnModel, GenTableColumnBaseSchema, 
 
     def __init__(self, auth: AuthSchema) -> None:
         """初始化CRUD"""
-        super().__init__(model=GenTableColumnModel, auth=auth)
+        super().__init__(model=GenTableColumnModel(), auth=auth)
 
     async def get_gen_table_column_list_by_table_id(self, db: AsyncSession, table_id: int) -> Sequence[GenTableColumnModel]:
         """
