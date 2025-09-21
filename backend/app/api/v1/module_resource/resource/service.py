@@ -8,23 +8,13 @@ import psutil
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
-
 from fastapi import UploadFile
 from PIL import Image
-
-# 尝试导入 magic 库，如果失败则标记为不可用
-try:
-    import magic
-    MAGIC_AVAILABLE = True
-except ImportError:
-    MAGIC_AVAILABLE = False
+import pylibmagic  # 不要删除，否则import magic 导入启动报错ImportError: failed to find libmagic.  Check your installation
+import magic
 
 from app.core.exceptions import CustomException
 from app.core.logger import logger
-
-# 如果 magic 不可用，记录日志
-if not MAGIC_AVAILABLE:
-    logger.info("没有找到 python-magic 库，将使用基于扩展名的文件类型检测")
 from app.utils.excel_util import ExcelUtil
 from app.config.setting import settings
 from ...module_system.auth.schema import AuthSchema
@@ -116,7 +106,7 @@ class ResourceService:
             
             # 优先使用 magic 库检测 MIME 类型
             file_type = None
-            if MAGIC_AVAILABLE and os.path.isfile(safe_path):
+            if os.path.isfile(safe_path):
                 try:
                     file_type = magic.from_file(safe_path, mime=True)
                 except Exception as e:

@@ -21,7 +21,6 @@ def create_app() -> FastAPI:
         register_middlewares,
         register_exceptions,
         register_routers,
-        register_fastapi_mcp,
         register_files,
         reset_api_docs,
         lifespan
@@ -39,8 +38,6 @@ def create_app() -> FastAPI:
     register_files(app)
     # 重设API文档
     reset_api_docs(app)
-    # 注册FastAPI-MCP
-    register_fastapi_mcp(app)
 
     return app
 

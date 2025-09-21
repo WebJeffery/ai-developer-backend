@@ -10,22 +10,16 @@ from typing import Any, List, Dict, Optional, Sequence
 
 from app.config.setting import settings
 from app.core.exceptions import CustomException
-from app.utils.common_util import CamelCaseUtil
 from app.utils.gen_util import GenUtils
 from app.utils.template_util import TemplateInitializer, TemplateUtils
 from app.common.constant import GenConstant
 from app.common.response import SuccessResponse
 from app.api.v1.module_system.user.schema import UserOutSchema
-from .schema import (
-    DeleteGenTableSchema,
-    EditGenTableSchema,
-    GenTableColumnSchema,
-    GenTableSchema,
-)
+from app.api.v1.module_system.auth.schema import AuthSchema
+from .schema import DeleteGenTableSchema, EditGenTableSchema, GenTableColumnSchema, GenTableSchema
 from .param import GenTableQueryParam
 from .crud import GenTableColumnDao, GenTableDao
 from .model import GenTableModel, GenTableColumnModel
-from app.api.v1.module_system.auth.schema import AuthSchema
 
 
 # 定义默认的GenConfig值

@@ -3,12 +3,12 @@ import os
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from typing import Dict, List, Set
-from config.constant import GenConstant
-from config.env import DataBaseConfig
-from exceptions.exception import ServiceWarning
-from module_generator.entity.vo.gen_vo import GenTableModel, GenTableColumnModel
-from utils.common_util import CamelCaseUtil, SnakeCaseUtil
-from utils.string_util import StringUtil
+from app.common.constant import GenConstant
+from app.config.setting import settings
+from app.api.v1.module_generator.gencode.schema import GenTableSchema, GenTableColumnSchema
+from app.core.base_model import CamelCaseUtil, SnakeCaseUtil
+from app.core.exceptions import CustomException
+from .string_util import StringUtil
 
 
 class TemplateInitializer:
@@ -54,7 +54,7 @@ class TemplateUtils:
     DEFAULT_PARENT_MENU_ID = '3'
 
     @classmethod
-    def prepare_context(cls, gen_table: GenTableModel):
+    def prepare_context(cls, gen_table: GenTableSchema):
         """
         准备模板变量
 
@@ -62,7 +62,7 @@ class TemplateUtils:
         :return: 模板上下文字典
         """
         if not gen_table.options:
-            raise ServiceWarning(message='请先完善生成配置信息')
+            raise CustomException(msg='请先完善生成配置信息')
         class_name = gen_table.class_name
         module_name = gen_table.module_name
         business_name = gen_table.business_name
@@ -90,7 +90,7 @@ class TemplateUtils:
             'columns': gen_table.columns,
             'table': gen_table,
             'dicts': cls.get_dicts(gen_table),
-            'dbType': DataBaseConfig.db_type,
+            'dbType': settings.DATABASE_TYPE,
             'column_not_add_show': GenConstant.COLUMNNAME_NOT_ADD_SHOW,
             'column_not_edit_show': GenConstant.COLUMNNAME_NOT_EDIT_SHOW,
         }
@@ -105,7 +105,7 @@ class TemplateUtils:
         return context
 
     @classmethod
-    def set_menu_context(cls, context: Dict, gen_table: GenTableModel):
+    def set_menu_context(cls, context: Dict, gen_table: GenTableSchema):
         """
         设置菜单上下文
 
@@ -114,11 +114,12 @@ class TemplateUtils:
         :return: 新的模板上下文字典
         """
         options = gen_table.options
-        params_obj = json.loads(options)
-        context['parentMenuId'] = cls.get_parent_menu_id(params_obj)
+        if options:
+            params_obj = json.loads(options)
+            context['parentMenuId'] = cls.get_parent_menu_id(params_obj)
 
     @classmethod
-    def set_tree_context(cls, context: Dict, gen_table: GenTableModel):
+    def set_tree_context(cls, context: Dict, gen_table: GenTableSchema):
         """
         设置树形结构上下文
 
@@ -127,14 +128,15 @@ class TemplateUtils:
         :return: 新的模板上下文字典
         """
         options = gen_table.options
-        params_obj = json.loads(options)
-        context['treeCode'] = cls.get_tree_code(params_obj)
-        context['treeParentCode'] = cls.get_tree_parent_code(params_obj)
-        context['treeName'] = cls.get_tree_name(params_obj)
-        context['expandColumn'] = cls.get_expand_column(gen_table)
+        if options:
+            params_obj = json.loads(options)
+            context['treeCode'] = cls.get_tree_code(params_obj)
+            context['treeParentCode'] = cls.get_tree_parent_code(params_obj)
+            context['treeName'] = cls.get_tree_name(params_obj)
+            context['expandColumn'] = cls.get_expand_column(gen_table)
 
     @classmethod
-    def set_sub_context(cls, context: Dict, gen_table: GenTableModel):
+    def set_sub_context(cls, context: Dict, gen_table: GenTableSchema):
         """
         设置子表上下文
 
@@ -186,7 +188,7 @@ class TemplateUtils:
         return templates
 
     @classmethod
-    def get_file_name(cls, template: List[str], gen_table: GenTableModel):
+    def get_file_name(cls, template: List[str], gen_table: GenTableSchema):
         """
         根据模板生成文件名
 
@@ -230,7 +232,7 @@ class TemplateUtils:
         return package_name[: package_name.rfind('.')]
 
     @classmethod
-    def get_vo_import_list(cls, gen_table: GenTableModel):
+    def get_vo_import_list(cls, gen_table: GenTableSchema):
         """
         获取vo模板导入包列表
 
@@ -254,7 +256,7 @@ class TemplateUtils:
         return cls.merge_same_imports(list(import_list), 'from datetime import')
 
     @classmethod
-    def get_do_import_list(cls, gen_table: GenTableModel):
+    def get_do_import_list(cls, gen_table: GenTableSchema):
         """
         获取do模板导入包列表
 
@@ -318,7 +320,7 @@ class TemplateUtils:
         return merged_imports
 
     @classmethod
-    def get_dicts(cls, gen_table: GenTableModel):
+    def get_dicts(cls, gen_table: GenTableSchema):
         """
         获取字典列表
 
@@ -333,7 +335,7 @@ class TemplateUtils:
         return ', '.join(dicts)
 
     @classmethod
-    def add_dicts(cls, dicts: Set[str], columns: List[GenTableColumnModel]):
+    def add_dicts(cls, dicts: Set[str], columns: List[GenTableColumnSchema]):
         """
         添加字典列表
 
@@ -383,7 +385,7 @@ class TemplateUtils:
         :return: 树编码
         """
         if GenConstant.TREE_CODE in params_obj:
-            return cls.to_camel_case(params_obj.get(GenConstant.TREE_CODE))
+            return cls.to_camel_case(params_obj.get(GenConstant.TREE_CODE, 'treeCode'))
         return ''
 
     @classmethod
@@ -395,7 +397,7 @@ class TemplateUtils:
         :return: 树父编码
         """
         if GenConstant.TREE_PARENT_CODE in params_obj:
-            return cls.to_camel_case(params_obj.get(GenConstant.TREE_PARENT_CODE))
+            return cls.to_camel_case(params_obj.get(GenConstant.TREE_PARENT_CODE, 'treeParentCode'))
         return ''
 
     @classmethod
@@ -407,11 +409,11 @@ class TemplateUtils:
         :return: 树名称
         """
         if GenConstant.TREE_NAME in params_obj:
-            return cls.to_camel_case(params_obj.get(GenConstant.TREE_NAME))
+            return cls.to_camel_case(params_obj.get(GenConstant.TREE_NAME, 'treeName'))
         return ''
 
     @classmethod
-    def get_expand_column(cls, gen_table: GenTableModel):
+    def get_expand_column(cls, gen_table: GenTableSchema):
         """
         获取展开列
 
@@ -419,6 +421,8 @@ class TemplateUtils:
         :return: 展开列
         """
         options = gen_table.options
+        if not options:
+            return 0
         params_obj = json.loads(options)
         tree_name = params_obj.get(GenConstant.TREE_NAME)
         num = 0

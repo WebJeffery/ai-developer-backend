@@ -61,9 +61,9 @@ class Settings(BaseSettings):
     TITLE: str              # 文档标题
     VERSION: str            # 版本号
     DESCRIPTION: str        # 文档描述
-    SUMMARY: str | None     # 文档概述
-    DOCS_URL: str | None    # Swagger UI路径
-    REDOC_URL: str | None   # ReDoc路径
+    SUMMARY: str     # 文档概述
+    DOCS_URL: str    # Swagger UI路径
+    REDOC_URL: str    # ReDoc路径
     ROOT_PATH: str          # API路由前缀
 
     # ================================================= #
@@ -234,10 +234,10 @@ class Settings(BaseSettings):
     # ================================================= #
     # ***************** Swagger配置 ***************** #
     # ================================================= #
-    SWAGGER_CSS_URL: Path = "static/swagger/swagger-ui/swagger-ui.css"
-    SWAGGER_JS_URL: Path = "static/swagger/swagger-ui/swagger-ui-bundle.js"
-    REDOC_JS_URL: Path = "static/swagger/redoc/bundles/redoc.standalone.js"
-    FAVICON_URL: Path = "static/swagger/favicon.png"
+    SWAGGER_CSS_URL: str = "static/swagger/swagger-ui/swagger-ui.css"
+    SWAGGER_JS_URL: str = "static/swagger/swagger-ui/swagger-ui-bundle.js"
+    REDOC_JS_URL: str = "static/swagger/redoc/bundles/redoc.standalone.js"
+    FAVICON_URL: str = "static/swagger/favicon.png"
 
     # ================================================= #
     # ******************* 初始化数据 ****************** #
@@ -323,7 +323,7 @@ class Settings(BaseSettings):
         return f"redis://{settings.REDIS_USER}:{self.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_NAME}"
     
     @property
-    def FASTAPI_CONFIG(self) -> Dict[str, Union[str, bool, None]]:
+    def FASTAPI_CONFIG(self) -> dict[str, Any]:
         """获取FastAPI应用属性"""
         return {
             "debug": self.DEBUG,

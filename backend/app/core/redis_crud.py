@@ -14,7 +14,7 @@ class RedisCURD:
         """初始化"""
         self.redis = redis
         
-    async def mget(self, *keys: list)-> list:
+    async def mget(self, *keys: tuple)-> list:
         """批量获取缓存
         
         Args:
@@ -24,7 +24,7 @@ class RedisCURD:
             list: 返回缓存值列表
         """
         try:
-            data = await self.redis.mget(keys)
+            data = await self.redis.mget(*keys)
             return data
         except Exception as e:
             logger.error(f"批量获取缓存失败: {str(e)}")

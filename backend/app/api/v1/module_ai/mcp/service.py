@@ -1,169 +1,77 @@
 # -*- coding: utf-8 -*-
-from typing import AsyncGenerator
 
-from pydantic_ai import Agent
-from pydantic_ai.mcp import MCPServerHTTP, MCPServerStdio
-from pydantic_ai.messages import TextPart
-from pydantic_ai.models.anthropic import AnthropicModel
-from pydantic_ai.models.gemini import GeminiModel
-from pydantic_ai.models.openai import OpenAIModel
-from pydantic_ai.providers.anthropic import AnthropicProvider
-from pydantic_ai.providers.deepseek import DeepSeekProvider
-from pydantic_ai.providers.google_gla import GoogleGLAProvider
-from pydantic_ai.providers.openai import OpenAIProvider
-from sqlalchemy import Select
+from typing import AsyncGenerator, List, Dict, Optional, Any
 
-from backend.common.exception import errors
-from backend.common.log import log
-from backend.common.response.response_schema import response_base
-from backend.database.db import async_db_session
-from backend.plugin.mcp.crud.crud_mcp import mcp_dao
-from backend.plugin.mcp.enums import McpLLMProvider, McpType
-from backend.plugin.mcp.schema.mcp import CreateMcpParam, McpChatParam, UpdateMcpParam
+from app.core.exceptions import CustomException
+from app.core.logger import logger
+from app.api.v1.module_system.auth.schema import AuthSchema
 from app.utils.ai_util import AIClient
+from .schema import McpCreateSchema, McpUpdateSchema, McpOutSchema, ChatQuerySchema
+from .param import McpQueryParam
+from .crud import McpCRUD
+from .model import McpModel
 
 
-class MCPService:
-    """MCP服务层 - 适配FastAPI-MCP"""
+class McpService:
+    """MCP服务层"""
 
-    @staticmethod
-    async def get(*, pk: int):
-        """
-        获取 MCP 服务器
-
-        :param pk: MCP ID
-        :return:
-        """
-        async with async_db_session() as db:
-            mcp = await mcp_dao.get(db, pk)
-            if not mcp:
-                raise errors.NotFoundError(msg='MCP 服务器不存在')
-            return mcp
-
-    @staticmethod
-    async def get_select(*, name: str | None, type: int | None) -> Select:
-        """
-        获取 MCP 服务器查询对象
-
-        :param name: MCP 名称
-        :param type: MCP 类型
-        :return:
-        """
-        return await mcp_dao.get_list(name=name, type=type)
-
-    @staticmethod
-    async def create(*, obj: CreateMcpParam) -> None:
-        """
-        创建 MCP 服务器
-
-        :param obj: 创建 MCP 服务器参数
-        :return:
-        """
-        async with async_db_session.begin() as db:
-            mcp = await mcp_dao.get_by_name(db, name=obj.name)
-            if mcp:
-                raise errors.ForbiddenError(msg='MCP 服务器已存在')
-            await mcp_dao.create(db, obj)
-
-    @staticmethod
-    async def update(*, pk: int, obj: UpdateMcpParam) -> int:
-        """
-        更新 MCP 服务器
-
-        :param pk: MCP ID
-        :param obj: 更新 MCP 服务器参数
-        :return:
-        """
-        async with async_db_session.begin() as db:
-            mcp = await mcp_dao.get(db, pk)
-            if mcp.name != obj.name:
-                if mcp_dao.get_by_name(db, name=obj.name):
-                    raise errors.ForbiddenError(msg='MCP 服务器已存在')
-            count = await mcp_dao.update(db, pk, obj)
-            return count
-
-    @staticmethod
-    async def delete(*, pk: int) -> int:
-        """
-        删除 MCP 服务器
-
-        :param pk: MCP ID
-        :return:
-        """
-        async with async_db_session.begin() as db:
-            count = await mcp_dao.delete(db, pk)
-            return count
-
-    @staticmethod
-    async def chat(*, obj: McpChatParam) -> AsyncGenerator:
-        async with async_db_session() as db:
-            mcp_servers = []
-            for pk in obj.pk:
-                mcp = await mcp_dao.get(db, pk)
-                if not mcp:
-                    raise errors.NotFoundError(msg='MCP 服务器不存在')
-                if mcp.type == McpType.sse:
-                    mcp_servers.append(MCPServerHTTP(url=mcp.url))
-                else:
-                    mcp_servers.append(
-                        MCPServerStdio(
-                            command=mcp.command,
-                            args=mcp.args.split(',') if mcp.args is not None else None,
-                            env=mcp.env if mcp.env is not None else None,
-                        )
-                    )
-
-        if obj.provider == McpLLMProvider.deepseek:
-            model = OpenAIModel(
-                obj.model,
-                provider=DeepSeekProvider(api_key=obj.key),
-            )
-        elif obj.provider == McpLLMProvider.anthropic:
-            model = AnthropicModel(
-                obj.model,
-                provider=AnthropicProvider(api_key=obj.key),
-            )
-        elif obj.provider == McpLLMProvider.gemini:
-            model = GeminiModel(
-                obj.model,
-                provider=GoogleGLAProvider(api_key=obj.key),
-            )
-        else:
-            model = OpenAIModel(
-                obj.model,
-                provider=OpenAIProvider(
-                    base_url=obj.base_url,
-                    api_key=obj.key,
-                ),
-            )
-
-        agent = Agent(model, mcp_servers=mcp_servers)
-
-        async def stream_messages():
-            try:
-                async with agent.run_mcp_servers():
-                    async with agent.run_stream(obj.prompt) as result:
-                        async for text in result.stream():
-                            yield TextPart(text).content.encode('utf-8') + b'\n'
-            except Exception as e:
-                log.error(e)
-                yield response_base.fail(data=str(e)).model_dump_json()
-
-        return stream_messages()
+    @classmethod
+    async def get_mcp_detail_service(cls, auth: AuthSchema, id: int) -> Dict[str, Any]:
+        """详情"""
+        obj = await McpCRUD(auth).get_by_id_crud(id=id)
+        if not obj:
+            raise CustomException(msg='MCP 服务器不存在')
+        return McpOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def chat_query(cls, message: str):
+    async def get_mcp_list_service(cls, auth: AuthSchema, search: Optional[McpQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+        """列表查询"""
+        if order_by:
+            order_by = eval(str(order_by))
+        obj_list = await McpCRUD(auth).get_list_crud(search=search.__dict__ if search else {}, order_by=order_by)
+        return [McpOutSchema.model_validate(obj).model_dump() for obj in obj_list]
+    
+    @classmethod
+    async def create_mcp_service(cls, auth: AuthSchema, data: McpCreateSchema) -> Dict[str, Any]:
+        """创建"""
+        obj = await McpCRUD(auth).get_by_name_crud(name=data.name)
+        if obj:
+            raise CustomException(msg='创建失败，MCP 服务器已存在')
+        obj = await McpCRUD(auth).create_crud(data=data)
+        return McpOutSchema.model_validate(obj).model_dump()
+    
+    @classmethod
+    async def update_mcp_service(cls, auth: AuthSchema, id: int, data: McpUpdateSchema) -> Dict[str, Any]:
+        """更新"""
+        obj = await McpCRUD(auth).get_by_id_crud(id=id)
+        if not obj:
+            raise CustomException(msg='更新失败，该数据不存在')
+        exist_obj = await McpCRUD(auth).get_by_name_crud(name=data.name)
+        if exist_obj and exist_obj.id != id:
+            raise CustomException(msg='更新失败，MCP 服务器名称重复')
+        obj = await McpCRUD(auth).update_crud(id=id, data=data)
+        return McpOutSchema.model_validate(obj).model_dump()
+    
+    @classmethod
+    async def delete_mcp_service(cls, auth: AuthSchema, ids: List[int]) -> None:
+        """删除"""
+        if len(ids) < 1:
+            raise CustomException(msg='删除失败，删除对象不能为空')
+        for id in ids:
+            obj = await McpCRUD(auth).get_by_id_crud(id=id)
+            if not obj:
+                raise CustomException(msg='删除失败，该数据不存在')
+        await McpCRUD(auth).delete_crud(ids=ids)
+    
+    @classmethod
+    async def chat_query(cls, query: ChatQuerySchema):
         """处理聊天查询"""
         # 创建MCP客户端实例
         mcp_client = AIClient()
         try:
             # 处理消息
-            async for response in mcp_client.process(message):
+            async for response in mcp_client.process(query.message):
                 yield response
         finally:
             # 确保关闭客户端连接
             await mcp_client.close()
-
-    
-    
-mcp_service: McpService = McpService()

@@ -1,81 +1,44 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from sqlalchemy import Select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy_crud_plus import CRUDPlus
 
-from .model import Mcp
-from .schema import CreateMcpParam, UpdateMcpParam
+from typing import Dict, List, Optional, Sequence
 
-
-class CRUDMcp(CRUDPlus[Mcp]):
-    """MCP 服务器数据库操作类"""
-
-    async def get(self, db: AsyncSession, pk: int) -> Mcp | None:
-        """
-        获取 MCP 服务器
-
-        :param db: 数据库会话
-        :param pk: MCP ID
-        :return:
-        """
-        return await self.select_model(db, pk)
-
-    async def get_by_name(self, db: AsyncSession, name: str) -> Mcp | None:
-        """
-        通过名称获取 MCP 服务器
-
-        :param db: 数据库会话
-        :param name: MCP 名称
-        :return:
-        """
-        return await self.select_model_by_column(db, name=name)
-
-    async def get_list(self, name: str | None, type: int | None) -> Select[Mcp]:
-        """
-        获取 MCP 服务器列表
-
-        :param name: MCP 名称
-        :param type: MCP 类型
-        :return:
-        """
-        filters = {}
-        if name is not None:
-            filters.update(name__like=f'%{name}%')
-        if type is not None:
-            filters.update(type=type)
-        return await self.select_order('created_time', 'desc', **filters)
-
-    async def create(self, db: AsyncSession, obj: CreateMcpParam) -> None:
-        """
-        创建 MCP 服务器
-
-        :param db: 数据库会话
-        :param obj: 创建 MCP 服务器参数
-        :return:
-        """
-        await self.create_model(db, obj)
-
-    async def update(self, db: AsyncSession, pk: int, obj: UpdateMcpParam) -> int:
-        """
-        更新 MCP 服务器
-
-        :param db: 数据库会话
-        :param pk: MCP ID
-        :param obj: 更新 MCP 服务器参数
-        :return:
-        """
-        return await self.update_model(db, pk, obj)
-
-    async def delete(self, db: AsyncSession, pk: int) -> int:
-        """
-        删除 MCP 服务器
-
-        :param db: 数据库会话
-        :param pk: MCP ID
-        :return:
-        """
-        return await self.delete_model(db, pk)
+from app.core.base_crud import CRUDBase
+from app.api.v1.module_system.auth.schema import AuthSchema
+from .model import McpModel
+from .schema import McpCreateSchema, McpUpdateSchema
 
 
-mcp_dao: CRUDMcp = CRUDMcp(Mcp)
+class McpCRUD(CRUDBase[McpModel, McpCreateSchema, McpUpdateSchema]):
+    """MCP 服务器数据层"""
+
+    def __init__(self, auth: AuthSchema) -> None:
+        """初始化CRUD"""
+        self.auth = auth
+        super().__init__(model=McpModel(), auth=auth)
+
+    async def get_by_id_crud(self, id: int) -> Optional[McpModel]:
+        """详情"""
+        return await self.get(id=id)
+    
+    async def get_by_name_crud(self, name: str) -> Optional[McpModel]:
+        """通过名称获取MCP服务器"""
+        return await self.get(name=name)
+    
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[McpModel]:
+        """列表查询"""
+        return await self.list(search=search or {}, order_by=order_by or [{'id': 'asc'}])
+    
+    async def create_crud(self, data: McpCreateSchema) -> Optional[McpModel]:
+        """创建"""
+        return await self.create(data=data)
+    
+    async def update_crud(self, id: int, data: McpUpdateSchema) -> Optional[McpModel]:
+        """更新"""
+        return await self.update(id=id, data=data)
+    
+    async def delete_crud(self, ids: List[int]) -> None:
+        """批量删除"""
+        return await self.delete(ids=ids)
+
+
+mcp_crud: McpCRUD = McpCRUD(auth=AuthSchema())

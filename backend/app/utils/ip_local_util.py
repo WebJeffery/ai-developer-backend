@@ -68,7 +68,7 @@ class IpLocalUtil:
         return None
 
     @classmethod
-    async def get_ip_location(cls, ip: str) -> str:
+    async def get_ip_location(cls, ip: str) -> str | None:
         """
         获取IP归属地信息
         
