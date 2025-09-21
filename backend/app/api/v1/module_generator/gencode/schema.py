@@ -165,6 +165,7 @@ class GenTableColumnBaseSchema(BaseModel):
     html_type: str = Field(default=..., description='显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）')
     dict_type: str = Field(default=..., description='字典类型')
     sort: Optional[int] = Field(default=None, description='排序')
+    
     create_by: Optional[str] = Field(default=None, description='创建者')
     create_time: Optional[datetime] = Field(default=None, description='创建时间')
     update_by: Optional[str] = Field(default=None, description='更新者')

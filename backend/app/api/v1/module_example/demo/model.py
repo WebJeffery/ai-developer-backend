@@ -9,8 +9,7 @@ from app.core.base_model import CreatorMixin
 
 class DemoModel(CreatorMixin):
     """
-    示例表 - SQLAlchemy 2.0 语法
-    兼容 MySQL 和 PostgreSQL
+    示例表
     """
     __tablename__ = 'example_demo'
     __table_args__ = ({'comment': '示例表'})
