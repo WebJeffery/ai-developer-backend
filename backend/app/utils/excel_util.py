@@ -40,6 +40,8 @@ class ExcelUtil:
         """
         wb = Workbook()
         ws = wb.active
+        if not ws:
+            raise ValueError("Worksheet is None")
 
         # 设置表头样式
         header_fill = PatternFill(start_color='ababab', end_color='ababab', fill_type='solid')
@@ -86,4 +88,5 @@ class ExcelUtil:
         df = pd.DataFrame(mapping_data)
         buffer = io.BytesIO()
         df.to_excel(buffer, index=False, engine='openpyxl')
-        return buffer.getvalue()
+        binary_data = buffer.getvalue()
+        return binary_data

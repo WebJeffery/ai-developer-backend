@@ -13,7 +13,7 @@ from app.common.enums import RedisInitKeyConfig
 from app.utils.common_util import get_random_character
 from app.utils.captcha_util import CaptchaUtil
 from app.utils.ip_local_util import IpLocalUtil
-from app.core.hash_bcrpy import PwdUtil
+from app.utils.hash_bcrpy_util import PwdUtil
 from app.core.security import (
     CustomOAuth2PasswordRequestForm,
     create_access_token,

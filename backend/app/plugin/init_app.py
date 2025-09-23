@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from starlette.responses import HTMLResponse
 from typing import Any, AsyncGenerator
-from fastapi_mcp import FastApiMCP
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.concurrency import asynccontextmanager
@@ -45,25 +45,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     """
     logger.info(settings.BANNER + '\n' + f'{settings.TITLE} 服务开始启动...')
     
-    try:
-        await init_create_table()
-        logger.info('数据库连接成功...')
-        await InitializeData().init_db()
-        logger.info("初始化数据完成...")
-        await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=True)
-        logger.info("初始化全局事件完成...")
-        await ParamsService().init_config_service(redis=app.state.redis)
-        logger.info("初始化系统配置完成...")
-        await DictDataService().init_dict_service(redis=app.state.redis)
-        logger.info('初始化数据字典完成...')
-        await SchedulerUtil.init_system_scheduler()
-        logger.info('初始化定时任务完成...')
+    await init_create_table()
+    logger.info('数据库连接成功...')
+    await InitializeData().init_db()
+    logger.info("初始化数据完成...")
+    await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=True)
+    logger.info("初始化全局事件完成...")
+    await ParamsService().init_config_service(redis=app.state.redis)
+    logger.info("初始化系统配置完成...")
+    await DictDataService().init_dict_service(redis=app.state.redis)
+    logger.info('初始化数据字典完成...')
+    await SchedulerUtil.init_system_scheduler()
+    logger.info('初始化定时任务完成...')
 
-        logger.info(f'{settings.TITLE} 服务成功启动...')
-    except Exception as e:
-        logger.error(f'{settings.TITLE} 服务启动失败: {str(e)}')
-        raise e
-    
+    logger.info(f'{settings.TITLE} 服务成功启动...')
+
     yield
 
     await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=False)
@@ -98,20 +94,6 @@ def register_routers(app: FastAPI) -> None:
     注册根路由
     """
     app.include_router(router=router)
-    
-def register_fastapi_mcp(app: FastAPI) -> None:
-    """
-    注册FastAPI-MCP路由
-    """
-    mcp = FastApiMCP(
-        app,
-        name="FastAPI Vue3 Admin MCP",
-        description="MCP server for the FastAPI Vue3 Admin system",
-        describe_full_response_schema=True,
-        describe_all_responses=True,
-    )
-    mcp.mount()
-    # mcp.mount_http()
 
 def register_files(app: FastAPI) -> None:
     """
@@ -129,7 +111,7 @@ def reset_api_docs(app: FastAPI) -> None:
     """
 
     @app.get(settings.DOCS_URL, include_in_schema=False)
-    async def custom_swagger_ui_html():
+    async def custom_swagger_ui_html() -> HTMLResponse:
         return get_swagger_ui_html(
             openapi_url=app.root_path + app.openapi_url,
             title=app.title + " - Swagger UI",

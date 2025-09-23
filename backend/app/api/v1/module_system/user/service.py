@@ -6,7 +6,7 @@ from fastapi import UploadFile
 import pandas as pd
 
 from app.core.exceptions import CustomException
-from app.core.hash_bcrpy import PwdUtil
+from app.utils.hash_bcrpy_util import PwdUtil
 from app.core.base_schema import BatchSetAvailable, UploadResponseSchema
 from app.core.logger import logger
 from app.utils.common_util import traversal_to_tree

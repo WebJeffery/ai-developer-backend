@@ -33,8 +33,14 @@ class UploadUtil:
     @staticmethod
     def check_file_extension(file: UploadFile) -> bool:
         """检查文件后缀是否合法"""
-        file_extension = mimetypes.guess_extension(file.content_type)
-        return file_extension in settings.ALLOWED_EXTENSIONS if file_extension else False
+        if file.content_type:
+            file_extension = mimetypes.guess_extension(file.content_type)
+            if file_extension and file_extension in settings.ALLOWED_EXTENSIONS:
+                return True
+            else:
+                raise CustomException(msg="文件类型不支持")
+        else:
+            raise CustomException(msg="文件类型不支持")
 
     @staticmethod
     def check_file_timestamp(filename: str) -> bool:
@@ -68,7 +74,10 @@ class UploadUtil:
     @staticmethod
     def check_file_size(file: UploadFile) -> bool:
         """校验文件大小是否合法"""
-        return file.size <= settings.MAX_FILE_SIZE
+        if file.size:
+            return file.size <= settings.MAX_FILE_SIZE
+        else:
+            return False
 
     @classmethod
     def generate_file_name(cls, filename: str) -> str:
@@ -114,10 +123,12 @@ class UploadUtil:
             dir_path = settings.UPLOAD_FILE_PATH.joinpath(datetime.now().strftime("%Y/%m/%d"))
             dir_path.mkdir(parents=True, exist_ok=True)
             
+            filename = ""
             # 生成文件名并保存
-            filename = cls.generate_file_name(file.filename)
-            filepath = str(dir_path.joinpath(filename)).replace('\\', '/')  # 转换为字符串后替换斜杠
-            file_url = urljoin(base_url, filepath)
+            if file.filename:
+                filename = cls.generate_file_name(file.filename)
+            filepath = dir_path.joinpath(filename)
+            file_url = urljoin(base_url, str(filepath))
             # filepath.mkdir(parents=True, exist_ok=True)
 
             # 分块写入文件

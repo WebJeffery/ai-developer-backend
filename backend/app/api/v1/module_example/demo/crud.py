@@ -14,7 +14,7 @@ class DemoCRUD(CRUDBase[DemoModel, DemoCreateSchema, DemoUpdateSchema]):
     def __init__(self, auth: AuthSchema) -> None:
         """初始化CRUD"""
         self.auth = auth
-        super().__init__(model=DemoModel, auth=auth)
+        super().__init__(model=DemoModel(), auth=auth)
 
     async def get_by_id_crud(self, id: int) -> Optional[DemoModel]:
         """详情"""

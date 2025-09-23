@@ -56,8 +56,7 @@ class InitializeData:
             # 检查表中是否已经有数据
             count_result = await db.execute(select(func.count()).select_from(model))
             existing_count = count_result.scalar()
-            
-            if existing_count > 0:
+            if existing_count and existing_count > 0:
                 logger.warning(f"跳过 {table_name} 表数据初始化（表已存在 {existing_count} 条记录）")
                 continue
 
