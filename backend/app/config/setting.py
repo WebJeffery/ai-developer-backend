@@ -3,8 +3,7 @@
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, ClassVar, Dict, List, Optional, Union, Literal
-from pydantic import MongoDsn, PostgresDsn, RedisDsn, MySQLDsn
+from typing import Any, ClassVar, Dict, List, Optional, Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic_validation_decorator import Pattern
 from uvicorn.config import LifespanType
@@ -160,11 +159,6 @@ class Settings(BaseSettings):
     OPERATION_RECORD_METHOD: List[str] = ["POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]     # 需要记录的请求方法
     IGNORE_OPERATION_FUNCTION: List[str] = ["get_captcha_for_login"]   # 忽略记录的函数
     LOG_RETENTION_DAYS: int = 30    # 日志保留天数，超过此天数的日志文件将被自动清理
-    
-    # 日志文件说明:
-    # all.log - 包含所有级别日志（应用日志 + uvicorn日志 + uvicorn访问日志）
-    # error.log - 包含ERROR及以上级别日志（应用错误 + uvicorn错误）
-    # 轮转后文件名: info_日期.log, error_日期.log
 
     # ================================================= #
     # ******************* Gzip压缩配置 ******************* #
@@ -205,9 +199,15 @@ class Settings(BaseSettings):
     STATIC_ROOT: Path = BASE_DIR.joinpath(STATIC_DIR)  # 绝对路径
 
     # ================================================= #
+    # ***************** 模版文件配置 ***************** #
+    # ================================================= #
+    TEMPLATE: str = "templates"
+    TEMPLATE_DIR: Path = BASE_DIR.joinpath(TEMPLATE) # 模版目录
+
+    # ================================================= #
     # ***************** 动态文件配置 ***************** #
     # ================================================= #
-    UPLOAD_FILE_PATH: Path = 'static/upload'     # 上传目录
+    UPLOAD_FILE_PATH: Path = BASE_DIR.joinpath('static/upload')     # 上传目录
     UPLOAD_MACHINE: str = 'A'  # 上传机器标识
     ALLOWED_EXTENSIONS: list[str] = [  # 允许的文件类型
         # 图片
@@ -280,8 +280,7 @@ class Settings(BaseSettings):
 
     @property
     def EVENT_LIST(self) -> List[Optional[str]]:
-
-        # 事件列表
+        """获取事件列表"""
         EVENTS: List[Optional[str]] = [
             "app.core.database.mongodb_connect" if self.MONGO_DB_ENABLE else None,
             "app.core.database.redis_connect" if self.REDIS_ENABLE else None,

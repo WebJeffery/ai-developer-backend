@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 from datetime import datetime, time
+from sqlalchemy.engine.row import Row
 from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -9,25 +10,20 @@ from typing import List, Optional, Sequence, Any, Dict
 from .model import GenTableModel, GenTableColumnModel
 from app.config.setting import settings
 from app.common.request import PaginationService
-from .schema import (
-    GenTableBaseSchema,
-    GenTableColumnBaseSchema,
-    GenTableColumnSchema,
-    GenTableSchema,
-)
+from .schema import GenTableCreateSchema, GenTableUpdateSchema, GenTableOutSchema, GenTableDeleteSchema, GenTableColumnCreateSchema, GenTableColumnUpdateSchema, GenTableColumnOutSchema, GenTableColumnDeleteSchema
 from .param import GenTableQueryParam
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
 
 
-class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema]):
+class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateSchema]):
     """
     代码生成业务表模块数据库操作层
     """
 
     def __init__(self, auth: AuthSchema) -> None:
         """初始化CRUD"""
-        super().__init__(model=GenTableModel(), auth=auth)
+        super().__init__(model=GenTableModel, auth=auth)
 
     async def get_gen_table_by_id(self, db: AsyncSession, table_id: int) -> Optional[GenTableModel]:
         """
@@ -104,23 +100,24 @@ class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema
         # 构建查询条件
         conditions = []
         
-        # 访问name属性而不是table_name
-        if query_object.name:
-            conditions.append(func.lower(GenTableModel.table_name).like(f'%{str(query_object.name).lower()}%'))
+        # 访问table_name属性
+        if getattr(query_object, 'table_name', None) and query_object.table_name[1]:
+            conditions.append(func.lower(GenTableModel.table_name).like(f'%{str(query_object.table_name[1]).lower()}%'))
             
         # 访问table_comment属性
-        if query_object.table_comment:
+        if getattr(query_object, 'table_comment', None):
             conditions.append(func.lower(GenTableModel.table_comment).like(f'%{str(query_object.table_comment).lower()}%'))
             
         # 访问created_at属性而不是start_time和end_time
         if hasattr(query_object, 'created_at') and query_object.created_at:
             if isinstance(query_object.created_at, tuple) and query_object.created_at[0] == "between":
-                conditions.append(GenTableModel.create_time.between(*query_object.created_at[1]))
+                conditions.append(GenTableModel.created_at.between(*query_object.created_at[1]))
 
         query = (
             select(GenTableModel)
             .options(selectinload(GenTableModel.columns))
             .where(*conditions)
+            .order_by(GenTableModel.created_at.desc())
             .distinct()
         )
         
@@ -154,47 +151,43 @@ class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema
         :param is_page: 是否开启分页
         :return: 数据库列表信息对象
         """
-        if settings.DATABASE_TYPE == 'postgresql':
-            query_sql = """
-                SELECT table_name as table_name, 
-                table_comment as table_comment, 
-                create_time as create_time, 
-                update_time as update_time
-            from 
-                list_table
-            where 
-                table_name not like 'apscheduler_%' 
-                and table_name not like 'gen_%'
-                and table_name not in (select table_name from gen_table)
-            """
-        else:
-            query_sql = """
-                SELECT table_name as table_name, 
-                table_comment as table_comment, 
-                create_time as create_time, 
-                update_time as update_time
-            from 
-                information_schema.tables
-            where 
-                table_schema = (select database())
-                and table_name not like 'apscheduler\_%' 
-                and table_name not like 'gen\_%'
-                and table_name not in (select table_name from gen_table)
-            """
-        if query_object.name:
+        query_sql = """
+            SELECT table_name as table_name, 
+            table_comment as table_comment, 
+            create_time as create_time, 
+            update_time as update_time
+        from 
+            information_schema.tables
+        where 
+            table_schema = (select database())
+            and table_name not like 'apscheduler\_%' 
+            and table_name not like 'gen\_%'
+            and table_name not in (select table_name from gen_table)
+        """
+        # 根据param.py中的定义，table_name是元组形式("like", value)
+        if getattr(query_object, 'table_name', None) and query_object.table_name[1]:
             query_sql += """and lower(table_name) like lower(concat('%', :table_name, '%'))"""
-        if query_object.table_comment:
+        
+        # 处理table_comment字段（如果有）
+        if getattr(query_object, 'table_comment', None):
             query_sql += """and lower(table_comment) like lower(concat('%', :table_comment, '%'))"""
-        # 修复查询参数处理
-        query_params = {
-            k: v for k, v in query_object.model_dump(exclude_none=True, exclude={'page_no', 'page_size'}).items()
-        }
+        
+        # 构建查询参数
+        query_params = {}
+        
+        # 添加table_name查询参数
+        if getattr(query_object, 'table_name', None) and query_object.table_name[1]:
+            query_params['table_name'] = query_object.table_name[1]
+        
+        # 添加table_comment查询参数
+        if getattr(query_object, 'table_comment', None):
+            query_params['table_comment'] = query_object.table_comment
         
         query_sql += """order by create_time desc"""
         query = text(query_sql).bindparams(**query_params)
         
         # 执行查询
-        result = await db.execute(select(query))
+        result = await db.execute(query)
         all_data = list(result.fetchall())
         
         # 使用PaginationService.paginate进行分页
@@ -222,49 +215,32 @@ class GenTableDao(CRUDBase[GenTableModel, GenTableBaseSchema, GenTableBaseSchema
         :param table_names: 业务表名称组
         :return: 数据库列表信息对象
         """
-        if settings.DATABASE_TYPE == 'postgresql':
-            query_sql = """
-            select
-                table_name as table_name, 
-                table_comment as table_comment, 
-                create_time as create_time, 
-                update_time as update_time 
-            from 
-                list_table
-            where 
-                table_name not like 'qrtz_%' 
-                and table_name not like 'gen_%' 
-                and table_name = any(:table_names)
-            """
-        else:
-            query_sql = """
-            select
-                table_name as table_name, 
-                table_comment as table_comment, 
-                create_time as create_time, 
-                update_time as update_time 
-            from 
-                information_schema.tables
-            where 
-                table_name not like 'qrtz\_%' 
-                and table_name not like 'gen\_%' 
-                and table_schema = (select database())
-                and table_name in :table_names
-            """
+        query_sql = """
+        select
+            table_name as table_name,
+            table_comment as table_comment,
+            create_time as create_time,
+            update_time as update_time
+        from
+            information_schema.tables
+        where
+            table_schema = (select database())
+            and table_name in :table_names
+        """
         query = text(query_sql).bindparams(table_names=tuple(table_names))
         gen_db_table_list = (await db.execute(query)).fetchall()
 
         return gen_db_table_list
 
 
-class GenTableColumnDao(CRUDBase[GenTableColumnModel, GenTableColumnBaseSchema, GenTableColumnBaseSchema]):
+class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnCreateSchema, GenTableColumnUpdateSchema]):
     """
     代码生成业务表字段模块数据库操作层
     """
 
     def __init__(self, auth: AuthSchema) -> None:
         """初始化CRUD"""
-        super().__init__(model=GenTableColumnModel(), auth=auth)
+        super().__init__(model=GenTableColumnModel, auth=auth)
 
     async def get_gen_table_column_list_by_table_id(self, db: AsyncSession, table_id: int) -> Sequence[GenTableColumnModel]:
         """
@@ -286,7 +262,7 @@ class GenTableColumnDao(CRUDBase[GenTableColumnModel, GenTableColumnBaseSchema, 
 
         return gen_table_column_list
 
-    async def get_gen_db_table_columns_by_name(self, db: AsyncSession, table_name: str):
+    async def get_gen_db_table_columns_by_name(self, db: AsyncSession, table_name: str) -> Sequence[Row[Any]]:
         """
         根据业务表名称获取业务表字段列表信息
 
@@ -294,42 +270,32 @@ class GenTableColumnDao(CRUDBase[GenTableColumnModel, GenTableColumnBaseSchema, 
         :param table_name: 业务表名称
         :return: 业务表字段列表信息对象
         """
-        if settings.DATABASE_TYPE == 'postgresql':
-            query_sql = """
-            select
-                column_name, is_required, is_pk, sort, column_comment, is_increment, column_type
-            from
-                list_column
-            where
-                table_name = :table_name
-            """
-        else:
-            query_sql = """
-            select 
-                column_name as column_name,
-                case 
-                    when is_nullable = 'no' and column_key != 'PRI' then '1' 
-                    else '0' 
-                end as is_required,
-                case 
-                    when column_key = 'PRI' then '1' 
-                    else '0' 
-                end as is_pk,
-                ordinal_position as sort,
-                column_comment as column_comment,
-                case 
-                    when extra = 'auto_increment' then '1' 
-                    else '0' 
-                end as is_increment,
-                column_type as column_type
-            from 
-                information_schema.columns
-            where 
-                table_schema = (select database()) 
-                and table_name = :table_name
-            order by 
-                ordinal_position
-            """
+        query_sql = """
+        select 
+            column_name as column_name,
+            case 
+                when is_nullable = 'no' and column_key != 'PRI' then '1' 
+                else '0' 
+            end as is_required,
+            case 
+                when column_key = 'PRI' then '1' 
+                else '0' 
+            end as is_pk,
+            ordinal_position as sort,
+            column_comment as column_comment,
+            case 
+                when extra = 'auto_increment' then '1' 
+                else '0' 
+            end as is_increment,
+            column_type as column_type
+        from 
+            information_schema.columns
+        where 
+            table_schema = (select database()) 
+            and table_name = :table_name
+        order by 
+            ordinal_position
+        """
         query = text(query_sql).bindparams(table_name=table_name)
         gen_db_table_columns = (await db.execute(query)).fetchall()
 

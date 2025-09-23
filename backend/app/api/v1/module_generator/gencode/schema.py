@@ -1,23 +1,22 @@
 # -*- coding:utf-8 -*-
 
-from datetime import datetime
-from typing import List, Literal, Optional, Union
+from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
 from pydantic_validation_decorator import NotBlank
 
 from app.utils.string_util import StringUtil
 from app.common.constant import GenConstant
+from app.core.base_schema import BaseSchema
 
 
-class GenTableBaseSchema(BaseModel):
+class GenTableCreateSchema(BaseModel):
     """
     代码生成业务表对应pydantic模型
     """
 
-    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
-    table_id: Optional[int] = Field(default=None, description='编号')
     table_name: str = Field(default=..., description='表名称')
     table_comment: str = Field(default=..., description='表描述')
     sub_table_name: Optional[str] = Field(default=None, description='关联子表的表名')
@@ -33,12 +32,6 @@ class GenTableBaseSchema(BaseModel):
     gen_type: Optional[Literal['0', '1']] = Field(default=None, description='生成代码方式（0zip压缩包 1自定义路径）')
     gen_path: Optional[str] = Field(default=None, description='生成路径（不填默认项目路径）')
     options: Optional[str] = Field(default=None, description='其它生成选项')
-    
-    create_by: Optional[str] = Field(default=None, description='创建者')
-    create_time: Optional[datetime] = Field(default=None, description='创建时间')
-    update_by: Optional[str] = Field(default=None, description='更新者')
-    update_time: Optional[datetime] = Field(default=None, description='更新时间')
-    remark: Optional[str] = Field(default=None, description='备注')
 
     @NotBlank(field_name='table_name', message='表名称不能为空')
     def get_table_name(self):
@@ -83,14 +76,14 @@ class GenTableBaseSchema(BaseModel):
         self.get_function_author()
 
 
-class GenTableSchema(GenTableBaseSchema):
+class GenTableUpdateSchema(GenTableCreateSchema):
     """
     代码生成业务表模型
     """
 
-    pk_column: Optional['GenTableColumnSchema'] = Field(default=None, description='主键信息')
-    sub_table: Optional['GenTableSchema'] = Field(default=None, description='子表信息')
-    columns: List['GenTableColumnSchema'] = Field(default=..., description='表列信息')
+    pk_column: Optional['GenTableColumnUpdateSchema'] = Field(default=None, description='主键信息')
+    sub_table: Optional['GenTableUpdateSchema'] = Field(default=None, description='子表信息')
+    columns: List['GenTableColumnUpdateSchema'] = Field(default=..., description='表列信息')
     tree_code: Optional[str] = Field(default=None, description='树编码字段')
     tree_parent_code: Optional[str] = Field(default=None, description='树父编码字段')
     tree_name: Optional[str] = Field(default=None, description='树名称字段')
@@ -101,35 +94,19 @@ class GenTableSchema(GenTableBaseSchema):
     crud: Optional[bool] = Field(default=None, description='是否为单表')
 
     @model_validator(mode='after')
-    def check_some_is(self) -> 'GenTableSchema':
+    def check_some_is(self) -> 'GenTableUpdateSchema':
         self.sub = True if self.tpl_category and self.tpl_category == GenConstant.TPL_SUB else False
         self.tree = True if self.tpl_category and self.tpl_category == GenConstant.TPL_TREE else False
         self.crud = True if self.tpl_category and self.tpl_category == GenConstant.TPL_CRUD else False
         return self
 
 
-class EditGenTableSchema(GenTableSchema):
-    """
-    修改代码生成业务表模型
-    """
-
-    params: Optional['GenTableParamsSchema'] = Field(default=None, description='业务表参数')
+class GenTableOutSchema(GenTableUpdateSchema, BaseSchema):
+    """响应模型"""
+    model_config = ConfigDict(from_attributes=True)
 
 
-class GenTableParamsSchema(BaseModel):
-    """
-    代码生成业务表参数模型
-    """
-
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    tree_code: Optional[str] = Field(default=None, description='树编码字段')
-    tree_parent_code: Optional[str] = Field(default=None, description='树父编码字段')
-    tree_name: Optional[str] = Field(default=None, description='树名称字段')
-    parent_menu_id: Optional[int] = Field(default=None, description='上级菜单ID字段')
-
-
-class DeleteGenTableSchema(BaseModel):
+class GenTableDeleteSchema(BaseModel):
     """
     删除代码生成业务表模型
     """
@@ -139,15 +116,15 @@ class DeleteGenTableSchema(BaseModel):
     table_ids: str = Field(description='需要删除的代码生成业务表ID')
 
 
-class GenTableColumnBaseSchema(BaseModel):
+class GenTableColumnCreateSchema(BaseModel):
     """
     代码生成业务表字段对应pydantic模型
     """
 
     model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
-    column_id: Optional[int] = Field(default=None, description='编号')
     table_id: Optional[int] = Field(default=None, description='归属表编号')
+    
     column_name: str = Field(default=..., description='列名称')
     column_comment: Optional[str] = Field(default=None, description='列描述')
     column_type: str = Field(default=..., description='列类型')
@@ -166,11 +143,6 @@ class GenTableColumnBaseSchema(BaseModel):
     dict_type: str = Field(default=..., description='字典类型')
     sort: Optional[int] = Field(default=None, description='排序')
     
-    create_by: Optional[str] = Field(default=None, description='创建者')
-    create_time: Optional[datetime] = Field(default=None, description='创建时间')
-    update_by: Optional[str] = Field(default=None, description='更新者')
-    update_time: Optional[datetime] = Field(default=None, description='更新时间')
-
     @NotBlank(field_name='python_field', message='Python属性不能为空')
     def get_python_field(self):
         return self.python_field
@@ -179,7 +151,7 @@ class GenTableColumnBaseSchema(BaseModel):
         self.get_python_field()
 
 
-class GenTableColumnSchema(GenTableColumnBaseSchema):
+class GenTableColumnUpdateSchema(GenTableColumnCreateSchema):
     """
     代码生成业务表字段模型
     """
@@ -197,7 +169,7 @@ class GenTableColumnSchema(GenTableColumnBaseSchema):
     usable_column: Optional[bool] = Field(default=None, description='是否为基类字段白名单')
 
     @model_validator(mode='after')
-    def check_some_is(self) -> 'GenTableColumnSchema':
+    def check_some_is(self) -> 'GenTableColumnUpdateSchema':
         self.cap_python_field = self.python_field[0].upper() + self.python_field[1:] if self.python_field else None
         self.pk = True if self.is_pk and self.is_pk == '1' else False
         self.increment = True if self.is_increment and self.is_increment == '1' else False
@@ -218,11 +190,16 @@ class GenTableColumnSchema(GenTableColumnBaseSchema):
         return self
 
 
-class DeleteGenTableColumnSchema(BaseModel):
+class GenTableColumnOutSchema(GenTableColumnUpdateSchema, BaseSchema):
+    """响应模型"""
+    model_config = ConfigDict(from_attributes=True)
+
+
+class GenTableColumnDeleteSchema(BaseModel):
     """
     删除代码生成业务表字段模型
     """
 
-    model_config = ConfigDict(alias_generator=to_camel)
+    model_config = ConfigDict(from_attributes=True)
 
     column_ids: str = Field(description='需要删除的代码生成业务表字段ID')

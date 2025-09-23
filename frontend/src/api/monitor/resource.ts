@@ -7,7 +7,7 @@ export const ResourceAPI = {
    */
   getResourceList(query: ResourceListQuery) {
     return request<ApiResponse<ResourceListResponse>>({
-      url: `/resource/resource/list`,
+      url: `/monitor/resource/list`,
       method: "get",
       params: query,
     });
@@ -19,7 +19,7 @@ export const ResourceAPI = {
    */
   searchResource(body: ResourceSearchQuery) {
     return request<ApiResponse<ResourceListResponse>>({
-      url: `/resource/resource/search`,
+      url: `/monitor/resource/search`,
       method: "post",
       data: body,
     });
@@ -31,7 +31,7 @@ export const ResourceAPI = {
    */
   uploadFile(formData: FormData) {
     return request<ApiResponse<UploadFilePath>>({
-      url: `/resource/resource/upload`,
+      url: `/monitor/resource/upload`,
       method: "post",
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
@@ -44,7 +44,7 @@ export const ResourceAPI = {
    */
   downloadFile(path: string) {
     return request<Blob>({
-      url: `/resource/resource/download`,
+      url: `/monitor/resource/download`,
       method: "get",
       params: { path },
       responseType: "blob",
@@ -57,7 +57,7 @@ export const ResourceAPI = {
    */
   deleteResource(body: string[]) {
     return request<ApiResponse>({
-      url: `/resource/resource/delete`,
+      url: `/monitor/resource/delete`,
       method: "delete",
       data: body,
     });
@@ -69,7 +69,7 @@ export const ResourceAPI = {
    */
   moveResource(body: ResourceMoveQuery) {
     return request<ApiResponse>({
-      url: `/resource/resource/move`,
+      url: `/monitor/resource/move`,
       method: "post",
       data: body,
     });
@@ -81,7 +81,7 @@ export const ResourceAPI = {
    */
   copyResource(body: ResourceCopyQuery) {
     return request<ApiResponse>({
-      url: `/resource/resource/copy`,
+      url: `/monitor/resource/copy`,
       method: "post",
       data: body,
     });
@@ -93,7 +93,7 @@ export const ResourceAPI = {
    */
   renameResource(body: ResourceRenameQuery) {
     return request<ApiResponse>({
-      url: `/resource/resource/rename`,
+      url: `/monitor/resource/rename`,
       method: "post",
       data: body,
     });
@@ -105,7 +105,7 @@ export const ResourceAPI = {
    */
   createDirectory(body: ResourceCreateDirQuery) {
     return request<ApiResponse>({
-      url: `/resource/resource/create-dir`,
+      url: `/monitor/resource/create-dir`,
       method: "post",
       data: body,
     });
@@ -116,7 +116,7 @@ export const ResourceAPI = {
    */
   getResourceStats() {
     return request<ApiResponse<ResourceStats>>({
-      url: `/resource/resource/stats`,
+      url: `/monitor/resource/stats`,
       method: "get",
     });
   },
@@ -127,7 +127,7 @@ export const ResourceAPI = {
    */
   exportResource(body: ResourceSearchQuery) {
     return request<Blob>({
-      url: `/resource/resource/export`,
+      url: `/monitor/resource/export`,
       method: "post",
       data: body,
       responseType: "blob",

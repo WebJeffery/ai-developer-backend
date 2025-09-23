@@ -4,10 +4,8 @@ from fastapi import APIRouter, Body, Depends, Path, Query, Request, UploadFile, 
 from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from typing import List, Optional
 
-from app.common.request import PaginationService
 from app.common.response import StreamResponse, SuccessResponse
 from app.utils.common_util import bytes2file_response
-from app.core.base_params import PaginationQueryParam
 from app.core.dependencies import AuthPermission
 from app.core.router_class import OperationLogRoute
 from app.core.logger import logger
@@ -23,15 +21,15 @@ from .schema import (
 from .service import ResourceService
 
 
-ResourceFileRouter = APIRouter(route_class=OperationLogRoute, prefix="/resource", tags=["资源管理"])
+ResourceRouter = APIRouter(route_class=OperationLogRoute, prefix="/resource", tags=["资源管理"])
 
 
-@ResourceFileRouter.get("/list", summary="获取目录列表", description="获取指定目录下的文件和子目录列表")
+@ResourceRouter.get("/list", summary="获取目录列表", description="获取指定目录下的文件和子目录列表")
 async def get_directory_list_controller(
     request: Request,
     path: Optional[str] = Query(None, description="目录路径"),
     include_hidden: bool = Query(False, description="是否包含隐藏文件"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:query"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:query"]))
 ) -> JSONResponse:
     """获取目录列表"""
     result_dict = await ResourceService.get_directory_list_service(
@@ -44,11 +42,11 @@ async def get_directory_list_controller(
     return SuccessResponse(data=result_dict, msg="获取目录列表成功")
 
 
-@ResourceFileRouter.post("/search", summary="搜索资源", description="根据条件搜索资源")
+@ResourceRouter.post("/search", summary="搜索资源", description="根据条件搜索资源")
 async def search_resources_controller(
     request: Request,
     search: ResourceSearchSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:search"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:search"]))
 ) -> JSONResponse:
     """搜索资源"""
     result_list = await ResourceService.search_resources_service(
@@ -60,12 +58,12 @@ async def search_resources_controller(
     return SuccessResponse(data=result_list, msg=f"搜索成功，找到 {len(result_list)} 个结果")
 
 
-@ResourceFileRouter.post("/upload", summary="上传文件", description="上传文件到指定目录")
+@ResourceRouter.post("/upload", summary="上传文件", description="上传文件到指定目录")
 async def upload_file_controller(
     file: UploadFile,
     request: Request,
     target_path: Optional[str] = Form(None, description="目标目录路径"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:upload"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:upload"]))
 ) -> JSONResponse:
     """上传文件"""
     result_dict = await ResourceService.upload_file_service(
@@ -78,11 +76,11 @@ async def upload_file_controller(
     return SuccessResponse(data=result_dict, msg="上传文件成功")
 
 
-@ResourceFileRouter.get("/download", summary="下载文件", description="下载指定文件")
+@ResourceRouter.get("/download", summary="下载文件", description="下载指定文件")
 async def download_file_controller(
     request: Request,
     path: str = Query(..., description="文件路径"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:download"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:download"]))
 ) -> FileResponse:
     """下载文件"""
     file_path = await ResourceService.download_file_service(
@@ -103,10 +101,10 @@ async def download_file_controller(
     )
 
 
-@ResourceFileRouter.delete("/delete", summary="删除文件", description="删除指定文件或目录")
+@ResourceRouter.delete("/delete", summary="删除文件", description="删除指定文件或目录")
 async def delete_files_controller(
     paths: List[str] = Body(..., description="文件路径列表"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:delete"]))
 ) -> JSONResponse:
     """删除文件"""
     await ResourceService.delete_file_service(auth=auth, paths=paths)
@@ -114,10 +112,10 @@ async def delete_files_controller(
     return SuccessResponse(msg="删除文件成功")
 
 
-@ResourceFileRouter.post("/move", summary="移动文件", description="移动文件或目录")
+@ResourceRouter.post("/move", summary="移动文件", description="移动文件或目录")
 async def move_file_controller(
     data: ResourceMoveSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:move"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:move"]))
 ) -> JSONResponse:
     """移动文件"""
     await ResourceService.move_file_service(auth=auth, data=data)
@@ -125,10 +123,10 @@ async def move_file_controller(
     return SuccessResponse(msg="移动文件成功")
 
 
-@ResourceFileRouter.post("/copy", summary="复制文件", description="复制文件或目录")
+@ResourceRouter.post("/copy", summary="复制文件", description="复制文件或目录")
 async def copy_file_controller(
     data: ResourceCopySchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:copy"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:copy"]))
 ) -> JSONResponse:
     """复制文件"""
     await ResourceService.copy_file_service(auth=auth, data=data)
@@ -136,10 +134,10 @@ async def copy_file_controller(
     return SuccessResponse(msg="复制文件成功")
 
 
-@ResourceFileRouter.post("/rename", summary="重命名文件", description="重命名文件或目录")
+@ResourceRouter.post("/rename", summary="重命名文件", description="重命名文件或目录")
 async def rename_file_controller(
     data: ResourceRenameSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:rename"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["rmonitor:resource:rename"]))
 ) -> JSONResponse:
     """重命名文件"""
     await ResourceService.rename_file_service(auth=auth, data=data)
@@ -147,10 +145,10 @@ async def rename_file_controller(
     return SuccessResponse(msg="重命名文件成功")
 
 
-@ResourceFileRouter.post("/create-dir", summary="创建目录", description="在指定路径创建新目录")
+@ResourceRouter.post("/create-dir", summary="创建目录", description="在指定路径创建新目录")
 async def create_directory_controller(
     data: ResourceCreateDirSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:create_dir"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:create_dir"]))
 ) -> JSONResponse:
     """创建目录"""
     await ResourceService.create_directory_service(auth=auth, data=data)
@@ -158,10 +156,10 @@ async def create_directory_controller(
     return SuccessResponse(msg="创建目录成功")
 
 
-@ResourceFileRouter.get("/stats", summary="获取资源统计", description="获取资源统计信息")
+@ResourceRouter.get("/stats", summary="获取资源统计", description="获取资源统计信息")
 async def get_resource_stats_controller(
     request: Request,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:stats:query"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:query"]))
 ) -> JSONResponse:
     """获取资源统计"""
     result_dict = await ResourceService.get_stats_service(
@@ -172,11 +170,11 @@ async def get_resource_stats_controller(
     return SuccessResponse(data=result_dict, msg="获取资源统计成功")
 
 
-@ResourceFileRouter.post("/export", summary="导出资源列表", description="导出资源列表")
+@ResourceRouter.post("/export", summary="导出资源列表", description="导出资源列表")
 async def export_resource_list_controller(
     request: Request,
     search: ResourceSearchSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["resource:file:export"]))
+    auth: AuthSchema = Depends(AuthPermission(permissions=["monitor:resource:export"]))
 ) -> StreamingResponse:
     """导出资源列表"""
     # 获取搜索结果

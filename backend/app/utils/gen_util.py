@@ -4,7 +4,7 @@ from typing import List
 
 from app.common.constant import GenConstant
 from app.config.setting import settings
-from app.api.v1.module_generator.gencode.schema import GenTableColumnSchema, GenTableSchema
+from app.api.v1.module_generator.gencode.schema import GenTableColumnOutSchema as GenTableColumnSchema, GenTableOutSchema as GenTableSchema
 from .string_util import StringUtil
 
 

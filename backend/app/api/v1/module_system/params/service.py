@@ -161,8 +161,6 @@ class ParamsService:
     @classmethod
     async def upload_service(cls, base_url: str, file: UploadFile) -> Dict:
         """上传文件"""
-        if not file:
-            raise CustomException(msg="请选择要上传的文件")
         filename, filepath, file_url = await UploadUtil.upload_file(file=file, base_url=base_url)
         
         return UploadResponseSchema(

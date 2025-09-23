@@ -120,7 +120,7 @@ import {
   Monitor,
   QuestionFilled
 } from '@element-plus/icons-vue'
-import { ResourceAPI, type ResourceStats } from '@/api/resource/resource'
+import { ResourceAPI, type ResourceStats } from '@/api/monitor/resource'
 
 // 响应式数据
 const stats = ref<ResourceStats | null>(null)

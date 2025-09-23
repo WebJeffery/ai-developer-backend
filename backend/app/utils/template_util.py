@@ -5,7 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 from typing import Dict, List, Set
 from app.common.constant import GenConstant
 from app.config.setting import settings
-from app.api.v1.module_generator.gencode.schema import GenTableSchema, GenTableColumnSchema
+from app.api.v1.module_generator.gencode.schema import GenTableOutSchema as GenTableSchema, GenTableColumnOutSchema as GenTableColumnSchema
 from app.core.base_model import CamelCaseUtil, SnakeCaseUtil
 from app.core.exceptions import CustomException
 from .string_util import StringUtil
@@ -25,8 +25,8 @@ class TemplateInitializer:
         """
         try:
             # 修复模板路径，使用正确的相对路径
-            template_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'v1', 'module_generator', 'gencode', 'templates')
-            template_dir = os.path.abspath(template_dir)
+
+            template_dir = settings.TEMPLATE_DIR
             env = Environment(
                 loader=FileSystemLoader(template_dir),
                 keep_trailing_newline=True,

@@ -96,8 +96,8 @@
             <el-breadcrumb-item
               v-for="(item, index) in breadcrumbList"
               :key="index"
-              @click="handleBreadcrumbClick(item, index)"
               :class="{ 'is-link': index < breadcrumbList.length - 1 }"
+              @click="handleBreadcrumbClick(item, index)"
             >
               {{ item.name }}
             </el-breadcrumb-item>
@@ -131,7 +131,7 @@
                 <Document v-else />
               </el-icon>
               <span 
-                :class="{ 'file-name-clickable': !row.is_dir }"
+                :class="{ 'file-name-clickable': true }"
                 @click="handleFileNameClick(row)"
               >
                 {{ row.name }}
@@ -189,7 +189,7 @@
             </el-icon>
           </div>
           <div class="item-name">{{ item.name }}</div>
-          <div class="item-size" v-if="!item.is_dir">
+          <div v-if="!item.is_dir" class="item-size">
             {{ formatFileSize(item.size) }}
         </div>
       </div>
@@ -197,7 +197,7 @@
 
       <!-- 分页区域 -->
       <template #footer>
-        <pagination
+        <Pagination
           v-model:total="total"
           v-model:page="pagination.page_no"
           v-model:limit="pagination.page_size"
@@ -218,10 +218,10 @@
         :auto-upload="false"
         :multiple="true"
         :file-list="uploadFileList"
-        @change="handleUploadChange"
         drag
+        @change="handleUploadChange"
       >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+        <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
         <div class="el-upload__text">
           将文件拖到此处，或<em>点击上传</em>
         </div>
@@ -233,7 +233,7 @@
       </el-upload>
       <template #footer>
         <el-button @click="uploadDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleUploadConfirm" :loading="uploading">
+        <el-button type="primary" :loading="uploading" @click="handleUploadConfirm">
           确定上传
         </el-button>
       </template>
@@ -287,11 +287,6 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Upload,
-  FolderAdd,
-  Refresh,
-  Search,
-  RefreshLeft,
   List,
   Grid,
   Folder,
@@ -299,19 +294,19 @@ import {
   UploadFilled,
   QuestionFilled
 } from '@element-plus/icons-vue'
-import Pagination from '@/components/Pagination/index.vue'
-import { ResourceAPI, type ResourceItem, type ResourceListQuery, type ResourceSearchQuery, type ResourceListResponse } from '@/api/resource/resource'
-import { RESOURCE_ROOT_PATH } from '@/constants'
+import { ResourceAPI, type ResourceItem, type ResourceSearchQuery } from '@/api/monitor/resource'
 
 // 响应式数据
 const loading = ref(false)
 const fileList = ref<ResourceItem[]>([])
 const selectedItems = ref<ResourceItem[]>([])
-const currentPath = ref(RESOURCE_ROOT_PATH)
-const breadcrumbList = ref([{ name: '资源根目录', path: RESOURCE_ROOT_PATH }])
+const breadcrumbList = ref([{ name: '资源根目录', path: '/' }])
 const showHiddenFiles = ref(false)
 const viewMode = ref<'list' | 'grid'>('list')
 const total = ref(0)
+
+// 路径相关数据
+const currentPath = ref('/') // 添加当前路径的响应式变量
 
 // 分页
 const pagination = reactive({
@@ -347,25 +342,21 @@ const renameForm = reactive({
   old_path: ''
 })
 
-// 工具函数：处理路径转换
-const ensureRootPath = (path: string) => {
-  // 如果是HTTP URL，提取相对路径部分
-  if (path.startsWith('http')) {
-    const url = new URL(path)
-    return url.pathname.replace('/api/v1/static', '/home/static')
+// 计算属性
+const currentQuery = computed(() => {
+  // 构建查询参数
+  const query: any = {
+    include_hidden: showHiddenFiles.value
   }
   
-  if (path.startsWith(RESOURCE_ROOT_PATH)) {
-    return path
+  // 如果当前路径不是根路径，则添加路径参数
+  if (currentPath.value && currentPath.value !== '/') {
+    // 对于文件夹导航，直接传递文件夹名称
+    query.path = currentPath.value
   }
-  return RESOURCE_ROOT_PATH + '/' + path.replace(/^\/+/, '')
-}
-
-// 计算属性
-const currentQuery = computed(() => ({
-  path: currentPath.value,
-  include_hidden: showHiddenFiles.value
-}))
+  
+  return query
+})
 
 // 方法
 const loadFileList = async () => {
@@ -397,54 +388,62 @@ const loadFileList = async () => {
   }
 }
 
-const handleBreadcrumbClick = (item: any, index: number) => {
-  if (index < breadcrumbList.value.length - 1) {
-    currentPath.value = ensureRootPath(item.path)
-    updateBreadcrumb()
-    loadFileList()
-  }
+const handleBreadcrumbClick = (item: any) => {
+  // 更新当前路径为点击的面包屑项路径
+  currentPath.value = item.path
+  updateBreadcrumb()
+  loadFileList()
 }
 
 const updateBreadcrumb = () => {
-  const rootPath = RESOURCE_ROOT_PATH
-  let relativePath = currentPath.value
-  
-  // 处理HTTP URL格式的路径
-  if (currentPath.value.startsWith('http')) {
-    const url = new URL(currentPath.value)
-    relativePath = url.pathname.replace('/api/v1/static', '/home/static')
+  // 对于根路径，直接显示根目录
+  if (currentPath.value === '/') {
+    breadcrumbList.value = [{ name: '资源根目录', path: '/' }]
+    return
   }
   
-  relativePath = relativePath.replace(rootPath, '').replace(/^\/+/, '')
-  const pathParts = relativePath ? relativePath.split('/').filter(Boolean) : []
+  // 对于嵌套路径，需要分解并构建面包屑
+  const parts = currentPath.value.split('/').filter(part => part !== '')
   
   breadcrumbList.value = [
-    { name: '资源根目录', path: rootPath },
-    ...pathParts.map((part, index) => ({
+    { name: '资源根目录', path: '/' },
+    ...parts.map((part, index) => ({
       name: part,
-      path: rootPath + '/' + pathParts.slice(0, index + 1).join('/')
+      path: parts.slice(0, index + 1).join('/')
     }))
   ]
 }
 
 const handleFileNameClick = (row: ResourceItem) => {
   if (row.is_dir) {
-    currentPath.value = ensureRootPath(row.path)
+    // 如果当前在根路径，则直接使用文件夹名称
+    // 如果当前已在某个文件夹中，则拼接路径
+    if (currentPath.value === '/') {
+      currentPath.value = row.name
+    } else {
+      currentPath.value = currentPath.value + '/' + row.name
+    }
     updateBreadcrumb()
     loadFileList()
   } else {
-    // 文件预览
+    // 文件预览，使用后端返回的完整URL
     handleFilePreview(row)
   }
 }
 
 const handleItemClick = (item: ResourceItem) => {
   if (item.is_dir) {
-    currentPath.value = ensureRootPath(item.path)
+    // 如果当前在根路径，则直接使用文件夹名称
+    // 如果当前已在某个文件夹中，则拼接路径
+    if (currentPath.value === '/') {
+      currentPath.value = item.name
+    } else {
+      currentPath.value = currentPath.value + '/' + item.name
+    }
     updateBreadcrumb()
     loadFileList()
   } else {
-    // 文件预览
+    // 文件预览，使用后端返回的完整URL
     handleFilePreview(item)
   }
 }
@@ -452,7 +451,13 @@ const handleItemClick = (item: ResourceItem) => {
 // 文件预览
 const handleFilePreview = (file: ResourceItem) => {
   // 使用后端返回的完整URL路径进行预览
-  const previewUrl = file.path
+  let previewUrl = file.path
+  
+  // 如果是完整URL，直接使用
+  if (!previewUrl.startsWith('http')) {
+    // 对于相对路径，需要构建完整URL
+    previewUrl = `${window.location.origin}${previewUrl}`
+  }
   
   // 根据文件类型决定预览方式
   const fileExtension = file.file_extension?.toLowerCase() || ''
@@ -497,7 +502,19 @@ const handleUploadConfirm = async () => {
     uploadFileList.value.forEach((file: any) => {
       formData.append('file', file.raw)
     })
-    formData.append('target_path', ensureRootPath(currentPath.value))
+    
+    // 处理目标路径
+    let targetPath = currentPath.value
+    if (targetPath.startsWith('http')) {
+      try {
+        const url = new URL(targetPath)
+        targetPath = url.pathname.replace('/api/v1/static', '') || '/'
+      } catch (error) {
+        console.warn('Failed to parse URL:', targetPath, error)
+      }
+    }
+    
+    formData.append('target_path', targetPath)
 
     await ResourceAPI.uploadFile(formData)
     ElMessage.success('上传成功')
@@ -528,8 +545,19 @@ const handleCreateDirConfirm = async () => {
   }
 
   try {
+    // 处理父路径
+    let parentPath = currentPath.value
+    if (parentPath.startsWith('http')) {
+      try {
+        const url = new URL(parentPath)
+        parentPath = url.pathname.replace('/api/v1/static', '') || '/'
+      } catch (error) {
+        console.warn('Failed to parse URL:', parentPath, error)
+      }
+    }
+    
     await ResourceAPI.createDirectory({
-      parent_path: ensureRootPath(currentPath.value),
+      parent_path: parentPath,
       dir_name: createDirForm.dir_name.trim()
     })
     ElMessage.success('创建成功')
@@ -590,7 +618,17 @@ const handleShowHiddenChange = () => {
 
 const handleDownload = async (item: ResourceItem) => {
   try {
-    const filePath = ensureRootPath(item.path)
+    // 处理完整URL路径
+    let filePath = item.path
+    if (filePath.startsWith('http')) {
+      try {
+        const url = new URL(filePath)
+        filePath = url.pathname.replace('/api/v1/static', '') || '/'
+      } catch (error) {
+        console.warn('Failed to parse URL:', filePath, error)
+      }
+    }
+    
     const response = await ResourceAPI.downloadFile(filePath)
     const blob = response.data
     const url = window.URL.createObjectURL(blob)
@@ -608,7 +646,18 @@ const handleDownload = async (item: ResourceItem) => {
 }
 
 const handleRename = (item: ResourceItem) => {
-  renameForm.old_path = ensureRootPath(item.path)
+  // 处理完整URL路径
+  let oldPath = item.path
+  if (oldPath.startsWith('http')) {
+    try {
+      const url = new URL(oldPath)
+      oldPath = url.pathname.replace('/api/v1/static', '') || '/'
+    } catch (error) {
+      console.warn('Failed to parse URL:', oldPath, error)
+    }
+  }
+  
+  renameForm.old_path = oldPath
   renameForm.new_name = item.name
   renameDialogVisible.value = true
 }
@@ -633,12 +682,6 @@ const handleRenameConfirm = async () => {
   }
 }
 
-const handleMove = (item: ResourceItem) => {
-  // TODO: 实现移动功能
-  ElMessage.info('移动功能待实现')
-}
-
-
 const handleDelete = async (item: ResourceItem) => {
   try {
     await ElMessageBox.confirm(
@@ -651,7 +694,17 @@ const handleDelete = async (item: ResourceItem) => {
       }
     )
 
-    const filePath = ensureRootPath(item.path)
+    // 处理完整URL路径
+    let filePath = item.path
+    if (filePath.startsWith('http')) {
+      try {
+        const url = new URL(filePath)
+        filePath = url.pathname.replace('/api/v1/static', '') || '/'
+      } catch (error) {
+        console.warn('Failed to parse URL:', filePath, error)
+      }
+    }
+    
     await ResourceAPI.deleteResource([filePath])
     ElMessage.success('删除成功')
     loadFileList()
@@ -661,16 +714,6 @@ const handleDelete = async (item: ResourceItem) => {
       console.error('Delete error:', error)
     }
   }
-}
-
-const handleSizeChange = (size: number) => {
-  pagination.page_size = size
-  loadFileList()
-}
-
-const handleCurrentChange = (page: number) => {
-  pagination.page_no = page
-  loadFileList()
 }
 
 const handlePagination = (params: { page: number; limit: number }) => {
@@ -696,7 +739,20 @@ const handleBatchDelete = async () => {
       }
     )
 
-    const paths = selectedItems.value.map(item => ensureRootPath(item.path))
+    const paths = selectedItems.value.map(item => {
+      // 处理完整URL路径
+      let path = item.path
+      if (path.startsWith('http')) {
+        try {
+          const url = new URL(path)
+          path = url.pathname.replace('/api/v1/static', '') || '/'
+        } catch (error) {
+          console.warn('Failed to parse URL:', path, error)
+        }
+      }
+      return path
+    })
+    
     await ResourceAPI.deleteResource(paths)
     ElMessage.success('删除成功')
     loadFileList()
@@ -721,10 +777,6 @@ const formatFileSize = (size?: number | null) => {
   }
 
   return `${fileSize.toFixed(1)} ${units[unitIndex]}`
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString()
 }
 
 // 生命周期
