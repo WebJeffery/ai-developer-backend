@@ -16,7 +16,7 @@ hero:
   actions:
     - theme: brand
       text: 快速开始
-      link: /docs
+      link: /quickstart/start
     - theme: alt
       text: 在线演示
       link: https://service.fastapiadmin.com/web

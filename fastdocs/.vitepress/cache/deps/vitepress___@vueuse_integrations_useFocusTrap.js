@@ -3,13 +3,13 @@ import {
   toArray,
   tryOnScopeDispose,
   unrefElement
-} from "./chunk-IEXRY54B.js";
+} from "./chunk-VKYC36UR.js";
 import {
   computed,
   shallowRef,
   toValue,
   watch
-} from "./chunk-IBXOI5KQ.js";
+} from "./chunk-JNFF4ERX.js";
 
 // node_modules/.pnpm/tabbable@6.2.0/node_modules/tabbable/dist/index.esm.js
 var candidateSelectors = ["input:not([inert])", "select:not([inert])", "textarea:not([inert])", "a[href]:not([inert])", "button:not([inert])", "[tabindex]:not(slot):not([inert])", "audio[controls]:not([inert])", "video[controls]:not([inert])", '[contenteditable]:not([contenteditable="false"]):not([inert])', "details>summary:first-of-type:not([inert])", "details:not([inert])"];
@@ -1065,7 +1065,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
   return trap;
 };
 
-// node_modules/.pnpm/@vueuse+integrations@13.6.0_focus-trap@7.6.5_vue@3.5.21/node_modules/@vueuse/integrations/useFocusTrap.mjs
+// node_modules/.pnpm/@vueuse+integrations@12.8.2_focus-trap@7.6.5/node_modules/@vueuse/integrations/useFocusTrap.mjs
 function useFocusTrap(target, options = {}) {
   let trap;
   const { immediate, ...focusTrapOptions } = options;
@@ -1097,29 +1097,21 @@ function useFocusTrap(target, options = {}) {
     (els) => {
       if (!els.length)
         return;
-      if (!trap) {
-        trap = createFocusTrap(els, {
-          ...focusTrapOptions,
-          onActivate() {
-            hasFocus.value = true;
-            if (options.onActivate)
-              options.onActivate();
-          },
-          onDeactivate() {
-            hasFocus.value = false;
-            if (options.onDeactivate)
-              options.onDeactivate();
-          }
-        });
-        if (immediate)
-          activate();
-      } else {
-        const isActive = trap == null ? void 0 : trap.active;
-        trap == null ? void 0 : trap.updateContainerElements(els);
-        if (!isActive && immediate) {
-          activate();
+      trap = createFocusTrap(els, {
+        ...focusTrapOptions,
+        onActivate() {
+          hasFocus.value = true;
+          if (options.onActivate)
+            options.onActivate();
+        },
+        onDeactivate() {
+          hasFocus.value = false;
+          if (options.onDeactivate)
+            options.onDeactivate();
         }
-      }
+      });
+      if (immediate)
+        activate();
     },
     { flush: "post" }
   );

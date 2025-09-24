@@ -29,3 +29,4 @@ devops/nginx/ssl
 fastapp/components.d.ts
 frontend/src/types/auto-imports.d.ts
 frontend/src/types/components.d.ts
+fastdocs/.vitepress/cache/*
