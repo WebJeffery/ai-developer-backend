@@ -27,8 +27,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       },
     },
     build: {
-      target: "es6",
-      cssTarget: "chrome61",
+      target: "es6"
     },
     optimizeDeps: {
       include: ["wot-design-uni"],
@@ -70,8 +69,8 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         dirs: ["src/composables", "src/store", "src/utils", "src/api"],
         vueTemplate: true,
       }),
-
-      uni(),
+      
+      uni.default(),
     ],
   };
 });
