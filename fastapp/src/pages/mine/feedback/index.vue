@@ -73,38 +73,38 @@ const formData = reactive({
 // 表单验证规则
 const rules: FormRules = {
   feedbackType: [
-    {;
-  required: true,;
-message: "请选择问题类型",;
-trigger: "change",
+    {
+      required: true,
+      message: "请选择问题类型",
+      trigger: "change",
     },
-  ], ;
-description: [
-  {;
-    required: true,;
-    message: "请描述您遇到的问题",;
-    validator: (value) => {
-      if (value && value.trim()) {
-        return Promise.resolve();
-      } else {
-        return Promise.reject("请描述您遇到的问题");
-      }
+  ],
+  description: [
+    {
+      required: true,
+      message: "请描述您遇到的问题",
+      validator: (value) => {
+        if (value && value.trim()) {
+          return Promise.resolve();
+        } else {
+          return Promise.reject("请描述您遇到的问题");
+        }
+      },
     },
-  },
-],;
-contact: [
-  {;
-    required: false,;
-    validator: (value) => {
-      if (!value) return Promise.resolve(); // 非必填
-      const emailReg = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
-      const phoneReg = /^1[3456789]\d{9}$/;
-      return emailReg.test(value) || phoneReg.test(value) ?; Promise.resolve() : Promise.reject("请输入正确的手机号或邮箱");
-    },;
-    message: "请输入正确的手机号或邮箱",;
-    trigger: "blur",
-  },
-],
+  ],
+  contact: [
+    {
+      required: false,
+      validator: (value) => {
+        if (!value) return Promise.resolve(); // 非必填
+        const emailReg = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
+        const phoneReg = /^1[3456789]\d{9}$/;
+        return emailReg.test(value) || phoneReg.test(value) ? Promise.resolve() : Promise.reject("请输入正确的手机号或邮箱");
+      },
+      message: "请输入正确的手机号或邮箱",
+      trigger: "blur",
+    },
+  ],
 };
 
 // 提交状态
