@@ -110,18 +110,6 @@ export const useThemeStore = defineStore("appTheme", () => {
     Object.assign(themeVars, colors);
   };
 
-  // 获取主题CSS变量配置
-  const getThemeCSSVariables = (isDark: boolean) => ({
-    '--wot-color-bg': isDark ? '#0f0f0f' : '#f8f8f8',
-    '--wot-color-title': isDark ? '#ffffff' : '#1d2129',
-    '--wot-color-content': isDark ? '#e0e0e0' : '#4e5969',
-    '--wot-color-secondary': isDark ? '#a0a0a0' : '#86909c',
-    '--wot-color-border': isDark ? '#2f2f2f' : '#e5e6eb',
-    '--wot-color-border-light': isDark ? '#3d3d3d' : '#f2f3f5',
-    '--wot-card-bg': isDark ? '#1a1a1a' : '#ffffff',
-    '--wot-card-content-border-color': isDark ? '#2f2f2f' : '#e5e6eb',
-  });
-
   // 更新CSS变量
   const updateCSSVariables = () => {
     // 确保在客户端环境且DOM已准备好
@@ -136,11 +124,6 @@ export const useThemeStore = defineStore("appTheme", () => {
       root.classList.toggle('dark', isDark);
       root.classList.toggle('light', !isDark);
       
-      // 批量设置CSS变量
-      const cssVars = getThemeCSSVariables(isDark);
-      Object.entries(cssVars).forEach(([key, value]) => {
-        root.style.setProperty(key, value);
-      });
     }
     
     // 更新主题变量
