@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <wd-card custom-style="margin-top: 20rpx" class="theme-card">
       <view class="flex-col-center py-lg">
         <text class="text-xl font-bold mb-md theme-text-primary">用户协议</text>
@@ -72,14 +72,12 @@ const handleAgree = () => {
 };
 </script>
 
-<route lang="json">
-{
+<route lang="json">{
   "name": "agreement",
   "style": {
     "navigationBarTitleText": "用户协议"
   },
   "layout": "tabbar"
-}
-</route>
+}</route>
 
 <style lang="scss" scoped></style>

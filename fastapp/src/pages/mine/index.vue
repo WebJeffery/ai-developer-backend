@@ -1,5 +1,5 @@
 <template>
-  <view :key="renderKey" class="app-container theme-adaptive">
+  <view :key="renderKey" class="app-container">
     <!-- 用户信息卡片 -->
     <view class="user-profile theme-card">
       <view class="blur-bg"></view>

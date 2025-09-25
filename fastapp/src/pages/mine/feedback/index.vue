@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <wd-text size="small" class="theme-text-secondary">选填，最多上传3张图片</wd-text>
     <wd-form ref="formRef" :model="formData" :rules="rules" errorType="toast">
       <!-- 问题类型选择 -->
@@ -13,16 +13,15 @@
 
       <!-- 问题描述 -->
       <wd-cell-group title="问题描述" custom-class="theme-card mt-md">
-        <wd-textarea v-model="formData.description" prop="description" placeholder="请详细描述您遇到的问题或建议..."
-          :maxlength="300" show-word-limit custom-class="p-md" />
+        <wd-textarea v-model="formData.description" prop="description" placeholder="请详细描述您遇到的问题或建议..." :maxlength="300"
+          show-word-limit custom-class="p-md" />
       </wd-cell-group>
 
       <!-- 相关截图 -->
       <wd-cell-group title="相关截图" custom-class="theme-card mt-md">
         <view class="p-md">
           <wd-text size="small" custom-class="theme-text-secondary mb-sm">选填，最多上传3张图片</wd-text>
-          <wd-upload v-model="formData.fileList" :max-count="3" :before-read="beforeRead"
-            @delete="handleDelete" />
+          <wd-upload v-model="formData.fileList" :max-count="3" :before-read="beforeRead" @delete="handleDelete" />
         </view>
       </wd-cell-group>
 
@@ -36,7 +35,8 @@
 
       <!-- 提交按钮 -->
       <view class="footer theme-card mt-md">
-        <wd-button type="primary" size="large" :loading="submitting" block custom-class="submit-btn" @click="handleSubmit">提交反馈</wd-button>
+        <wd-button type="primary" size="large" :loading="submitting" block custom-class="submit-btn"
+          @click="handleSubmit">提交反馈</wd-button>
       </view>
     </wd-form>
   </view>
@@ -73,38 +73,38 @@ const formData = reactive({
 // 表单验证规则
 const rules: FormRules = {
   feedbackType: [
-    {
-      required: true,
-      message: "请选择问题类型",
-      trigger: "change",
+    {;
+  required: true,;
+message: "请选择问题类型",;
+trigger: "change",
     },
-  ],
-  description: [
-    {
-      required: true,
-      message: "请描述您遇到的问题",
-      validator: (value) => {
-        if (value && value.trim()) {
-          return Promise.resolve();
-        } else {
-          return Promise.reject("请描述您遇到的问题");
-        }
-      },
+  ], ;
+description: [
+  {;
+    required: true,;
+    message: "请描述您遇到的问题",;
+    validator: (value) => {
+      if (value && value.trim()) {
+        return Promise.resolve();
+      } else {
+        return Promise.reject("请描述您遇到的问题");
+      }
     },
-  ],
-  contact: [
-    {
-      required: false,
-      validator: (value) => {
-        if (!value) return Promise.resolve(); // 非必填
-        const emailReg = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
-        const phoneReg = /^1[3456789]\d{9}$/;
-        return emailReg.test(value) || phoneReg.test(value) ? Promise.resolve() : Promise.reject("请输入正确的手机号或邮箱");
-      },
-      message: "请输入正确的手机号或邮箱",
-      trigger: "blur",
-    },
-  ],
+  },
+],;
+contact: [
+  {;
+    required: false,;
+    validator: (value) => {
+      if (!value) return Promise.resolve(); // 非必填
+      const emailReg = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
+      const phoneReg = /^1[3456789]\d{9}$/;
+      return emailReg.test(value) || phoneReg.test(value) ?; Promise.resolve() : Promise.reject("请输入正确的手机号或邮箱");
+    },;
+    message: "请输入正确的手机号或邮箱",;
+    trigger: "blur",
+  },
+],
 };
 
 // 提交状态
@@ -142,7 +142,7 @@ const handleSubmit = async () => {
       submitting.value = true;
       try {
         // TODO: 调用提交反馈的接口
-        await new Promise((resolve) => setTimeout(resolve, 1500)); // 模拟提交
+        await new Promise((resolve) => setTimeout(resolve, 1500)); TODO // 模拟提交
         toast.success("提交成功，我们会尽快处理您的反馈");
 
         // 重置表单
@@ -169,14 +169,10 @@ const handleSubmit = async () => {
 };
 </script>
 
-<route lang="json">
-{
+<route lang="json">{
   "name": "feedback",
-  "style": {
-    "navigationBarTitleText": "问题反馈"
-  }
-}
-</route>
+  "style": {}
+}</route>
 
 <style lang="scss" scoped>
 .footer {

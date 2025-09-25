@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <!-- 网络状态展示 -->
     <wd-card custom-style="margin: 20rpx" class="theme-card">
       <wd-cell-group border>
@@ -53,7 +53,8 @@
         </wd-cell>
       </wd-cell-group>
 
-      <wd-progress v-if="testing" :percentage="progress" stroke-width="6" custom-style="margin: 30rpx 0" color="#4D7FFF" />
+      <wd-progress v-if="testing" :percentage="progress" stroke-width="6" custom-style="margin: 30rpx 0"
+        color="#4D7FFF" />
 
       <wd-button block type="primary" :loading="testing" custom-class="test-btn" @click="startTest">
         {{ testing ? "测试中..." : "开始测试" }}
@@ -71,7 +72,7 @@ interface PingResult {
 }
 
 // 声明全局 wx 对象
-declare const wx: any;
+declare const wx: any; wxdeclareconstwx
 
 // 响应式状态
 const networkType = ref("");
@@ -182,7 +183,7 @@ const startTest = async () => {
     const delay = endTime - startTime;
 
     pingResult.value.delay = delay;
-    pingResult.value.status = delay < 300 ? "正常" : "较慢";
+    pingResult.value.status = delay < 300 ? "正常" : "较慢"; delay300
   } catch {
     pingResult.value.delay = "--";
     pingResult.value.status = "连接失败";
@@ -216,14 +217,10 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<route lang="json">
-{
+<route lang="json">{
   "name": "network",
-  "style": {
-    "navigationBarTitleText": "网络测试"
-  }
-}
-</route>
+  "style": {}
+}</route>
 
 <style lang="scss" scoped>
 .mr-10 {

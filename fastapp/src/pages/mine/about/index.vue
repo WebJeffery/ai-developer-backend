@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <wd-card custom-style="margin-top: 20rpx" class="theme-card">
       <view class="company-section flex-center flex-column">
         <view class="about-meta text-center">
@@ -57,13 +57,10 @@ onMounted(() => {
 
 <route lang="json">{
   "name": "about",
-  "style": {
-    "navigationBarTitleText": "关于我们"
-  }
+  "style": {}
 }</route>
 
 <style lang="scss" scoped>
-
 .about-logo {
   margin-bottom: 20rpx;
 }

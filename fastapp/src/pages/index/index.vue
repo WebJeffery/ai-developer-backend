@@ -1,7 +1,6 @@
 <template>
-  <view style="width: 100%; height: var(--status-bar-height)" />
-  <view class="app-container theme-adaptive">
-    <wd-swiper v-model:current="current" :list="swiperList" autoplay />
+  <view class="app-container">
+    <wd-swiper v-model:current="current" :list="swiperList" autoplay height="300rpx" />
 
     <!-- 快捷导航 -->
     <wd-grid clickable :column="4" class="mt-2">
@@ -62,7 +61,7 @@
         </view>
       </template>
 
-      <view class="h-330px mb-2rpx">
+      <view class="h-240px mb-2rpx">
         <qiun-data-charts type="area" :chartData="chartData" :opts="chartOpts" />
       </view>
     </wd-card>
@@ -245,4 +244,5 @@ onShow(() => {
   },
   "layout": "tabbar"
 }</route>
-<style setup lang="scss"></style>
+
+<style lang="scss" scoped></style>

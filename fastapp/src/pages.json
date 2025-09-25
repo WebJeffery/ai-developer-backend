@@ -13,9 +13,7 @@
       "path": "pages/login/index",
       "type": "page",
       "name": "login",
-      "style": {
-        "navigationBarTitleText": "登录"
-      }
+      "style": {}
     },
     {
       "path": "pages/mine/index",
@@ -42,25 +40,19 @@
       "path": "pages/mine/about/index",
       "type": "page",
       "name": "about",
-      "style": {
-        "navigationBarTitleText": "关于我们"
-      }
+      "style": {}
     },
     {
       "path": "pages/mine/faq/index",
       "type": "page",
       "name": "faq",
-      "style": {
-        "navigationBarTitleText": "常见问题"
-      }
+      "style": {}
     },
     {
       "path": "pages/mine/feedback/index",
       "type": "page",
       "name": "feedback",
-      "style": {
-        "navigationBarTitleText": "问题反馈"
-      }
+      "style": {}
     },
     {
       "path": "pages/mine/profile/complete-profile",
@@ -70,9 +62,7 @@
       "path": "pages/mine/profile/index",
       "type": "page",
       "name": "profile",
-      "style": {
-        "navigationBarTitleText": "个人中心"
-      }
+      "style": {}
     },
     {
       "path": "pages/mine/settings/index",
@@ -104,17 +94,13 @@
       "path": "pages/mine/settings/network/index",
       "type": "page",
       "name": "network",
-      "style": {
-        "navigationBarTitleText": "网络测试"
-      }
+      "style": {}
     },
     {
       "path": "pages/mine/settings/privacy/index",
       "type": "page",
       "name": "privacy",
-      "style": {
-        "navigationBarTitleText": "隐私政策"
-      }
+      "style": {}
     },
     {
       "path": "pages/mine/settings/theme/index",
