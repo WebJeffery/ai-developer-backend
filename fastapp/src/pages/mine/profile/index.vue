@@ -29,7 +29,7 @@
           </template>
           <template #value>
             <text class="theme-text-secondary">
-              {{ userProfile.gender === "0" ? "男" : userProfile.gender === "1"; ?"女" : "未知" }}
+              {{ userProfile.gender === "0" ? "男" : userProfile.gender === "1" ?"女" : "未知" }}
             </text>
           </template>
         </wd-cell>
@@ -208,8 +208,8 @@ function handleAvatarConfirm(event: any) {
 
 // 本页面中所有的校验规则
 const rules: FormRules = {
-  name: [{; required: true,; message: "请填写昵称" }], ;
-gender: [{; required: true,; message: "请选择性别" }],
+  name: [{ required: true, message: "请填写昵称" }],
+  gender: [{ required: true, message: "请选择性别" }],
 };
 
 const dialog = reactive({

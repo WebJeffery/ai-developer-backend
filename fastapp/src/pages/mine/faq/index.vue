@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container
+  <view class="app-container">
     <scroll-view class=" content-scroll" scroll-y :scroll-top="scrollTop" @scroll="handleScroll">
     <view class="content-wrapper">
       <!-- 技术支持卡片 -->
