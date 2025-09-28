@@ -48,7 +48,7 @@ class PaginationService:
 
         # 验证分页参数
         if page_no < 1 or page_size < 1:
-            raise CustomException(code=RET.BAD_REQUEST.code, msg="分页参数不合法")
+            raise CustomException(code=RET.ERROR.code, msg="分页参数不合法")
         
         # 计算起始索引和结束索引
         start = (page_no - 1) * page_size

@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <!-- 页面标题 -->
     <view class="page-header">
       <text class="page-title theme-text-primary">工作台</text>
@@ -114,8 +114,7 @@ const handleActionClick = (action: any) => {
 }
 </script>
 
-<route lang="json">
-{
+<route lang="json">{
   "name": "work",
   "style": {
     "navigationStyle": "custom"
@@ -124,8 +123,7 @@ const handleActionClick = (action: any) => {
   "meta": {
     "requireAuth": true
   }
-}
-</route>
+}</route>
 
 <style lang="scss" scoped>
 .page-header {

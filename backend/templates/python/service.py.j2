@@ -1,15 +1,20 @@
 # -*- coding:utf-8 -*-
 
+import io
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, List, Dict, Optional
+from fastapi import UploadFile
+import pandas as pd
 
 from app.core.exceptions import CustomException
 from app.common.response import SuccessResponse
 from app.api.v1.module_system.user.schema import UserOutSchema
 from app.api.v1.module_system.auth.schema import AuthSchema
-from {{ packageName }}.entity.vo.{{ tableName }}_vo import {{ tableName|snake_to_pascal_case }}PageModel, {{ tableName|snake_to_pascal_case }}Model
-from {{ packageName }}.dao.{{ tableName }}_dao import {{ tableName|snake_to_pascal_case }}Dao
+from app.utils.excel_util import ExcelUtil
+from {{ packageName }}.crud.{{ tableName }}_crud import {{ tableName|snake_to_pascal_case }}Dao
+from {{ packageName }}.schema import {{ tableName|snake_to_pascal_case }}CreateSchema, {{ tableName|snake_to_pascal_case }}UpdateSchema
+from {{ packageName }}.param import {{ tableName|snake_to_pascal_case }}QueryParam
 
 
 class {{ tableName|snake_to_pascal_case }}Service:
@@ -18,14 +23,15 @@ class {{ tableName|snake_to_pascal_case }}Service:
     """
 
     @classmethod
-    async def get_{{ tableName }}_list_services(
-        cls, auth: AuthSchema, query_object: {{ tableName|snake_to_pascal_case }}PageModel
+    async def get_{{ tableName }}_list_service(
+        cls, auth: AuthSchema, search: {{ tableName|snake_to_pascal_case }}QueryParam = None, order_by: Optional[str] = None
     ):
         """
         获取{{ functionName }}列表信息service
 
         :param auth: 认证信息
-        :param query_object: 查询参数对象
+        :param search: 查询参数对象
+        :param order_by: 排序字段
         :return: {{ functionName }}列表信息对象
         """
         # 确保db是AsyncSession类型
@@ -33,12 +39,12 @@ class {{ tableName|snake_to_pascal_case }}Service:
             raise CustomException(msg='数据库会话类型不正确')
             
         {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
-        {{ tableName }}_list_result = await {{ tableName }}_dao.get_{{ tableName }}_list(auth.db, query_object, is_page=True)
+        {{ tableName }}_list_result = await {{ tableName }}_dao.get_{{ tableName }}_list(auth.db, search, order_by)
 
         return {{ tableName }}_list_result
 
     @classmethod
-    async def get_{{ tableName }}_by_id_services(cls, auth: AuthSchema, {{ tableName }}_id: int) -> {{ tableName|snake_to_pascal_case }}Model:
+    async def get_{{ tableName }}_by_id_service(cls, auth: AuthSchema, {{ tableName }}_id: int):
         """
         根据{{ tableName }}id获取{{ functionName }}信息service
 
@@ -58,14 +64,14 @@ class {{ tableName|snake_to_pascal_case }}Service:
             raise CustomException(msg='{{ functionName }}不存在')
 
     @classmethod
-    async def add_{{ tableName }}_services(
-        cls, auth: AuthSchema, page_object: {{ tableName|snake_to_pascal_case }}Model
+    async def add_{{ tableName }}_service(
+        cls, auth: AuthSchema, data: {{ tableName|snake_to_pascal_case }}CreateSchema
     ) -> SuccessResponse:
         """
         新增{{ functionName }}service
 
         :param auth: 认证信息
-        :param page_object: 新增{{ functionName }}对象
+        :param data: 新增{{ functionName }}对象
         :return: 新增{{ functionName }}结果
         """
         # 确保db是AsyncSession类型
@@ -75,8 +81,9 @@ class {{ tableName|snake_to_pascal_case }}Service:
         {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
         
         try:
-            page_object.create_time = datetime.now()
-            await {{ tableName }}_dao.create(data=page_object.model_dump())
+            data_dict = data.model_dump()
+            data_dict['create_time'] = datetime.now()
+            await {{ tableName }}_dao.create(data=data_dict)
             if isinstance(auth.db, AsyncSession):
                 await auth.db.commit()
             return SuccessResponse(msg='新增成功')
@@ -89,12 +96,13 @@ class {{ tableName|snake_to_pascal_case }}Service:
             raise CustomException(msg=f'新增失败: {str(e)}')
 
     @classmethod
-    async def update_{{ tableName }}_services(cls, auth: AuthSchema, page_object: {{ tableName|snake_to_pascal_case }}Model) -> SuccessResponse:
+    async def update_{{ tableName }}_service(cls, auth: AuthSchema, id: int, data: {{ tableName|snake_to_pascal_case }}UpdateSchema) -> SuccessResponse:
         """
         编辑{{ functionName }}service
 
         :param auth: 认证信息
-        :param page_object: 编辑{{ functionName }}对象
+        :param id: {{ functionName }}ID
+        :param data: 编辑{{ functionName }}对象
         :return: 编辑{{ functionName }}结果
         """
         # 确保db是AsyncSession类型
@@ -103,16 +111,13 @@ class {{ tableName|snake_to_pascal_case }}Service:
             
         {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
         
-        # 检查必要字段是否存在
-        if page_object.id is None:
-            raise CustomException(msg='{{ functionName }}ID不能为空')
-            
-        edit_{{ tableName }} = page_object.model_dump(exclude_unset=True)
-        {{ tableName }}_info = await cls.get_{{ tableName }}_by_id_services(auth, page_object.id)
+        # 检查记录是否存在
+        {{ tableName }}_info = await cls.get_{{ tableName }}_by_id_service(auth, id)
         if {{ tableName }}_info:
             try:
-                edit_{{ tableName }}['update_time'] = datetime.now()
-                await {{ tableName }}_dao.update(id=page_object.id, data=edit_{{ tableName }})
+                data_dict = data.model_dump(exclude_unset=True)
+                data_dict['update_time'] = datetime.now()
+                await {{ tableName }}_dao.update(id=id, data=data_dict)
                 if isinstance(auth.db, AsyncSession):
                     await auth.db.commit()
                 return SuccessResponse(msg='更新成功')
@@ -127,7 +132,7 @@ class {{ tableName|snake_to_pascal_case }}Service:
             raise CustomException(msg='{{ functionName }}不存在')
 
     @classmethod
-    async def del_{{ tableName }}_services(cls, auth: AuthSchema, ids: List[str]) -> SuccessResponse:
+    async def del_{{ tableName }}_service(cls, auth: AuthSchema, ids: List[int]) -> SuccessResponse:
         """
         删除{{ functionName }}service
 
@@ -142,8 +147,7 @@ class {{ tableName|snake_to_pascal_case }}Service:
         {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
         
         try:
-            id_list = [int(id) for id in ids]
-            await {{ tableName }}_dao.delete(ids=id_list)
+            await {{ tableName }}_dao.delete(ids=ids)
             if isinstance(auth.db, AsyncSession):
                 await auth.db.commit()
             return SuccessResponse(msg='删除成功')
@@ -156,89 +160,115 @@ class {{ tableName|snake_to_pascal_case }}Service:
             raise CustomException(msg=f'删除失败: {str(e)}')
 
     @classmethod
-    async def export_{{ tableName }}_list_services(cls, auth: AuthSchema, query_object: {{ tableName|snake_to_pascal_case }}PageModel) -> bytes:
+    async def export_{{ tableName }}_list_service(cls, {{ tableName }}_list: List[Dict[str, Any]]) -> bytes:
         """
-        导出{{ functionName }}service
+        导出{{ functionName }}列表service
+
+        :param {{ tableName }}_list: {{ functionName }}列表数据
+        :return: 导出的Excel文件二进制数据
+        """
+        # 定义字段映射
+        mapping_dict = {
+            'id': '编号',
+            {% for column in columns %}
+            '{{ column.columnName }}': '{{ column.columnComment }}',
+            {% endfor %}
+            'create_by': '创建者',
+            'create_time': '创建时间',
+            'update_by': '更新者',
+            'update_time': '更新时间',
+            'remark': '备注'
+        }
+
+        # 复制数据并进行必要的转换
+        data = {{ tableName }}_list.copy()
+        for item in data:
+            # 在这里可以添加特定字段的转换逻辑
+            pass
+
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
+
+    @classmethod
+    async def import_{{ tableName }}_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:
+        """
+        导入{{ functionName }}service
 
         :param auth: 认证信息
-        :param query_object: 查询参数对象
-        :return: 导出{{ functionName }}结果
+        :param file: 上传的Excel文件
+        :param update_support: 是否支持更新
+        :return: 导入结果信息
         """
-        # 确保db是AsyncSession类型
-        if not isinstance(auth.db, AsyncSession):
-            raise CustomException(msg='数据库会话类型不正确')
+        # 定义表头映射
+        header_dict = {
+            {% for column in columns %}
+            '{{ column.columnComment }}': '{{ column.columnName }}',
+            {% endfor %}
+        }
+
+        try:
+            # 读取Excel文件
+            contents = await file.read()
+            df = pd.read_excel(io.BytesIO(contents))
+            await file.close()
             
-        {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
-        {{ tableName }}_list_result = await {{ tableName }}_dao.get_{{ tableName }}_list(auth.db, query_object, is_page=False)
+            if df.empty:
+                raise CustomException(msg="导入文件为空")
+            
+            # 检查表头是否完整
+            missing_headers = [header for header in header_dict.keys() if header not in df.columns]
+            if missing_headers:
+                raise CustomException(msg=f"导入文件缺少必要的列: {', '.join(missing_headers)}")
+            
+            # 重命名列名
+            df.rename(columns=header_dict, inplace=True)
+            
+            error_msgs = []
+            success_count = 0
+            
+            # 处理每一行数据
+            for index, row in df.iterrows():
+                try:
+                    # 构建数据对象
+                    data = {}
+                    {% for column in columns %}
+                    data['{{ column.columnName }}'] = row['{{ column.columnName }}']
+                    {% endfor %}
+
+                    # 处理导入逻辑
+                    # 这里需要根据实际情况调整，比如检查是否已存在相同记录
+                    await {{ tableName|snake_to_pascal_case }}Dao(auth).create(data=data)
+                    success_count += 1
+                        
+                except Exception as e:
+                    error_msgs.append(f"第{index+1}行: {str(e)}")
+                    continue
+
+            # 返回详细的导入结果
+            result = f"成功导入 {success_count} 条数据"
+            if error_msgs:
+                result += "\n错误信息:\n" + "\n".join(error_msgs)
+            return result
+            
+        except Exception as e:
+            raise CustomException(msg=f"导入失败: {str(e)}")
+
+    @classmethod
+    async def get_import_template_{{ tableName }}_service(cls) -> bytes:
+        """
+        获取{{ functionName }}导入模板service
+
+        :return: Excel模板文件二进制数据
+        """
+        header_list = [
+            {% for column in columns %}
+            '{{ column.columnComment }}',
+            {% endfor %}
+        ]
+        selector_header_list = []  # 需要下拉选择的列
+        option_list = []  # 下拉选项配置
         
-        # 这里应该实现导出逻辑，例如生成Excel文件
-        # 为简化起见，我们返回一个简单的文本文件
-        export_data = "ID,名称\n"
-        for item in {{ tableName }}_list_result.get("items", []):
-            export_data += f"{item.id},{getattr(item, 'name', '')}\n"
-        
-        return export_data.encode('utf-8')
-
-
-# -*- coding:utf-8 -*-
-
-from typing import List
-from sqlalchemy.ext.asyncio import AsyncSession
-from utils.common_util import CamelCaseUtil, export_list2excel
-from module_admin.entity.vo.sys_table_vo import SysTablePageModel
-from module_admin.service.sys_table_service import SysTableService
-from utils.page_util import PageResponseModel
-from {{ packageName }}.dao.{{ tableName }}_dao import {{ tableName|snake_to_pascal_case }}Dao
-from {{ packageName }}.entity.do.{{ tableName }}_do import {{ tableName|snake_to_pascal_case }}
-from {{ packageName }}.entity.vo.{{ tableName }}_vo import {{ tableName|snake_to_pascal_case }}PageModel, {{ tableName|snake_to_pascal_case }}Model
-
-
-class {{ tableName|snake_to_pascal_case }}Service:
-    """
-    {{ tableName|snake_to_pascal_case }}管理模块服务层
-    """
-
-    @classmethod
-    async def get_{{ tableName }}_list(cls, query_db: AsyncSession, query_object: {{ tableName|snake_to_pascal_case }}PageModel, data_scope_sql: str) -> [list | PageResponseModel]:
-        {{ tableName }}_list = await {{ tableName|snake_to_pascal_case }}Dao.get_{{ tableName }}_list(query_db, query_object, data_scope_sql, is_page=True)
-        return {{ tableName }}_list
-
-    @classmethod
-    async def get_{{ tableName }}_by_id(cls, query_db: AsyncSession, {{ tableName }}_id: int) -> {{ tableName|snake_to_pascal_case }}Model:
-        {{ tableName }} = await  {{ tableName|snake_to_pascal_case }}Dao.get_by_id(query_db, {{ tableName }}_id)
-        {{ tableName }}_model = {{ tableName|snake_to_pascal_case }}Model(**CamelCaseUtil.transform_result({{ tableName }}))
-        return {{ tableName }}_model
-
-
-    @classmethod
-    async def add_{{ tableName }}(cls, query_db: AsyncSession, query_object: {{ tableName|snake_to_pascal_case }}Model) -> {{ tableName|snake_to_pascal_case }}Model:
-        {{ tableName }}_model = await {{ tableName|snake_to_pascal_case }}Dao.add_{{ tableName }}(query_db, query_object)
-        return {{ tableName }}_model
-
-
-    @classmethod
-    async def update_{{ tableName }}(cls, query_db: AsyncSession, query_object: {{ tableName|snake_to_pascal_case }}Model) -> {{ tableName|snake_to_pascal_case }}Model:
-        {{ tableName }} = await {{ tableName|snake_to_pascal_case }}Dao.edit_{{ tableName }}(query_db, query_object)
-        {{ tableName }}_model = {{ tableName|snake_to_pascal_case }}Model(**CamelCaseUtil.transform_result({{ tableName }}))
-        return {{ tableName }}_model
-
-
-    @classmethod
-    async def del_{{ tableName }}(cls, query_db: AsyncSession, {{ tableName }}_ids: List[str]):
-        await {{ tableName|snake_to_pascal_case }}Dao.del_{{ tableName }}(query_db, {{ tableName }}_ids)
-
-
-    @classmethod
-    async def export_{{ tableName }}_list(cls, query_db: AsyncSession, query_object: {{ tableName|snake_to_pascal_case }}PageModel, data_scope_sql) -> bytes:
-        {{ tableName }}_list = await {{ tableName|snake_to_pascal_case }}Dao.get_{{ tableName }}_list(query_db, query_object, data_scope_sql, is_page=False)
-        filed_list = await SysTableService.get_sys_table_list(query_db, SysTablePageModel(tableName='{{ tableName }}'), is_page=False)
-        filtered_filed = sorted(filter(lambda x: x["show"] == '1', filed_list), key=lambda x: x["sequence"])
-        new_data = []
-        for item in {{ tableName }}_list:
-            mapping_dict = {}
-            for fild in filtered_filed:
-                if fild["prop"] in item:
-                    mapping_dict[fild["label"]] = item[fild["prop"]]
-            new_data.append(mapping_dict)
-        binary_data = export_list2excel(new_data)
-        return binary_data
+        return ExcelUtil.get_excel_template(
+            header_list=header_list,
+            selector_header_list=selector_header_list,
+            option_list=option_list
+        )

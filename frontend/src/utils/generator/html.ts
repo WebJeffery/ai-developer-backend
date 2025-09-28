@@ -84,6 +84,8 @@ interface FormElement {
   gutter?: number
   children?: FormElement[]
   style?: Record<string, any>
+  prepend?: string
+  append?: string
 }
 
 let confGlobal: FormConfig

@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <wd-card v-if="userProfile" custom-style="margin-top: 20rpx" class="theme-card">
       <wd-cell-group border>
         <wd-cell class="avatar-cell" title="头像" center is-link @click="avatarUpload">
@@ -29,7 +29,7 @@
           </template>
           <template #value>
             <text class="theme-text-secondary">
-              {{ userProfile.gender === "0" ? "男" : userProfile.gender === "1" ? "女" : "未知" }}
+              {{ userProfile.gender === "0" ? "男" : userProfile.gender === "1" ?"女" : "未知" }}
             </text>
           </template>
         </wd-cell>
@@ -299,14 +299,10 @@ function touchmoveListener(event: TouchEvent) {
 }
 </script>
 
-<route lang="json">
-{
+<route lang="json">{
   "name": "profile",
-  "style": {
-    "navigationBarTitleText": "个人中心"
-  }
-}
-</route>
+  "style": {}
+}</route>
 
 <style lang="scss" scoped>
 .avatar-cell {

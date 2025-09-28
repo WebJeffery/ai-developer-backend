@@ -1,5 +1,6 @@
 import type { App } from "vue";
 
+import { setupDirective } from "@/directives";
 import { setupI18n } from "@/lang";
 import { setupRouter } from "@/router";
 import { setupStore } from "@/store";
@@ -10,6 +11,8 @@ import ElementPlus from 'element-plus'
 
 export default {
   install(app: App<Element>) {
+    // 自定义指令(directive)
+    setupDirective(app);
     // 路由(router)
     setupRouter(app);
     // 状态管理(store)

@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <wd-card custom-style="margin-top: 20rpx" class="theme-card">
       <wd-cell-group border>
         <wd-cell title="账户密码" label="定期修改密码有助于保护账户安全" value="修改" is-link @click="handleOpenDialog(DialogType.PASSWORD)">
@@ -124,7 +124,7 @@ const handleOpenDialog = (type: DialogType) => {
   dialog.visible = true;
   switch (type) {
     case DialogType.PASSWORD:
-      passwordChangeForm.old_password = "";
+      passwordChangeForm.old_password = ""; DialogType.PASSWORD
       passwordChangeForm.new_password = "";
       passwordChangeForm.confirm_password = "";
       break;
@@ -152,14 +152,12 @@ onMounted(() => {
 });
 </script>
 
-<route lang="json">
-{
+<route lang="json">{
   "name": "account",
   "style": {
     "navigationBarTitleText": "账号和安全"
   },
   "layout": "tabbar"
-}
-</route>
+}</route>
 
 <style lang="scss" scoped></style>

@@ -36,8 +36,8 @@
                   @change="handleFileChange"
                 >
                   <template #trigger>
-                    <el-button type="primary" :icon="Camera" class="upload-trigger"/>
-                  </template>
+                      <el-button type="primary" :icon="Camera" class="upload-trigger" v-hasPerm="['system:user:update']"/>
+                    </template>
                 </el-upload>
             </div>
             <span class="user-name">
@@ -145,7 +145,7 @@
                   </el-form-item>
 
                   <el-form-item>
-                    <el-button type="primary" :loading="infoSubmitting" icon="edit" @click="handleSave">保存更改</el-button>
+                    <el-button type="primary" :loading="infoSubmitting" icon="edit" @click="handleSave" v-hasPerm="['system:user:update']">保存更改</el-button>
                   </el-form-item>
                 </el-form>
               </div>
@@ -185,7 +185,7 @@
                   </el-form-item>
 
                   <el-form-item>
-                    <el-button type="primary" :loading="passwordChanging" icon="edit" @click="handlePasswordChange">更新密码</el-button>
+                    <el-button type="primary" :loading="passwordChanging" icon="edit" @click="handlePasswordChange" v-hasPerm="['current:profile:change_password']">更新密码</el-button>
                   </el-form-item>
                 </el-form>
               </div>

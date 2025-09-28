@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <!-- 背景图 -->
     <image src="/static/images/login-bg.svg" mode="aspectFill" class="login-bg" />
 
@@ -255,9 +255,7 @@ onLoad((options) => {
 
 <route lang="json">{
   "name": "login",
-  "style": {
-    "navigationBarTitleText": "登录"
-  }
+  "style": {}
 }</route>
 
 <style lang="scss" scoped>
@@ -267,7 +265,7 @@ onLoad((options) => {
   flex-direction: column;
   align-items: center;
   height: 100%;
-  min-height: 100%;
+  min-height: 100vh;
   overflow: hidden;
   background-color: var(--wot-color-bg-container);
 }
@@ -315,7 +313,6 @@ onLoad((options) => {
   width: 95%;
   margin-top: 30rpx;
   overflow: hidden;
-  background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   border-radius: 24rpx;
   box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.1);

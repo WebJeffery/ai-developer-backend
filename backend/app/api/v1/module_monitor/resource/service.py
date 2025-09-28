@@ -2,34 +2,25 @@
 
 import os
 import shutil
-import hashlib
-import io
-import psutil
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 from fastapi import UploadFile
-from PIL import Image
-import pylibmagic  # 不要删除，否则import magic 导入启动报错ImportError: failed to find libmagic.  Check your installation
-import magic
 
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.utils.excel_util import ExcelUtil
 from app.config.setting import settings
 from ...module_system.auth.schema import AuthSchema
-from .param import ResourceQueryParam
+from .param import ResourceSearchQueryParam
 from .schema import (
     ResourceItemSchema,
     ResourceDirectorySchema,
-    ResourceStatsSchema,
-    ResourceSearchSchema,
     ResourceUploadSchema,
     ResourceMoveSchema,
     ResourceCopySchema,
     ResourceRenameSchema,
-    ResourceCreateDirSchema,
-    ResourceType
+    ResourceCreateDirSchema
 )
 
 
@@ -51,7 +42,7 @@ class ResourceService:
         return str(settings.STATIC_ROOT)
     
     @classmethod
-    def _get_safe_path(cls, path: str = None) -> str:
+    def _get_safe_path(cls, path: Optional[str] = None) -> str:
         """获取安全的文件路径"""
         resource_root = cls._get_resource_root()
         
@@ -90,6 +81,33 @@ class ResourceService:
             return False
     
     @classmethod
+    def _generate_http_url(cls, file_path: str, base_url: Optional[str] = None) -> str:
+        """生成文件的HTTP URL"""
+        resource_root = cls._get_resource_root()
+        try:
+            relative_path = os.path.relpath(file_path, resource_root)
+            # 确保路径使用正斜杠（URL格式）
+            url_path = relative_path.replace(os.sep, '/')
+        except ValueError:
+            # 如果无法计算相对路径，使用文件名
+            url_path = os.path.basename(file_path)
+        
+        # 如果提供了base_url，使用它生成完整URL，否则使用settings.STATIC_URL
+        if base_url:
+            from urllib.parse import urljoin
+            # 修复URL生成逻辑
+            base_part = base_url.rstrip('/')
+            static_part = settings.STATIC_URL.lstrip('/')
+            file_part = url_path.lstrip('/')
+            if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
+                base_part += '/'
+            http_url = f"{base_part}{static_part}/{file_part}".replace('//', '/').replace(':/', '://')
+        else:
+            http_url = f"{settings.STATIC_URL}/{url_path}".replace('//', '/')
+        
+        return http_url
+    
+    @classmethod
     def _get_file_info(cls, file_path: str, base_url: Optional[str] = None) -> Dict[str, Any]:
         """获取文件信息"""
         try:
@@ -100,27 +118,6 @@ class ResourceService:
             stat = os.stat(safe_path)
             path_obj = Path(safe_path)
             resource_root = cls._get_resource_root()
-            
-            # 获取文件扩展名和类型
-            file_extension = path_obj.suffix.lower() if path_obj.suffix else None
-            
-            # 优先使用 magic 库检测 MIME 类型
-            file_type = None
-            if os.path.isfile(safe_path):
-                try:
-                    file_type = magic.from_file(safe_path, mime=True)
-                except Exception as e:
-                    logger.debug(f"magic 库检测文件类型失败: {e}")
-            
-            # 如果 magic 检测失败或不可用，使用扩展名检测
-            if not file_type and file_extension:
-                file_type = cls._get_mime_type_from_extension(file_extension)
-            
-            # 如果仍然没有类型，使用默认值
-            if not file_type:
-                file_type = 'application/octet-stream' if os.path.isfile(safe_path) else None
-                
-            resource_type = cls._determine_resource_type(file_type, file_extension)
             
             # 计算相对路径
             try:
@@ -135,33 +132,28 @@ class ResourceService:
                 depth = 0
             
             # 生成HTTP URL路径而不是文件系统路径
-            if base_url:
-                from urllib.parse import urljoin
-                base_part = base_url.rstrip('/')
-                static_part = settings.STATIC_URL.lstrip('/')
-                relative_part = relative_path.lstrip('/')
-                # 手动构建URL而不是使用urljoin，避免双斜杠问题
-                if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
-                    base_part += '/'
-                http_url = f"{base_part}{static_part}/{relative_part}".replace('\\', '/').replace('//', '/').replace(':/', '://')
-            else:
-                http_url = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
+            http_url = cls._generate_http_url(safe_path, base_url)
+            
+            # 检查是否为隐藏文件（文件名以点开头）
+            is_hidden = path_obj.name.startswith('.')
+            
+            # 对于目录，设置is_directory字段（兼容前端）
+            is_directory = os.path.isdir(safe_path)
+            
+            # 将datetime对象转换为ISO格式的字符串，确保JSON序列化成功
+            created_time = datetime.fromtimestamp(stat.st_ctime).isoformat()
+            modified_time = datetime.fromtimestamp(stat.st_mtime).isoformat()
             
             return {
                 'name': path_obj.name,
-                'path': http_url,  # 返回HTTP URL而不是文件系统路径
+                'file_url': http_url,  # 统一使用file_url字段
                 'relative_path': relative_path,
                 'is_file': os.path.isfile(safe_path),
-                'is_dir': os.path.isdir(safe_path),
+                'is_dir': is_directory,
                 'size': stat.st_size if os.path.isfile(safe_path) else None,
-                'file_type': file_type,
-                'file_extension': file_extension,
-                'resource_type': resource_type,
-                'created_time': datetime.fromtimestamp(stat.st_ctime),
-                'modified_time': datetime.fromtimestamp(stat.st_mtime),
-                'accessed_time': datetime.fromtimestamp(stat.st_atime),
-                'parent_path': str(path_obj.parent),
-                'depth': depth
+                'created_time': created_time,
+                'modified_time': modified_time,
+                'is_hidden': is_hidden
             }
         except Exception as e:
             logger.error(f'获取文件信息失败: {str(e)}')
@@ -170,7 +162,6 @@ class ResourceService:
     @classmethod
     async def get_directory_list_service(
         cls, 
-        auth: AuthSchema, 
         path: Optional[str] = None,
         include_hidden: bool = False,
         base_url: Optional[str] = None
@@ -180,45 +171,10 @@ class ResourceService:
             # 如果没有指定路径，使用静态文件根目录
             if path is None:
                 safe_path = cls._get_resource_root()
-                # 对于根目录，返回静态URL路径
-                if base_url:
-                    from urllib.parse import urljoin
-                    # 修复URL生成逻辑
-                    base_part = base_url.rstrip('/')
-                    static_part = settings.STATIC_URL.lstrip('/')
-                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
-                        base_part += '/'
-                    display_path = f"{base_part}{static_part}".replace('//', '/').replace(':/', '://')
-                else:
-                    display_path = settings.STATIC_URL
+                display_path = cls._generate_http_url(safe_path, base_url)
             else:
                 safe_path = cls._get_safe_path(path)
-                # 对于子目录，生成相对于静态URL的路径
-                resource_root = cls._get_resource_root()
-                try:
-                    relative_path = os.path.relpath(safe_path, resource_root)
-                    if base_url:
-                        from urllib.parse import urljoin
-                        # 修复URL生成逻辑
-                        base_part = base_url.rstrip('/')
-                        static_part = settings.STATIC_URL.lstrip('/')
-                        relative_part = relative_path.lstrip('/')
-                        if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
-                            base_part += '/'
-                        display_path = f"{base_part}{static_part}/{relative_part}".replace('\\', '/').replace('//', '/').replace(':/', '://')
-                    else:
-                        display_path = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
-                except ValueError:
-                    if base_url:
-                        from urllib.parse import urljoin
-                        # 修复URL生成逻辑
-                        base_part = base_url.rstrip('/')
-                        static_part = settings.STATIC_URL.lstrip('/')
-                        if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
-                            base_part += '/'
-                        display_path = f"{base_part}{static_part}".replace('//', '/').replace(':/', '://')
-                    else:
-                        display_path = settings.STATIC_URL
+                display_path = cls._generate_http_url(safe_path, base_url)
             
             if not os.path.exists(safe_path):
                 raise CustomException(msg='目录不存在')
@@ -259,14 +215,107 @@ class ResourceService:
                 total_files=total_files,
                 total_dirs=total_dirs,
                 total_size=total_size
-            ).model_dump(mode='json')
+            ).model_dump()
             
         except CustomException:
             raise
         except Exception as e:
             logger.error(f'获取目录列表失败: {str(e)}')
             raise CustomException(msg=f'获取目录列表失败: {str(e)}')
-    
+
+    @classmethod
+    async def search_resources_service(
+        cls,
+        search: Optional[ResourceSearchQueryParam] = None,
+        order_by: Optional[str] = None,
+        base_url: Optional[str] = None
+    ) -> List[Dict]:
+        """搜索资源列表（用于分页和导出）"""
+        try:
+            # 确定搜索路径
+            if search and hasattr(search, 'path') and search.path:
+                resource_root = cls._get_safe_path(search.path)
+            else:
+                resource_root = cls._get_resource_root()
+            
+            # 检查路径是否存在
+            if not os.path.exists(resource_root):
+                raise CustomException(msg='目录不存在')
+                
+            if not os.path.isdir(resource_root):
+                raise CustomException(msg='路径不是目录')
+            
+            # 收集资源
+            all_resources = []
+            
+            try:
+                for item_name in os.listdir(resource_root):
+                    # 跳过隐藏文件
+                    if item_name.startswith('.'):
+                        continue
+                    
+                    item_path = os.path.join(resource_root, item_name)
+                    file_info = cls._get_file_info(item_path, base_url)
+                    
+                    if file_info:
+                        # 应用名称过滤
+                        if search and hasattr(search, 'name') and search.name and search.name[1]:
+                            search_keyword = search.name[1].lower()
+                            if search_keyword not in file_info.get('name', '').lower():
+                                continue
+                        
+                        all_resources.append(file_info)
+                                
+            except PermissionError:
+                raise CustomException(msg='没有权限访问此目录')
+            
+            # 应用排序
+            sorted_resources = cls._sort_results(all_resources, order_by)
+            
+            # 限制最大结果数
+            if len(sorted_resources) > cls.MAX_SEARCH_RESULTS:
+                sorted_resources = sorted_resources[:cls.MAX_SEARCH_RESULTS]
+                
+            return sorted_resources
+            
+        except CustomException:
+            raise
+        except Exception as e:
+            logger.error(f'搜索资源失败: {str(e)}')
+            raise CustomException(msg=f'搜索资源失败: {str(e)}')
+
+    @classmethod
+    async def get_resources_list_service(
+        cls,
+        search: Optional[ResourceSearchQueryParam] = None,
+        order_by: Optional[str] = None,
+        base_url: Optional[str] = None
+    ) -> List[Dict]:
+        """获取资源列表（用于分页查询）"""
+        return await cls.search_resources_service(search=search, order_by=order_by, base_url=base_url)
+
+    @classmethod
+    async def export_resource_service(cls, data_list: List[Dict[str, Any]]) -> bytes:
+        """导出资源列表"""
+        mapping_dict = {
+            'name': '文件名',
+            'path': '文件路径',
+            'size': '文件大小',
+            'created_time': '创建时间',
+            'modified_time': '修改时间',
+            'parent_path': '父目录'
+        }
+
+        # 复制数据并转换状态
+        export_data = data_list.copy()
+            
+        # 格式化文件大小
+        for item in export_data:
+            if item.get('size'):
+                item['size'] = cls._format_file_size(item['size'])
+
+        return ExcelUtil.export_list2excel(list_data=export_data, mapping_dict=mapping_dict)
+
     @classmethod
     async def _get_directory_stats(cls, path: str, include_hidden: bool = False) -> Dict[str, int]:
         """递归获取目录统计信息"""
@@ -294,126 +343,45 @@ class ResourceService:
             
         return stats
     
-    @classmethod
-    async def search_resources_service(
-        cls,
-        auth: AuthSchema,
-        search: ResourceSearchSchema,
-        base_url: Optional[str] = None
-    ) -> List[Dict]:
-        """搜索资源"""
-        try:
-            # 使用静态文件根目录作为搜索起点
-            search_root = cls._get_resource_root()
-            results = []
-            
-            for root, dirs, files in os.walk(search_root):
-                # 控制搜索深度
-                try:
-                    depth = len(Path(root).relative_to(search_root).parts)
-                except ValueError:
-                    depth = 0
-                    
-                if depth > search.max_depth:
-                    dirs.clear()  # 阻止进一步深入
-                    continue
-                
-                # 过滤隐藏文件夹（性能优化）
-                if not search.include_hidden:
-                    dirs[:] = [d for d in dirs if not d.startswith('.')]
-                    files = [f for f in files if not f.startswith('.')]
-                
-                # 优化：先过滤文件名，再进行详细检查
-                if search.keyword:
-                    files = [f for f in files if search.keyword.lower() in f.lower()]
-                
-                # 搜索文件
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    
-                    # 优化：先进行快速检查
-                    if search.extensions:
-                        file_ext = os.path.splitext(file)[1].lower()
-                        if file_ext not in search.extensions:
-                            continue
-                    
-                    file_info = cls._get_file_info(file_path, base_url)
-                    
-                    if cls._match_search_criteria(file_info, search):
-                        results.append(file_info)
-                        
-                        # 限制结果数量防止内存溢出
-                        if len(results) >= cls.MAX_SEARCH_RESULTS:
-                            logger.warning(f"搜索结果过多，已截断到前{cls.MAX_SEARCH_RESULTS}个")
-                            break
-                            
-                if len(results) >= cls.MAX_SEARCH_RESULTS:
-                    break
-            
-            # 排序结果
-            return cls._sort_results(results, search)
-            
-        except Exception as e:
-            logger.error(f'搜索资源失败: {str(e)}')
-            raise CustomException(msg=f'搜索资源失败: {str(e)}')
     
     @classmethod
-    def _match_search_criteria(cls, file_info: Dict, search: ResourceSearchSchema) -> bool:
-        """检查文件是否匹配搜索条件"""
-        if not file_info or not file_info.get('is_file'):
-            return False
-        
-        # 关键词搜索
-        if search.keyword:
-            if search.keyword.lower() not in file_info.get('name', '').lower():
-                return False
-        
-        # 文件类型搜索
-        if search.file_type:
-            if search.file_type.lower() != file_info.get('file_type', '').lower():
-                return False
-        
-        # 资源类型搜索
-        if search.resource_type:
-            if search.resource_type != file_info.get('resource_type'):
-                return False
-        
-        # 文件大小搜索
-        file_size = file_info.get('size', 0) or 0
-        if search.min_size and file_size < search.min_size:
-            return False
-        if search.max_size and file_size > search.max_size:
-            return False
-        
-        # 扩展名搜索
-        if search.extensions:
-            file_ext = file_info.get('file_extension', '')
-            if file_ext not in search.extensions:
-                return False
-        
-        # 时间范围搜索
-        modified_time = file_info.get('modified_time')
-        if modified_time:
-            if search.start_date and modified_time < search.start_date:
-                return False
-            if search.end_date and modified_time > search.end_date:
-                return False
-        
-        return True
-    
-    @classmethod
-    def _sort_results(cls, results: List[Dict], search: ResourceSearchSchema) -> List[Dict]:
+    def _sort_results(cls, results: List[Dict], order_by: Optional[str] = None) -> List[Dict]:
         """排序搜索结果"""
-        sort_key = 'name'
-        if hasattr(search, 'sort_by') and search.sort_by:
-            sort_key = search.sort_by
-        
-        reverse = False
-        if hasattr(search, 'sort_order') and search.sort_order == 'desc':
-            reverse = True
-        
         try:
-            return sorted(results, key=lambda x: x.get(sort_key, ''), reverse=reverse)
+            # 默认按名称升序排序
+            if not order_by:
+                return sorted(results, key=lambda x: x.get('name', ''), reverse=False)
+            
+            # 解析order_by参数，格式: [{'field':'asc/desc'}]
+            try:
+                sort_conditions = eval(order_by)
+                if isinstance(sort_conditions, list):
+                    # 构建排序键函数
+                    def sort_key(item):
+                        keys = []
+                        for cond in sort_conditions:
+                            field = cond.get('field', 'name')
+                            direction = cond.get('direction', 'asc')
+                            # 获取字段值，默认为空字符串
+                            value = item.get(field, '')
+                            # 如果是日期字段，转换为可比较的格式
+                            if field in ['created_time', 'modified_time', 'accessed_time'] and value:
+                                value = datetime.fromisoformat(value)
+                            keys.append(value)
+                        return keys
+                    
+                    # 确定排序方向（这里只支持单一方向，多个条件时使用第一个条件的方向）
+                    reverse = False
+                    if sort_conditions and isinstance(sort_conditions[0], dict):
+                        direction = sort_conditions[0].get('direction', '').lower()
+                        reverse = direction == 'desc'
+                    
+                    return sorted(results, key=sort_key, reverse=reverse)
+            except:
+                # 如果解析失败，使用默认排序
+                pass
+            
+            return sorted(results, key=lambda x: x.get('name', ''), reverse=False)
         except:
             return results
 
@@ -470,38 +438,8 @@ class ResourceService:
             # 获取文件信息
             file_info = cls._get_file_info(file_path, base_url)
             
-            # 生成相对于资源根目录的URL路径
-            resource_root = cls._get_resource_root()
-            try:
-                relative_path = os.path.relpath(file_path, resource_root)
-                # 确保路径使用正斜杠（URL格式）
-                file_url_path = relative_path.replace(os.sep, '/')
-                # 如果提供了base_url，使用它生成完整URL，否则使用settings.STATIC_URL
-                if base_url:
-                    from urllib.parse import urljoin
-                    # 修复URL生成逻辑
-                    base_part = base_url.rstrip('/')
-                    static_part = settings.STATIC_URL.lstrip('/')
-                    file_url_part = file_url_path.lstrip('/')
-                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
-                        base_part += '/'
-                    file_url = f"{base_part}{static_part}/{file_url_part}".replace('//', '/').replace(':/', '://')
-                else:
-                    file_url = f"{settings.STATIC_URL}/{file_url_path}".replace('//', '/')
-            except ValueError:
-                # 如果无法计算相对路径，使用文件名
-                filename = os.path.basename(file_path)
-                if base_url:
-                    from urllib.parse import urljoin
-                    # 修复URL生成逻辑
-                    base_part = base_url.rstrip('/')
-                    static_part = settings.STATIC_URL.lstrip('/')
-                    filename_part = filename.lstrip('/')
-                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
-                        base_part += '/'
-                    file_url = f"{base_part}{static_part}/{filename_part}".replace('//', '/').replace(':/', '://')
-                else:
-                    file_url = f"{settings.STATIC_URL}/{filename}"
+            # 生成文件URL
+            file_url = cls._generate_http_url(file_path, base_url)
             
             logger.info(f"文件上传成功: {filename}")
             
@@ -510,7 +448,6 @@ class ResourceService:
                 file_path=file_url,  # 返回HTTP URL而不是文件系统路径
                 file_url=file_url,
                 file_size=file_info.get('size', 0),
-                resource_type=file_info.get('resource_type', ResourceType.OTHER),
                 upload_time=datetime.now()
             ).model_dump(mode='json')
             
@@ -531,39 +468,9 @@ class ResourceService:
                 raise CustomException(msg='路径不是文件')
             
             # 生成HTTP URL路径而不是返回文件系统路径
-            resource_root = cls._get_resource_root()
-            try:
-                relative_path = os.path.relpath(safe_path, resource_root)
-                # 生成HTTP URL
-                if base_url:
-                    from urllib.parse import urljoin
-                    # 修复URL生成逻辑
-                    base_part = base_url.rstrip('/')
-                    static_part = settings.STATIC_URL.lstrip('/')
-                    relative_part = relative_path.lstrip('/')
-                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
-                        base_part += '/'
-                    http_url = f"{base_part}{static_part}/{relative_part}".replace('\\', '/').replace('//', '/').replace(':/', '://')
-                else:
-                    http_url = f"{settings.STATIC_URL}/{relative_path}".replace('\\', '/').replace('//', '/')
-                logger.info(f"生成文件访问URL: {http_url}")
-                return http_url
-            except ValueError:
-                # 如果无法计算相对路径，使用文件名
-                filename = os.path.basename(safe_path)
-                if base_url:
-                    from urllib.parse import urljoin
-                    # 修复URL生成逻辑
-                    base_part = base_url.rstrip('/')
-                    static_part = settings.STATIC_URL.lstrip('/')
-                    filename_part = filename.lstrip('/')
-                    if base_part.endswith(':') or (len(base_part) > 0 and base_part[-1] not in ['/', ':']):
-                        base_part += '/'
-                    http_url = f"{base_part}{static_part}/{filename_part}".replace('//', '/').replace(':/', '://')
-                else:
-                    http_url = f"{settings.STATIC_URL}/{filename}"
-                logger.info(f"生成文件访问URL: {http_url}")
-                return http_url
+            http_url = cls._generate_http_url(safe_path, base_url)
+            logger.info(f"生成文件访问URL: {http_url}")
+            return http_url
             
         except CustomException:
             raise
@@ -595,6 +502,41 @@ class ResourceService:
             except Exception as e:
                 logger.error(f"删除失败 {path}: {str(e)}")
                 raise CustomException(msg=f"删除失败 {path}: {str(e)}")
+
+    @classmethod
+    async def batch_delete_service(cls, auth: AuthSchema, paths: List[str]) -> Dict[str, List[str]]:
+        """批量删除文件或目录"""
+        if not paths:
+            raise CustomException(msg='删除失败，删除路径不能为空')
+        
+        success_paths = []
+        failed_paths = []
+        
+        for path in paths:
+            try:
+                safe_path = cls._get_safe_path(path)
+                
+                if not os.path.exists(safe_path):
+                    failed_paths.append(path)
+                    continue
+                
+                if os.path.isfile(safe_path):
+                    os.remove(safe_path)
+                    success_paths.append(path)
+                    logger.info(f"删除文件成功: {safe_path}")
+                elif os.path.isdir(safe_path):
+                    shutil.rmtree(safe_path)
+                    success_paths.append(path)
+                    logger.info(f"删除目录成功: {safe_path}")
+                    
+            except Exception as e:
+                logger.error(f"删除失败 {path}: {str(e)}")
+                failed_paths.append(path)
+        
+        return {
+            "success": success_paths,
+            "failed": failed_paths
+        }
 
     @classmethod
     async def move_file_service(cls, auth: AuthSchema, data: ResourceMoveSchema) -> None:
@@ -704,6 +646,10 @@ class ResourceService:
             # 生成新目录路径
             new_dir_path = os.path.join(parent_path, data.dir_name)
             
+            # 安全检查：确保新目录名称不包含路径遍历字符
+            if '..' in data.dir_name or '/' in data.dir_name or '\\' in data.dir_name:
+                raise CustomException(msg='目录名称包含不安全字符')
+            
             if os.path.exists(new_dir_path):
                 raise CustomException(msg='目录已存在')
             
@@ -718,118 +664,6 @@ class ResourceService:
             raise CustomException(msg=f"创建目录失败: {str(e)}")
 
     @classmethod
-    async def get_stats_service(cls, auth: AuthSchema, base_url: Optional[str] = None) -> Dict:
-        """获取资源统计信息"""
-        try:
-            # 使用静态文件根目录
-            stats_root = cls._get_resource_root()
-            
-            # 获取磁盘空间信息
-            disk_usage = psutil.disk_usage(stats_root)
-            total_space = disk_usage.total
-            free_space = disk_usage.free
-            used_space = disk_usage.used
-            
-            # 统计文件信息
-            total_files = 0
-            total_dirs = 0
-            total_size = 0
-            type_stats = {}
-            extension_stats = {}
-            
-            for root, dirs, files in os.walk(stats_root):
-                total_dirs += len(dirs)
-                
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    try:
-                        file_info = cls._get_file_info(file_path, base_url)
-                        if file_info:
-                            total_files += 1
-                            total_size += file_info.get('size', 0) or 0
-                            
-                            # 类型统计
-                            resource_type = file_info.get('resource_type')
-                            if resource_type:
-                                type_name = resource_type.value if hasattr(resource_type, 'value') else str(resource_type)
-                                type_stats[type_name] = type_stats.get(type_name, 0) + 1
-                            
-                            # 扩展名统计
-                            extension = file_info.get('file_extension', '')
-                            if extension:
-                                extension_stats[extension] = extension_stats.get(extension, 0) + 1
-                                
-                    except Exception:
-                        continue
-            
-            return ResourceStatsSchema(
-                mount_point=stats_root,
-                total_files=total_files,
-                total_dirs=total_dirs,
-                total_size=total_size,
-                free_space=free_space,
-                used_space=used_space,
-                total_space=total_space,
-                type_stats=type_stats,
-                extension_stats=extension_stats
-            ).model_dump(mode='json')
-            
-        except Exception as e:
-            logger.error(f"获取统计信息失败: {str(e)}")
-            raise CustomException(msg=f"获取统计信息失败: {str(e)}")
-
-    @classmethod
-    async def export_resource_service(cls, data_list: List[Dict[str, Any]]) -> bytes:
-        """导出资源列表"""
-        mapping_dict = {
-            'name': '文件名',
-            'path': '文件路径',
-            'size': '文件大小',
-            'file_type': 'MIME类型',
-            'file_extension': '文件扩展名',
-            'resource_type': '资源类型',
-            'created_time': '创建时间',
-            'modified_time': '修改时间',
-            'parent_path': '父目录'
-        }
-
-        # 复制数据并转换状态
-        export_data = data_list.copy()
-        for item in export_data:
-            # 处理枚举值
-            if 'resource_type' in item and hasattr(item['resource_type'], 'value'):
-                item['resource_type'] = item['resource_type'].value
-            
-            # 格式化文件大小
-            if item.get('size'):
-                item['size'] = cls._format_file_size(item['size'])
-
-        return ExcelUtil.export_list2excel(list_data=export_data, mapping_dict=mapping_dict)
-
-    @classmethod
-    def _determine_resource_type(cls, file_type: str, file_extension: str) -> ResourceType:
-        """根据MIME类型和文件扩展名确定资源类型"""
-        if not file_type:
-            return ResourceType.OTHER
-            
-        if file_type.startswith('image/'):
-            return ResourceType.IMAGE
-        elif file_type.startswith('video/'):
-            return ResourceType.VIDEO
-        elif file_type.startswith('audio/'):
-            return ResourceType.AUDIO
-        elif file_type in ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                          'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                          'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                          'text/plain', 'text/csv']:
-            return ResourceType.DOCUMENT
-        elif file_type in ['application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed',
-                          'application/gzip', 'application/x-tar']:
-            return ResourceType.ARCHIVE
-        else:
-            return ResourceType.OTHER
-
-    @classmethod
     def _format_file_size(cls, size_bytes: int) -> str:
         """格式化文件大小"""
         if size_bytes == 0:
@@ -838,50 +672,7 @@ class ResourceService:
         size_names = ["B", "KB", "MB", "GB", "TB"]
         i = 0
         while size_bytes >= 1024 and i < len(size_names) - 1:
-            size_bytes /= 1024.0
+            size_bytes = int(size_bytes / 1024)
             i += 1
         
         return f"{size_bytes:.2f}{size_names[i]}"
-
-    @classmethod
-    def _get_mime_type_from_extension(cls, file_extension: str) -> str:
-        """根据文件扩展名获取MIME类型"""
-        if not file_extension:
-            return 'application/octet-stream'
-            
-        # 扩展更全面的MIME类型映射
-        mime_types = {
-            # 图片类型
-            '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
-            '.gif': 'image/gif', '.bmp': 'image/bmp', '.webp': 'image/webp',
-            '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.tiff': 'image/tiff',
-            
-            # 视频类型
-            '.mp4': 'video/mp4', '.avi': 'video/x-msvideo', '.mov': 'video/quicktime',
-            '.wmv': 'video/x-ms-wmv', '.flv': 'video/x-flv', '.webm': 'video/webm',
-            '.mkv': 'video/x-matroska', '.m4v': 'video/x-m4v',
-            
-            # 音频类型
-            '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.aac': 'audio/aac',
-            '.ogg': 'audio/ogg', '.flac': 'audio/flac', '.m4a': 'audio/mp4',
-            
-            # 文档类型
-            '.pdf': 'application/pdf', '.doc': 'application/msword',
-            '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            '.xls': 'application/vnd.ms-excel',
-            '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            '.ppt': 'application/vnd.ms-powerpoint',
-            '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            '.txt': 'text/plain', '.csv': 'text/csv', '.rtf': 'application/rtf',
-            
-            # 代码文件
-            '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
-            '.json': 'application/json', '.xml': 'application/xml',
-            '.py': 'text/x-python', '.java': 'text/x-java-source',
-            
-            # 压缩文件
-            '.zip': 'application/zip', '.rar': 'application/x-rar-compressed',
-            '.7z': 'application/x-7z-compressed', '.tar': 'application/x-tar',
-            '.gz': 'application/gzip', '.bz2': 'application/x-bzip2'
-        }
-        return mime_types.get(file_extension.lower(), 'application/octet-stream')

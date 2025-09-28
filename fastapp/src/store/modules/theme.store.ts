@@ -3,6 +3,9 @@ import { useStorage } from "@uni-helper/uni-use";
 import type { ConfigProviderThemeVars } from "wot-design-uni";
 import { nextTick, reactive, computed, watch } from "vue";
 
+// 声明uni-app全局API
+declare function getCurrentPages(): any[];
+
 // 主题色选项接口
 export interface ThemeColorOption {
   name: string;
@@ -75,11 +78,27 @@ export const useThemeStore = defineStore("appTheme", () => {
   const isDark = computed(() => theme.value === "dark");
 
   // 设置导航栏颜色
-  const setNavigationBarColor = () => {
-    uni.setNavigationBarColor({
-      frontColor: theme.value === "light" ? "#000000" : "#ffffff",
-      backgroundColor: theme.value === "light" ? "#ffffff" : "#000000",
-    });
+  const setCustomNavigationBarColor = async () => {
+    try {
+      // 检查当前环境是否支持设置导航栏颜色
+      // 在非H5环境（如小程序）中，确保页面已加载
+      const pages = getCurrentPages();
+      if (pages.length === 0) {
+        // 页面还未加载，稍后重试
+        setTimeout(() => {
+          setCustomNavigationBarColor();
+        }, 100);
+        return;
+      }
+
+      await uni.setNavigationBarColor({
+        frontColor: theme.value === "light" ? "#000000" : "#ffffff",
+        backgroundColor: theme.value === "light" ? "#ffffff" : "#000000",
+      });
+    } catch (error) {
+      console.warn('设置导航栏颜色失败，将在下次页面加载时重试:', error);
+      // 可以在这里添加重试逻辑或降级方案
+    }
   };
 
   // 更新主题变量
@@ -90,18 +109,6 @@ export const useThemeStore = defineStore("appTheme", () => {
     // 更新所有主题变量
     Object.assign(themeVars, colors);
   };
-
-  // 获取主题CSS变量配置
-  const getThemeCSSVariables = (isDark: boolean) => ({
-    '--wot-color-bg': isDark ? '#0f0f0f' : '#f8f8f8',
-    '--wot-color-title': isDark ? '#ffffff' : '#1d2129',
-    '--wot-color-content': isDark ? '#e0e0e0' : '#4e5969',
-    '--wot-color-secondary': isDark ? '#a0a0a0' : '#86909c',
-    '--wot-color-border': isDark ? '#2f2f2f' : '#e5e6eb',
-    '--wot-color-border-light': isDark ? '#3d3d3d' : '#f2f3f5',
-    '--wot-card-bg': isDark ? '#1a1a1a' : '#ffffff',
-    '--wot-card-content-border-color': isDark ? '#2f2f2f' : '#e5e6eb',
-  });
 
   // 更新CSS变量
   const updateCSSVariables = () => {
@@ -117,11 +124,6 @@ export const useThemeStore = defineStore("appTheme", () => {
       root.classList.toggle('dark', isDark);
       root.classList.toggle('light', !isDark);
       
-      // 批量设置CSS变量
-      const cssVars = getThemeCSSVariables(isDark);
-      Object.entries(cssVars).forEach(([key, value]) => {
-        root.style.setProperty(key, value);
-      });
     }
     
     // 更新主题变量
@@ -131,7 +133,7 @@ export const useThemeStore = defineStore("appTheme", () => {
   // 切换主题, 指定主题模式，不传则自动切换
   const toggleTheme = (mode?: ThemeMode) => {
     theme.value = mode || (theme.value === "light" ? "dark" : "light");
-    setNavigationBarColor();
+    setCustomNavigationBarColor();
     updateCSSVariables();
     
     // 触发主题变化事件
@@ -170,13 +172,24 @@ export const useThemeStore = defineStore("appTheme", () => {
     // 延迟更新CSS变量，确保DOM已准备好
     nextTick(() => {
       updateCSSVariables();
-      setNavigationBarColor();
+      // 尝试设置导航栏颜色，但不阻止其他初始化流程
+      try {
+        setCustomNavigationBarColor();
+      } catch (error) {
+        console.warn('初始化导航栏颜色失败:', error);
+      }
     });
     
     // 为了兼容性，在更长的延迟后再次尝试
     if (typeof window !== 'undefined') {
       setTimeout(() => {
         updateCSSVariables();
+        // 再次尝试设置导航栏颜色
+        try {
+          setCustomNavigationBarColor();
+        } catch (error) {
+          console.warn('延迟重试设置导航栏颜色失败:', error);
+        }
       }, 100);
     }
   };
@@ -211,7 +224,7 @@ export const useThemeStore = defineStore("appTheme", () => {
     // 方法
     toggleTheme,
     setCurrentThemeColor,
-    setNavigationBarColor,
+    setCustomNavigationBarColor,
     initTheme,
   };
 });

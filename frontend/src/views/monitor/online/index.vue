@@ -15,8 +15,8 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery">查询</el-button>
-          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['monitor:online:query']">查询</el-button>
+          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['monitor:online:query']">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -37,15 +37,15 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button type="danger" icon="delete" @click="handleClear">强退所有</el-button>
+          <el-button type="danger" icon="delete" @click="handleClear" v-hasPerm="['monitor:online:force_logout']">强退所有</el-button>
         </div>
         <div class="data-table__toolbar--tools">
           <el-tooltip content="刷新">
-            <el-button type="primary" icon="refresh" circle @click="handleRefresh" />
+            <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['monitor:online:refresh']" />
           </el-tooltip>
           <el-tooltip content="列表筛选">
-            <el-dropdown trigger="click">
-              <el-button type="default" icon="operation" circle />
+            <el-dropdown trigger="click" v-hasPerm="['monitor:online:filter']">
+                <el-button type="default" icon="operation" circle />
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
@@ -81,7 +81,7 @@
         <el-table-column v-if="tableColumns.find(col => col.prop === 'login_time')?.show" key="login_time" label="登录时间" prop="login_time" min-width="180" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'operation')?.show" key="operation" fixed="right" label="操作" min-width="100">
           <template #default="scope">
-            <el-button type="danger" size="small" link icon="delete" @click="handleSubmit(scope.row.session_id)">强退
+            <el-button type="danger" size="small" link icon="delete" @click="handleSubmit(scope.row.session_id)" v-hasPerm="['monitor:online:force_logout']">强退
             </el-button>
           </template>
         </el-table-column>
@@ -104,7 +104,6 @@ defineOptions({
 });
 
 import OnlineAPI, { type OnlineUserPageQuery, type OnlineUserTable } from "@/api/monitor/online";
-import { ElMessageBox } from "element-plus";
 
 const queryFormRef = ref();
 const total = ref(0);

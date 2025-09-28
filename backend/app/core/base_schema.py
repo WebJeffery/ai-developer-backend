@@ -28,11 +28,8 @@ class BaseSchema(BaseModel):
 
     id: int = Field(description="主键ID")
     description: Optional[str] = Field(default=None, description="描述")
-    del_flag: str = Field(description="删除标志")
     created_at: DateTimeStr = Field(description="创建时间")
-    create_by: Optional[str] = Field(default=None, description="创建者")
     updated_at: DateTimeStr = Field(description="更新时间")
-    update_by: Optional[str] = Field(default=None, description="更新者")
     creator_id: Optional[int] = Field(default=None, description="创建人ID")
     creator: Optional[UserInfoSchema] = Field(default=None, description="创建人信息")
 

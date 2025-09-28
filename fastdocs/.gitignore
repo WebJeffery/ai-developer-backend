@@ -24,3 +24,5 @@ dist
 launch.json
 .hbuilderx
 pnpm-lock.yaml
+
+.vitepress/cache/*

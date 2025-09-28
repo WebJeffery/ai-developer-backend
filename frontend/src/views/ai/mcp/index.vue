@@ -20,6 +20,7 @@
             v-if="messages.length > 0"
             text 
             @click="clearCurrentChat"
+            v-hasPerm="['ai:mcp:clear']"
           >
             <el-icon><Delete /></el-icon>
             清空对话
@@ -27,6 +28,7 @@
           <el-button 
             text 
             @click="toggleConnection"
+            v-hasPerm="['ai:mcp:connection']"
           >
             <el-icon><Setting /></el-icon>
             {{ isConnected ? '断开连接' : '重新连接' }}
@@ -195,7 +197,7 @@ const messagesContainer = ref<HTMLElement>()
 
 // WebSocket 连接
 let ws: WebSocket | null = null
-const WS_URL =  import.meta.env.VITE_APP_WS_ENDPOINT + '/api/v1/ai/ws/mcp/chat'
+const WS_URL =  import.meta.env.VITE_APP_WS_ENDPOINT + '/api/v1/ai/mcp/ws/chat'
 
 // 计算属性
 const connectionStatusText = computed(() => {

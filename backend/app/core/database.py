@@ -59,18 +59,6 @@ def session_connect() -> AsyncSession:
     except Exception as e:
         raise CustomException(msg=f"数据库连接失败: {e}")
 
-async def init_create_table() -> None:
-    """
-    应用启动时初始化数据库连接
-
-    :return:
-    """
-    try:
-        async with async_engine.begin() as conn:
-            await conn.run_sync(MappedBase.metadata.create_all)
-    except Exception as e:
-        raise CustomException(msg=f"数据库连接失败: {e}")
-
 async def redis_connect(app: FastAPI, status: bool) -> aioredis.Redis:
     """创建或关闭Redis连接"""
     if not settings.REDIS_ENABLE:

@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container theme-adaptive">
+  <view class="app-container">
     <wd-card custom-style="margin-top: 20rpx" class="theme-card">
       <view class="flex-col-center py-lg">
         <text class="text-xl font-bold mb-md theme-text-primary">隐私政策</text>
@@ -8,7 +8,8 @@
     </wd-card>
 
     <wd-collapse v-model="activeNames" accordion class="theme-card mt-md">
-      <wd-collapse-item v-for="(section, index) in privacyContent" :key="index" :title="section.title" :name="String(index)">
+      <wd-collapse-item v-for="(section, index) in privacyContent" :key="index" :title="section.title"
+        :name="String(index)">
         <view class="py-md px-lg">
           <text class="text-base leading-relaxed theme-text-secondary">{{ section.content }}</text>
         </view>
@@ -71,13 +72,9 @@ const handleAgree = () => {
 };
 </script>
 
-<route lang="json">
-{
+<route lang="json">{
   "name": "privacy",
-  "style": {
-    "navigationBarTitleText": "隐私政策"
-  }
-}
-</route>
+  "style": {}
+}</route>
 
 <style lang="scss" scoped></style>

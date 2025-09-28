@@ -49,7 +49,7 @@ def datetime_validator(value: Union[str, datetime]) -> Union[str, datetime, None
         elif isinstance(value, datetime):
             value = value.strftime(pattern)
     except Exception:
-        raise CustomException(code=RET.BAD_REQUEST.code, msg="无效的日期格式")
+        raise CustomException(code=RET.ERROR.code, msg="无效的日期格式")
 
     return value
 
@@ -62,12 +62,12 @@ def email_validator(value: str) -> str:
     :raises: CustomException 邮箱格式无效时抛出
     """
     if not value:
-        raise CustomException(code=RET.BAD_REQUEST.code, msg="邮箱地址不能为空")
+        raise CustomException(code=RET.ERROR.code, msg="邮箱地址不能为空")
 
     regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
     if not re.match(regex, value):
-        raise CustomException(code=RET.BAD_REQUEST.code, msg="邮箱地址格式不正确")
+        raise CustomException(code=RET.ERROR.code, msg="邮箱地址格式不正确")
 
     return value
 
@@ -83,12 +83,12 @@ def mobile_validator(value: Optional[str]) -> Optional[str]:
         return value
 
     if len(value) != 11 or not value.isdigit():
-        raise CustomException(code=RET.BAD_REQUEST.code, msg="手机号格式不正确")
+        raise CustomException(code=RET.ERROR.code, msg="手机号格式不正确")
 
     regex = r'^1(3\d|4[4-9]|5[0-35-9]|6[67]|7[013-8]|8[0-9]|9[0-9])\d{8}$'
 
     if not re.match(regex, value):
-        raise CustomException(code=RET.BAD_REQUEST.code, msg="手机号格式不正确")
+        raise CustomException(code=RET.ERROR.code, msg="手机号格式不正确")
 
     return value
 
@@ -103,16 +103,16 @@ def menu_request_validator(data):
     menu_types = {1: "目录", 2: "功能", 3: "权限", 4: "外链"}
 
     if data.type not in menu_types:
-        raise CustomException(code=RET.BAD_REQUEST.code, msg=f"菜单类型必须为: {','.join(map(str, menu_types.keys()))}")
+        raise CustomException(code=RET.ERROR.code, msg=f"菜单类型必须为: {','.join(map(str, menu_types.keys()))}")
     
     if data.type in [1, 2]:
         if not data.route_name:
-            raise CustomException(code=RET.BAD_REQUEST.code, msg="路由名称不能为空")
+            raise CustomException(code=RET.ERROR.code, msg="路由名称不能为空")
         if not data.route_path:
-            raise CustomException(code=RET.BAD_REQUEST.code, msg="路由路径不能为空")
+            raise CustomException(code=RET.ERROR.code, msg="路由路径不能为空")
             
     if data.type == 2 and not data.component_path:
-        raise CustomException(code=RET.BAD_REQUEST.code, msg="组件路径不能为空")
+        raise CustomException(code=RET.ERROR.code, msg="组件路径不能为空")
         
     return data
 
@@ -133,9 +133,9 @@ def role_permission_request_validator(data):
     }
     
     if data.data_scope not in data_scopes:
-        raise CustomException(code=RET.BAD_REQUEST.code, msg=f"数据权限范围必须为: {','.join(map(str, data_scopes.keys()))}")
+        raise CustomException(code=RET.ERROR.code, msg=f"数据权限范围必须为: {','.join(map(str, data_scopes.keys()))}")
         
     if not data.role_ids:
-        raise CustomException(code=RET.BAD_REQUEST.code, msg="角色不能为空")
+        raise CustomException(code=RET.ERROR.code, msg="角色不能为空")
         
     return data

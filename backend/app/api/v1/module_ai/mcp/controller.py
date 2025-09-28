@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, Path, Query, Body, WebSocket
+from fastapi import APIRouter, Depends, Path, Query, Body, WebSocket, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.common.response import StreamResponse, SuccessResponse
@@ -95,7 +95,6 @@ async def delete_mcp_controller(
 
 @MCPRouter.websocket("/ws/chat", name="WebSocket聊天")
 async def websocket_chat_controller(
-    query: ChatQuerySchema,
     websocket: WebSocket,
 ):
     """WebSocket聊天接口
@@ -108,7 +107,7 @@ async def websocket_chat_controller(
             data = await websocket.receive_text()
             # 流式发送响应
             try:
-                async for chunk in McpService.chat_query(query=query):
+                async for chunk in McpService.chat_query(query=ChatQuerySchema(message=data)):
                     if chunk:
                         await websocket.send_text(chunk)
             except Exception as e:

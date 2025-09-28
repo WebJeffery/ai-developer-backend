@@ -1,30 +1,35 @@
 # -*- coding:utf-8 -*-
 
-from fastapi import APIRouter, Depends, Form
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.requests import Request
-from typing import List
-from app.common.enums import BusinessType
-from app.core.dependencies import get_db
-from app.common.response import SuccessResponse
+from fastapi import APIRouter, Depends, UploadFile
+from fastapi.responses import StreamingResponse, JSONResponse
+from app.common.response import SuccessResponse, StreamResponse
 from app.core.dependencies import AuthPermission
+from app.core.router_class import OperationLogRoute
 from app.api.v1.module_system.auth.schema import AuthSchema
 from app.api.v1.module_system.user.schema import UserOutSchema
+from app.common.request import PaginationService
+from app.core.base_params import PaginationQueryParam
 from app.utils.common_util import bytes2file_response
 
-from {{ packageName }}.entity.vo.{{ tableName }}_vo import {{ tableName|snake_to_pascal_case }}PageModel, {{ tableName|snake_to_pascal_case }}Model
 from {{ packageName }}.service.{{ tableName }}_service import {{ tableName|snake_to_pascal_case }}Service
+from {{ packageName }}.schema import {{ tableName|snake_to_pascal_case }}CreateSchema, {{ tableName|snake_to_pascal_case }}UpdateSchema
+from {{ packageName }}.param import {{ tableName|snake_to_pascal_case }}QueryParam
 
-{{ tableName|snake_to_camel }}Controller = APIRouter(prefix='/{{ moduleName }}/{{ businessName }}', tags=["{{ functionName }}模块"])
+{{ tableName|snake_to_camel }}Controller = APIRouter(route_class=OperationLogRoute, prefix='/{{ moduleName }}/{{ businessName }}', tags=["{{ functionName }}模块"])
 
 
 @{{ tableName|snake_to_camel }}Controller.get('/list', summary="查询{{ functionName }}列表", description="查询{{ functionName }}列表")
 async def get_{{ tableName }}_list(
-        auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:list"])),
-        page_query: {{ tableName|snake_to_pascal_case }}PageModel = Depends({{ tableName|snake_to_pascal_case }}PageModel.as_query)
+        page: PaginationQueryParam = Depends(),
+        search: {{ tableName|snake_to_pascal_case }}QueryParam = Depends(),
+        auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:list"]))
 ):
-    {{ tableName }}_result = await {{ tableName|snake_to_pascal_case }}Service.get_{{ tableName }}_list_services(auth, page_query)
-
+    {{ tableName }}_result_list = await {{ tableName|snake_to_pascal_case }}Service.get_{{ tableName }}_list_service(auth, search, page.order_by)
+    {{ tableName }}_result = await PaginationService.paginate(
+        data_list={{ tableName }}_result_list, 
+        page_no=page.page_no, 
+        page_size=page.page_size
+    )
     return SuccessResponse(data={{ tableName }}_result)
 
 
@@ -33,29 +38,28 @@ async def get_{{ tableName }}_by_id(
         id: int,
         auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:query"]))
 ):
-    {{ tableName }} = await {{ tableName|snake_to_pascal_case }}Service.get_{{ tableName }}_by_id_services(auth, id)
+    {{ tableName }} = await {{ tableName|snake_to_pascal_case }}Service.get_{{ tableName }}_by_id_service(auth, id)
     return SuccessResponse(data={{ tableName }})
 
 
 @{{ tableName|snake_to_camel }}Controller.post('', summary="新增{{ functionName }}", description="新增{{ functionName }}")
 async def add_{{ tableName }} (
-    add_model: {{ tableName|snake_to_pascal_case }}Model,
+    add_model: {{ tableName|snake_to_pascal_case }}CreateSchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:add"])),
     current_user: UserOutSchema = Depends(lambda auth: auth.user)
 ):
-    add_model.create_by = current_user.username
-    add_result = await {{ tableName|snake_to_pascal_case }}Service.add_{{ tableName }}_services(auth, add_model)
+    add_result = await {{ tableName|snake_to_pascal_case }}Service.add_{{ tableName }}_service(auth, add_model)
     return SuccessResponse(msg="新增成功")
 
 
-@{{ tableName|snake_to_camel }}Controller.put('', summary="修改{{ functionName }}", description="修改{{ functionName }}")
+@{{ tableName|snake_to_camel }}Controller.put('/{id}', summary="修改{{ functionName }}", description="修改{{ functionName }}")
 async def update_{{ tableName }}(
-    edit_model: {{ tableName|snake_to_pascal_case }}Model,
+    id: int,
+    edit_model: {{ tableName|snake_to_pascal_case }}UpdateSchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:edit"])),
     current_user: UserOutSchema = Depends(lambda auth: auth.user)
 ):
-    edit_model.update_by = current_user.username
-    update_result = await {{ tableName|snake_to_pascal_case }}Service.update_{{ tableName }}_services(auth, edit_model)
+    update_result = await {{ tableName|snake_to_pascal_case }}Service.update_{{ tableName }}_service(auth, id, edit_model)
     return SuccessResponse(msg="修改成功")
 
 
@@ -64,31 +68,46 @@ async def del_{{ tableName }}(
     ids: str,
     auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:remove"]))
 ):
-    id_list = ids.split(',')
-    del_result = await {{ tableName|snake_to_pascal_case }}Service.del_{{ tableName }}_services(auth, id_list)
+    id_list = [int(id) for id in ids.split(',')]
+    del_result = await {{ tableName|snake_to_pascal_case }}Service.del_{{ tableName }}_service(auth, id_list)
     return SuccessResponse(msg="删除成功")
 
 
 @{{ tableName|snake_to_camel }}Controller.post('/export', summary="导出{{ functionName }}", description="导出{{ functionName }}")
 async def export_{{ tableName }}(
-    {{ tableName }}_form: {{ tableName|snake_to_pascal_case }}PageModel = Form(),
+    search: {{ tableName|snake_to_pascal_case }}QueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:export"]))
-):
+) -> StreamingResponse:
     # 获取全量数据
-    export_result = await {{ tableName|snake_to_pascal_case }}Service.export_{{ tableName }}_list_services(
-        auth, {{ tableName }}_form
+    {{ tableName }}_list = await {{ tableName|snake_to_pascal_case }}Service.get_{{ tableName }}_list_service(auth=auth, search=search)
+    export_result = await {{ tableName|snake_to_pascal_case }}Service.export_{{ tableName }}_list_service({{ tableName }}_list)
+    return StreamResponse(
+        data=bytes2file_response(export_result),
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers = {
+            'Content-Disposition': 'attachment; filename={{ tableName }}.xlsx'
+        }
     )
-    return bytes2file_response(export_result)
 
 
-@{{ tableName|snake_to_camel }}Controller.post('/import', dependencies=[Depends(CheckUserInterfaceAuth('{{ permissionPrefix }}:import'))])
-async def import_{{ tableName }}(request: Request,
-                      import_model: ImportModel,
-                      query_db: AsyncSession = Depends(get_db),
-                      current_user: CurrentUserModel = Depends(LoginService.get_current_user)
-    ):
-    """
-    导入数据
-    """
-    await ImportService.import_data(query_db, import_model, current_user)
-    return ResponseUtil.success()
+@{{ tableName|snake_to_camel }}Controller.post('/import', summary="导入{{ functionName }}", description="导入{{ functionName }}")
+async def import_{{ tableName }}(
+    file: UploadFile,
+    auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:import"]))
+) -> JSONResponse:
+    batch_import_result = await {{ tableName|snake_to_pascal_case }}Service.import_{{ tableName }}_service(file=file, auth=auth, update_support=True)
+    return SuccessResponse(data=batch_import_result, msg="导入成功")
+
+
+@{{ tableName|snake_to_camel }}Controller.post('/download/template', summary="获取{{ functionName }}导入模板", description="获取{{ functionName }}导入模板")
+async def export_{{ tableName }}_template(
+    auth: AuthSchema = Depends(AuthPermission(permissions=["{{ permissionPrefix }}:import"]))
+) -> StreamingResponse:
+    {{ tableName }}_import_template_result = await {{ tableName|snake_to_pascal_case }}Service.get_import_template_{{ tableName }}_service()
+    return StreamResponse(
+        data=bytes2file_response({{ tableName }}_import_template_result),
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers = {
+            'Content-Disposition': f'attachment; filename={{ tableName }}_import_template.xlsx'
+        }
+    )

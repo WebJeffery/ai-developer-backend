@@ -1,56 +1,13 @@
 {
   "name": "fastapp",
-  "version": "2.0.0",
-  "unibest-version": "3.8.0",
+  "type": "module",
+  "version": "3.14.0",
+  "unibest-version": "3.14.0",
   "description": "unibest - 最好的 uniapp 开发模板",
-  "generate-time": "用户创建项目时生成",
-  "author": {
-    "name": "1014TaoTao",
-    "zhName": "1014TaoTao",
-    "email": "948080782@qq.com",
-    "github": "https://github.com/1014TaoTao/fastapi_vue3_admin",
-    "gitee": "https://gitee.com/tao__tao/fastapi_vue3_admin"
-  },
-  "license": "MIT",
-  "homepage": "https://unibest.tech",
-  "repository": "https://github.com/1014TaoTao/fastapi_vue3_admin",
-  "bugs": {
-    "url": "https://github.com/1014TaoTao/fastapi_vue3_admin/issues"
-  },
-  "lint-staged": {
-    "*.{js,ts}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{cjs,json}": [
-      "prettier --write"
-    ],
-    "*.{vue,html}": [
-      "eslint --fix",
-      "prettier --write",
-      "stylelint --fix"
-    ],
-    "*.{scss,css}": [
-      "stylelint --fix",
-      "prettier --write"
-    ],
-    "*.md": [
-      "prettier --write"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "node_modules/cz-git"
-    }
-  },
-  "resolutions": {
-    "bin-wrapper": "npm:bin-wrapper-china"
-  },
   "packageManager": "pnpm@9.15.3",
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=10.0.0",
-    "pnpm": ">=8.1.0"
+    "node": ">=22",
+    "pnpm": ">=9"
   },
   "scripts": {
     "dev:app": "uni -p app",
@@ -95,9 +52,7 @@
     "lint:eslint": "eslint \"src/**/*.{vue,ts}\" --fix",
     "lint:prettier": "prettier --write \"**/*.{js,cjs,ts,json,css,scss,vue,html,md}\"",
     "lint:stylelint": "stylelint  \"**/*.{css,scss,vue,html}\" --fix",
-    "lint:lint-staged": "lint-staged",
-    "prepare": "husky",
-    "commit": "git-cz"
+    "lint:lint-staged": "lint-staged"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-4070620250821001",
@@ -119,8 +74,8 @@
     "@stomp/stompjs": "^7.1.1",
     "@uni-helper/uni-use": "^0.19.14",
     "@vueuse/core": "9.13.0",
-    "pinia": "^2.2.2",
-    "vue": "^3.5.18",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.22",
     "vue-i18n": "^9.14.5"
   },
   "devDependencies": {
@@ -138,7 +93,6 @@
     "@uni-helper/vite-plugin-uni-pages": "^0.2.28",
     "@vue/runtime-core": "^3.5.18",
     "commitizen": "^4.3.0",
-    "cz-git": "^1.9.4",
     "eslint": "^9.10.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -159,7 +113,7 @@
     "stylelint-config-recommended-scss": "^14.1.0",
     "stylelint-config-recommended-vue": "^1.5.0",
     "stylelint-prettier": "^5.0.2",
-    "typescript": "^4.9.4",
+    "typescript": "^5.9.2",
     "typescript-eslint": "^8.6.0",
     "uni-mini-router": "^0.1.6",
     "unocss": "^0.62.4",
@@ -169,5 +123,11 @@
     "vue-eslint-parser": "^9.4.3",
     "vue-tsc": "^1.0.24",
     "wot-design-uni": "^1.9.1"
+  },
+  "resolutions": {
+    "bin-wrapper": "npm:bin-wrapper-china"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
   }
 }

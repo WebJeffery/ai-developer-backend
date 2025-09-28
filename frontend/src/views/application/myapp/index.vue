@@ -17,9 +17,9 @@
             <el-input v-model="queryFormData.creator" placeholder="请输入创建人" clearable style="width: 150px" />
           </el-form-item>
           <el-form-item class="search-buttons">
-            <el-button type="primary" icon="search" @click="handleQuery">查询</el-button>
-            <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
-          </el-form-item>
+              <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['application:myapp:query']">查询</el-button>
+              <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['application:myapp:query']">重置</el-button>
+            </el-form-item>
         </el-form>
       </div>
 
@@ -28,7 +28,7 @@
         <template #header>
           <div class="card-header">
             <span>应用市场</span>
-            <el-button type="primary" icon="plus" @click="handleCreateApp">
+            <el-button type="primary" icon="plus" @click="handleCreateApp" v-hasPerm="['application:myapp:create']">
               创建应用
             </el-button>
           </div>
@@ -76,8 +76,8 @@
                   />
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item command="edit" icon="Edit">编辑</el-dropdown-item>
-                      <el-dropdown-item command="delete" icon="Delete" divided>删除</el-dropdown-item>
+                      <el-dropdown-item command="edit" icon="Edit" v-hasPerm="['application:myapp:update']">编辑</el-dropdown-item>
+                      <el-dropdown-item command="delete" icon="Delete" divided v-hasPerm="['application:myapp:delete']">删除</el-dropdown-item>
                     </el-dropdown-menu>
                   </template>
                 </el-dropdown>
@@ -109,6 +109,7 @@
                 :disabled="!app.status"
                 class="action-btn"
                 @click="openAppExternal(app.access_url)"
+                v-hasPerm="['application:myapp:open_external']"
               >
                 外部打开
               </el-button>
@@ -119,6 +120,7 @@
                 :disabled="!app.status"
                 class="action-btn"
                 @click="openAppInternal(app)"
+                v-hasPerm="['application:myapp:open_internal']"
               >
                 内部打开
               </el-button>

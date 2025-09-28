@@ -25,7 +25,21 @@ export default defineConfig({
         logo: '/logo.png',
         nav: [
             { text: '首页', link: '/' },
-            { text: '指南', link: '/guide_info', target: '_blank' },
+            { 
+                text: '指南', 
+                items: [
+                    { text: '项目概述', link: '/overview/overview' },
+                    { text: '快速开始', link: '/quickstart/start' },
+                    { text: '为什么选择FastapiAdmin?', link: '/overview/why' }
+                ] 
+            },
+            { 
+                text: '开发指南', 
+                items: [
+                    { text: '前端开发', link: '/development/frontend' },
+                    { text: '后端开发', link: '/development/backend' }
+                ] 
+            },
             {
                 text: '版本',
                 items: [
@@ -34,30 +48,31 @@ export default defineConfig({
                 { text: 'V1.0.0', link: 'https://github.com/1014TaoTao/fastapi_vue3_admin/tree/v1.0.0', target: '_blank' }
                 ]
             },
-            { text: '订阅', link: '/subscribe' },
-            { text: '关于我们', link: '/about' },
+            { text: '关于我们', link: '/overview/about' },
         ],
         sidebar: [
             {
                 text: '简介',
-                collapsed: false,   // 默认不折叠（展开状态）
+                collapsed: false,
                 items: [
-                    { text: '项目介绍', link: '/guide_info' },
-                    { text: '快速开始', link: '/guide_start' },
-                    { text: '为什么是FastapiAdmin?', link: '/guide_why' }
+                    { text: '项目概述', link: '/overview/overview' },
+                    { text: '快速开始', link: '/quickstart/start' },
+                    { text: '为什么选择FastapiAdmin?', link: '/overview/why' }
                 ]
             },
             {
-                text: '二次开发权威指南',
-                collapsed: false,   // 默认不折叠（展开状态）
+                text: '开发指南',
+                collapsed: false,
                 items: [
-                    { text: '前端开发指南', link: '/guide_develop_frontend' },
-                    // { text: '后端开发', link: '/guide_start' },
-                    // { text: '官网工程', link: '/guide_why' }
+                    { text: '前端开发指南', link: '/development/frontend' },
+                    { text: '后端开发指南', link: '/development/backend' }
                 ]
             },
             {
-                text: '关于我们', link: '/about'
+                text: '关于我们',
+                items: [
+                    { text: '联系我们', link: '/overview/about' }
+                ]
             }
         ],
         socialLinks: [
@@ -98,8 +113,8 @@ export default defineConfig({
         lastUpdated: {
             text: "最后更新于",
             formatOptions: {
-                dateStyle: "short", // full
-                timeStyle: "short", // medium
+                dateStyle: "short",
+                timeStyle: "short",
             },
         },
         langMenuLabel: "多语言",

@@ -33,8 +33,8 @@
             </el-form-item>
             <!-- 查询、重置、展开/收起按钮 -->
             <el-form-item class="search-buttons">
-              <el-button type="primary" icon="search" @click="handleQuery">查询</el-button>
-              <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+              <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['system:user:query']">查询</el-button>
+              <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['system:user:query']">重置</el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
                 <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
@@ -68,14 +68,14 @@
           <!-- 功能区域 -->
           <div class="data-table__toolbar">
             <div class="data-table__toolbar--actions">
-              <el-button type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
-              <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
-              <el-dropdown trigger="click">
+              <el-button v-hasPerm="['system:user:create']" type="success" icon="plus"  @click="handleOpenDialog('create')">新增</el-button>
+              <el-button v-hasPerm="['system:user:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
+              <el-dropdown v-hasPerm="['system:user:patch']" trigger="click">
                 <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">
                   更多
                 </el-button>
                 <template #dropdown>
-                  <el-dropdown-menu>
+                  <el-dropdown-menu v-hasPerm="['system:user:filter']">
                     <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
                     <el-dropdown-item icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
                   </el-dropdown-menu>
@@ -85,13 +85,13 @@
 
             <div class="data-table__toolbar--tools">
               <el-tooltip content="导入">
-                <el-button type="info" icon="upload" circle @click="handleOpenImportDialog" />
+                <el-button v-hasPerm="['system:user:import']" type="info" icon="upload" circle @click="handleOpenImportDialog" />
               </el-tooltip>
               <el-tooltip content="导出">
-                <el-button type="warning" icon="download" circle @click="handleExport" />
+                <el-button v-hasPerm="['system:user:export']" type="warning" icon="download" circle @click="handleExport" />
               </el-tooltip>
               <el-tooltip content="刷新">
-                <el-button type="default" icon="refresh" circle @click="handleRefresh" />
+                <el-button type="default" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:user:refresh']" />
               </el-tooltip>
             </div>
           </div>
@@ -154,6 +154,7 @@
               <template #default="scope">
                 <el-button 
                   v-if="scope.row.username !== 'admin'" 
+                  v-hasPerm="['system:user:update']" 
                   type="warning" 
                   icon="RefreshLeft" 
                   size="small" 
@@ -166,9 +167,11 @@
                   link 
                   icon="document" 
                   @click="handleOpenDialog('detail', scope.row.id)"
+                  v-hasPerm="['system:user:detail']"
                 >详情</el-button>
                 <el-button 
                   v-if="scope.row.username !== 'admin'" 
+                  v-hasPerm="['system:user:update']" 
                   type="primary" 
                   size="small" 
                   link 
@@ -177,6 +180,7 @@
                 >编辑</el-button>
                 <el-button 
                   v-if="scope.row.username !== 'admin'" 
+                  v-hasPerm="['system:user:delete']" 
                   type="danger" 
                   size="small" 
                   link 
@@ -281,7 +285,7 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="密码" prop="password" v-if="dialogVisible.type === 'create'">
+          <el-form-item v-if="dialogVisible.type === 'create'" label="密码" prop="password">
             <el-input v-model="formData.password" placeholder="请输入密码" type="password" show-password clearable />
           </el-form-item>
 
@@ -297,15 +301,14 @@
           </el-form-item>
 
           <el-form-item label="描述" prop="description">
-            <el-input v-model="formData.description" :rows="4" :maxlength="100" show-word-limit type="textarea"
-              placeholder="请输入描述" />
+            <el-input v-model="formData.description" :rows="4" :maxlength="100" show-word-limit type="textarea" placeholder="请输入描述" />
           </el-form-item>
 
           <template #footer>
             <div class="dialog-footer">
               <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
-              <el-button v-if="dialogVisible.type === 'create' || dialogVisible.type === 'update'" type="primary" @click="handleSubmit">确定</el-button>
-              <el-button v-else type="primary" @click="handleCloseDialog">确定</el-button>
+              <el-button v-if="dialogVisible.type === 'create' || dialogVisible.type === 'update'" type="primary" @click="handleSubmit" v-hasPerm="['system:user:submit']">确定</el-button>
+              <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['system:user:detail']">确定</el-button>
               <el-button @click="handleCloseDialog">取消</el-button>
             </div>
           </template>
@@ -314,7 +317,7 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="handleSubmit">确 定</el-button>
+          <el-button type="primary" @click="handleSubmit" v-hasPerm="['system:user:submit']">确 定</el-button>
           <el-button @click="handleCloseDialog">取 消</el-button>
         </div>
       </template>
@@ -337,7 +340,7 @@ import { DeviceEnum } from "@/enums/settings/device.enum";
 import { ResultEnum } from "@/enums/api/result.enum";
 
 import UserAPI, { type UserForm, type UserInfo, type UserPageQuery } from "@/api/system/user";
-import { listToTree, formatTree } from "@/utils/common";
+import { formatTree } from "@/utils/common";
 import PositionAPI from "@/api/system/position";
 import DeptAPI from "@/api/system/dept";
 import RoleAPI from "@/api/system/role";
@@ -568,7 +571,6 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
 
   // 获取部门树
   const deptResponse = await DeptAPI.getDeptList(queryFormData);
-  // const treeData = listToTree(deptResponse.data.data.items);
   const treeData = deptResponse.data.data;
   deptOptions.value = formatTree(treeData);
 

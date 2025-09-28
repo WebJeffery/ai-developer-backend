@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 import json
 import os
 from datetime import datetime
@@ -9,6 +11,7 @@ from app.api.v1.module_generator.gencode.schema import GenTableOutSchema as GenT
 from app.core.base_model import CamelCaseUtil, SnakeCaseUtil
 from app.core.exceptions import CustomException
 from .string_util import StringUtil
+from . import jinja2_util
 
 
 class TemplateInitializer:
@@ -37,7 +40,10 @@ class TemplateInitializer:
                 {
                     'camel_to_snake': SnakeCaseUtil.camel_to_snake,
                     'snake_to_camel': CamelCaseUtil.snake_to_camel,
-                    'get_sqlalchemy_type': TemplateUtils.get_sqlalchemy_type,
+                    'snake_to_pascal_case': jinja2_util.snake_to_pascal_case,
+                    'is_base_column': jinja2_util.is_base_column,
+                    'get_column_options': jinja2_util.get_column_options,
+                    'get_sqlalchemy_type': jinja2_util.get_sqlalchemy_type,
                 }
             )
             return env
@@ -339,11 +345,12 @@ class TemplateUtils:
         dicts = set()
         cls.add_dicts(dicts, columns)
         if gen_table.sub_table is not None:
-            cls.add_dicts(dicts, gen_table.sub_table.columns)
+            sub_columns = gen_table.sub_table.columns or []
+            cls.add_dicts(dicts, sub_columns)
         return ', '.join(dicts)
 
     @classmethod
-    def add_dicts(cls, dicts: Set[str], columns: List[GenTableColumnSchema]):
+    def add_dicts(cls, dicts: Set[str], columns: List):
         """
         添加字典列表
 
