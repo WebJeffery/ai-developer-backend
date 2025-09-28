@@ -3,38 +3,12 @@
     <!-- 搜索区域 -->
     <div class="search-container">
       <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":">
-        <el-form-item prop="keyword" label="关键词">
-          <el-input v-model="queryFormData.keyword" placeholder="请输入文件名或关键词" clearable />
-        </el-form-item>
-        <el-form-item prop="file_type" label="文件类型">
-          <el-select v-model="queryFormData.file_type" placeholder="请选择" style="width: 167.5px" clearable>
-            <el-option label="图片" value="image" />
-            <el-option label="文档" value="document" />
-            <el-option label="视频" value="video" />
-            <el-option label="音频" value="audio" />
-            <el-option label="其他" value="other" />
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="min_size" label="文件大小">
-          <el-input-number
-            v-model="queryFormData.min_size"
-            placeholder="最小"
-            :min="0"
-            controls-position="right"
-            style="width: 120px"
-          />
-          <span style="margin: 0 8px">-</span>
-          <el-input-number
-            v-model="queryFormData.max_size"
-            placeholder="最大"
-            :min="0"
-            controls-position="right"
-            style="width: 120px"
-          />
+        <el-form-item prop="name" label="关键词">
+          <el-input v-model="queryFormData.name" placeholder="请输入文件名或目录名" clearable />
         </el-form-item>
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery">查询</el-button>
-          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['monitor:resource:query']">查询</el-button>
+          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['monitor:resource:query']">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -55,30 +29,32 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button type="success" icon="plus" @click="handleUpload">上传文件</el-button>
-          <el-button type="primary" icon="folder-add" @click="handleCreateDir">新建文件夹</el-button>
-          <el-button type="danger" icon="delete" :disabled="selectedItems.length === 0" @click="handleBatchDelete">批量删除</el-button>
+          <el-button type="success" icon="plus" @click="handleUpload" v-hasPerm="['monitor:resource:upload']">上传文件</el-button>
+          <el-button type="primary" icon="folder-add" @click="handleCreateDir" v-hasPerm="['monitor:resource:create_dir']">新建文件夹</el-button>
+          <el-button type="danger" icon="delete" :disabled="selectedItems.length === 0" @click="handleBatchDelete" v-hasPerm="['monitor:resource:delete']">批量删除</el-button>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-checkbox v-model="showHiddenFiles" @change="handleShowHiddenChange">
+          <el-checkbox v-model="showHiddenFiles" @change="handleShowHiddenChange" v-hasPerm="['monitor:resource:show_hidden']">
           显示隐藏文件
         </el-checkbox>
         <el-button-group>
           <el-button
             :type="viewMode === 'list' ? 'primary' : ''"
             @click="viewMode = 'list'"
+            v-hasPerm="['monitor:resource:view_list']"
           >
             <el-icon><List /></el-icon>
           </el-button>
           <el-button
             :type="viewMode === 'grid' ? 'primary' : ''"
             @click="viewMode = 'grid'"
+            v-hasPerm="['monitor:resource:view_grid']"
           >
             <el-icon><Grid /></el-icon>
           </el-button>
         </el-button-group>
           <el-tooltip content="刷新">
-            <el-button type="primary" icon="refresh" circle @click="handleRefresh" />
+            <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['monitor:resource:refresh']" />
           </el-tooltip>
         </div>
       </div>
@@ -97,7 +73,7 @@
               v-for="(item, index) in breadcrumbList"
               :key="index"
               :class="{ 'is-link': index < breadcrumbList.length - 1 }"
-              @click="handleBreadcrumbClick(item, index)"
+              @click="handleBreadcrumbClick(item)"
             >
               {{ item.name }}
             </el-breadcrumb-item>
@@ -111,7 +87,7 @@
         ref="dataTableRef"
         v-loading="loading"
         :data="fileList"
-        row-key="path"
+        row-key="file_url"
         class="data-table__content"
         height="540"
         border
@@ -133,6 +109,7 @@
               <span 
                 :class="{ 'file-name-clickable': true }"
                 @click="handleFileNameClick(row)"
+                v-hasPerm="['monitor:resource:preview']"
               >
                 {{ row.name }}
               </span>
@@ -159,13 +136,14 @@
               link
               icon="download"
               @click="handleDownload(row)"
+              v-hasPerm="['monitor:resource:download']"
             >
               下载
             </el-button>
-            <el-button type="primary" size="small" link icon="edit" @click="handleRename(row)">
+            <el-button type="primary" size="small" link icon="edit" @click="handleRename(row)" v-hasPerm="['monitor:resource:rename']">
               重命名
             </el-button>
-            <el-button type="danger" size="small" link icon="delete" @click="handleDelete(row)">
+            <el-button type="danger" size="small" link icon="delete" @click="handleDelete(row)" v-hasPerm="['monitor:resource:delete']">
               删除
             </el-button>
           </template>
@@ -176,7 +154,7 @@
       <div v-else class="grid-view">
         <div
           v-for="item in fileList"
-          :key="item.path"
+          :key="item.file_url"
           class="grid-item"
           @click="handleItemClick(item)"
         >
@@ -233,7 +211,7 @@
       </el-upload>
       <template #footer>
         <el-button @click="uploadDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" @click="handleUploadConfirm">
+        <el-button type="primary" :loading="uploading" @click="handleUploadConfirm" v-hasPerm="['monitor:resource:upload']">
           确定上传
         </el-button>
       </template>
@@ -256,7 +234,7 @@
       </el-form>
       <template #footer>
         <el-button @click="createDirDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateDirConfirm">确定</el-button>
+        <el-button type="primary" @click="handleCreateDirConfirm" v-hasPerm="['monitor:resource:create_dir']">确定</el-button>
       </template>
     </el-dialog>
 
@@ -277,13 +255,18 @@
       </el-form>
       <template #footer>
         <el-button @click="renameDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleRenameConfirm">确定</el-button>
+        <el-button type="primary" @click="handleRenameConfirm" v-hasPerm="['monitor:resource:rename']">确定</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "ResourceMonitor",
+  inheritAttrs: false,
+});
+
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -294,32 +277,35 @@ import {
   UploadFilled,
   QuestionFilled
 } from '@element-plus/icons-vue'
-import { ResourceAPI, type ResourceItem, type ResourceSearchQuery } from '@/api/monitor/resource'
+import { ResourceAPI, type ResourceItem, type ResourcePageQuery } from '@/api/monitor/resource'
+
+// 分页表单
+const fileList = ref<ResourceItem[]>([])
 
 // 响应式数据
 const loading = ref(false)
-const fileList = ref<ResourceItem[]>([])
 const selectedItems = ref<ResourceItem[]>([])
 const breadcrumbList = ref([{ name: '资源根目录', path: '/' }])
 const showHiddenFiles = ref(false)
 const viewMode = ref<'list' | 'grid'>('list')
 const total = ref(0)
+const isSearchMode = ref(false) // 用于标记是否处于搜索模式
+const queryFormRef = ref()
 
 // 路径相关数据
-const currentPath = ref('/') // 添加当前路径的响应式变量
+const currentPath = ref('/') // 当前路径的响应式变量
 
-// 分页
+// 分页查询参数
 const pagination = reactive({
   page_no: 1,
   page_size: 20
 })
 
-// 搜索表单
-const queryFormData = reactive<ResourceSearchQuery>({
-  keyword: '',
-  file_type: '',
-  min_size: undefined,
-  max_size: undefined
+// 搜索表单数据
+const queryFormData = reactive<ResourcePageQuery>({
+  name: undefined,
+  page_no: 1,
+  page_size: 20
 })
 
 // 对话框状态
@@ -346,7 +332,9 @@ const renameForm = reactive({
 const currentQuery = computed(() => {
   // 构建查询参数
   const query: any = {
-    include_hidden: showHiddenFiles.value
+    include_hidden: showHiddenFiles.value,
+    page_no: pagination.page_no,
+    page_size: pagination.page_size
   }
   
   // 如果当前路径不是根路径，则添加路径参数
@@ -355,25 +343,35 @@ const currentQuery = computed(() => {
     query.path = currentPath.value
   }
   
+  // 添加搜索关键词
+  if (queryFormData.name) {
+    query.name = queryFormData.name
+  }
+  
   return query
 })
 
-// 方法
-const loadFileList = async () => {
+// 加载文件列表
+async function loadFileList() {
+  loading.value = true
   try {
-    loading.value = true
     const response = await ResourceAPI.getResourceList(currentQuery.value)
     
-    // 根据新的 API 响应结构获取数据
-    const data = response.data?.data?.items || response.data?.data
+    // 正确处理后端返回的分页数据结构
+    const pageResult = response.data?.data
     
-    if (Array.isArray(data)) {
-      // 直接使用后端返回的数据结构，无需转换
-      fileList.value = data.map(item => ({
+    if (pageResult && Array.isArray(pageResult.items)) {
+      fileList.value = pageResult.items.map(item => ({
         ...item,
         is_hidden: item.name.startsWith('.')
       }))
-      total.value = response.data?.data?.total_files + response.data?.data?.total_dirs || fileList.value.length
+      total.value = pageResult.total
+      if (pageResult.page_no !== undefined) {
+        pagination.page_no = pageResult.page_no
+      }
+      if (pageResult.page_size !== undefined) {
+        pagination.page_size = pageResult.page_size
+      }
     } else {
       fileList.value = []
       total.value = 0
@@ -388,14 +386,16 @@ const loadFileList = async () => {
   }
 }
 
-const handleBreadcrumbClick = (item: any) => {
+// 面包屑点击处理
+function handleBreadcrumbClick(item: any) {
   // 更新当前路径为点击的面包屑项路径
   currentPath.value = item.path
   updateBreadcrumb()
   loadFileList()
 }
 
-const updateBreadcrumb = () => {
+// 更新面包屑路径
+function updateBreadcrumb() {
   // 对于根路径，直接显示根目录
   if (currentPath.value === '/') {
     breadcrumbList.value = [{ name: '资源根目录', path: '/' }]
@@ -414,7 +414,8 @@ const updateBreadcrumb = () => {
   ]
 }
 
-const handleFileNameClick = (row: ResourceItem) => {
+// 文件名点击处理
+function handleFileNameClick(row: ResourceItem) {
   if (row.is_dir) {
     // 如果当前在根路径，则直接使用文件夹名称
     // 如果当前已在某个文件夹中，则拼接路径
@@ -431,7 +432,8 @@ const handleFileNameClick = (row: ResourceItem) => {
   }
 }
 
-const handleItemClick = (item: ResourceItem) => {
+// 网格视图项目点击处理
+function handleItemClick(item: ResourceItem) {
   if (item.is_dir) {
     // 如果当前在根路径，则直接使用文件夹名称
     // 如果当前已在某个文件夹中，则拼接路径
@@ -449,48 +451,37 @@ const handleItemClick = (item: ResourceItem) => {
 }
 
 // 文件预览
-const handleFilePreview = (file: ResourceItem) => {
-  // 使用后端返回的完整URL路径进行预览
-  let previewUrl = file.path
+function handleFilePreview(file: ResourceItem) {
+  // 直接使用file_url字段进行预览
+  let previewUrl = file.file_url
   
-  // 如果是完整URL，直接使用
-  if (!previewUrl.startsWith('http')) {
-    // 对于相对路径，需要构建完整URL
+  // 如果是相对路径，构建完整URL
+  if (previewUrl && !previewUrl.startsWith('http')) {
     previewUrl = `${window.location.origin}${previewUrl}`
   }
   
-  // 根据文件类型决定预览方式
-  const fileExtension = file.file_extension?.toLowerCase() || ''
-  
-  if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'].includes(fileExtension)) {
-    // 图片预览
-    window.open(previewUrl, '_blank')
-  } else if (['.pdf'].includes(fileExtension)) {
-    // PDF预览
-    window.open(previewUrl, '_blank')
-  } else if (['.txt', '.md', '.json', '.xml', '.html', '.css', '.js', '.ts', '.vue'].includes(fileExtension)) {
-    // 文本文件预览
-    window.open(previewUrl, '_blank')
-  } else {
-    // 其他文件直接下载
-    window.open(previewUrl, '_blank')
-  }
+  // 所有文件类型统一直接打开预览
+  window.open(previewUrl, '_blank')
 }
 
-const handleSelectionChange = (selection: ResourceItem[]) => {
+// 选择项变化处理
+function handleSelectionChange(selection: ResourceItem[]) {
   selectedItems.value = selection
 }
 
-const handleUpload = () => {
+// 打开上传对话框
+function handleUpload() {
   uploadDialogVisible.value = true
   uploadFileList.value = []
 }
 
-const handleUploadChange = (file: any, fileList: any[]) => {
+// 上传文件变化处理
+function handleUploadChange(file: any, fileList: any[]) {
   uploadFileList.value = fileList
 }
 
-const handleUploadConfirm = async () => {
+// 确认上传文件
+async function handleUploadConfirm() {
   if (uploadFileList.value.length === 0) {
     ElMessage.warning('请选择要上传的文件')
     return
@@ -503,17 +494,8 @@ const handleUploadConfirm = async () => {
       formData.append('file', file.raw)
     })
     
-    // 处理目标路径
-    let targetPath = currentPath.value
-    if (targetPath.startsWith('http')) {
-      try {
-        const url = new URL(targetPath)
-        targetPath = url.pathname.replace('/api/v1/static', '') || '/'
-      } catch (error) {
-        console.warn('Failed to parse URL:', targetPath, error)
-      }
-    }
-    
+    // 在根目录时传递空字符串作为target_path，与后端relative_path格式保持一致
+    const targetPath = currentPath.value === '/' ? '' : currentPath.value
     formData.append('target_path', targetPath)
 
     await ResourceAPI.uploadFile(formData)
@@ -528,34 +510,28 @@ const handleUploadConfirm = async () => {
   }
 }
 
-const handleUploadClose = () => {
+// 关闭上传对话框
+function handleUploadClose() {
   uploadDialogVisible.value = false
   uploadFileList.value = []
 }
 
-const handleCreateDir = () => {
+// 打开新建目录对话框
+function handleCreateDir() {
   createDirForm.dir_name = ''
   createDirDialogVisible.value = true
 }
 
-const handleCreateDirConfirm = async () => {
+// 确认创建目录
+async function handleCreateDirConfirm() {
   if (!createDirForm.dir_name.trim()) {
     ElMessage.warning('请输入文件夹名称')
     return
   }
 
   try {
-    // 处理父路径
-    let parentPath = currentPath.value
-    if (parentPath.startsWith('http')) {
-      try {
-        const url = new URL(parentPath)
-        parentPath = url.pathname.replace('/api/v1/static', '') || '/'
-      } catch (error) {
-        console.warn('Failed to parse URL:', parentPath, error)
-      }
-    }
-    
+    // 在根目录时传递空字符串作为parent_path，与后端relative_path格式保持一致
+    const parentPath = currentPath.value === '/' ? '' : currentPath.value
     await ResourceAPI.createDirectory({
       parent_path: parentPath,
       dir_name: createDirForm.dir_name.trim()
@@ -569,67 +545,35 @@ const handleCreateDirConfirm = async () => {
   }
 }
 
-const handleRefresh = () => {
+// 列表刷新
+async function handleRefresh() {
+  await loadFileList()
+}
+
+// 查询（重置页码后获取数据）
+async function handleQuery() {
+  queryFormData.page_no = 1
+  await loadFileList()
+}
+
+// 重置查询
+async function handleResetQuery() {
+  queryFormRef.value.resetFields()
+  queryFormData.page_no = 1
+  isSearchMode.value = false // 退出搜索模式
+  await loadFileList()
+}
+
+// 显示隐藏文件切换
+function handleShowHiddenChange() {
   loadFileList()
 }
 
-const handleQuery = async () => {
+// 文件下载
+async function handleDownload(item: ResourceItem) {
   try {
-    loading.value = true
-    const response = await ResourceAPI.searchResource(queryFormData)
-    
-    // 根据新的 API 响应结构获取数据
-    const data = response.data?.data?.items || response.data?.data
-    if (Array.isArray(data)) {
-      // 直接使用后端返回的数据结构，无需转换
-      fileList.value = data.map(item => ({
-        ...item,
-        is_hidden: item.name.startsWith('.')
-      }))
-      total.value = response.data?.data?.total_files + response.data?.data?.total_dirs || fileList.value.length
-    } else {
-      console.warn('搜索 API 返回的数据不是数组类型:', data)
-      fileList.value = []
-      total.value = 0
-    }
-  } catch (error) {
-    ElMessage.error('搜索失败')
-    console.error('Search error:', error)
-    fileList.value = []
-    total.value = 0
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleResetQuery = () => {
-  Object.assign(queryFormData, {
-    keyword: '',
-    file_type: '',
-    min_size: undefined,
-    max_size: undefined
-  })
-  loadFileList()
-}
-
-const handleShowHiddenChange = () => {
-  loadFileList()
-}
-
-const handleDownload = async (item: ResourceItem) => {
-  try {
-    // 处理完整URL路径
-    let filePath = item.path
-    if (filePath.startsWith('http')) {
-      try {
-        const url = new URL(filePath)
-        filePath = url.pathname.replace('/api/v1/static', '') || '/'
-      } catch (error) {
-        console.warn('Failed to parse URL:', filePath, error)
-      }
-    }
-    
-    const response = await ResourceAPI.downloadFile(filePath)
+    // 使用file_url字段
+    const response = await ResourceAPI.downloadFile(item.file_url)
     const blob = response.data
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -645,24 +589,16 @@ const handleDownload = async (item: ResourceItem) => {
   }
 }
 
-const handleRename = (item: ResourceItem) => {
-  // 处理完整URL路径
-  let oldPath = item.path
-  if (oldPath.startsWith('http')) {
-    try {
-      const url = new URL(oldPath)
-      oldPath = url.pathname.replace('/api/v1/static', '') || '/'
-    } catch (error) {
-      console.warn('Failed to parse URL:', oldPath, error)
-    }
-  }
-  
-  renameForm.old_path = oldPath
+// 打开重命名对话框
+function handleRename(item: ResourceItem) {
+  // 使用file_url字段
+  renameForm.old_path = item.file_url
   renameForm.new_name = item.name
   renameDialogVisible.value = true
 }
 
-const handleRenameConfirm = async () => {
+// 确认重命名
+async function handleRenameConfirm() {
   if (!renameForm.new_name.trim()) {
     ElMessage.warning('请输入新名称')
     return
@@ -682,7 +618,8 @@ const handleRenameConfirm = async () => {
   }
 }
 
-const handleDelete = async (item: ResourceItem) => {
+// 文件删除
+async function handleDelete(item: ResourceItem) {
   try {
     await ElMessageBox.confirm(
       `确定要删除 ${item.name} 吗？`,
@@ -694,35 +631,27 @@ const handleDelete = async (item: ResourceItem) => {
       }
     )
 
-    // 处理完整URL路径
-    let filePath = item.path
-    if (filePath.startsWith('http')) {
-      try {
-        const url = new URL(filePath)
-        filePath = url.pathname.replace('/api/v1/static', '') || '/'
-      } catch (error) {
-        console.warn('Failed to parse URL:', filePath, error)
-      }
-    }
-    
-    await ResourceAPI.deleteResource([filePath])
+    // 使用file_url字段
+    await ResourceAPI.deleteResource([item.file_url])
     ElMessage.success('删除成功')
-    loadFileList()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
-      console.error('Delete error:', error)
-    }
+      loadFileList()
+    } catch (error) {
+      if (error !== 'cancel') {
+        ElMessage.error('删除失败')
+        console.error('Delete error:', error)
+      }
   }
 }
 
-const handlePagination = (params: { page: number; limit: number }) => {
+// 分页处理
+function handlePagination(params: { page: number; limit: number }) {
   pagination.page_no = params.page
   pagination.page_size = params.limit
   loadFileList()
 }
 
-const handleBatchDelete = async () => {
+// 批量删除
+async function handleBatchDelete() {
   if (selectedItems.value.length === 0) {
     ElMessage.warning('请选择要删除的文件')
     return
@@ -739,19 +668,8 @@ const handleBatchDelete = async () => {
       }
     )
 
-    const paths = selectedItems.value.map(item => {
-      // 处理完整URL路径
-      let path = item.path
-      if (path.startsWith('http')) {
-        try {
-          const url = new URL(path)
-          path = url.pathname.replace('/api/v1/static', '') || '/'
-        } catch (error) {
-          console.warn('Failed to parse URL:', path, error)
-        }
-      }
-      return path
-    })
+    // 使用file_url字段
+    const paths = selectedItems.value.map(item => item.file_url)
     
     await ResourceAPI.deleteResource(paths)
     ElMessage.success('删除成功')
@@ -764,9 +682,9 @@ const handleBatchDelete = async () => {
   }
 }
 
-// 工具函数
-const formatFileSize = (size?: number | null) => {
-  if (!size || size === null) return '-'
+// 格式化文件大小
+function formatFileSize(size?: number | null) {
+  if (!size || size === null) return '-'  
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
   let unitIndex = 0
   let fileSize = size

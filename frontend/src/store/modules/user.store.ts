@@ -3,13 +3,13 @@ import { store, useTagsViewStore, usePermissionStoreHook, useDictStoreHook } fro
 import AuthAPI, {type LoginFormData } from "@/api/system/auth";
 import UserAPI, {type UserInfo }  from "@/api/system/user";
 import type { MenuTable } from "@/api/system/menu";
-
 import { Auth } from "@/utils/auth";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
     basicInfo: {} as UserInfo,
     routeList: [] as MenuTable[],
+    prems: [] as string[],
     hasGetRoute: false,
 
     // 记住我状态
@@ -19,6 +19,7 @@ export const useUserStore = defineStore("user", {
   getters: {
     getBasicInfo: (state) => state.basicInfo,
     getRouteList: (state) => state.routeList,
+    getPerms: (state) => state.prems,
     getHasGetRoute: (state) => state.hasGetRoute,
   },
 
@@ -28,19 +29,61 @@ export const useUserStore = defineStore("user", {
       const response = await UserAPI.getCurrentUserInfo();
       const routers: MenuTable[] = response.data.data.menus || [];
       delete response.data.data.menus;
-      this.setRoute(routers);
       this.basicInfo = { ...this.basicInfo, ...response.data.data };
+      // 然后设置路由信息
+      this.setRoute(routers);
     },
 
     // 设置用户信息
     setUserInfo(info: UserInfo) {
       this.basicInfo = info;
+      // 设置用户信息后自动更新权限
+      this.setPermissions([]);
     },
 
     // 设置路由
     setRoute(routers: MenuTable[]) {
       this.routeList = routers;
       this.hasGetRoute = true;
+      // 设置路由后自动更新权限
+      this.setPermissions(routers);
+    },
+    
+    setPermissions(menus: MenuTable[]) {
+      this.prems = []; // 先清空现有权限
+      
+      // 确保 basicInfo.roles 存在，避免空值错误
+      if (!this.basicInfo.roles) {
+        return;
+      }
+
+      // 合并所有角色的菜单列表，使用数组扁平化方法简化代码并过滤undefined
+      const roleMenus = this.basicInfo.roles
+        .filter(role => role.menus && role.menus.length > 0)
+        .flatMap(role => role.menus)
+        .filter((menu): menu is MenuTable => menu !== undefined);
+      
+      // 合并传入的菜单和角色菜单
+      const allMenus = [...menus, ...roleMenus];
+      
+      const permissionSet = new Set<string>();
+      const collect = (items: MenuTable[]) => {
+        items.forEach((item) => {
+          // 收集当前菜单的权限
+          if (item.permission) {
+            permissionSet.add(item.permission);
+          }
+          
+          // 递归收集子菜单的权限，确保子菜单不包含undefined
+          if (item.children && item.children.length > 0) {
+            collect(item.children.filter((child): child is MenuTable => child !== undefined));
+          }
+        });
+      };
+      
+      // 收集所有权限
+      collect(allMenus);
+      this.prems = Array.from(permissionSet);
     },
     setAvatar(avatar: string) {
       this.basicInfo = { ...this.basicInfo, avatar };

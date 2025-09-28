@@ -62,11 +62,10 @@
             <!-- 功能区域 -->
             <div class="data-table__toolbar">
                 <div class="data-table__toolbar--actions">
-                    <el-button type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
-                    <el-button type="danger" icon="delete" :disabled="selectIds.length === 0"
-                        @click="handleDelete(selectIds)">批量删除</el-button>
+                    <el-button type="success" icon="plus" @click="handleOpenDialog('create')" v-hasPerm="['workflow:operator:create']">新增</el-button>
+                    <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)" v-hasPerm="['workflow:operator:delete']">批量删除</el-button>
                     <el-dropdown trigger="click">
-                        <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
+                        <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown" v-hasPerm="['workflow:operator:status']">更多</el-button>
                         <template #dropdown>
                             <el-dropdown-menu>
                                 <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
@@ -78,17 +77,17 @@
                 </div>
                 <div class="data-table__toolbar--tools">
                     <el-tooltip content="导入">
-                        <el-button type="info" icon="upload" circle @click="handleOpenImportDialog" />
+                        <el-button type="info" icon="upload" circle @click="handleOpenImportDialog" v-hasPerm="['workflow:operator:import']" />
                     </el-tooltip>
                     <el-tooltip content="导出">
-                        <el-button type="warning" icon="download" circle @click="handleExport" />
+                        <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['workflow:operator:export']" />
                     </el-tooltip>
                     <el-tooltip content="刷新">
-                        <el-button type="primary" icon="refresh" circle @click="handleRefresh" />
+                        <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['workflow:operator:refresh']" />
                     </el-tooltip>
                     <el-tooltip content="列表筛选">
                         <el-dropdown trigger="click">
-                            <el-button type="default" icon="operation" circle />
+                            <el-button type="default" icon="operation" circle v-hasPerm="['workflow:operator:filter']" />
                             <template #dropdown>
                                 <el-dropdown-menu>
                                     <el-dropdown-item v-for="column in tableColumns" :key="column.prop"
@@ -144,12 +143,9 @@
                 <el-table-column v-if="tableColumns.find(col => col.prop === 'operation')?.show" fixed="right"
                     label="操作" align="center" min-width="200">
                     <template #default="scope">
-                        <el-button type="info" size="small" link icon="document"
-                            @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
-                        <el-button type="primary" size="small" link icon="edit"
-                            @click="handleOpenDialog('update', scope.row.id)">编辑</el-button>
-                        <el-button type="danger" size="small" link icon="delete"
-                            @click="handleDelete([scope.row.id])">删除</el-button>
+                        <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['workflow:operator:detail']">详情</el-button>
+                        <el-button type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)" v-hasPerm="['workflow:operator:update']">编辑</el-button>
+                        <el-button type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])" v-hasPerm="['workflow:operator:delete']">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>

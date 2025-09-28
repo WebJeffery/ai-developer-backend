@@ -124,7 +124,7 @@
                     </el-tooltip>
                   </div>
                   <div>
-                    <el-button type="primary" link icon="RefreshRight" @click="refreshCacheNames" />
+                    <el-button type="primary" link icon="RefreshRight" @click="refreshCacheNames" v-hasPerm="['monitor:cache:refresh']" />
                   </div>
                 </div>
               </template>
@@ -134,7 +134,7 @@
                 </template>
                 <el-table-column prop="cache_name" label="缓存名称" show-overflow-tooltip>
                   <template #default="{ row }">
-                    <el-button type="primary" link @click="getCacheKeyList(row)">{{ row.cache_name }}</el-button>
+                    <el-button type="primary" link @click="getCacheKeyList(row)" v-hasPerm="['monitor:cache:view']">{{ row.cache_name }}</el-button>
                   </template>
                 </el-table-column>
                 <el-table-column prop="remark" label="备注" show-overflow-tooltip />
@@ -142,7 +142,7 @@
                   <template #default="{ row }">
                     <el-popconfirm class="box-item" :title="`确认删除缓存 ${row.cache_name} 吗？`" placement="top" @confirm="handleClearCacheName(row)">
                       <template #reference>
-                        <el-button type="danger" size="small" link icon="delete" />
+                        <el-button type="danger" size="small" link icon="delete" v-hasPerm="['monitor:cache:delete']" />
                       </template>
                     </el-popconfirm>
                   </template>
@@ -168,7 +168,7 @@
                     </el-tooltip>
                   </div>
                   <div>
-                    <el-button type="primary" link icon="RefreshRight" @click="refreshCacheKeys" />
+                    <el-button type="primary" link icon="RefreshRight" @click="refreshCacheKeys" v-hasPerm="['monitor:cache:refresh']" />
                   </div>
                 </div>
               </template>
@@ -178,7 +178,7 @@
                 </template>
                 <el-table-column prop="cacheKey" label="缓存键名" show-overflow-tooltip>
                   <template #default="{ row }">
-                    <el-button type="primary" link @click="handleCacheValue(row.cacheKey)">{{ row.cacheKey
+                    <el-button type="primary" link @click="handleCacheValue(row.cacheKey)" v-hasPerm="['monitor:cache:detail']">{{ row.cacheKey
                       }}</el-button>
                   </template>
                 </el-table-column>
@@ -186,7 +186,7 @@
                   <template #default="{ row }">
                     <el-popconfirm class="box-item" :title="`确认删除键 ${row.cacheKey} 吗？`" placement="top" @confirm="handleClearCacheKey(row.cacheKey)">
                       <template #reference>
-                        <el-button type="danger" size="small" link icon="delete" />
+                        <el-button type="danger" size="small" link icon="delete" v-hasPerm="['monitor:cache:delete']" />
                       </template>
                     </el-popconfirm>
                   </template>
@@ -212,7 +212,7 @@
                     </el-tooltip>
                   </div>
                   <div>
-                    <el-button type="danger" link icon="delete" @click="handleClearCacheAll">清理全部</el-button>
+                    <el-button type="danger" link icon="delete" @click="handleClearCacheAll" v-hasPerm="['monitor:cache:delete_all']">清理全部</el-button>
                   </div>
                 </div>
               </template>

@@ -5,32 +5,21 @@ export const ResourceAPI = {
    * 获取目录列表
    * @param query 查询参数
    */
-  getResourceList(query: ResourceListQuery) {
-    return request<ApiResponse<ResourceListResponse>>({
+  getResourceList(query: ResourcePageQuery) {
+    return request<ApiResponse<PageResult<ResourceItem[]>>>({
       url: `/monitor/resource/list`,
       method: "get",
       params: query,
     });
   },
 
-  /**
-   * 搜索资源
-   * @param body 搜索条件
-   */
-  searchResource(body: ResourceSearchQuery) {
-    return request<ApiResponse<ResourceListResponse>>({
-      url: `/monitor/resource/search`,
-      method: "post",
-      data: body,
-    });
-  },
 
   /**
    * 上传文件
    * @param formData 文件数据
    */
   uploadFile(formData: FormData) {
-    return request<ApiResponse<UploadFilePath>>({
+    return request<ApiResponse<ResourceUploadSchema>>({
       url: `/monitor/resource/upload`,
       method: "post",
       data: formData,
@@ -112,20 +101,10 @@ export const ResourceAPI = {
   },
 
   /**
-   * 获取资源统计信息
-   */
-  getResourceStats() {
-    return request<ApiResponse<ResourceStats>>({
-      url: `/monitor/resource/stats`,
-      method: "get",
-    });
-  },
-
-  /**
    * 导出资源列表
    * @param body 导出条件
    */
-  exportResource(body: ResourceSearchQuery) {
+  exportResource(body: ResourcePageQuery) {
     return request<Blob>({
       url: `/monitor/resource/export`,
       method: "post",
@@ -137,31 +116,31 @@ export const ResourceAPI = {
 
 export default ResourceAPI;
 
+
+
 /**
  * 资源列表查询参数
  */
 export interface ResourceListQuery {
   /** 目录路径 */
-  path: string;
-  /** 递归获取 */
-  recursive?: boolean;
+  path?: string;
   /** 包含隐藏文件 */
   include_hidden?: boolean;
 }
 
 /**
- * 资源列表响应
+ * 资源目录模型
  */
-export interface ResourceListResponse {
-  /** 当前路径 */
+export interface ResourceDirectorySchema {
+  /** 目录路径 */
   path: string;
   /** 目录名称 */
   name: string;
-  /** 文件/目录列表 */
+  /** 目录项 */
   items: ResourceItem[];
-  /** 总文件数 */
+  /** 文件总数 */
   total_files: number;
-  /** 总目录数 */
+  /** 目录总数 */
   total_dirs: number;
   /** 总大小 */
   total_size: number;
@@ -172,25 +151,33 @@ export interface ResourceListResponse {
  */
 export interface ResourceSearchQuery {
   /** 关键词 */
-  keyword?: string;
-  /** 文件类型 */
-  file_type?: string;
-  /** 资源类型 */
-  resource_type?: string;
-  /** 最小文件大小 */
-  min_size?: number;
-  /** 最大文件大小 */
-  max_size?: number;
-  /** 开始时间 */
-  start_date?: string;
-  /** 结束时间 */
-  end_date?: string;
-  /** 文件扩展名 */
-  extensions?: string[];
+  name?: string;
+}
+
+/**
+ * 资源分页查询参数
+ */
+export interface ResourcePageQuery extends PageQuery {
+  /** 关键词 */
+  name?: string;
+  /** 目录路径 */
+  path?: string;
   /** 包含隐藏文件 */
   include_hidden?: boolean;
-  /** 最大深度 */
-  max_depth?: number;
+}
+
+/**
+ * 资源上传响应模型
+ */
+export interface ResourceUploadSchema {
+  /** 文件名 */
+  filename: string;
+  /** 访问URL */
+  file_url: string;
+  /** 文件大小 */
+  file_size: number;
+  /** 上传时间 */
+  upload_time: string;
 }
 
 /**
@@ -199,40 +186,22 @@ export interface ResourceSearchQuery {
 export interface ResourceItem {
   /** 文件/目录名称 */
   name: string;
-  /** 完整路径 */
-  path: string;
+  /** 文件URL路径 */
+  file_url: string;
   /** 相对路径 */
   relative_path?: string;
   /** 是否为文件 */
   is_file?: boolean;
   /** 是否为目录 */
   is_dir?: boolean;
-  /** 是否为目录（兼容字段） */
-  is_directory?: boolean;
   /** 文件大小（字节） */
   size?: number | null;
-  /** 文件类型 */
-  file_type?: string | null;
-  /** 文件扩展名 */
-  file_extension?: string | null;
-  /** 资源类型 */
-  resource_type?: string;
   /** 创建时间 */
   created_time: string;
   /** 修改时间 */
   modified_time: string;
-  /** 访问时间 */
-  accessed_time?: string;
-  /** 父路径 */
-  parent_path?: string;
-  /** 深度 */
-  depth?: number;
   /** 是否为隐藏文件 */
   is_hidden?: boolean;
-  /** 文件URL（如果是图片等可预览文件） */
-  file_url?: string;
-  /** 缩略图URL */
-  thumbnail_url?: string;
 }
 
 /**
@@ -277,28 +246,4 @@ export interface ResourceCreateDirQuery {
   parent_path: string;
   /** 目录名称 */
   dir_name: string;
-}
-
-/**
- * 资源统计信息
- */
-export interface ResourceStats {
-  /** 挂载点 */
-  mount_point: string;
-  /** 总文件数 */
-  total_files: number;
-  /** 总目录数 */
-  total_dirs: number;
-  /** 总大小（字节） */
-  total_size: number;
-  /** 可用空间（字节） */
-  free_space: number;
-  /** 已使用空间（字节） */
-  used_space: number;
-  /** 总空间（字节） */
-  total_space: number;
-  /** 按文件类型统计 */
-  type_stats: Record<string, number>;
-  /** 按文件扩展名统计 */
-  extension_stats: Record<string, number>;
 }

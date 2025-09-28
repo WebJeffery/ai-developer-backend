@@ -35,6 +35,4 @@ PyMySQL==1.1.2              # mysql 异步操作数据库基于 pymysql：aiomys
 cryptography==45.0.2        # mysql8 密码加密
 openai==1.55.2              # ai 大模型
 oss2==2.18.4                # 阿里云对象存储
-pylibmagic==0.5.0           # 解决python-magic导入失败failed to find libmagic
-python-magic==0.4.27        # 文件类型识别
 rich==13.9.4

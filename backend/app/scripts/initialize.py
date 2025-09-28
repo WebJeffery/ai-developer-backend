@@ -7,7 +7,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logger import logger
-from app.core.database import AsyncSessionLocal
+from app.core.database import AsyncSessionLocal, async_engine
+from app.core.base_model import MappedBase
 from app.config.setting import settings
 
 from app.api.v1.module_system.user.model import UserModel, UserRolesModel, UserPositionsModel
@@ -48,6 +49,17 @@ class InitializeData:
             RoleMenusModel,
         ]
     
+    async def __init_create_table(self) -> None:
+        """初始化表结构（第一阶段）"""
+        try:
+            # 使用引擎创建所有表
+            async with async_engine.begin() as conn:
+                await conn.run_sync(MappedBase.metadata.create_all)
+            logger.info("数据库表结构初始化完成")
+        except Exception as e:
+            logger.error(f"数据库表结构初始化失败: {str(e)}")
+            raise
+
     async def __init_data(self, db: AsyncSession) -> None:
         """初始化基础数据"""
         for model in self.prepare_init_models:
@@ -76,7 +88,7 @@ class InitializeData:
                     objs = [model(**item) for item in data]
                 db.add_all(objs)
                 await db.flush()
-                logger.info(f"已向 {table_name} 表写入 {len(objs)} 条记录")
+                logger.info(f"已向 {table_name} 表写入初始化数据")
 
             except Exception as e:
                 logger.error(f"初始化 {table_name} 表数据失败: {str(e)}")
@@ -124,7 +136,10 @@ class InitializeData:
         """
         执行完整初始化流程
         """
-        # 使用单个会话完成所有初始化操作
+        # 先创建表结构
+        await self.__init_create_table()
+        
+        # 再初始化数据
         async with AsyncSessionLocal() as session:
             async with session.begin():
                 await self.__init_data(session)

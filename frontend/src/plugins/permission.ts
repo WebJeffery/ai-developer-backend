@@ -4,9 +4,6 @@ import { Auth } from "@/utils/auth";
 import router from "@/router";
 import { usePermissionStore, useUserStore } from "@/store";
 
-// 路由生成锁，防止重复生成
-let isGeneratingRoutes = false;
-
 export function setupPermission() {
   // 白名单路由
   const whiteList = ["/login"];
@@ -14,7 +11,8 @@ export function setupPermission() {
   router.beforeEach(async (to, from, next) => {
     NProgress.start();
 
-    const isLoggedIn = Auth.isLoggedIn();
+    try {
+      const isLoggedIn = Auth.isLoggedIn();
 
     if (isLoggedIn) {
       // 如果已登录但访问登录页，重定向到首页
@@ -25,14 +23,21 @@ export function setupPermission() {
 
       // 处理已登录用户的路由访问
       await handleAuthenticatedUser(to, from, next);
-    } else {
-      // 未登录用户的处理
-      if (whiteList.includes(to.path)) {
-        next();
       } else {
-        redirectToLogin(to, next);
-        NProgress.done();
+        // 未登录用户的处理
+        if (whiteList.includes(to.path)) {
+          next();
+        } else {
+          next(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
+          NProgress.done();
+        }
       }
+    }catch (error) {
+      // 错误处理：重置状态并跳转登录
+      console.error("Route guard error:", error);
+      await useUserStore().resetAllState();
+      next("/login");
+      NProgress.done();
     }
   });
 
@@ -54,21 +59,17 @@ async function handleAuthenticatedUser(
   const userStore = useUserStore();
 
   try {
-    // 检查用户信息是否存在
-    if (!userStore.basicInfo.username) {
-      await userStore.getUserInfo();
-    }
-
     // 检查路由是否已生成
-    if (!permissionStore.routesLoaded) {
-      // 防止重复生成路由
-      if (isGeneratingRoutes) {
-        console.log("⏳ Routes already generating, waiting...");
-        // 等待当前路由生成完成
-        await waitForRoutesGeneration(permissionStore);
-      } else {
-        await generateAndAddRoutes(permissionStore);
-      }
+    if (!permissionStore.isRouteGenerated) {
+      if (!userStore.basicInfo?.roles?.length) {
+          await userStore.getUserInfo();
+        }
+      
+      const dynamicRoutes = await permissionStore.generateRoutes();
+      // 添加路由到路由器
+      dynamicRoutes.forEach((route: RouteRecordRaw) => {
+        router.addRoute(route);
+      });
 
       // 路由生成完成后，重新导航到目标路由
       next({ ...to, replace: true });
@@ -90,74 +91,12 @@ async function handleAuthenticatedUser(
     next();
   } catch (error) {
     console.error("❌ Route guard error:", error);
-
-    // 出错时重置状态并重定向到登录页
-    await resetUserStateAndRedirect(to, next);
-  }
-}
-
-/**
- * 生成并添加动态路由
- */
-async function generateAndAddRoutes(permissionStore: any) {
-  isGeneratingRoutes = true;
-
-  try {
-    const dynamicRoutes = await permissionStore.generateRoutes();
-
-    // 添加路由到路由器
-    dynamicRoutes.forEach((route: RouteRecordRaw) => {
-      router.addRoute(route);
-    });
-  } finally {
-    isGeneratingRoutes = false;
-  }
-}
-
-/**
- * 等待路由生成完成
- */
-async function waitForRoutesGeneration(permissionStore: any): Promise<void> {
-  return new Promise((resolve) => {
-    const checkInterval = setInterval(() => {
-      if (!isGeneratingRoutes && permissionStore.routesLoaded) {
-        clearInterval(checkInterval);
-        resolve();
-      }
-    }, 50);
-
-    // 超时保护，最多等待5秒
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      resolve();
-    }, 5000);
-  });
-}
-
-/**
- * 重置用户状态并重定向到登录页
- */
-async function resetUserStateAndRedirect(to: RouteLocationNormalized, next: NavigationGuardNext) {
-  try {
     await useUserStore().resetAllState();
-    redirectToLogin(to, next);
-  } catch (resetError) {
-    console.error("❌ Failed to reset user state:", resetError);
     // 强制跳转到登录页
     next("/login");
-  } finally {
     NProgress.done();
-  }
+  } 
+  router.afterEach(() => {
+    NProgress.done();
+  });
 }
-
-/**
- * 重定向到登录页
- */
-function redirectToLogin(to: RouteLocationNormalized, next: NavigationGuardNext) {
-  const params = new URLSearchParams(to.query as Record<string, string>);
-  const queryString = params.toString();
-  const redirect = queryString ? `${to.path}?${queryString}` : to.path;
-
-  next(`/login?redirect=${encodeURIComponent(redirect)}`);
-}
-

@@ -26,6 +26,8 @@ export const SIDEBAR_COLOR_SCHEME_KEY = "sidebarColorScheme";
 export const THEME_KEY = "theme";
 export const THEME_COLOR_KEY = "themeColor";
 
+export const ROLE_ROOT = "ADMIN"; // 超级管理员角色
+
 // 🎯 功能分组的键映射对象
 
 // 认证相关键集合

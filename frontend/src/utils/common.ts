@@ -104,19 +104,6 @@ export function getRangeDate(startDate: string | number | Date, endDate: string 
   return targetArr;
 }
 
-
-// export function listToTree(list) {
-//   let resultList = list.filter((item) => {
-//     let children = list.filter((child) => {
-//       return item.id === child.parent_id;
-//     });
-//     if (children.length > 0) {
-//       item.children = children;
-//     }
-//     return item.parent_id === null;
-//   });
-//   return cloneDeep(resultList);
-// }
 export function listToTree(list: any[]) {
   const map: { [key: string | number]: any } = {};
   // 创建映射表，保留每个节点的 parent_id 等原始字段

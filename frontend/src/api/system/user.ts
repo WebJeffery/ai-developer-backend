@@ -1,5 +1,5 @@
 import request from "@/utils/request";
-import { MenuTable } from "@/api/system/menu";
+import { MenuTable, MenuForm } from "@/api/system/menu";
 
 export const UserAPI = {
   getCurrentUserInfo() {
@@ -203,8 +203,10 @@ export interface deptTreeType {
 export interface roleSelectorType {
   id?: number;
   name?: string;
+  code?: string;
   status?: boolean;
   description?: string;
+  menus?: MenuForm[];
 }
 
 export interface positionSelectorType {

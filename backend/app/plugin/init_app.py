@@ -31,7 +31,6 @@ from app.core.exceptions import (
     ResponseValidationHandle,
     ResponseValidationError
 )
-from app.core.database import session_connect, init_create_table
 from app.scripts.initialize import InitializeData
 from app.api.v1.module_system.params.service import ParamsService
 from app.api.v1.module_system.dict.service import DictDataService
@@ -45,16 +44,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     """
     logger.info(settings.BANNER + '\n' + f'{settings.TITLE} 服务开始启动...')
     
-    await init_create_table()
-    logger.info('数据库连接成功...')
     await InitializeData().init_db()
-    logger.info("初始化数据完成...")
+    logger.info(f"初始化 {settings.DATABASE_TYPE} 数据库初始化完成...")
     await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=True)
     logger.info("初始化全局事件完成...")
     await ParamsService().init_config_service(redis=app.state.redis)
-    logger.info("初始化系统配置完成...")
+    logger.info("初始化Redis系统配置完成...")
     await DictDataService().init_dict_service(redis=app.state.redis)
-    logger.info('初始化数据字典完成...')
+    logger.info('初始化Redis数据字典完成...')
     await SchedulerUtil.init_system_scheduler()
     logger.info('初始化定时任务完成...')
 

@@ -196,7 +196,7 @@ class ParamsService:
                     raise CustomException(msg="初始化系统配置失败")
 
     @classmethod
-    async def get_init_config_service(cls, redis: Redis) -> Dict:
+    async def get_init_config_service(cls, redis: Redis) -> List[Dict]:
         """获取系统配置"""
         redis_keys = await RedisCURD(redis).get_keys(f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:*")
         redis_configs = await RedisCURD(redis).mget(*redis_keys)

@@ -1,173 +1,323 @@
-<!--
-  低代码页面生成器 - 主界面
-  整合 Palette、Canvas、Inspector 三个核心组件
--->
 <template>
-  <div class="container">
-    <!-- 左侧组件库 -->
-    <Palette @add-component="handleAddComponent" />
-    
-    <!-- 中间画布 -->
-    <Canvas
-      :components="components"
-      :selected-component-id="selectedComponentId || undefined"
-      @update-components="handleUpdateComponents"
-      @select-component="handleSelectComponent"
-      @update-component="handleUpdateComponent"
-      @delete-component="handleDeleteComponent"
-      @move-component="handleMoveComponent"
+  <div class="app-container">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
+      <el-form-item label="表名称" prop="tableName">
+        <el-input
+          v-model="queryParams.tableName"
+          placeholder="请输入表名称"
+          clearable
+          style="width: 200px"
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="表描述" prop="tableComment">
+        <el-input
+          v-model="queryParams.tableComment"
+          placeholder="请输入表描述"
+          clearable
+          style="width: 200px"
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="创建时间" style="width: 308px">
+        <el-date-picker
+          v-model="dateRange"
+          value-format="YYYY-MM-DD"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="Search" @click="handleQuery" v-hasPermi="['generator:gencode:query']">搜索</el-button>
+        <el-button icon="Refresh" @click="resetQuery" v-hasPermi="['generator:gencode:query']">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="Download"
+          :disabled="multiple"
+          @click="handleGenTable"
+          v-hasPermi="['generator:gencode:code']"
+        >生成</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="Plus"
+          @click="openCreateTable"
+          v-hasRole="['admin']"
+        >创建</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="info"
+          plain
+          icon="Upload"
+          @click="openImportTable"
+          v-hasPermi="['generator:gencode:import']"
+        >导入</el-button>
+      </el-col>
+      <el-col :span="1.5">
+          <el-button
+           type="success"
+           plain
+           icon="Edit"
+           :disabled="single"
+           @click="handleEditTable"
+           v-hasPermi="['generator:gencode:update']"
+          >修改</el-button>
+        </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="danger"
+          plain
+          icon="Delete"
+          :disabled="multiple"
+          @click="handleDelete"
+          v-hasPermi="['generator:gencode:delete']"
+        >删除</el-button>
+      </el-col>
+      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
+    </el-row>
+
+    <el-table v-loading="loading" :data="tableList" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" align="center" width="55"></el-table-column>
+      <el-table-column label="序号" type="index" width="50" align="center">
+        <template #default="scope">
+          <span>{{(queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="表名称"
+        align="center"
+        prop="tableName"
+        :show-overflow-tooltip="true"
+      />
+      <el-table-column
+        label="表描述"
+        align="center"
+        prop="tableComment"
+        :show-overflow-tooltip="true"
+      />
+      <el-table-column
+        label="实体"
+        align="center"
+        prop="className"
+        :show-overflow-tooltip="true"
+      />
+      <el-table-column label="创建时间" align="center" prop="createTime" width="160" />
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="160" />
+      <el-table-column label="操作" align="center" width="330" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-tooltip content="预览" placement="top">
+            <el-button link type="primary" icon="View" @click="handlePreview(scope.row)" v-hasPermi="['generator:gencode:query']"></el-button>
+          </el-tooltip>
+          <el-tooltip content="编辑" placement="top">
+            <el-button link type="primary" icon="Edit" @click="handleEditTable(scope.row)" v-hasPermi="['generator:gencode:update']"></el-button>
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top">
+            <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['generator:gencode:delete']"></el-button>
+          </el-tooltip>
+          <el-tooltip content="同步" placement="top">
+            <el-button link type="primary" icon="Refresh" @click="handleSynchDb(scope.row)" v-hasPermi="['generator:gencode:edit']"></el-button>
+          </el-tooltip>
+          <el-tooltip content="生成代码" placement="top">
+            <el-button link type="primary" icon="Download" @click="handleGenTable(scope.row)" v-hasPermi="['generator:gencode:code']"></el-button>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+    </el-table>
+    <pagination
+      v-show="total>0"
+      :total="total"
+      v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize"
+      @pagination="getList"
     />
-    
-    <!-- 右侧属性面板 -->
-    <Inspector
-      :selected-component="selectedComponent"
-      @update-component="handleUpdateComponent"
-      @delete-component="handleDeleteComponent"
-    />
+    <!-- 预览界面 -->
+    <el-dialog :title="preview.title" v-model="preview.open" width="80%" top="5vh" append-to-body class="scrollbar">
+      <el-tabs v-model="preview.activeName">
+        <el-tab-pane
+          v-for="(value, key) in preview.data"
+          :label="key.substring(key.lastIndexOf('/')+1,key.indexOf('.jinja2'))"
+          :name="key.substring(key.lastIndexOf('/')+1,key.indexOf('.jinja2'))"
+          :key="value"
+        >
+          <el-link :underline="false" icon="DocumentCopy" v-copyText="value" v-copyText:callback="copyTextSuccess" style="float:right">&nbsp;复制</el-link>
+          <pre>{{ value }}</pre>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
+    <import-table ref="importRef" @ok="handleQuery" />
+    <create-table ref="createRef" @ok="handleQuery" />
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import Palette from './components/Palette.vue';
-import Canvas from './components/Canvas.vue';
-import Inspector from './components/Inspector.vue';
-import { ComponentSchema, PageSchema, generateId } from './utils/schema';
-import { generateVueFile, exportAsFile, copyToClipboard } from './utils/serializer';
-
-// 响应式数据
-const components = ref<ComponentSchema[]>([]);
-const selectedComponentId = ref<string | null>(null);
-
-
-// 计算属性
-const selectedComponent = computed(() => {
-  if (!selectedComponentId.value) return null;
-  return findComponentById(components.value, selectedComponentId.value);
+<script setup name="Gen">
+defineOptions({
+    name: "GenCode",
+    inheritAttrs: false,
 });
 
-// 查找组件
-function findComponentById(components: ComponentSchema[], id: string): ComponentSchema | null {
-  for (const component of components) {
-    if (component.id === id) {
-      return component;
-    }
-    if (component.children) {
-      const found = findComponentById(component.children, id);
-      if (found) return found;
-    }
-  }
-  return null;
-}
+import GencodeAPI from "@/api/generator/gencode";
+import router from "@/router";
+import importTable from "@/views/gencode/backcode/components/importTable.vue";
+import createTable from "@/views/gencode/backcode/components/createTable.vue";
 
-// 处理添加组件
-function handleAddComponent(component: ComponentSchema) {
-  components.value.push(component);
-  selectedComponentId.value = component.id;
-  ElMessage.success(`已添加 ${component.type} 组件`);
-}
+const route = useRoute();
+const { proxy } = getCurrentInstance();
 
-// 处理更新组件列表
-function handleUpdateComponents(newComponents: ComponentSchema[]) {
-  components.value = newComponents;
-}
+const tableList = ref([]);
+const loading = ref(true);
+const showSearch = ref(true);
+const ids = ref([]);
+const single = ref(true);
+const multiple = ref(true);
+const total = ref(0);
+const tableNames = ref([]);
+const dateRange = ref([]);
+const uniqueId = ref("");
 
-// 处理选择组件
-function handleSelectComponent(component: ComponentSchema | null) {
-  selectedComponentId.value = component?.id || null;
-}
-
-// 处理更新组件
-function handleUpdateComponent(component: ComponentSchema) {
-  updateComponentById(components.value, component);
-}
-
-// 更新组件
-function updateComponentById(components: ComponentSchema[], updatedComponent: ComponentSchema) {
-  for (let i = 0; i < components.length; i++) {
-    if (components[i].id === updatedComponent.id) {
-      components[i] = updatedComponent;
-      return;
-    }
-    if (components[i].children) {
-      updateComponentById(components[i].children!, updatedComponent);
-    }
-  }
-}
-
-// 处理删除组件
-function handleDeleteComponent(componentId: string) {
-  deleteComponentById(components.value, componentId);
-  if (selectedComponentId.value === componentId) {
-    selectedComponentId.value = null;
-  }
-}
-
-// 删除组件
-function deleteComponentById(components: ComponentSchema[], id: string): boolean {
-  for (let i = 0; i < components.length; i++) {
-    if (components[i].id === id) {
-      components.splice(i, 1);
-      return true;
-    }
-    if (components[i].children) {
-      if (deleteComponentById(components[i].children!, id)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-// 处理移动组件
-function handleMoveComponent(fromIndex: number, toIndex: number) {
-  const component = components.value.splice(fromIndex, 1)[0];
-  components.value.splice(toIndex, 0, component);
-}
-
-
-// 组件挂载时加载本地数据
-onMounted(() => {
-  try {
-    const savedComponents = localStorage.getItem('lowcode-components');
-    if (savedComponents) {
-      components.value = JSON.parse(savedComponents);
-    }
-  } catch (error) {
-    console.warn('加载本地数据失败:', error);
+const data = reactive({
+  queryParams: {
+    pageNum: 1,
+    pageSize: 10,
+    tableName: undefined,
+    tableComment: undefined
+  },
+  preview: {
+    open: false,
+    title: "代码预览",
+    data: {},
+    activeName: "do.py"
   }
 });
 
-// 监听组件变化，自动保存到本地存储
-watch(() => components.value, (newComponents) => {
-  try {
-    localStorage.setItem('lowcode-components', JSON.stringify(newComponents));
-  } catch (error) {
-    console.warn('保存到本地存储失败:', error);
+const { queryParams, preview } = toRefs(data);
+
+onActivated(() => {
+  const time = route.query.t;
+  if (time != null && time != uniqueId.value) {
+    uniqueId.value = time;
+    queryParams.value.pageNum = Number(route.query.pageNum);
+    dateRange.value = [];
+    proxy.resetForm("queryForm");
+    getList();
   }
-}, { deep: true });
+})
+
+/** 查询表集合 */
+function getList() {
+  loading.value = true;
+  GencodeAPI.listTable(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
+    tableList.value = response.rows;
+    total.value = response.total;
+    loading.value = false;
+  });
+}
+
+/** 搜索按钮操作 */
+function handleQuery() {
+  queryParams.value.pageNum = 1;
+  getList();
+}
+
+/** 生成代码操作 */
+function handleGenTable(row) {
+  const tbNames = row.tableName || tableNames.value;
+  if (tbNames == "") {
+    proxy.$modal.msgError("请选择要生成的数据");
+    return;
+  }
+  if (row.genType === "1") {
+    GencodeAPI.genCodeToPath(row.tableName).then(() => {
+      proxy.$modal.msgSuccess("成功生成到自定义路径：" + row.genPath);
+    });
+  } else {
+    GencodeAPI.batchGenCode(tbNames).then(response => {
+      const blob = new Blob([response], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'code.zip';
+      link.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+}
+
+/** 同步数据库操作 */
+function handleSynchDb(row) {
+  const tableName = row.tableName;
+  proxy.$modal.confirm('确认要强制同步"' + tableName + '"表结构吗？').then(function () {
+    return GencodeAPI.syncDb(tableName);
+  }).then(() => {
+    proxy.$modal.msgSuccess("同步成功");
+  }).catch(() => {});
+}
+
+/** 打开导入表弹窗 */
+function openImportTable() {
+  proxy.$refs["importRef"].show();
+}
+
+/** 打开创建表弹窗 */
+function openCreateTable() {
+  proxy.$refs["createRef"].show();
+}
+
+/** 重置按钮操作 */
+function resetQuery() {
+  dateRange.value = [];
+  proxy.resetForm("queryRef");
+  handleQuery();
+}
+
+/** 预览按钮 */
+function handlePreview(row) {
+  GencodeAPI.previewTable(row.tableId).then(response => {
+    preview.value.data = response.data;
+    preview.value.open = true;
+    preview.value.activeName = "do.py";
+  });
+}
+
+/** 复制代码成功 */
+function copyTextSuccess() {
+  proxy.$modal.msgSuccess("复制成功");
+}
+
+// 多选框选中数据
+function handleSelectionChange(selection) {
+  ids.value = selection.map(item => item.tableId);
+  tableNames.value = selection.map(item => item.tableName);
+  single.value = selection.length != 1;
+  multiple.value = !selection.length;
+}
+
+/** 修改按钮操作 */
+function handleEditTable(row) {
+  const tableId = row.tableId || ids.value[0];
+  router.push({ path: "/tool/gen-edit/index/" + tableId, query: { pageNum: queryParams.value.pageNum } });
+}
+
+/** 删除按钮操作 */
+function handleDelete(row) {
+  const tableIds = row.tableId ? [row.tableId] : ids.value;
+  proxy.$modal.confirm('是否确认删除表编号为"' + tableIds + '"的数据项？').then(function () {
+    return GencodeAPI.deleteTable(tableIds);
+  }).then(() => {
+    getList();
+    proxy.$modal.msgSuccess("删除成功");
+  }).catch(() => {});
+}
+
+getList();
 </script>
-
-<style scoped>
-.container {
-  position: relative;
-  width: 100%;
-  background-color: var(--el-bg-color-overlay);
-  height: calc(100vh - 50px - 40px);
-  overflow: hidden;
-}
-
-/* 响应式设计 */
-@media (max-width: 1200px) {
-  .container {
-    height: calc(100vh - 40px);
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    height: calc(100vh - 30px);
-  }
-}
-</style>

@@ -36,10 +36,10 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery"
+          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['monitor:job:query']"
             >查询</el-button
           >
-          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['monitor:job:query']">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
             <el-link
@@ -83,6 +83,7 @@
             type="success"
             icon="plus"
             @click="handleOpenDialog('create')"
+            v-hasPerm="['monitor:job:create']"
             >新增</el-button
           >
           <el-button
@@ -90,6 +91,7 @@
             icon="delete"
             :disabled="selectIds.length === 0"
             @click="handleDelete(selectIds)"
+            v-hasPerm="['monitor:job:delete']"
             >批量删除</el-button
           >
         </div>
@@ -100,10 +102,11 @@
               icon="download"
               circle
               @click="handleExport"
+              v-hasPerm="['monitor:job:export']"
             />
           </el-tooltip>
           <el-tooltip content="清除">
-            <el-button type="danger" icon="delete" circle @click="handleClear" />
+            <el-button type="danger" icon="delete" circle @click="handleClear" v-hasPerm="['monitor:job:clear']" />
           </el-tooltip>
           <el-tooltip content="刷新">
             <el-button
@@ -111,6 +114,7 @@
               icon="refresh"
               circle
               @click="handleRefresh"
+              v-hasPerm="['monitor:job:refresh']"
             />
           </el-tooltip>
         </div>
@@ -213,6 +217,7 @@
                 link
                 icon="edit"
                 @click="handleOpenDialog('update', scope.row.id)"
+                v-hasPerm="['monitor:job:update']"
               >
                 编辑
               </el-button>
@@ -222,10 +227,11 @@
                 link
                 icon="delete"
                 @click="handleDelete([scope.row.id])"
+                v-hasPerm="['monitor:job:delete']"
               >
                 删除
               </el-button>
-              <el-dropdown trigger="click">
+              <el-dropdown trigger="click" v-hasPerm="['monitor:job:status']">
                 <el-button type="warning" size="small" link icon="ArrowDown"
                   >更多</el-button
                 >
@@ -560,7 +566,7 @@
             @click="handleSubmit"
             >确定</el-button
           >
-          <el-button v-else type="primary" @click="handleCloseDialog"
+          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['monitor:job:detail']"
             >确定</el-button
           >
         </div>

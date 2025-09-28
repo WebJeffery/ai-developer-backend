@@ -1,7 +1,6 @@
 import type { RouteRecordRaw } from "vue-router";
 import router, { constantRoutes } from "@/router";
 import { store, useUserStore } from "@/store";
-import { listToTree } from "@/utils/common";
 import { MenuTable } from "@/api/system/menu";
 
 const modules = import.meta.glob("../../views/**/**.vue");
@@ -69,32 +68,14 @@ export const generator = (routers: MenuTable[]): RouteVO[] => {
     });
 };
 
-// router.beforeEach(async (to) => {
-//   const accessToken = Auth.getAccessToken();
-  
-//   const userStore = useUserStore();
-
-//   if (!accessToken && to.name !== "Login") {
-//     return { name: "Login" };
-//   } else if (accessToken && to.name === "Login") {
-//     return { name: "Index" };
-//   } else if (accessToken && !userStore.hasGetRoute) {
-//     await userStore.getUserInfo();
-//     const routersTree = listToTree(userStore.routeList);
-//     const routerMap = generator(routersTree);
-//     constantRoutes[0].children = [...(constantRoutes[0].children || []), ...routerMap].filter(Boolean) as RouteRecordRaw[];
-//     router.addRoute(constantRoutes[0]);
-//     return to.fullPath;
-//   }
-// });
 
 export const usePermissionStore = defineStore("permission", () => {
   // 存储所有路由，包括静态路由和动态路由
   const routes = ref<RouteRecordRaw[]>([]);
   // 混合模式左侧菜单路由
-  const sideMenuRoutes = ref<RouteRecordRaw[]>([]);
+  const mixLayoutSideMenus = ref<RouteRecordRaw[]>([]);
   // 路由是否加载完成
-  const routesLoaded = ref(false);
+  const isRouteGenerated = ref(false);
 
   /**
    * 获取后台动态路由数据，解析并注册到全局路由
@@ -109,65 +90,32 @@ export const usePermissionStore = defineStore("permission", () => {
         await userStore.getUserInfo();
       }
 
-      const routersTree = listToTree(userStore.routeList);
-      const routerMap = generator(routersTree);
+      const data = generator(userStore.routeList);
 
       // 解析动态路由
-      const dynamicRoutes = parseDynamicRoutes(routerMap);
-
-      // 重置路由，移除旧的动态路由
-      // resetRouter();
-      
-      // 重新添加所有路由
-      // constantRoutes.forEach(route => {
-      //   router.addRoute(route);
-      // });
+      const dynamicRoutes = transformRoutes(data);
 
       routes.value = [...constantRoutes, ...dynamicRoutes];
       
-      routesLoaded.value = true;
+      isRouteGenerated.value = true;
 
       return dynamicRoutes;
     } catch (error: any) {
       // 即使失败也要设置状态，避免无限重试
-      routesLoaded.value = false;
+      isRouteGenerated.value = false;
 
       throw error;
     }
   }
-
-  // 用于存储路由路径到路由项的映射，提高查找效率
-  const routePathMap = ref<Record<string, RouteRecordRaw>>({});
-
-  // 当routes更新时，同步更新routePathMap
-  watch(routes, (newRoutes) => {
-    const newMap: Record<string, RouteRecordRaw> = {};
-    const buildMap = (routes: RouteRecordRaw[]) => {
-      routes.forEach(route => {
-        if (route.path) newMap[route.path] = route;
-        if (route.children) buildMap(route.children);
-      });
-    };
-    buildMap(newRoutes);
-    routePathMap.value = newMap;
-  }, { immediate: true });
 
   /**
    * 根据父菜单路径设置侧边菜单
    *
    * @param parentPath 父菜单的路径，用于查找对应的菜单项
    */
-  const updateSideMenu = (parentPath: string) => {
-    // 使用映射表进行O(1)时间复杂度的查找
-    const matchedItem = routePathMap.value[parentPath];
-    if (matchedItem && matchedItem.children) {
-      // 只有当子菜单发生变化时才更新，避免不必要的重渲染
-      if (JSON.stringify(matchedItem.children) !== JSON.stringify(sideMenuRoutes.value)) {
-        sideMenuRoutes.value = matchedItem.children;
-      }
-    } else {
-      sideMenuRoutes.value = [];
-    }
+  const setMixLayoutSideMenus = (parentPath: string) => {
+    const parentMenu = routes.value.find((item) => item.path === parentPath);
+    mixLayoutSideMenus.value = parentMenu?.children || [];
   };
 
   /**
@@ -184,54 +132,45 @@ export const usePermissionStore = defineStore("permission", () => {
       }
     });
 
-    // 重置为仅包含常量路由
+    // 重置所有状态
     routes.value = [...constantRoutes];
-    sideMenuRoutes.value = [];
-    routesLoaded.value = false;
-    routePathMap.value = {};
+    mixLayoutSideMenus.value = [];
+    isRouteGenerated.value = false;
   };
 
   return {
     routes,
-    sideMenuRoutes,
-    routesLoaded,
+    mixLayoutSideMenus,
+    isRouteGenerated,
     generateRoutes,
-    updateSideMenu,
+    setMixLayoutSideMenus,
     resetRouter,
-    routePathMap,
   };
 });
 
 /**
- * 解析后端返回的路由数据并转换为 Vue Router 兼容的路由配置
- *
- * @param rawRoutes 后端返回的原始路由数据
- * @returns 解析后的路由集合
+ * 转换后端路由数据为Vue Router配置
+ * 处理组件路径映射和Layout层级嵌套
  */
-const parseDynamicRoutes = (rawRoutes: RouteVO[]): RouteRecordRaw[] => {
-  const parsedRoutes: RouteRecordRaw[] = [];
-
-  rawRoutes.forEach((route) => {
+const transformRoutes = (routes: RouteVO[]): RouteRecordRaw[] => {
+  return routes.map((route) => {
+    // 创建路由对象，保留所有路由属性
     const normalizedRoute = { ...route } as RouteRecordRaw;
-    // http://localhost:5180/#/dashboard/workplace
-    // http://localhost:5180/#/dashboard/workplace
 
-    // 处理组件路径
+    // 处理组件路径映射
     normalizedRoute.component =
       !normalizedRoute.component
         ? Layout
         : modules[`../../views/${normalizedRoute.component}.vue`] ||
           modules["../../views/error/404.vue"];
 
-    // 递归解析子路由
-    if (normalizedRoute.children) {
-      normalizedRoute.children = parseDynamicRoutes(route.children);
+    // 递归处理子路由
+    if (normalizedRoute.children && normalizedRoute.children.length > 0) {
+      normalizedRoute.children = transformRoutes(route.children);
     }
-
-    parsedRoutes.push(normalizedRoute);
+    
+    return normalizedRoute;
   });
-
-  return parsedRoutes;
 };
 
 /**

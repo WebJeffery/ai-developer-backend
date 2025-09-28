@@ -151,7 +151,6 @@ const props = defineProps({
 })
 
 import JobAPI, { JobLogPageQuery, JobLogTable } from "@/api/monitor/job";
-import { ElMessageBox } from "element-plus";
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 

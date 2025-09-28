@@ -51,10 +51,7 @@ class ModelMixin(MappedBase):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None, comment="备注/描述")
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now, comment='创建时间')
-    create_by: Mapped[Optional[str]] = mapped_column(String(64), default='', comment='创建者')
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now, onupdate=datetime.now, comment='更新时间')
-    update_by: Mapped[Optional[str]] = mapped_column(String(64), default='', comment='更新者')
-    del_flag: Mapped[str] = mapped_column(String(1), nullable=False, default='0', comment='删除标志（0代表存在 2代表删除）')
     
 
 class CreatorMixin(ModelMixin):
@@ -66,13 +63,13 @@ class CreatorMixin(ModelMixin):
     creator_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True, comment="创建人ID")
 
     @declared_attr
-    def creator(cls) -> Mapped[Optional["UserModel"]]:
+    def creator(cls) -> Mapped[Optional["UserModel"]]:  # type: ignore
         """创建人关联关系（延迟加载，避免循环依赖）"""
         return relationship(
             "UserModel",
             primaryjoin=f"{cls.__name__}.creator_id == UserModel.id",
             lazy="selectin",
-            foreign_keys=[cls.creator_id],
+            foreign_keys=lambda: [cls.creator_id],  # type: ignore
             viewonly=True,
             uselist=False  # 明确指定返回单个对象
         )
