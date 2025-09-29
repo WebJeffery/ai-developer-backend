@@ -8,6 +8,7 @@ export default {
     edit: "Edit",
     delete: "Delete",
     add: "Add",
+    clear: "Clear",
     export: "Export",
     import: "Import",
     query: "Query",

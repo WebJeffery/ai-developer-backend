@@ -8,6 +8,7 @@ export default {
     edit: "编辑",
     delete: "删除",
     add: "添加",
+    clear: "清除",
     export: "导出",
     import: "导入",
     query: "查询",

@@ -39,7 +39,6 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     // 如果视图需要缓存（keepAlive），则将其路由名称添加到缓存视图列表中
     if (view.keepAlive) {
       cachedViews.value.push(viewName);
-      console.log("cachedViews",cachedViews.value)
     }
   }
 
