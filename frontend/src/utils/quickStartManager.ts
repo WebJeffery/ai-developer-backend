@@ -3,10 +3,8 @@ import { ElMessage } from 'element-plus';
 // 快速链接数据类型
 export interface QuickLink {
   title: string;
-  description: string;
   icon: string;
   href: string;
-  action: 'navigate' | 'external';
   id?: string;
 }
 
@@ -28,40 +26,7 @@ class QuickStartManager {
 
   // 获取默认链接
   private getDefaultLinks(): QuickLink[] {
-    return [
-      {
-        id: 'user-management',
-        title: "用户管理",
-        description: "管理系统用户信息",
-        icon: "User",
-        href: "/system/user",
-        action: "navigate"
-      },
-      {
-        id: 'monitor',
-        title: "系统监控",
-        description: "监控系统状态",
-        icon: "Monitor",
-        href: "/monitor",
-        action: "navigate"
-      },
-      {
-        id: 'baidu',
-        title: "百度搜索",
-        description: "访问百度搜索引擎",
-        icon: "Search",
-        href: "https://www.baidu.com",
-        action: "external"
-      },
-      {
-        id: 'github',
-        title: "GitHub",
-        description: "访问代码托管平台",
-        icon: "Monitor",
-        href: "https://github.com",
-        action: "external"
-      }
-    ];
+    return [];
   }
 
   // 保存快速链接
@@ -77,9 +42,6 @@ class QuickStartManager {
   // 添加快速链接
   addQuickLink(link: QuickLink): void {
     const links = this.getQuickLinks();
-    
-    // 生成唯一ID
-    link.id = link.id || `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     // 检查是否已存在相同路径的链接
     const existingIndex = links.findIndex(l => l.href === link.href);
@@ -105,28 +67,19 @@ class QuickStartManager {
     }
   }
 
+  // 清空所有快速链接
+  clearQuickLinks(): void {
+    this.saveQuickLinks([]);
+  }
   // 从路由或菜单信息创建快速链接
-  createQuickLinkFromRoute(route: any, customTitle?: string, customDescription?: string): QuickLink {
-        // 优先使用路由对象上的icon字段，如果没有则使用默认图标
-    let routeIcon = route.icon || 'Link';
-    
-    // 处理Element Plus图标名称，转换为组件名称
-    if (routeIcon.startsWith('el-icon-')) {
-      // 将 el-icon-Odometer 转换为 Odometer
-      routeIcon = routeIcon.replace('el-icon-', '');
-      // 首字母大写
-      routeIcon = routeIcon.charAt(0).toUpperCase() + routeIcon.slice(1);
-    }
-    
+  createQuickLinkFromRoute(route: any, customTitle?: string): QuickLink {
     // 确定最终使用的标题 - 优先使用route.title
     const finalTitle = customTitle || route.title || route.name || '未命名页面';
 
     return {
       title: finalTitle,
-      description: customDescription || `快速访问 ${route.title || route.name || '页面'}`,
-      icon: routeIcon,
+      icon: route.icon,
       href: route.fullPath || route.path,
-      action: 'navigate',
       id: `route-${route.path.replace(/\//g, '-')}-${Date.now()}`
     };
   }

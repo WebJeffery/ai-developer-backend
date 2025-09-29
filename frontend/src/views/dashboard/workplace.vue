@@ -33,7 +33,8 @@
               <span class="font-bold">进行中的项目</span>
               <ElLink href="" type="primary" underline="never" style="float: right">全部项目</ElLink>
             </template>
-            <ElRow>
+            <el-empty v-if="projectNotice.length === 0" :image-size="80" description="暂无数据" />
+            <ElRow v-else>
               <ElCol v-for="item in projectNotice" :key="`card-${item.id}`" :xl="8" :lg="8" :md="12" :sm="24" :xs="24">
                 <ElCard :key="item.id" shadow="hover">
                   <ElDescriptions :column="1">
@@ -61,58 +62,108 @@
               </ElCol>
             </ElRow>
           </ElCard>
-                     <!-- 通知公告 -->
-           <ElCard shadow="hover" class="mt-4">
-             <template #header>
-               <div class="flex justify-between items-center">
-                 <span class="font-bold">通知公告</span>
-                 <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary" underline="never">更多</ElLink>
-               </div>
-             </template>
-             <ElTimeline>
-               <ElTimelineItem v-for="(item, index) in noticeList" :key="item.id" :type="index === 0 ? 'primary' : 'info'">
-                 <div class="bg-[var(--el-fill-color-light)] rounded-lg p-4 border border-[var(--el-border-color)] hover:shadow-md transition-shadow">
-                   <div class="flex justify-between items-start mb-2">
-                     <div class="flex items-center gap-2">
-                       <span class="font-medium text-[var(--el-text-color-primary)]">{{ item.notice_title }}</span>
-                      <el-tag size="small" :type="getNoticeTypeColor(item.notice_type)">
-                          {{ getNoticeTypeText(item.notice_type) }}
-                        </el-tag>
-                     </div>
-                     <span class="text-xs text-[var(--el-text-color-regular)]">{{ formatTime(item.created_at) }}</span>
-                   </div>
-                   <div class="text-sm text-[var(--el-text-color-regular)] mb-3 line-clamp-2">{{ item.notice_content }}</div>
-                   <div class="flex justify-between items-center text-xs">
-                     <span class="text-[var(--el-text-color-regular)]">{{ item.creator?.name }} 发布</span>
-                     <el-tooltip placement="top" :content="item.description || item.notice_content">
-                       <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary">详情↗</ElLink>
-                     </el-tooltip>
-                   </div>
-                 </div>
-               </ElTimelineItem>
-             </ElTimeline>
-           </ElCard>
+          <!-- 通知公告 -->
+          <ElCard shadow="hover" class="mt-4">
+            <template #header>
+              <div class="flex justify-between items-center">
+                <span class="font-bold">通知公告</span>
+                <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary" underline="never">更多</ElLink>
+              </div>
+            </template>
+            <el-empty v-if="noticeList.length === 0" :image-size="80" description="暂无数据" />
+            <ElTimeline>
+              <ElTimelineItem v-for="(item, index) in noticeList" :key="item.id" :type="index === 0 ? 'primary' : 'info'">
+                <div class="bg-[var(--el-fill-color-light)] rounded-lg p-4 border border-[var(--el-border-color)] hover:shadow-md transition-shadow">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-2">
+                      <span class="font-medium text-[var(--el-text-color-primary)]">{{ item.notice_title }}</span>
+                    <el-tag size="small" :type="getNoticeTypeColor(item.notice_type)">
+                      {{ getNoticeTypeText(item.notice_type) }}
+                      </el-tag>
+                    </div>
+                    <span class="text-xs text-[var(--el-text-color-regular)]">{{ formatTime(item.created_at) }}</span>
+                  </div>
+                  <div class="text-sm text-[var(--el-text-color-regular)] mb-3 line-clamp-2">{{ item.notice_content }}</div>
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-[var(--el-text-color-regular)]">{{ item.creator?.name }} 发布</span>
+                    <el-tooltip placement="top" :content="item.description || item.notice_content">
+                      <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary">详情↗</ElLink>
+                    </el-tooltip>
+                  </div>
+                </div>
+              </ElTimelineItem>
+            </ElTimeline>
+          </ElCard>
 
-                     <!-- 团队 -->
-           <ElCard shadow="hover" class="mt-4">
-             <template #header>
-               <span class="font-bold">团队</span>
-             </template>
-             <ElRow :gutter="16">
-               <ElCol v-for="item in projectNotice" :key="`members-item-${item.id}`" :span="8" class="mb-3">
-                 <ElLink underline="never" :href="item.href" class="flex items-center hover:bg-[var(--el-fill-color-light)] p-2 rounded transition-colors">
-                   <ElAvatar :src="item.avatar" size="small" class="mr-2" />
-                   <span class="text-sm truncate text-[var(--el-text-color-regular)]">{{ item.member }}</span>
-                 </ElLink>
-               </ElCol>
-             </ElRow>
-           </ElCard>
+          <!-- 团队 -->
+          <ElCard shadow="hover" class="mt-4">
+            <template #header>
+              <span class="font-bold">团队</span>
+            </template>
+            <el-empty v-if="projectNotice.length === 0" :image-size="80" description="暂无数据" />
+            <ElRow v-else :gutter="16">
+              <ElCol v-for="item in projectNotice" :key="`members-item-${item.id}`" :span="8" class="mb-3">
+                <ElLink underline="never" :href="item.href" class="flex items-center hover:bg-[var(--el-fill-color-light)] p-2 rounded transition-colors">
+                  <ElAvatar :src="item.avatar" size="small" class="mr-2" />
+                  <span class="text-sm truncate text-[var(--el-text-color-regular)]">{{ item.member }}</span>
+                </ElLink>
+              </ElCol>
+            </ElRow>
+          </ElCard>
         </ElCol>
 
         <!-- 右侧：快速开始 / 便捷导航 + XX 指数 -->
         <ElCol :xl="8" :lg="8" :md="12" :sm="12" :xs="24">
           <!-- 快速开始 / 便捷导航 -->
-          <QuickStart />
+          <ElCard shadow="hover" class="mb-4" >
+            <template #header>
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                  <el-tooltip content="快速访问常用功能，支持内部路由跳转和外部链接打开。" placement="top">
+                    <el-icon class="cursor-help" size="16">
+                      <QuestionFilled />
+                    </el-icon>
+                  </el-tooltip>
+                  <span class="font-bold">快速开始 / 便捷导航</span>
+                </div>
+                <ElButton size="small" type="danger" plain @click="clearBookmarks()">
+                  <el-icon>
+                    <Close />
+                  </el-icon>
+                  {{ t('common.clear') }}
+                </ElButton>
+              </div>
+            </template>
+            <ElRow v-if="quickLinks.length > 0" :gutter="12">
+              <ElCol 
+                v-for="(item, index) in quickLinks" 
+                :key="index"
+                :span="8"
+                class="group mb-4"
+              >
+                <ElButton 
+                  type="default" 
+                  class="w-full h-20 flex items-center justify-start px-4 relative"
+                  @click="handleQuickLinkClick(item)"
+                >
+                  <el-icon v-if="item.icon && item.icon.startsWith('el-icon')">
+                    <component :is="item.icon.replace('el-icon-', '')" />
+                  </el-icon>
+                  <div v-else-if="item.icon" :class="`i-svg:${item.icon} mr-2`" />
+                  <div v-else :class="`i-svg:menu mr-2`" />
+                  
+                  <span>{{ item.title }}</span>
+                  <el-icon 
+                    class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 "
+                    @click.stop="handleDeleteLink(item)"
+                  >
+                    <CircleCloseFilled />
+                  </el-icon>
+                </ElButton>
+              </ElCol>
+            </ElRow>
+            <el-empty v-else :image-size="80" description="暂无数据" />
+          </ElCard>
 
           <!-- XX 指数 -->
           <ElCard class="mb-4 font-bold" header="XX 指数">
@@ -128,15 +179,24 @@
 import { EChartsOption } from 'echarts'
 import { useUserStore } from "@/store/index";
 import { greetings } from '@/utils/common';
-import QuickStart from './components/QuickStart.vue';
 import NoticeAPI, { NoticeTable } from '@/api/system/notice';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import { QuestionFilled, Close, CircleCloseFilled } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { quickStartManager, type QuickLink } from '@/utils/quickStartManager';
 
 const userStore = useUserStore();
 const timefix = greetings();
+const { t } = useI18n();
+const router = useRouter();
 
 // 通知公告数据
 const noticeList = ref<NoticeTable[]>([]);
+
+// 快速链接数据
+const quickLinks = ref<QuickLink[]>(quickStartManager.getQuickLinks());
 
 // 格式化时间
 const formatTime = (time: string | undefined) => {
@@ -195,9 +255,68 @@ const getNoticeList = async () => {
   }
 };
 
-// 组件挂载时获取数据
+// 处理快速链接点击
+const handleQuickLinkClick = (item: QuickLink) => {
+  if (item.href) {
+    // 内部路由跳转
+    router.push(item.href).catch(() => {
+      ElMessage.warning(`路由 ${item.href} 不存在，请检查配置`);
+    });
+    ElMessage.success(`进入：${item.title}`);
+  } else {
+    ElMessage.info(`${item.title} 功能待开发`);
+  }
+};
+
+// 处理删除链接
+const handleDeleteLink = (item: QuickLink) => {
+  ElMessageBox.confirm(
+    `确定要取消收藏"${item.title}"吗？`,
+    '取消收藏确认',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    if (item.id) {
+      quickStartManager.removeQuickLink(item.id);
+      ElMessage.success(`已取消收藏：${item.title}`);
+    }
+  }).catch(() => {
+    // 用户取消删除
+  });
+};
+
+const clearBookmarks = () => {
+  ElMessageBox.confirm(
+    '确定要清空收藏吗？',
+    '清空收藏确认',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    quickStartManager.clearQuickLinks();
+    ElMessage.success('已清空收藏');
+  }).catch(() => {})
+}
+
+// 监听快速链接变化
+const updateQuickLinks = (links: QuickLink[]) => {
+  quickLinks.value = links;
+};
+
+// 组件挂载时获取数据和添加监听器
 onMounted(() => {
   getNoticeList();
+  quickStartManager.addListener(updateQuickLinks);
+});
+
+// 组件卸载时移除监听器
+onUnmounted(() => {
+  quickStartManager.removeListener(updateQuickLinks);
 });
 
 defineOptions({
@@ -279,7 +398,6 @@ const projectNotice = [
 ];
 
 
-
 const chartOptions = reactive<EChartsOption>({
   tooltip: { trigger: 'item' },
   legend: { data: ['个人', '团队', '部门'] },
@@ -307,18 +425,9 @@ const chartOptions = reactive<EChartsOption>({
   }]
 });
 
-
-
 </script>
 
 <style scoped>
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 /* 最小化自定义样式，主要使用UnoCSS和Element Plus内置样式 */
+
 </style>
