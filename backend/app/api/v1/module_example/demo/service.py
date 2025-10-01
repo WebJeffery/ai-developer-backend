@@ -137,10 +137,9 @@ class DemoService:
             # 验证必填字段
             required_fields = ['name', 'status']
             for field in required_fields:
-                if df[field].isnull().any():  # type: ignore
-                    missing_rows = df[df[field].isnull()].index.tolist()  # type: ignore
-                    row_numbers = [str(int(i)+2) for i in missing_rows]  # +2 because index starts at 0 and first row is header
-                    raise CustomException(msg=f"{[k for k,v in header_dict.items() if v == field][0]}不能为空，第{', '.join(row_numbers)}行")
+                if df[field].isnull().any():
+                    missing_rows = df[df[field].isnull()].index.tolist()
+                    raise CustomException(msg=f"{[k for k,v in header_dict.items() if v == field][0]}不能为空，第{[i+1 for i in missing_rows]}行")
             
             error_msgs = []
             success_count = 0
@@ -152,37 +151,35 @@ class DemoService:
                     try:
                         name = str(row['name'])
                     except ValueError:
-                        error_msgs.append(f"第{int(index)+2}行: 名称必须是字符串")
+                        error_msgs.append(f"第{index+1}行: 名称必须是字符串")
+                        continue
+                    try:
+                        status = True if row['status'] == '正常' else False
+                    except ValueError:
+                        error_msgs.append(f"第{index+1}行: 状态必须是'正常'或'停用'")
                         continue
                     
-                    # 处理状态字段
-                    status_value = row['status']
-                    if isinstance(status_value, str):
-                        status = status_value == '正常'
-                    else:
-                        status = bool(status_value)
-                    
-                    # 构建数据
+                    # 构建用户数据
                     data = {
                         "name": name,
                         "status": status,
                         "description": str(row['description']).strip() if not pd.isna(row['description']) else None,
                     }
 
-                    # 处理导入逻辑
-                    exists_obj = await DemoCRUD(auth).get(name=data["name"])
-                    if exists_obj:
+                    # 处理用户导入
+                    exists_user = await DemoCRUD(auth).get(name=data["name"])
+                    if exists_user:
                         if update_support:
-                            await DemoCRUD(auth).update_crud(id=exists_obj.id, data=DemoUpdateSchema(**data))
+                            await DemoCRUD(auth).update(id=exists_user.id, data=data)
                             success_count += 1
                         else:
-                            error_msgs.append(f"第{int(index)+2}行: 名称 {data['name']} 已存在")
+                            error_msgs.append(f"第{index+1}行: 用户 {data['username']} 已存在")
                     else:
-                        await DemoCRUD(auth).create_crud(data=DemoCreateSchema(**data))
+                        await DemoCRUD(auth).create(data=data)
                         success_count += 1
                         
                 except Exception as e:
-                    error_msgs.append(f"第{int(index)+2}行: {str(e)}")
+                    error_msgs.append(f"第{index+1}行: {str(e)}")
                     continue
 
             # 返回详细的导入结果
@@ -192,7 +189,7 @@ class DemoService:
             return result
             
         except Exception as e:
-            logger.error(f"批量导入失败: {str(e)}")
+            logger.error(f"批量导入用户失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
 
     @classmethod
