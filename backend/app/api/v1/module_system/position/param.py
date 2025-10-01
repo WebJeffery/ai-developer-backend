@@ -28,6 +28,6 @@ class PositionQueryParam:
         
         # 时间范围查询
         if start_time and end_time:
-            start_datetime = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
-            end_datetime = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+            start_datetime = datetime.strptime(str(start_time), '%Y-%m-%d %H:%M:%S')
+            end_datetime = datetime.strptime(str(end_time), '%Y-%m-%d %H:%M:%S')
             self.created_at = ("between", (start_datetime, end_datetime))

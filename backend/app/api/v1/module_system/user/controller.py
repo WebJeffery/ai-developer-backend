@@ -69,7 +69,7 @@ async def change_current_user_password_controller(
     return SuccessResponse(data=result_dict, msg='修改密码成功, 请重新登录')
 
 @UserRouter.put("/reset/password", summary="重置密码", description="重置密码")
-async def change_current_user_password_controller(
+async def reset_password_controller(
     data: ResetPasswordSchema,
     auth: AuthSchema = Depends(get_current_user)
 ) -> JSONResponse:

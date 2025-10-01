@@ -21,7 +21,7 @@ class RoleCRUD(CRUDBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
         """根据id获取角色信息"""
         return await self.get(id=id)
 
-    async def get_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[RoleModel]:
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[RoleModel]:
         """获取角色列表"""
         return await self.list(search=search, order_by=order_by)
 

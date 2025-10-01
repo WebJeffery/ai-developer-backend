@@ -17,15 +17,13 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 
 
 class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateSchema]):
-    """
-    代码生成业务表模块数据库操作层
-    """
+    """代码生成业务表模块数据库操作层"""
 
     def __init__(self, auth: AuthSchema) -> None:
         """初始化CRUD"""
         super().__init__(model=GenTableModel, auth=auth)
 
-    async def get_gen_table_by_id(self, db: AsyncSession, table_id: int) -> Optional[GenTableModel]:
+    async def get_gen_table_by_id(self, table_id: int) -> Optional[GenTableModel]:
         """
         根据业务表id获取需要生成的业务表信息
 
@@ -35,7 +33,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         """
         gen_table_info = (
             (
-                await db.execute(
+                await self.db.execute(
                     select(GenTableModel).options(selectinload(GenTableModel.columns)).where(GenTableModel.id == table_id)
                 )
             )
@@ -45,7 +43,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
 
         return gen_table_info
 
-    async def get_gen_table_by_name(self, db: AsyncSession, table_name: str) -> Optional[GenTableModel]:
+    async def get_gen_table_by_name(self, table_name: str) -> Optional[GenTableModel]:
         """
         根据业务表名称获取需要生成的业务表信息
 
@@ -55,7 +53,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         """
         gen_table_info = (
             (
-                await db.execute(
+                await self.db.execute(
                     select(GenTableModel).options(selectinload(GenTableModel.columns)).where(GenTableModel.table_name == table_name)
                 )
             )
@@ -65,18 +63,18 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
 
         return gen_table_info
 
-    async def get_gen_table_all(self, db: AsyncSession) -> Sequence[GenTableModel]:
+    async def get_gen_table_all(self) -> Sequence[GenTableModel]:
         """
         获取所有业务表信息
 
         :param db: orm对象
         :return: 所有业务表信息
         """
-        gen_table_all = (await db.execute(select(GenTableModel).options(selectinload(GenTableModel.columns)))).scalars().all()
+        gen_table_all = (await self.db.execute(select(GenTableModel).options(selectinload(GenTableModel.columns)))).scalars().all()
 
         return gen_table_all
 
-    async def create_table_by_sql_dao(self, db: AsyncSession, sql_statements: List) -> None:
+    async def create_table_by_sql(self, sql_statements: List) -> None:
         """
         根据sql语句创建表结构
 
@@ -86,9 +84,9 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         """
         for sql_statement in sql_statements:
             sql = sql_statement.sql(dialect=settings.DATABASE_TYPE)
-            await db.execute(text(sql))
+            await self.db.execute(text(sql))
 
-    async def get_gen_table_list(self, db: AsyncSession, query_object: GenTableQueryParam, is_page: bool = False):
+    async def get_gen_table_list(self, query_object: GenTableQueryParam, is_page: bool = False):
         """
         根据查询参数获取代码生成业务表列表信息
 
@@ -122,15 +120,18 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         )
         
         # 获取所有数据
-        result = await db.execute(query)
+        result = await self.db.execute(query)
         all_data = list(result.scalars().all())
         
         # 使用PaginationService.paginate进行分页
-        if is_page and query_object.page_no is not None and query_object.page_size is not None:
+        # 注意：这里假设query_object有page_no和page_size属性，如果没有需要从其他地方获取
+        page_no = getattr(query_object, 'page_no', None)
+        page_size = getattr(query_object, 'page_size', None)
+        if is_page and page_no is not None and page_size is not None:
             paginated_result = await PaginationService.paginate(
                 data_list=all_data, 
-                page_no=query_object.page_no, 
-                page_size=query_object.page_size
+                page_no=page_no, 
+                page_size=page_size
             )
             return paginated_result
         else:
@@ -191,11 +192,14 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         all_data = list(result.fetchall())
         
         # 使用PaginationService.paginate进行分页
-        if is_page and query_object.page_no is not None and query_object.page_size is not None:
+        # 注意：这里假设query_object有page_no和page_size属性，如果没有需要从其他地方获取
+        page_no = getattr(query_object, 'page_no', None)
+        page_size = getattr(query_object, 'page_size', None)
+        if is_page and page_no is not None and page_size is not None:
             paginated_result = await PaginationService.paginate(
                 data_list=all_data, 
-                page_no=query_object.page_no, 
-                page_size=query_object.page_size
+                page_no=page_no, 
+                page_size=page_size
             )
             return paginated_result
         else:
@@ -234,13 +238,15 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
 
 
 class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnCreateSchema, GenTableColumnUpdateSchema]):
-    """
-    代码生成业务表字段模块数据库操作层
-    """
+    """代码生成业务表字段模块数据库操作层"""
 
     def __init__(self, auth: AuthSchema) -> None:
         """初始化CRUD"""
         super().__init__(model=GenTableColumnModel, auth=auth)
+
+    async def get_gen_table_column_list_by_table_id_crud(self, table_id: int) -> Sequence[GenTableColumnModel]:
+        """根据业务表id获取需要生成的业务表字段列表信息"""
+        return await self.list(search={"table_id": table_id})
 
     async def get_gen_table_column_list_by_table_id(self, db: AsyncSession, table_id: int) -> Sequence[GenTableColumnModel]:
         """

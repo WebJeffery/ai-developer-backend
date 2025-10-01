@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import io
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from fastapi import UploadFile
 import pandas as pd
 
@@ -52,9 +52,7 @@ class UserService:
         return UserOutSchema.model_validate(user).model_dump()
 
     @classmethod
-    async def get_user_list_service(cls, auth: AuthSchema, search: UserQueryParam, order_by: List[Dict]= None) -> List[Dict]:
-        if order_by:
-            order_by = eval(order_by)
+    async def get_user_list_service(cls, auth: AuthSchema, search: Optional[UserQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         user_list = await UserCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         user_dict_list = []
         for user in user_list:

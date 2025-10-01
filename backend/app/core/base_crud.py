@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 
 from pydantic import BaseModel
-from typing import TypeVar, Sequence, Generic, Dict, Any, List, Union, Optional
+from typing import TypeVar, Sequence, Generic, Dict, Any, List, Optional, Type
 from sqlalchemy.sql.elements import ColumnElement
-from sqlalchemy.orm import Session, selectinload, DeclarativeBase
+from sqlalchemy.orm import selectinload
 from sqlalchemy.engine import Result
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import asc, func, select, delete, Select, desc, update, or_, and_
 
+from app.core.base_model import MappedBase
 from app.api.v1.module_system.auth.schema import AuthSchema
 from app.api.v1.module_system.dept.model import DeptModel
 from app.api.v1.module_system.user.model import UserModel
 from app.utils.common_util import get_child_id_map, get_child_recursion
 from app.core.exceptions import CustomException
+from app.common.request import PageResultSchema
 
-ModelType = TypeVar("ModelType", bound=DeclarativeBase)
+ModelType = TypeVar("ModelType", bound=MappedBase)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
@@ -22,17 +23,17 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     """基础数据层"""
 
-    def __init__(self, model: ModelType, auth: AuthSchema) -> None:
+    def __init__(self, model: Type[ModelType], auth: AuthSchema) -> None:
         """
         初始化CRUDBase类
         
         Args:
-            model: 数据模型
+            model: 数据模型类
             auth: 认证信息
         """
         self.model = model
         self.auth = auth
-        self.db: AsyncSession | Session | None = auth.db
+        self.db = auth.db
         self.current_user = auth.user
     
     async def get(self, **kwargs) -> Optional[ModelType]:
@@ -50,8 +51,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         try:
             conditions = await self.__build_conditions(**kwargs)
-            sql = (select(self.model)
-                  .where(*conditions))
+            sql = select(self.model).where(*conditions)
             # 只有继承自CreatorMixin的模型才有creator关系
             if hasattr(self.model, "creator_id"):
                 sql = sql.options(selectinload(self.model.creator))
@@ -67,7 +67,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             raise CustomException(msg=f"获取查询失败: {str(e)}")
 
-    async def list(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[ModelType]:
+    async def list(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[ModelType]:
         """
         根据条件获取对象列表和总数
         
@@ -84,9 +84,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         try:
             conditions = await self.__build_conditions(**search) if search else []
             order = order_by or [{'id': 'asc'}]
-            sql = (select(self.model)
-                  .where(*conditions)
-                  .order_by(*self.__order_by(order)))
+            sql = select(self.model).where(*conditions).order_by(*self.__order_by(order))
             # 只有继承自CreatorMixin的模型才有creator关系
             if hasattr(self.model, "creator_id"):
                 sql = sql.options(selectinload(self.model.creator))
@@ -96,7 +94,84 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             raise CustomException(msg=f"列表查询失败: {str(e)}")
 
-    async def create(self, data: Union[CreateSchemaType, Dict]) -> ModelType:
+    async def tree_list(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None, children_attr: str = 'children') -> Sequence[ModelType]:
+        """
+        获取树形结构数据列表
+        
+        Args:
+            search: 查询条件
+            order_by: 排序字段
+            children_attr: 子节点属性名
+            
+        Returns:
+            Sequence[ModelType]: 树形结构数据列表
+            
+        Raises:
+            CustomException: 查询失败时抛出异常
+        """
+        try:
+            from sqlalchemy.orm import selectinload
+            
+            conditions = await self.__build_conditions(**search) if search else []
+            order = order_by or [{'id': 'asc'}]
+            sql = select(self.model).where(*conditions).order_by(*self.__order_by(order))
+            
+            # 如果模型有children属性，则预加载该关系
+            if hasattr(self.model, children_attr):
+                sql = sql.options(selectinload(getattr(self.model, children_attr)))
+            
+            # 只有继承自CreatorMixin的模型才有creator关系
+            if hasattr(self.model, "creator_id"):
+                sql = sql.options(selectinload(self.model.creator))
+                
+            sql = await self.__filter_permissions(sql)
+            result: Result = await self.db.execute(sql)
+            return result.scalars().all()
+        except Exception as e:
+            raise CustomException(msg=f"树形列表查询失败: {str(e)}")
+    
+    async def page(self, offset: int, limit: int, order_by: List[Dict[str, str]], search: Dict) -> Dict:
+        try:
+            from sqlalchemy.orm import selectinload
+
+            conditions = await self.__build_conditions(**search) if search else []
+            order = order_by or [{'id': 'asc'}]
+            sql = select(self.model).where(*conditions).order_by(*self.__order_by(order))
+            # 只有继承自CreatorMixin的模型才有creator关系
+            if hasattr(self.model, "creator_id"):
+                sql = sql.options(selectinload(self.model.creator))
+            sql = await self.__filter_permissions(sql)
+
+            # 获取总数
+            count_sql = select(func.count()).select_from(self.model)
+            # 应用相同的过滤条件到计数查询
+            if conditions:
+                count_sql = count_sql.where(*conditions)
+            count_sql = await self.__filter_permissions(count_sql)
+            
+            total_result = await self.db.execute(count_sql)
+            total = total_result.scalar()
+            
+            if total is None:
+                total = 0
+
+            result: Result = await self.db.execute(sql.offset(offset).limit(limit))
+
+            objs = result.scalars().all()
+
+            data=PageResultSchema(
+                items=objs,
+                total=total,
+                page_no=offset // limit + 1 if limit else 1,
+                page_size=limit,
+                has_next=offset + limit < total,
+            ).model_dump()
+
+            return data
+        except Exception as e:
+            raise CustomException(msg=f"分页查询失败: {str(e)}")
+    
+    async def create(self, data: CreateSchemaType) -> ModelType:
         """
         创建新对象
         
@@ -127,7 +202,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             raise CustomException(msg=f"创建失败: {str(e)}")
 
-    async def update(self, id: int, data: Union[UpdateSchemaType, Dict]) -> ModelType:
+    async def update(self, id: int, data: UpdateSchemaType) -> ModelType:
         """
         更新对象
         
@@ -226,7 +301,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             raise CustomException(msg=f"更新关系失败: {str(e)}")
 
-    async def __filter_permissions(self, sql: Select[Any]) -> Select[Any]:
+    async def __filter_permissions(self, sql: Select) -> Select:
         """过滤数据权限"""
         # 如果不需要检查数据权限,则直接返回
         if not self.current_user or not self.auth.check_data_scope:
@@ -353,41 +428,3 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             else:
                 conditions.append(attr == value)
         return conditions
-
-    async def get_tree_list(self, search: Dict = None, order_by: List[Dict[str, str]] = None, children_attr: str = 'children') -> Sequence[ModelType]:
-        """
-        获取树形结构数据列表
-        
-        Args:
-            search: 查询条件
-            order_by: 排序字段
-            children_attr: 子节点属性名
-            
-        Returns:
-            Sequence[ModelType]: 树形结构数据列表
-            
-        Raises:
-            CustomException: 查询失败时抛出异常
-        """
-        try:
-            from sqlalchemy.orm import selectinload
-            
-            conditions = await self.__build_conditions(**search) if search else []
-            order = order_by or [{'id': 'asc'}]
-            sql = (select(self.model)
-                  .where(*conditions)
-                  .order_by(*self.__order_by(order)))
-            
-            # 如果模型有children属性，则预加载该关系
-            if hasattr(self.model, children_attr):
-                sql = sql.options(selectinload(getattr(self.model, children_attr)))
-            
-            # 只有继承自CreatorMixin的模型才有creator关系
-            if hasattr(self.model, "creator_id"):
-                sql = sql.options(selectinload(self.model.creator))
-                
-            sql = await self.__filter_permissions(sql)
-            result: Result = await self.db.execute(sql)
-            return result.scalars().all()
-        except Exception as e:
-            raise CustomException(msg=f"树形列表查询失败: {str(e)}")

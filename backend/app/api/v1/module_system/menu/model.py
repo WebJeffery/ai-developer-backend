@@ -39,7 +39,7 @@ class MenuModel(ModelMixin):
     keep_alive: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, comment='是否缓存(True:是 False:否)')
     always_show: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, comment='是否始终显示(True:是 False:否)')
     title: Mapped[Optional[str]] = mapped_column(String(50),  comment='菜单标题')
-    params: Mapped[Optional[dict]] = mapped_column(JSON,  comment='路由参数(JSON对象)')
+    params: Mapped[Optional[list[dict[str, str]]]] = mapped_column(JSON,  comment='路由参数(JSON对象)')
     affix: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, comment='是否固定标签页(True:是 False:否)')
     
     parent_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('system_menu.id', ondelete='SET NULL'), default=None, index=True, comment='父菜单ID')

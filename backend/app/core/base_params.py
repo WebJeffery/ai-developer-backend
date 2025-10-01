@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Optional
+from typing import Optional, List, Dict
 from fastapi import Query
 
 
@@ -11,7 +11,7 @@ class PaginationQueryParam:
         self,
         page_no: Optional[int] = Query(default=None, description="当前页码", ge=1),
         page_size: Optional[int] = Query(default=None, description="每页数量", ge=1, le=100), 
-        order_by: Optional[str] = Query(default=None, description="排序字段,格式:[{'field':'asc/desc'}]"),
+        order_by: Optional[List[Dict[str, str]]] = Query(default=None, description="排序字段,格式:[{'field':'asc/desc'}]"),
     ) -> None:
         """
         初始化分页查询参数

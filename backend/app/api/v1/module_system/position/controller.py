@@ -29,7 +29,10 @@ async def get_obj_list_controller(
     search: PositionQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:query"])),
 ) -> JSONResponse:
-    result_dict_list = await PositionService.get_position_list_service(search=search, auth=auth, order_by=page.order_by)
+    order_by = [{"order": "asc"}]
+    if page.order_by:
+        order_by = page.order_by
+    result_dict_list = await PositionService.get_position_list_service(search=search, auth=auth, order_by=order_by)
     result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
     logger.info(f"查询岗位列表成功")
     return SuccessResponse(data=result_dict, msg="查询岗位列表成功")

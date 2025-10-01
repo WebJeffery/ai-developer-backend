@@ -33,7 +33,7 @@ class DeptCRUD(CRUDBase[DeptModel, DeptCreateSchema, DeptUpdateSchema]):
                 obj.parent_name = parent.name
         return obj
 
-    async def get_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[DeptModel]:
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DeptModel]:
         """
         获取部门列表
         
@@ -51,7 +51,7 @@ class DeptCRUD(CRUDBase[DeptModel, DeptCreateSchema, DeptUpdateSchema]):
                     obj.parent_name = parent_map.get(obj.parent_id)
         return obj_list
 
-    async def get_tree_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[DeptModel]:
+    async def get_tree_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DeptModel]:
         """
         获取部门树形列表
         
@@ -59,7 +59,7 @@ class DeptCRUD(CRUDBase[DeptModel, DeptCreateSchema, DeptUpdateSchema]):
         :param order_by: 排序字段
         :return: 部门树形列表
         """
-        return await self.get_tree_list(search=search, order_by=order_by, children_attr='children')
+        return await self.tree_list(search=search, order_by=order_by, children_attr='children')
 
     async def set_available_crud(self, ids: List[int], status: bool) -> None:
         """

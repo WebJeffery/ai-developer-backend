@@ -3,7 +3,6 @@
 from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
-from pydantic_validation_decorator import NotBlank
 
 from app.utils.string_util import StringUtil
 from app.common.constant import GenConstant
@@ -12,76 +11,34 @@ from app.core.base_schema import BaseSchema
 
 class GenTableCreateSchema(BaseModel):
     """
-    代码生成业务表对应pydantic模型
+    代码生成业务表创建模型
     """
     model_config = ConfigDict(from_attributes=True)
 
-    table_name: str = Field(default=..., description='表名称')
-    table_comment: str = Field(default=..., description='表描述')
+    table_name: str = Field(..., description='表名称')
+    table_comment: str = Field(..., description='表描述')
     sub_table_name: Optional[str] = Field(default=None, description='关联子表的表名')
-    sub_table_fk_name: str = Field(default=..., description='子表关联的外键名')
-    class_name: str = Field(default=..., description='实体类名称')
+    sub_table_fk_name: str = Field(..., description='子表关联的外键名')
+    class_name: str = Field(..., description='实体类名称')
     tpl_category: Optional[str] = Field(default=None, description='使用的模板（crud单表操作 tree树表操作）')
     tpl_web_type: Optional[str] = Field(default=None, description='前端模板类型（element-ui模版 element-plus模版）')
-    package_name: str = Field(default=..., description='生成包路径')
-    module_name: str = Field(default=..., description='生成模块名')
-    business_name: str = Field(default=..., description='生成业务名')
-    function_name: str = Field(default=..., description='生成功能名')
+    package_name: str = Field(..., description='生成包路径')
+    module_name: str = Field(..., description='生成模块名')
+    business_name: str = Field(..., description='生成业务名')
+    function_name: str = Field(..., description='生成功能名')
     function_author: Optional[str] = Field(default=None, description='生成功能作者')
     gen_type: Optional[Literal['0', '1']] = Field(default=None, description='生成代码方式（0zip压缩包 1自定义路径）')
     gen_path: Optional[str] = Field(default=None, description='生成路径（不填默认项目路径）')
     options: Optional[str] = Field(default=None, description='其它生成选项')
 
-    @NotBlank(field_name='table_name', message='表名称不能为空')
-    def get_table_name(self):
-        return self.table_name
-
-    @NotBlank(field_name='table_comment', message='表描述不能为空')
-    def get_table_comment(self):
-        return self.table_comment
-
-    @NotBlank(field_name='class_name', message='实体类名称不能为空')
-    def get_class_name(self):
-        return self.class_name
-
-    @NotBlank(field_name='package_name', message='生成包路径不能为空')
-    def get_package_name(self):
-        return self.package_name
-
-    @NotBlank(field_name='module_name', message='生成模块名不能为空')
-    def get_module_name(self):
-        return self.module_name
-
-    @NotBlank(field_name='business_name', message='生成业务名不能为空')
-    def get_business_name(self):
-        return self.business_name
-
-    @NotBlank(field_name='function_name', message='生成功能名不能为空')
-    def get_function_name(self):
-        return self.function_name
-
-    @NotBlank(field_name='function_author', message='生成功能作者不能为空')
-    def get_function_author(self):
-        return self.function_author
-
-    def validate_fields(self):
-        self.get_table_name()
-        self.get_table_comment()
-        self.get_class_name()
-        self.get_package_name()
-        self.get_module_name()
-        self.get_business_name()
-        self.get_function_name()
-        self.get_function_author()
-
 
 class GenTableUpdateSchema(GenTableCreateSchema):
     """
-    代码生成业务表模型
+    代码生成业务表更新模型
     """
     pk_column: Optional['GenTableColumnUpdateSchema'] = Field(default=None, description='主键信息')
     sub_table: Optional['GenTableUpdateSchema'] = Field(default=None, description='子表信息')
-    columns: List['GenTableColumnUpdateSchema'] = Field(default=..., description='表列信息')
+    columns: List['GenTableColumnUpdateSchema'] = Field(..., description='表列信息')
     tree_code: Optional[str] = Field(default=None, description='树编码字段')
     tree_parent_code: Optional[str] = Field(default=None, description='树父编码字段')
     tree_name: Optional[str] = Field(default=None, description='树名称字段')
@@ -100,7 +57,9 @@ class GenTableUpdateSchema(GenTableCreateSchema):
 
 
 class GenTableOutSchema(GenTableUpdateSchema, BaseSchema):
-    """响应模型"""
+    """
+    代码生成业务表响应模型
+    """
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -110,22 +69,22 @@ class GenTableDeleteSchema(BaseModel):
     """
     model_config = ConfigDict(alias_generator=to_camel)
 
-    table_ids: str = Field(description='需要删除的代码生成业务表ID')
+    table_ids: str = Field(..., description='需要删除的代码生成业务表ID')
 
 
 class GenTableColumnCreateSchema(BaseModel):
     """
-    代码生成业务表字段对应pydantic模型
+    代码生成业务表字段创建模型
     """
     model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
     table_id: Optional[int] = Field(default=None, description='归属表编号')
     
-    column_name: str = Field(default=..., description='列名称')
+    column_name: str = Field(..., description='列名称')
     column_comment: Optional[str] = Field(default=None, description='列描述')
-    column_type: str = Field(default=..., description='列类型')
+    column_type: str = Field(..., description='列类型')
     python_type: Optional[str] = Field(default=None, description='PYTHON类型')
-    python_field: str = Field(default=..., description='PYTHON字段名')
+    python_field: str = Field(..., description='PYTHON字段名')
     is_pk: Optional[str] = Field(default=None, description='是否主键（1是）')
     is_increment: Optional[str] = Field(default=None, description='是否自增（1是）')
     is_required: Optional[str] = Field(default=None, description='是否必填（1是）')
@@ -135,21 +94,14 @@ class GenTableColumnCreateSchema(BaseModel):
     is_list: Optional[str] = Field(default=None, description='是否列表字段（1是）')
     is_query: Optional[str] = Field(default=None, description='是否查询字段（1是）')
     query_type: Optional[str] = Field(default=None, description='查询方式（等于、不等于、大于、小于、范围）')
-    html_type: str = Field(default=..., description='显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）')
-    dict_type: str = Field(default=..., description='字典类型')
+    html_type: str = Field(..., description='显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）')
+    dict_type: str = Field(..., description='字典类型')
     sort: Optional[int] = Field(default=None, description='排序')
-    
-    @NotBlank(field_name='python_field', message='Python属性不能为空')
-    def get_python_field(self):
-        return self.python_field
-
-    def validate_fields(self):
-        self.get_python_field()
 
 
 class GenTableColumnUpdateSchema(GenTableColumnCreateSchema):
     """
-    代码生成业务表字段模型
+    代码生成业务表字段更新模型
     """
 
     cap_python_field: Optional[str] = Field(default=None, description='字段大写形式')
@@ -187,7 +139,9 @@ class GenTableColumnUpdateSchema(GenTableColumnCreateSchema):
 
 
 class GenTableColumnOutSchema(GenTableColumnUpdateSchema, BaseSchema):
-    """响应模型"""
+    """
+    代码生成业务表字段响应模型
+    """
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -197,4 +151,4 @@ class GenTableColumnDeleteSchema(BaseModel):
     """
     model_config = ConfigDict(from_attributes=True)
 
-    column_ids: str = Field(description='需要删除的代码生成业务表字段ID')
+    column_ids: str = Field(..., description='需要删除的代码生成业务表字段ID')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
@@ -25,12 +25,8 @@ class PositionService:
         return PositionOutSchema.model_validate(position).model_dump()
 
     @classmethod
-    async def get_position_list_service(cls, auth: AuthSchema, search: PositionQueryParam, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_position_list_service(cls, auth: AuthSchema, search: Optional[PositionQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         """获取岗位列表"""
-        if order_by:
-            order_by = eval(order_by)
-        else:
-            order_by = [{"order": "asc"}]
         position_list = await PositionCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         return [PositionOutSchema.model_validate(position).model_dump() for position in position_list]
 

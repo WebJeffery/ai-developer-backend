@@ -21,7 +21,7 @@ class JobCRUD(CRUDBase[JobModel, JobCreateSchema, JobUpdateSchema]):
         """获取定时任务详情"""
         return await self.get(id=id)
     
-    async def get_obj_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[JobModel]:
+    async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[JobModel]:
         """获取定时任务列表"""
         return await self.list(search=search, order_by=order_by)
     
@@ -58,7 +58,7 @@ class JobLogCRUD(CRUDBase[JobLogModel, JobLogCreateSchema, JobLogUpdateSchema]):
         """获取定时任务日志详情"""
         return await self.get(id=id)
     
-    async def get_obj_log_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[JobLogModel]:
+    async def get_obj_log_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[JobLogModel]:
         """获取定时任务日志列表"""
         return await self.list(search=search, order_by=order_by)
     

@@ -5,8 +5,8 @@ import json
 import os
 import zipfile
 from datetime import datetime
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, List, Dict, Optional, Sequence
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config.setting import settings
 from app.core.base_model import CamelCaseUtil
@@ -28,115 +28,139 @@ GEN_PATH = "generated_code"  # 默认生成路径
 
 
 class GenTableService:
-    """
-    代码生成业务表服务层
-    """
+    """代码生成业务表服务层"""
+
+    @classmethod
+    async def get_gen_table_detail_service(cls, auth: AuthSchema, table_id: int) -> Dict:
+        """获取业务表详细信息"""
+        gen_table = await cls.get_gen_table_by_id_service(auth, table_id)
+        gen_tables = await cls.get_gen_table_all_service(auth)
+        gen_columns = await GenTableColumnService.get_gen_table_column_list_by_table_id_service(auth, table_id)
+        return dict(info=gen_table, rows=gen_columns, tables=gen_tables)
 
     @classmethod
     async def get_gen_table_list_service(
         cls, auth: AuthSchema, query_object: GenTableQueryParam, is_page: bool = False
-    ):
-        """
-        获取代码生成业务表列表信息service
-
-        :param auth: 认证信息
-        :param query_object: 查询参数对象
-        :param is_page: 是否开启分页
-        :return: 代码生成业务列表信息对象
-        """
+    ) -> Dict:
+        """获取代码生成业务表列表信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
-        gen_table_list_result = await gen_table_dao.get_gen_table_list(auth.db, query_object, is_page)
-
+        gen_table_list_result = await gen_table_dao.get_gen_table_list(db, query_object, is_page)
         return gen_table_list_result
 
     @classmethod
     async def get_gen_db_table_list_service(
         cls, auth: AuthSchema, query_object: GenTableQueryParam, is_page: bool = False
-    ):
-        """
-        获取数据库列表信息service
-
-        :param auth: 认证信息
-        :param query_object: 查询参数对象
-        :param is_page: 是否开启分页
-        :return: 数据库列表信息对象
-        """
+    ) -> Dict:
+        """获取数据库列表信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
-        gen_db_table_list_result = await gen_table_dao.get_gen_db_table_list(auth.db, query_object, is_page)
-
+        gen_db_table_list_result = await gen_table_dao.get_gen_db_table_list(db, query_object, is_page)
         return gen_db_table_list_result
 
     @classmethod
-    async def get_gen_db_table_list_by_name_service(cls, auth: AuthSchema, table_names: List[str]) -> list[GenTableOutSchema]:
-        """
-        根据表名称组获取数据库列表信息service
-
-        :param auth: 认证信息
-        :param table_names: 表名称组
-        :return: 数据库列表信息对象
-        """
+    async def get_gen_db_table_list_by_name_service(cls, auth: AuthSchema, table_names: List[str]) -> List[GenTableOutSchema]:
+        """根据表名称组获取数据库列表信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
-        gen_db_table_list_result = await gen_table_dao.get_gen_db_table_list_by_names(auth.db, table_names)
-
+        gen_db_table_list_result = await gen_table_dao.get_gen_db_table_list_by_names(db, table_names)
         return [GenTableOutSchema(**gen_table) for gen_table in CamelCaseUtil.transform_result(gen_db_table_list_result)]
 
     @classmethod
     async def import_gen_table_service(
         cls, auth: AuthSchema, gen_table_list: List[GenTableOutSchema], current_user: UserOutSchema
-    ):
-        """
-        导入表结构service
-
-        :param auth: 认证信息
-        :param gen_table_list: 导入表列表
-        :param current_user: 当前用户信息对象
-        :return: 导入结果
-        """
+    ) -> SuccessResponse:
+        """导入表结构"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         try:
             gen_table_dao = GenTableCRUD(auth=auth)
             gen_table_column_dao = GenTableColumnCRUD(auth=auth)
             
             for table in gen_table_list:
                 table_name = table.table_name
-                GenUtils.init_table(table, current_user.username)  # 使用username而不是user.user_name
+                GenUtils.init_table(table, current_user.username)
                 add_gen_table = await gen_table_dao.create(data=table.model_dump())
                 if add_gen_table:
-                    table.table_id = add_gen_table.id
-                    gen_table_columns = await gen_table_column_dao.get_gen_db_table_columns_by_name(auth.db, table_name or "")
+                    # 使用id而不是table_id
+                    table.id = add_gen_table.id
+                    gen_table_columns = await gen_table_column_dao.get_gen_db_table_columns_by_name(db, table_name or "")
                     for column in [
                         GenTableColumnOutSchema(**gen_table_column)
                         for gen_table_column in CamelCaseUtil.transform_result(gen_table_columns)
                     ]:
                         GenUtils.init_column_field(column, table)
                         await gen_table_column_dao.create(data=column.model_dump())
-            await auth.db.commit()
+            if isinstance(db, AsyncSession):
+                await db.commit()
             return SuccessResponse(msg='导入成功')
         except Exception as e:
-            try:
-                await auth.db.rollback()
-            except:
-                pass  # 忽略回滚错误
+            if isinstance(db, AsyncSession):
+                try:
+                    await db.rollback()
+                except:
+                    pass  # 忽略回滚错误
             raise CustomException(msg=f'导入失败, {str(e)}')
 
     @classmethod
-    async def edit_gen_table_service(cls, auth: AuthSchema, page_object: GenTableUpdateSchema) -> Dict[str, Any]:
-        """
-        编辑业务表信息service
+    async def create_table_service(cls, auth: AuthSchema, sql: str, current_user: UserOutSchema) -> SuccessResponse:
+        """创建表结构"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
+        gen_table_dao = GenTableCRUD(auth=auth)
+        
+        try:
+            # 执行SQL语句创建表
+            await gen_table_dao.create_table_by_sql_dao(db, [sql])
+            if isinstance(db, AsyncSession):
+                await db.commit()
+            return SuccessResponse(msg='创建表结构成功')
+        except Exception as e:
+            if isinstance(db, AsyncSession):
+                try:
+                    await db.rollback()
+                except:
+                    pass  # 忽略回滚错误
+            raise CustomException(msg=f'创建表结构失败: {str(e)}')
 
-        :param auth: 认证信息
-        :param page_object: 编辑业务表对象
-        :return: 编辑业务表校验结果
-        """
+    @classmethod
+    async def update_gen_table_service(cls, auth: AuthSchema, page_object: GenTableUpdateSchema, table_id: int) -> Dict[str, Any]:
+        """编辑业务表信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
         gen_table_column_dao = GenTableColumnCRUD(auth=auth)
         
-        # 检查必要字段是否存在
-        if getattr(page_object, 'table_id', None) is None:
-            raise CustomException(msg='业务表ID不能为空')
-            
         edit_gen_table = page_object.model_dump(exclude_unset=True, by_alias=True)
-        gen_table_info = await cls.get_gen_table_by_id_service(auth, page_object.table_id)
-        if gen_table_info.table_id:
+        gen_table_info = await cls.get_gen_table_by_id_service(auth, table_id)
+        if gen_table_info.id:
             try:
                 # 确保options字段存在且为有效JSON
                 if 'options' not in edit_gen_table or edit_gen_table['options'] is None:
@@ -148,36 +172,42 @@ class GenTableService:
                     except json.JSONDecodeError:
                         edit_gen_table['options'] = '{}'
                 
-                await gen_table_dao.update(id=page_object.table_id, data=edit_gen_table)
-                if page_object.columns:
+                await gen_table_dao.update(id=table_id, data=edit_gen_table)
+                if hasattr(page_object, 'columns') and page_object.columns:
                     for gen_table_column in page_object.columns:
-                        gen_table_column.update_by = page_object.update_by
-                        gen_table_column.update_time = datetime.now()
-                        if gen_table_column.column_id is not None:
+                        # 为列添加更新信息
+                        gen_table_column_dict = gen_table_column.model_dump()
+                        gen_table_column_dict['update_by'] = getattr(page_object, 'update_by', '')
+                        gen_table_column_dict['update_time'] = datetime.now()
+                        # 检查是否有id属性
+                        column_id = getattr(gen_table_column, 'id', None)
+                        if column_id is not None:
                             await gen_table_column_dao.update(
-                                id=gen_table_column.column_id, 
-                                data=gen_table_column.model_dump(by_alias=True)
+                                id=column_id, 
+                                data=gen_table_column_dict
                             )
-                await auth.db.commit()
+                if isinstance(db, AsyncSession):
+                    await db.commit()
                 return {"is_success": True, "message": "更新成功"}
             except Exception as e:
-                try:
-                    await auth.db.rollback()
-                except:
-                    pass  # 忽略回滚错误
+                if isinstance(db, AsyncSession):
+                    try:
+                        await db.rollback()
+                    except:
+                        pass  # 忽略回滚错误
                 raise CustomException(msg=f'更新失败: {str(e)}')
         else:
             raise CustomException(msg='业务表不存在')
 
     @classmethod
     async def delete_gen_table_service(cls, auth: AuthSchema, page_object: GenTableDeleteSchema) -> SuccessResponse:
-        """
-        删除业务表信息service
-
-        :param auth: 认证信息
-        :param page_object: 删除业务表对象
-        :return: 删除业务表校验结果
-        """
+        """删除业务表信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
         gen_table_column_dao = GenTableColumnCRUD(auth=auth)
         
@@ -188,32 +218,34 @@ class GenTableService:
                     await gen_table_dao.delete(ids=[int(table_id)])
                     # 删除相关的字段信息
                     # 这里需要先查询出所有相关的column_id，然后删除
-                    columns = await gen_table_column_dao.get_gen_table_column_list_by_table_id(auth.db, int(table_id))
+                    columns = await gen_table_column_dao.get_gen_table_column_list_by_table_id(db, int(table_id))
                     if columns:
                         column_ids = [column.id for column in columns]
                         await gen_table_column_dao.delete(ids=column_ids)
-                await auth.db.commit()
+                if isinstance(db, AsyncSession):
+                    await db.commit()
                 return SuccessResponse(msg='删除成功')
             except Exception as e:
-                try:
-                    await auth.db.rollback()
-                except:
-                    pass  # 忽略回滚错误
+                if isinstance(db, AsyncSession):
+                    try:
+                        await db.rollback()
+                    except:
+                        pass  # 忽略回滚错误
                 raise CustomException(msg=f'删除失败: {str(e)}')
         else:
             raise CustomException(msg='传入业务表id为空')
 
     @classmethod
     async def get_gen_table_by_id_service(cls, auth: AuthSchema, table_id: int) -> GenTableOutSchema:
-        """
-        获取需要生成的业务表详细信息service
-
-        :param auth: 认证信息
-        :param table_id: 需要生成的业务表id
-        :return: 需要生成的业务表id对应的信息
-        """
+        """获取需要生成的业务表详细信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
-        gen_table = await gen_table_dao.get_gen_table_by_id(auth.db, table_id)
+        gen_table = await gen_table_dao.get_gen_table_by_id(db, table_id)
         if gen_table:
             result = await cls.set_table_from_options(GenTableOutSchema(**CamelCaseUtil.transform_result(gen_table)))
             return result
@@ -221,15 +253,16 @@ class GenTableService:
             raise CustomException(msg='业务表不存在')
 
     @classmethod
-    async def get_gen_table_all_service(cls, auth: AuthSchema) -> list[GenTableOutSchema]:
-        """
-        获取所有业务表信息service
-
-        :param auth: 认证信息
-        :return: 所有业务表信息列表
-        """
+    async def get_gen_table_all_service(cls, auth: AuthSchema) -> List[GenTableOutSchema]:
+        """获取所有业务表信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
-        gen_tables = await gen_table_dao.get_gen_table_all(auth.db)
+        gen_tables = await gen_table_dao.get_gen_table_all(db)
         result = []
         for table in gen_tables:
             table_info = await cls.set_table_from_options(GenTableOutSchema(**CamelCaseUtil.transform_result(table)))
@@ -237,38 +270,8 @@ class GenTableService:
         return result
 
     @classmethod
-    async def create_table_service(cls, auth: AuthSchema, sql: str, current_user: UserOutSchema) -> SuccessResponse:
-        """
-        创建表结构service
-
-        :param auth: 认证信息
-        :param sql: 建表语句
-        :param current_user: 当前用户信息对象
-        :return: 创建表结构结果
-        """
-        gen_table_dao = GenTableCRUD(auth=auth)
-        
-        try:
-            # 执行SQL语句创建表
-            await gen_table_dao.create_table_by_sql_dao(auth.db, [sql])
-            await auth.db.commit()
-            return SuccessResponse(msg='创建表结构成功')
-        except Exception as e:
-            try:
-                await auth.db.rollback()
-            except:
-                pass  # 忽略回滚错误
-            raise CustomException(msg=f'创建表结构失败: {str(e)}')
-
-    @classmethod
-    async def preview_code_service(cls, auth: AuthSchema, table_id: int) -> dict[Any, Any]:
-        """
-        预览代码service
-
-        :param auth: 认证信息
-        :param table_id: 业务表id
-        :return: 预览数据列表
-        """
+    async def preview_code_service(cls, auth: AuthSchema, table_id: int) -> Dict[Any, Any]:
+        """预览代码"""
         gen_table = await cls.get_gen_table_by_id_service(auth, table_id)
         await cls.set_sub_table(auth, gen_table)
         await cls._set_pk_column(gen_table)
@@ -286,13 +289,7 @@ class GenTableService:
 
     @classmethod
     async def generate_code_service(cls, auth: AuthSchema, table_name: str) -> SuccessResponse:
-        """
-        生成代码至指定路径service
-
-        :param auth: 认证信息
-        :param table_name: 业务表名称
-        :return: 生成代码结果
-        """
+        """生成代码至指定路径"""
         env = TemplateInitializer.init_jinja2()
         render_info = await cls.__get_gen_render_info(auth, table_name)
         for template in render_info[0]:
@@ -310,13 +307,7 @@ class GenTableService:
 
     @classmethod
     async def batch_gen_code_service(cls, auth: AuthSchema, table_names: List[str]) -> bytes:
-        """
-        批量生成代码service
-
-        :param auth: 认证信息
-        :param table_names: 业务表名称组
-        :return: 下载代码结果
-        """
+        """批量生成代码"""
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for table_name in table_names:
@@ -331,70 +322,23 @@ class GenTableService:
         return zip_data
 
     @classmethod
-    async def __get_gen_render_info(cls, auth: AuthSchema, table_name: str) -> list[Any]:
-        """
-        获取生成代码渲染模板相关信息
-
-        :param auth: 认证信息
-        :param table_name: 业务表名称
-        :return: 生成代码渲染模板相关信息
-        """
-            
-        gen_table_dao = GenTableCRUD(auth=auth)
-        gen_table = await gen_table_dao.get_gen_table_by_name(auth.db, table_name)
-        if gen_table:
-            gen_table_schema = GenTableOutSchema(**CamelCaseUtil.transform_result(gen_table))
-            await cls.set_sub_table(auth, gen_table_schema)
-            await cls._set_pk_column(gen_table_schema)
-            context = TemplateUtils.prepare_context(gen_table_schema)
-            template_list = TemplateUtils.get_template_list(
-                gen_table_schema.tpl_category or "", 
-                gen_table_schema.tpl_web_type or ""
-            )
-            output_files = [TemplateUtils.get_file_name([template], gen_table_schema)[0] for template in template_list]
-
-            return [template_list, output_files, context, gen_table_schema]
-        else:
-            raise CustomException(msg=f'业务表 {table_name} 不存在')
-
-    @classmethod
-    def __get_gen_path(cls, gen_table: GenTableOutSchema, template: str) -> Optional[str]:
-        """
-        根据GenTableModel对象和模板名称生成路径
-
-        :param gen_table: GenTableModel对象
-        :param template: 模板名称
-        :return: 生成的路径
-        """
-        try:
-            gen_path = gen_table.gen_path or ""
-            if gen_path == '/':
-                file_name = TemplateUtils.get_file_name([template], gen_table)[0]
-                return os.path.join(os.getcwd(), GEN_PATH, file_name)
-            else:
-                file_name = TemplateUtils.get_file_name([template], gen_table)[0]
-                return os.path.join(gen_path, file_name)
-        except Exception:
-            return None
-
-    @classmethod
     async def sync_db_service(cls, auth: AuthSchema, table_name: str) -> SuccessResponse:
-        """
-        同步数据库service
-
-        :param auth: 认证信息
-        :param table_name: 业务表名称
-        :return: 同步数据库结果
-        """
+        """同步数据库"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
         gen_table_column_dao = GenTableColumnCRUD(auth=auth)
         
-        gen_table = await gen_table_dao.get_gen_table_by_name(auth.db, table_name)
+        gen_table = await gen_table_dao.get_gen_table_by_name(db, table_name)
         if gen_table:
             table = GenTableOutSchema(**CamelCaseUtil.transform_result(gen_table))
             table_columns = table.columns or []  # 确保不为None
             table_column_map = {column.column_name: column for column in table_columns}
-            query_db_table_columns = await gen_table_column_dao.get_gen_db_table_columns_by_name(auth.db, table_name)
+            query_db_table_columns = await gen_table_column_dao.get_gen_db_table_columns_by_name(db, table_name)
             db_table_columns = [
                 GenTableColumnOutSchema(**column) for column in CamelCaseUtil.transform_result(query_db_table_columns)
             ]
@@ -406,7 +350,11 @@ class GenTableService:
                     GenUtils.init_column_field(column, table)
                     if column.column_name in table_column_map:
                         prev_column = table_column_map[column.column_name]
-                        column.column_id = prev_column.column_id
+                        # 使用getattr安全访问id属性
+                        column_id = getattr(prev_column, 'id', None)
+                        if column_id is not None:
+                            # 为column设置id属性
+                            column.id = column_id
                         if getattr(column, 'list', False):  # 使用getattr安全访问属性
                             column.dict_type = prev_column.dict_type
                             column.query_type = prev_column.query_type
@@ -418,50 +366,50 @@ class GenTableService:
                         ):
                             column.is_required = prev_column.is_required
                             column.html_type = prev_column.html_type
-                        if column.column_id is not None:
-                            await gen_table_column_dao.update(id=column.column_id, data=column.model_dump(by_alias=True))
+                        # 使用getattr安全访问id属性
+                        column_id = getattr(column, 'id', None)
+                        if column_id is not None:
+                            await gen_table_column_dao.update(id=column_id, data=column.model_dump(by_alias=True))
                     else:
                         await gen_table_column_dao.create(data=column.model_dump(by_alias=True))
                 del_columns = [column for column in table_columns if column.column_name not in db_table_column_names]
                 if del_columns:
                     for column in del_columns:
-                        if column.column_id is not None:
-                            await gen_table_column_dao.delete(ids=[column.column_id])
-                await auth.db.commit()
+                        # 使用getattr安全访问id属性
+                        column_id = getattr(column, 'id', None)
+                        if column_id is not None:
+                            await gen_table_column_dao.delete(ids=[column_id])
+                if isinstance(db, AsyncSession):
+                    await db.commit()
                 return SuccessResponse(msg='同步成功')
             except Exception as e:
-                try:
-                    await auth.db.rollback()
-                except:
-                    pass  # 忽略回滚错误
+                if isinstance(db, AsyncSession):
+                    try:
+                        await db.rollback()
+                    except:
+                        pass  # 忽略回滚错误
                 raise CustomException(msg=f'同步失败: {str(e)}')
         else:
             raise CustomException('业务表不存在')
 
     @classmethod
     async def set_sub_table(cls, auth: AuthSchema, gen_table: GenTableOutSchema) -> None:
-        """
-        设置主子表信息
-
-        :param auth: 认证信息
-        :param gen_table: 业务表信息
-        :return:
-        """
-            
+        """设置主子表信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         if gen_table.sub_table_name:
             gen_table_dao = GenTableCRUD(auth=auth)
-            sub_table = await gen_table_dao.get_gen_table_by_name(auth.db, gen_table.sub_table_name)
+            sub_table = await gen_table_dao.get_gen_table_by_name(db, gen_table.sub_table_name)
             if sub_table:
                 gen_table.sub_table = GenTableOutSchema(**CamelCaseUtil.transform_result(sub_table))
 
     @classmethod
     async def _set_pk_column(cls, gen_table: GenTableOutSchema) -> None:
-        """
-        设置主键列信息
-
-        :param gen_table: 业务表信息
-        :return:
-        """
+        """设置主键列信息"""
         if gen_table.columns:
             for column in gen_table.columns:
                 if column.pk:
@@ -480,12 +428,7 @@ class GenTableService:
 
     @classmethod
     async def set_table_from_options(cls, gen_table: GenTableOutSchema) -> GenTableOutSchema:
-        """
-        设置代码生成其他选项值
-
-        :param gen_table: 生成对象
-        :return: 设置后的生成对象
-        """
+        """设置代码生成其他选项值"""
         params_obj = json.loads(gen_table.options) if gen_table.options else None
         if params_obj:
             gen_table.tree_code = params_obj.get(GenConstant.TREE_CODE)
@@ -497,12 +440,8 @@ class GenTableService:
         return gen_table
 
     @classmethod
-    async def validate_edit(cls, edit_gen_table: GenTableUpdateSchema):
-        """
-        编辑保存参数校验
-
-        :param edit_gen_table: 编辑业务表对象
-        """
+    async def validate_edit(cls, edit_gen_table: GenTableUpdateSchema) -> None:
+        """编辑保存参数校验"""
         if edit_gen_table.tpl_category == GenConstant.TPL_TREE:
             # 从options字段获取参数，而不是params
             if not edit_gen_table.options:
@@ -522,24 +461,61 @@ class GenTableService:
             elif not edit_gen_table.sub_table_fk_name:
                 raise CustomException(msg='子表关联的外键名不能为空')
 
+    @classmethod
+    async def __get_gen_render_info(cls, auth: AuthSchema, table_name: str) -> List[Any]:
+        """获取生成代码渲染模板相关信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
+        gen_table_dao = GenTableCRUD(auth=auth)
+        gen_table = await gen_table_dao.get_gen_table_by_name(db, table_name)
+        if gen_table:
+            gen_table_schema = GenTableOutSchema(**CamelCaseUtil.transform_result(gen_table))
+            await cls.set_sub_table(auth, gen_table_schema)
+            await cls._set_pk_column(gen_table_schema)
+            context = TemplateUtils.prepare_context(gen_table_schema)
+            template_list = TemplateUtils.get_template_list(
+                gen_table_schema.tpl_category or "", 
+                gen_table_schema.tpl_web_type or ""
+            )
+            output_files = [TemplateUtils.get_file_name([template], gen_table_schema)[0] for template in template_list]
+
+            return [template_list, output_files, context, gen_table_schema]
+        else:
+            raise CustomException(msg=f'业务表 {table_name} 不存在')
+
+    @classmethod
+    def __get_gen_path(cls, gen_table: GenTableOutSchema, template: str) -> Optional[str]:
+        """根据GenTableModel对象和模板名称生成路径"""
+        try:
+            gen_path = gen_table.gen_path or ""
+            if gen_path == '/':
+                file_name = TemplateUtils.get_file_name([template], gen_table)[0]
+                return os.path.join(os.getcwd(), GEN_PATH, file_name)
+            else:
+                file_name = TemplateUtils.get_file_name([template], gen_table)[0]
+                return os.path.join(gen_path, file_name)
+        except Exception:
+            return None
+
 
 class GenTableColumnService:
-    """
-    代码生成业务表字段服务层
-    """
+    """代码生成业务表字段服务层"""
 
     @classmethod
     async def get_gen_table_column_list_by_table_id_service(cls, auth: AuthSchema, table_id: int) -> List[GenTableColumnOutSchema]:
-        """
-        获取业务表字段列表信息service
-
-        :param auth: 认证信息
-        :param table_id: 业务表格id
-        :return: 业务表字段列表信息对象
-        """
+        """获取业务表字段列表信息"""
+        if not auth.db:
+            raise CustomException(msg='数据库连接不存在')
+        # 确保db是AsyncSession类型
+        db = auth.db
+        if not isinstance(db, AsyncSession):
+            raise CustomException(msg='数据库连接类型不正确')
         gen_table_column_dao = GenTableColumnCRUD(auth=auth)
-        gen_table_column_list_result = await gen_table_column_dao.get_gen_table_column_list_by_table_id(auth.db, table_id)
-
+        gen_table_column_list_result = await gen_table_column_dao.get_gen_table_column_list_by_table_id(db, table_id)
         return [
             GenTableColumnOutSchema(**gen_table_column)
             for gen_table_column in CamelCaseUtil.transform_result(gen_table_column_list_result)
