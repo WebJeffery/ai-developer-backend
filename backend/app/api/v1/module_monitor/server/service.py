@@ -25,10 +25,10 @@ class ServerService:
     async def get_server_monitor_info_service(cls) -> Dict:
         """获取服务器监控信息"""
         return ServerMonitorSchema(
-            cpu=cls._get_cpu_info().model_dump(),
-            mem=cls._get_memory_info().model_dump(),
-            sys=cls._get_system_info().model_dump(),
-            py=cls._get_python_info().model_dump(),
+            cpu=cls._get_cpu_info(),
+            mem=cls._get_memory_info(),
+            sys=cls._get_system_info(),
+            py=cls._get_python_info(),
             disks=cls._get_disk_info()
         ).model_dump()
 
@@ -36,8 +36,11 @@ class ServerService:
     def _get_cpu_info(cls) -> CpuInfoSchema:
         """获取CPU信息"""
         cpu_times = psutil.cpu_times_percent()
+        cpu_num=psutil.cpu_count(logical=True)
+        if not cpu_num:
+            cpu_num = 1
         return CpuInfoSchema(
-            cpu_num=psutil.cpu_count(logical=True),
+            cpu_num=cpu_num,
             used=cpu_times.user,
             sys=cpu_times.system,
             free=cpu_times.idle
@@ -89,7 +92,7 @@ class ServerService:
         )
 
     @classmethod
-    def _get_disk_info(cls) -> List[Dict]:
+    def _get_disk_info(cls) -> List[DiskInfoSchema]:
         """获取磁盘信息"""
         disk_info = []
         for partition in psutil.disk_partitions():
@@ -106,7 +109,7 @@ class ServerService:
                         used=bytes2human(usage.used),
                         free=bytes2human(usage.free),
                         usage=usage.percent  # 直接使用数字而不是字符串
-                    ).model_dump()
+                    )
                 )
             except (PermissionError, FileNotFoundError):
                 # 明确指定可能的异常

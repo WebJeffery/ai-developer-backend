@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
 from typing import Optional
 from fastapi import Query
 
@@ -17,8 +16,8 @@ class UserQueryParam:
         email: Optional[str] = Query(None, description="邮箱", pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'), 
         dept_id: Optional[int] = Query(None, description="部门ID"),
         status: Optional[bool] = Query(None, description="是否可用"),
-        start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2023-01-01 00:00:00"),
-        end_time: Optional[DateTimeStr] = Query(None, description="结束时间", example="2023-12-31 23:59:59"),
+        start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2025-01-01 00:00:00"),
+        end_time: Optional[DateTimeStr] = Query(None, description="结束时间", example="2025-12-31 23:59:59"),
         creator: Optional[int] = Query(None, description="创建人"),
     ) -> None:
         
@@ -35,6 +34,4 @@ class UserQueryParam:
         
         # 时间范围查询
         if start_time and end_time:
-            start_datetime = datetime.strptime(str(start_time), '%Y-%m-%d %H:%M:%S')
-            end_datetime = datetime.strptime(str(end_time), '%Y-%m-%d %H:%M:%S')
-            self.created_at = ("between", (start_datetime, end_datetime))
+            self.created_at = ("between", (start_time, end_time))

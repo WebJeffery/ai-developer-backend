@@ -11,7 +11,6 @@ class ResourceSearchQueryParam:
         name: Optional[str] = Query(None, description="搜索关键词"),
         path: Optional[str] = Query(None, description="目录路径"),
     ) -> None:
-        super().__init__()
         
         # 模糊查询字段
         self.name = ("like", name) if name else None

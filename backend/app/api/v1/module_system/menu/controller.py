@@ -24,7 +24,8 @@ async def get_menu_tree_controller(
         search: MenuQueryParam = Depends(),
         auth: AuthSchema = Depends(AuthPermission(permissions=["system:menu:query"]))
 ) -> JSONResponse:
-    result_dict_list = await MenuService.get_menu_tree_service(search=search, auth=auth)
+    order_by = [{"order": "asc"}]
+    result_dict_list = await MenuService.get_menu_tree_service(search=search, auth=auth, order_by=order_by)
     logger.info(f"查询菜单树成功")
     return SuccessResponse(data=result_dict_list, msg="查询菜单树成功")
 

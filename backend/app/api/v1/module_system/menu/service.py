@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
@@ -33,7 +33,7 @@ class MenuService:
         return menu_dict
 
     @classmethod
-    async def get_menu_tree_service(cls, auth: AuthSchema, search: MenuQueryParam, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_menu_tree_service(cls, auth: AuthSchema, search: Optional[MenuQueryParam] = None, order_by: Optional[List[Dict]] = None) -> List[Dict]:
         """
         获取菜单树形列表service
         
@@ -42,10 +42,6 @@ class MenuService:
         :param order_by: 排序参数
         :return: 菜单树形列表对象
         """
-        if order_by:
-            order_by = eval(order_by)
-        else:
-            order_by = [{"order": "asc"}]
         # 使用树形结构查询，预加载children关系
         menu_list = await MenuCRUD(auth).get_tree_list_crud(search=search.__dict__, order_by=order_by)
         # 转换为字典列表
@@ -74,6 +70,8 @@ class MenuService:
         
         if data.parent_id:
             parent_menu = await MenuCRUD(auth).get_by_id_crud(id=data.parent_id)
+            if not parent_menu:
+                raise CustomException(msg='更新失败，父级菜单不存在')
             data.parent_name = parent_menu.name
         new_menu = await MenuCRUD(auth).update(id=id, data=data)
         

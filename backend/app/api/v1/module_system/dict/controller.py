@@ -85,8 +85,8 @@ async def delete_type_controller(
     logger.info(f"删除字典类型成功: {ids}")
     return SuccessResponse(msg="删除字典类型成功")
 
-@DictRouter.patch("/type/available/setting", summary="批量修改公告状态", description="批量修改公告状态")
-async def batch_set_available_obj_controller(
+@DictRouter.patch("/type/available/setting", summary="批量修改字典类型状态", description="批量修改字典类型状态")
+async def batch_set_available_dict_type_controller(
     data: BatchSetAvailable,
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_type:patch"]))
 ) -> JSONResponse:
@@ -164,7 +164,7 @@ async def delete_data_controller(
     return SuccessResponse(msg="删除字典数据成功")
 
 @DictRouter.patch("/data/available/setting", summary="批量修改字典数据状态", description="批量修改字典数据状态")
-async def batch_set_available_obj_controller(
+async def batch_set_available_dict_data_controller(
     data: BatchSetAvailable,
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dict_data:patch"]))
 ) -> JSONResponse:
@@ -202,4 +202,10 @@ async def get_init_dict_data_controller(
     )
     logger.info(f"获取初始化字典数据成功：{dict_data_query_result}")
 
+    # 确保数据是字符串类型再进行 JSON 解析
+    if isinstance(dict_data_query_result, bytes):
+        dict_data_query_result = dict_data_query_result.decode('utf-8')
+    elif not isinstance(dict_data_query_result, str):
+        dict_data_query_result = str(dict_data_query_result)
+        
     return SuccessResponse(data=json.loads(dict_data_query_result), msg="获取初始化字典数据成功")

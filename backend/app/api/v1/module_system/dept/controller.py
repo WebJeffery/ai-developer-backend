@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Body, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path
 from fastapi.responses import JSONResponse
 
 from app.common.response import SuccessResponse
-from app.common.request import PaginationService
 from app.core.router_class import OperationLogRoute
 from app.core.dependencies import AuthPermission
 from app.core.base_schema import BatchSetAvailable
 from app.core.logger import logger
-from app.core.base_params import PaginationQueryParam
 from ..auth.schema import AuthSchema
 from .param import DeptQueryParam
 from .service import DeptService
@@ -27,7 +25,8 @@ async def get_dept_tree_controller(
     search: DeptQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:query"]))
 ) -> JSONResponse:
-    result_dict_list = await DeptService.get_dept_tree_service(search=search, auth=auth)
+    order_by = [{"order": "asc"}]
+    result_dict_list = await DeptService.get_dept_tree_service(search=search, auth=auth, order_by=order_by)
     logger.info(f"查询部门树成功")
     return SuccessResponse(data=result_dict_list, msg="查询部门树成功")
 

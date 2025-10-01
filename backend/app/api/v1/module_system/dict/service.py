@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 from redis.asyncio.client import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,14 +29,8 @@ class DictTypeService:
         return DictTypeOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_obj_list_service(cls, auth: AuthSchema, search: DictTypeQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
-        if order_by:
-            order_by = eval(order_by)
-        obj_list = None
-        if search:
-            obj_list = await DictTypeCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
-        else:
-            obj_list = await DictTypeCRUD(auth).get_obj_list_crud()
+    async def get_obj_list_service(cls, auth: AuthSchema, search: Optional[DictTypeQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
+        obj_list = await DictTypeCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
         return [DictTypeOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
     @classmethod
@@ -80,7 +74,6 @@ class DictTypeService:
                 for item in exist_obj_type_list:
                     item.dict_type = data.dict_type
                     dict_data = DictDataUpdateSchema(
-                        id=item.id,
                         dict_sort=item.dict_sort,
                         dict_label=item.dict_label,
                         dict_value=item.dict_value,
@@ -179,9 +172,7 @@ class DictDataService:
         return DictDataOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_obj_list_service(cls, auth: AuthSchema, search: DictDataQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
-        if order_by:
-            order_by = eval(order_by)
+    async def get_obj_list_service(cls, auth: AuthSchema, search: Optional[DictDataQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         obj_list = await DictDataCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
         return [DictDataOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
@@ -257,15 +248,17 @@ class DictDataService:
         if not exist_obj:
             raise CustomException(msg='更新失败，该字典数据不存在')
         exist_obj = await DictDataCRUD(auth).get(dict_label=data.dict_label)
-        if exist_obj and exist_obj.id != id:
+        if not exist_obj:
+            raise CustomException(msg='更新失败，该字典数据不存在')
+
+        if exist_obj.id != id:
             raise CustomException(msg='更新失败，数据字典数据重复')
             
         # 如果状态变更，需要同步更新字典类型状态并刷新缓存
-        if exist_obj.status != data.status:
+        if exist_obj.status != data.status or exist_obj.dict_type != data.dict_type:
             dict_type = await DictTypeCRUD(auth).get(dict_type=exist_obj.dict_type)
             if dict_type:
                 update_data = DictTypeUpdateSchema(
-                    id=dict_type.id,
                     dict_name=dict_type.dict_name,
                     dict_type=dict_type.dict_type,
                     status=data.status,

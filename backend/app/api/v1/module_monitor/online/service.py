@@ -9,7 +9,7 @@ from app.core.redis_crud import RedisCURD
 from app.core.security import decode_access_token
 from app.core.logger import logger
 from .param import OnlineQueryParam
-from .schema import OnlineOutSchema
+
 
 class OnlineService:
     """在线用户管理模块服务层"""
