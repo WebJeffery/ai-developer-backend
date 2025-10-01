@@ -1,51 +1,53 @@
 import request from "@/utils/request";
 
+const API_PATH = "/monitor/cache";
+
 const CacheAPI = {
   getCacheInfo() {
     return request<ApiResponse>({
-      url: `/monitor/cache/info`,
+      url: `${API_PATH}/info`,
       method: "get",
     });
   },
 
   getCacheNames() {
     return request<ApiResponse>({
-      url: `/monitor/cache/get/names`,
+      url: `${API_PATH}/get/names`,
       method: "get",
     });
   },
 
   getCacheKeys(cacheName: string) {
     return request<ApiResponse>({
-      url: `/monitor/cache/get/keys/${cacheName}`,
+      url: `${API_PATH}/get/keys/${cacheName}`,
       method: "get",
     });
   },
 
   getCacheValue(cacheName: string, cacheKey: string) {
     return request<ApiResponse>({
-      url: `/monitor/cache/get/value/${cacheName}/${cacheKey}`,
+      url: `${API_PATH}/get/value/${cacheName}/${cacheKey}`,
       method: "get",
     });
   },
 
   deleteCacheName(cacheName: string) {
     return request<ApiResponse>({
-      url: `/monitor/cache/delete/name/${cacheName}`,
+      url: `${API_PATH}/delete/name/${cacheName}`,
       method: "delete",
     });
   },
 
   deleteCacheKey(cacheKey: string) {
     return request<ApiResponse>({
-      url: `/monitor/cache/delete/key/${cacheKey}`,
+      url: `${API_PATH}/delete/key/${cacheKey}`,
       method: "delete",
     });
   },
 
   deleteCacheAll() {
     return request<ApiResponse>({
-      url: "/monitor/cache/delete/all",
+      url: `${API_PATH}/delete/all`,
       method: "delete",
     });
   },

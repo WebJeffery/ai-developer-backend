@@ -4,14 +4,13 @@
 提供跨数据库兼容的基础模型类和类型装饰器
 """
 
-from datetime import datetime
 import re
+from datetime import datetime
 from typing import Literal, Optional, Dict, Any, Union
 
-from sqlalchemy import Boolean, String, Integer, DateTime, ForeignKey, Text, BigInteger
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Integer, DateTime, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, declared_attr, mapped_column, MappedAsDataclass
+from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, declared_attr, mapped_column
 from sqlalchemy.engine.row import Row
 from sqlalchemy.orm.collections import InstrumentedList
 

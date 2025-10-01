@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/dict";
+
 const DictAPI = {
   getDictTypeList(query: DictPageQuery) {
     return request<ApiResponse<PageResult<DictTable[]>>>({
-      url: `/system/dict/type/list`,
+      url: `${API_PATH}/type/list`,
       method: "get",
       params: query,
     });
@@ -11,21 +13,21 @@ const DictAPI = {
 
   getDictTypeOptionselect() {
     return request<ApiResponse>({
-      url: `/system/dict/type/optionselect`,
+      url: `${API_PATH}/type/optionselect`,
       method: "get",
     });
   },
 
   getDictTypeDetail(query: number) {
     return request<ApiResponse<DictTable>>({
-      url: `/system/dict/type/detail/${query}`,
+      url: `${API_PATH}/type/detail/${query}`,
       method: "get",
     });
   },
 
   createDictType(body: DictForm) {
     return request<ApiResponse>({
-      url: `/system/dict/type/create`,
+      url: `${API_PATH}/type/create`,
       method: "post",
       data: body,
     });
@@ -33,7 +35,7 @@ const DictAPI = {
 
   updateDictType(id: number, body: DictForm) {
     return request<ApiResponse>({
-      url: `/system/dict/type/update/${id}`,
+      url: `${API_PATH}/type/update/${id}`,
       method: "put",
       data: body,
     });
@@ -41,7 +43,7 @@ const DictAPI = {
 
   deleteDictType(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/dict/type/delete`,
+      url: `${API_PATH}/type/delete`,
       method: "delete",
       data: body,
     });
@@ -49,7 +51,7 @@ const DictAPI = {
 
   batchAvailableDict(body: BatchType) {
     return request<ApiResponse>({
-      url: `/system/dict/type/available/setting`,
+      url: `${API_PATH}/type/available/setting`,
       method: "patch",
       data: body,
     });
@@ -57,7 +59,7 @@ const DictAPI = {
 
   exportDictType(body: DictPageQuery) {
     return request<Blob>({
-      url: `/system/dict/type/export`,
+      url: `${API_PATH}/type/export`,
       method: "post",
       data: body,
       responseType: "blob",
@@ -66,7 +68,7 @@ const DictAPI = {
 
   getDictDataList(query: DictDataPageQuery) {
     return request<ApiResponse<PageResult<DictDataTable[]>>>({
-      url: `/system/dict/data/list`,
+      url: `${API_PATH}/data/list`,
       method: "get",
       params: query,
     });
@@ -74,14 +76,14 @@ const DictAPI = {
 
   getDictDataDetail(query: number) {
     return request<ApiResponse<DictDataTable>>({
-      url: `/system/dict/data/detail/${query}`,
+      url: `${API_PATH}/data/detail/${query}`,
       method: "get",
     });
   },
 
   createDictData(body: DictDataForm) {
     return request<ApiResponse>({
-      url: `/system/dict/data/create`,
+      url: `${API_PATH}/data/create`,
       method: "post",
       data: body,
     });
@@ -89,7 +91,7 @@ const DictAPI = {
 
   updateDictData(id: number, body: DictDataForm) {
     return request<ApiResponse>({
-      url: `/system/dict/data/update/${id}`,
+      url: `${API_PATH}/data/update/${id}`,
       method: "put",
       data: body,
     });
@@ -97,7 +99,7 @@ const DictAPI = {
 
   deleteDictData(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/dict/data/delete`,
+      url: `${API_PATH}/data/delete`,
       method: "delete",
       data: body,
     });
@@ -105,7 +107,7 @@ const DictAPI = {
 
   batchAvailableDictData(body: BatchType) {
     return request<ApiResponse>({
-      url: `/system/dict/data/available/setting`,
+      url: `${API_PATH}/data/available/setting`,
       method: "patch",
       data: body,
     });
@@ -113,7 +115,7 @@ const DictAPI = {
 
   exportDictData(body: DictDataPageQuery) {
     return request<Blob>({
-      url: `/system/dict/data/export`,
+      url: `${API_PATH}/data/export`,
       method: "post",
       data: body,
       responseType: "blob",
@@ -122,7 +124,7 @@ const DictAPI = {
 
   getInitDict(dict_type: string) {
     return request<ApiResponse>({
-      url: `/system/dict/data/info/${dict_type}`,
+      url: `${API_PATH}/data/info/${dict_type}`,
       method: "get",
     });
   },

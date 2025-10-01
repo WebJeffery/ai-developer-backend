@@ -1,39 +1,81 @@
 <template>
   <div class="app-container">
-    <el-form v-show="showSearch" ref="queryRef" :model="queryParams" :inline="true" >
-      <el-form-item label="表名称" prop="tableName">
-        <el-input
-          v-model="queryParams.tableName"
-          placeholder="请输入表名称"
-          clearable
-          style="width: 200px"
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="表描述" prop="tableComment">
-        <el-input
-          v-model="queryParams.tableComment"
-          placeholder="请输入表描述"
-          clearable
-          style="width: 200px"
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="创建时间" style="width: 308px">
-        <el-date-picker
-          v-model="dateRange"
-          value-format="YYYY-MM-DD"
-          type="daterange"
-          range-separator="-"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-        ></el-date-picker>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery" v-hasPermi="['generator:gencode:query']">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery" v-hasPermi="['generator:gencode:query']">重置</el-button>
-      </el-form-item>
-    </el-form>
+    <!-- 搜索区域 -->
+    <div class="search-container">
+      <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":">
+        <el-form-item prop="table_name" label="表名称">
+          <el-input v-model="queryFormData.table_name" placeholder="请输入表名称" clearable />
+        </el-form-item>
+        <el-form-item prop="status" label="状态">
+          <el-select v-model="queryFormData.status" placeholder="请选择状态" style="width: 167.5px" clearable>
+            <el-option value="true" label="启用" />
+            <el-option value="false" label="停用" />
+          </el-select>
+        </el-form-item>
+        <!-- 时间范围，收起状态下隐藏 -->
+        <el-form-item v-if="isExpand" prop="start_time" label="创建时间">
+          <DatePicker v-model="dateRange" @update:model-value="handleDateRangeChange"/>
+        </el-form-item>
+        <!-- 查询、重置、展开/收起按钮 -->
+        <el-form-item class="search-buttons">
+            <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['demo:example:query']">
+                    查询
+                </el-button>
+                <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['demo:example:query']">
+                    重置
+                </el-button>
+            <!-- 展开/收起 -->
+            <template v-if="isExpandable">
+                <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
+                    {{ isExpand ? "收起" : "展开" }}
+                    <el-icon>
+                        <template v-if="isExpand">
+                            <ArrowUp />
+                        </template>
+                        <template v-else>
+                            <ArrowDown />
+                        </template>
+                    </el-icon>
+                </el-link>
+            </template>
+        </el-form-item>
+      </el-form>
+      
+      <el-form v-show="showSearch" ref="queryRef" :model="queryFormData" :inline="true" >
+        <el-form-item label="表名称" prop="table_name">
+          <el-input
+            v-model="queryFormData.table_name"
+            placeholder="请输入表名称"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="表描述" prop="tableComment">
+          <el-input
+            v-model="queryFormData.tableComment"
+            placeholder="请输入表描述"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="创建时间" style="width: 308px">
+          <el-date-picker
+            v-model="dateRange"
+            value-format="YYYY-MM-DD"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+          ></el-date-picker>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="Search" @click="handleQuery" v-hasPermi="['generator:gencode:query']">搜索</el-button>
+          <el-button icon="Refresh" @click="resetQuery" v-hasPermi="['generator:gencode:query']">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
@@ -91,13 +133,13 @@
       <el-table-column type="selection" align="center" width="55"></el-table-column>
       <el-table-column label="序号" type="index" width="50" align="center">
         <template #default="scope">
-          <span>{{(queryParams.page_no - 1) * queryParams.page_size + scope.$index + 1}}</span>
+          <span>{{(queryFormData.page_no - 1) * queryFormData.page_size + scope.$index + 1}}</span>
         </template>
       </el-table-column>
       <el-table-column
         label="表名称"
         align="center"
-        prop="tableName"
+        prop="table_name"
         :show-overflow-tooltip="true"
       />
       <el-table-column
@@ -137,8 +179,8 @@
     <pagination
       v-show="total>0"
       :total="total"
-      v-model:page="queryParams.page_no"
-      v-model:limit="queryParams.page_size"
+      v-model:page="queryFormData.page_no"
+      v-model:limit="queryFormData.page_size"
       @pagination="getList"
     />
     <!-- 预览界面 -->
@@ -185,11 +227,12 @@ const tableNames = ref([]);
 const dateRange = ref([]);
 const uniqueId = ref("");
 
+
 const data = reactive({
-  queryParams: {
+  queryFormData: {
     page_no: 1,
     page_size: 10,
-    tableName: undefined,
+    table_name: undefined,
     tableComment: undefined
   },
   preview: {
@@ -200,13 +243,13 @@ const data = reactive({
   }
 });
 
-const { queryParams, preview } = toRefs(data);
+const { queryFormData, preview } = toRefs(data);
 
 onActivated(() => {
   const time = route.query.t;
   if (time != null && time != uniqueId.value) {
     uniqueId.value = time;
-    queryParams.value.page_no = Number(route.query.page_no);
+    queryFormData.value.page_no = Number(route.query.page_no);
     dateRange.value = [];
     proxy.resetForm("queryForm");
     getList();
@@ -216,7 +259,7 @@ onActivated(() => {
 /** 查询表集合 */
 function getList() {
   loading.value = true;
-  GencodeAPI.listTable(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
+  GencodeAPI.listTable(proxy.addDateRange(queryFormData.value, dateRange.value)).then(response => {
     tableList.value = response.rows;
     total.value = response.total;
     loading.value = false;
@@ -225,13 +268,13 @@ function getList() {
 
 /** 搜索按钮操作 */
 function handleQuery() {
-  queryParams.value.page_no = 1;
+  queryFormData.value.page_no = 1;
   getList();
 }
 
 /** 生成代码操作 */
 function handleGenTable(row) {
-  const tbNames = row.tableName || tableNames.value;
+  const tbNames = row.table_name || tableNames.value;
   if (tbNames == "") {
     proxy.$modal.msgError("请选择要生成的数据");
     return;
@@ -255,7 +298,7 @@ function handleGenTable(row) {
 
 /** 同步数据库操作 */
 function handleSynchDb(row) {
-  const tableName = row.tableName;
+  const tableName = row.table_name;
   proxy.$modal.confirm('确认要强制同步"' + tableName + '"表结构吗？').then(function () {
     return GencodeAPI.syncDb(tableName);
   }).then(() => {
@@ -297,7 +340,7 @@ function copyTextSuccess() {
 // 多选框选中数据
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.tableId);
-  tableNames.value = selection.map(item => item.tableName);
+  tableNames.value = selection.map(item => item.table_name);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
@@ -305,7 +348,7 @@ function handleSelectionChange(selection) {
 /** 修改按钮操作 */
 function handleEditTable(row) {
   const tableId = row.tableId || ids.value[0];
-  router.push({ path: "/tool/gen-edit/index/" + tableId, query: { page_no: queryParams.value.page_no } });
+  router.push({ path: "/tool/gen-edit/index/" + tableId, query: { page_no: queryFormData.value.page_no } });
 }
 
 /** 删除按钮操作 */

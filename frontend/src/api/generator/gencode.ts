@@ -1,39 +1,38 @@
 import request from "@/utils/request";
 
-const GENERATOR_BASE_URL = "/gencode";
+const API_PATH = "/generator/gencode";
 
 const GencodeAPI = {
-  
   // 查询生成表数据
   listTable(query: TablePageQuery) {
-    return request<PageResult<GenTableOutVO>>({
-      url: `${GENERATOR_BASE_URL}/list`,
+    return request<ApiResponse<PageResult<GenTableOutVO>>>({
+      url: `${API_PATH}/list`,
       method: 'get',
       params: query
     })
   },
 
   // 查询db数据库列表
-  listDbTable(query: TablePageQuery) {
-    return request<PageResult<TablePageVO>>({
-      url: `${GENERATOR_BASE_URL}/db/list`,
+  listDbTable(query: DBTablePageQuery) {
+    return request<ApiResponse<PageResult<TablePageVO>>>({
+      url: `${API_PATH}/db/list`,
       method: 'get',
       params: query
     })
   },
 
   // 查询表详细信息
-  getGenTableDetail(tableId: number) {
-    return request<GenTableDetailResult>({
-      url: `${GENERATOR_BASE_URL}/detail/${tableId}`,
+  getGenTableDetail(table_id: number) {
+    return request<ApiResponse<GenTableDetailResult>>({
+      url: `${API_PATH}/detail/${table_id}`,
       method: 'get'
     })
   },
 
   // 创建表
   createTable(sql: string) {
-    return request({
-      url: `${GENERATOR_BASE_URL}/create`,
+    return request<ApiResponse>({
+      url: `${API_PATH}/create`,
       method: 'post',
       params: { sql }
     })
@@ -41,8 +40,8 @@ const GencodeAPI = {
 
   // 修改代码生成信息
   updateGenTable(data: GenTableUpdateSchema) {
-    return request({
-      url: `${GENERATOR_BASE_URL}/update`,
+    return request<ApiResponse>({
+      url: `${API_PATH}/update`,
       method: 'put',
       data
     })
@@ -50,8 +49,8 @@ const GencodeAPI = {
 
   // 导入表
   importTable(tables: string[]) {
-    return request({
-      url: `${GENERATOR_BASE_URL}/import`,
+    return request<ApiResponse>({
+      url: `${API_PATH}/import`,
       method: 'post',
       data: { tables }
     })
@@ -60,16 +59,16 @@ const GencodeAPI = {
 
   // 预览生成代码
   previewTable(tableId: number) {
-    return request<GeneratorPreviewVO[]>({
-      url: `${GENERATOR_BASE_URL}/preview/${tableId}`,
+    return request<ApiResponse<GeneratorPreviewVO[]>>({
+      url: `${API_PATH}/preview/${tableId}`,
       method: 'get'
     })
   },
 
   // 删除表数据
   deleteTable(tableIds: number[]) {
-    return request({
-      url: `${GENERATOR_BASE_URL}/delete`,
+    return request<ApiResponse>({
+      url: `${API_PATH}/delete`,
       method: 'delete',
       data: tableIds
     })
@@ -78,7 +77,7 @@ const GencodeAPI = {
   // 批量生成代码
   batchGenCode(tables: string) {
     return request<Blob>({
-      url: `${GENERATOR_BASE_URL}/batch/out`,
+      url: `${API_PATH}/batch/out`,
       method: 'patch',
       params: { tables },
       responseType: 'blob'
@@ -87,16 +86,16 @@ const GencodeAPI = {
 
   // 生成代码到指定路径
   genCodeToPath(tableName: string) {
-    return request({
-      url: `${GENERATOR_BASE_URL}/out/path/${tableName}`,
+    return request<ApiResponse>({
+      url: `${API_PATH}/out/path/${tableName}`,
       method: 'post'
     })
   },
 
   // 同步数据库
   syncDb(tableName: string) {
-    return request({
-      url: `${GENERATOR_BASE_URL}/sync/db/${tableName}`,
+    return request<ApiResponse>({
+      url: `${API_PATH}/sync/db/${tableName}`,
       method: 'post'
     })
   }
@@ -109,33 +108,45 @@ export interface GeneratorPreviewVO {
   /** 文件生成路径 */
   path: string;
   /** 文件名称 */
-  fileName: string;
+  file_name: string;
   /** 文件内容 */
   content: string;
 }
 
 /**  数据表分页查询参数 */
 export interface TablePageQuery extends PageQuery {
-  /** 关键字(表名) */
-  keywords?: string;
+  /** 表名称 */
+  table_name?: string;
+  /** 表描述 */
+  table_comment?: string;
+  /** 开始时间 */
+  start_time?: string;
+  /** 结束时间 */
+  end_time?: string;
+}
+
+/** 数据库表分页查询参数 */
+export interface DBTablePageQuery extends PageQuery {
+  /** 数据库列名称 */
+  column_name?: string;
 }
 
 /** 数据表分页对象 */
 export interface TablePageVO {
   /** 表名称 */
-  tableName: string;
+  table_name: string;
 
   /** 表描述 */
-  tableComment: string;
+  table_comment: string;
 
   /** 存储引擎 */
   engine: string;
 
   /** 字符集排序规则 */
-  tableCollation: string;
+  table_collation: string;
 
   /** 创建时间 */
-  createTime: string;
+  create_time: string;
 }
 
 /** 代码生成表输出对象 */
@@ -143,45 +154,45 @@ export interface GenTableOutVO {
   /** 主键 */
   id?: number;
   /** 表名称 */
-  tableName: string;
+  table_name: string;
   /** 表描述 */
-  tableComment: string;
+  table_comment: string;
   /** 关联子表的表名 */
-  subTableName?: string;
+  sub_table_name?: string;
   /** 子表关联的外键名 */
-  subTableFkName: string;
+  sub_table_fk_name: string;
   /** 实体类名称 */
-  className: string;
+  class_name: string;
   /** 使用的模板（crud单表操作 tree树表操作） */
-  tplCategory?: string;
+  tpl_category?: string;
   /** 前端模板类型（element-ui模版 element-plus模版） */
-  tplWebType?: string;
+  tpl_web_type?: string;
   /** 生成包路径 */
-  packageName: string;
+  package_name: string;
   /** 生成模块名 */
-  moduleName: string;
+  module_name: string;
   /** 生成业务名 */
-  businessName: string;
+  business_name: string;
   /** 生成功能名 */
-  functionName: string;
+  function_name: string;
   /** 生成功能作者 */
-  functionAuthor?: string;
+  function_author?: string;
   /** 生成代码方式（0zip压缩包 1自定义路径） */
-  genType?: string;
+  gen_type?: string;
   /** 生成路径（不填默认项目路径） */
-  genPath?: string;
+  gen_path?: string;
   /** 其它生成选项 */
   options?: string;
   /** 树编码字段 */
-  treeCode?: string;
+  tree_code?: string;
   /** 树父编码字段 */
-  treeParentCode?: string;
+  tree_parent_code?: string;
   /** 树名称字段 */
-  treeName?: string;
+  tree_name?: string;
   /** 上级菜单ID字段 */
-  parentMenuId?: number;
+  parent_menu_id?: number;
   /** 上级菜单名称字段 */
-  parentMenuName?: string;
+  parent_menu_name?: string;
   /** 是否为子表 */
   sub?: boolean;
   /** 是否为树表 */
@@ -193,9 +204,9 @@ export interface GenTableOutVO {
 /** 代码生成表更新模型 */
 export interface GenTableUpdateSchema extends GenTableOutVO {
   /** 主键信息 */
-  pkColumn?: GenTableColumnUpdateSchema;
+  pk_column?: GenTableColumnUpdateSchema;
   /** 子表信息 */
-  subTable?: GenTableUpdateSchema;
+  sub_table?: GenTableUpdateSchema;
   /** 表列信息 */
   columns: GenTableColumnUpdateSchema[];
 }
@@ -205,43 +216,43 @@ export interface GenTableColumnUpdateSchema {
   /** 主键 */
   id?: number;
   /** 归属表编号 */
-  tableId?: number;
+  table_id?: number;
   /** 列名称 */
-  columnName: string;
+  column_name: string;
   /** 列描述 */
-  columnComment?: string;
+  column_comment?: string;
   /** 列类型 */
-  columnType: string;
+  column_type: string;
   /** PYTHON类型 */
-  pythonType?: string;
+  python_type?: string;
   /** PYTHON字段名 */
-  pythonField: string;
+  python_field: string;
   /** 是否主键（1是） */
-  isPk?: string;
+  is_pk?: string;
   /** 是否自增（1是） */
-  isIncrement?: string;
+  is_increment?: string;
   /** 是否必填（1是） */
-  isRequired?: string;
+  is_required?: string;
   /** 是否唯一（1是） */
-  isUnique?: string;
+  is_unique?: string;
   /** 是否为插入字段（1是） */
-  isInsert?: string;
+  is_insert?: string;
   /** 是否编辑字段（1是） */
-  isEdit?: string;
+  is_edit?: string;
   /** 是否列表字段（1是） */
-  isList?: string;
+  is_list?: string;
   /** 是否查询字段（1是） */
-  isQuery?: string;
+  is_query?: string;
   /** 查询方式（等于、不等于、大于、小于、范围） */
-  queryType?: string;
+  query_type?: string;
   /** 显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件） */
-  htmlType: string;
+  html_type: string;
   /** 字典类型 */
-  dictType: string;
+  dict_type: string;
   /** 排序 */
   sort?: number;
   /** 字段大写形式 */
-  capPythonField?: string;
+  cap_python_field?: string;
   /** 是否主键 */
   pk?: boolean;
   /** 是否自增 */
@@ -259,9 +270,9 @@ export interface GenTableColumnUpdateSchema {
   /** 是否查询字段 */
   query?: boolean;
   /** 是否为基类字段 */
-  superColumn?: boolean;
+  super_column?: boolean;
   /** 是否为基类字段白名单 */
-  usableColumn?: boolean;
+  usable_column?: boolean;
 }
 
 /** 表详情查询结果 */

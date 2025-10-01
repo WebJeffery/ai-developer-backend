@@ -13,17 +13,17 @@ class GenTableQueryParam:
     def __init__(
         self,
         table_name: Optional[str] = Query(None, description="表名称"),
-        status: Optional[bool] = Query(None, description="是否启用"),
+        table_comment: Optional[str] = Query(None, description="表注释"),
         creator: Optional[int] = Query(None, description="创建人"),
         start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2023-01-01 00:00:00"),
         end_time: Optional[DateTimeStr] = Query(None, description="结束时间", example="2023-12-31 23:59:59"),
     ) -> None:        
         # 存储查询条件，不直接赋值给父类属性
         self.table_name = ("like", table_name)
+        self.table_comment = ("like", table_comment)
 
         # 精确查询字段
         self.creator_id = creator
-        self.status = status
 
         # 时间范围查询
         if start_time and end_time:
@@ -38,7 +38,6 @@ class GenTableColumnQueryParam:
     def __init__(
         self,
         column_name: Optional[str] = Query(None, description="列名称"),
-        status: Optional[bool] = Query(None, description="是否启用"),
         creator: Optional[int] = Query(None, description="创建人"),
         start_time: Optional[DateTimeStr] = Query(None, description="开始时间", example="2023-01-01 00:00:00"),
         end_time: Optional[DateTimeStr] = Query(None, description="结束时间", example="2023-12-31 23:59:59"),
@@ -48,7 +47,6 @@ class GenTableColumnQueryParam:
 
         # 精确查询字段
         self.creator_id = creator
-        self.status = status
 
         # 时间范围查询
         if start_time and end_time:

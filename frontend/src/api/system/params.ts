@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/param";
+
 const ParamsAPI = {
   uploadFile(body: any) {
     return request<ApiResponse<UploadFilePath>>({
-      url: `/system/param/upload`,
+      url: `${API_PATH}/upload`,
       method: "post",
       data: body,
       headers: { "Content-Type": "multipart/form-data" },
@@ -12,14 +14,14 @@ const ParamsAPI = {
 
   getInitConfig() {
     return request<ApiResponse<ConfigTable[]>>({
-      url: `/system/param/info`,
+      url: `${API_PATH}/info`,
       method: "get",
     });
   },
 
   getConfigList(query: ConfigPageQuery) {
     return request<ApiResponse<PageResult<ConfigTable[]>>>({
-      url: `/system/param/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -27,14 +29,14 @@ const ParamsAPI = {
 
   getConfigDetail(query: number) {
     return request<ApiResponse<ConfigTable>>({
-      url: `/system/param/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createConfig(body: ConfigForm) {
     return request<ApiResponse>({
-      url: `/system/param/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -42,7 +44,7 @@ const ParamsAPI = {
 
   updateConfig(id: number, body: ConfigForm) {
     return request<ApiResponse>({
-      url: `/system/param/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -50,7 +52,7 @@ const ParamsAPI = {
 
   deleteConfig(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/param/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -58,7 +60,7 @@ const ParamsAPI = {
 
   exportConfig(body: ConfigPageQuery) {
     return request<Blob>({
-      url: `/system/param/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",

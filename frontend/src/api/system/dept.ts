@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/dept";
+
 const DeptAPI = {
   getDeptList(query?: DeptPageQuery) {
     return request<ApiResponse<DeptTable[]>>({
-      url: `/system/dept/tree`,
+      url: `${API_PATH}/tree`,
       method: "get",
       params: query,
     });
@@ -11,14 +13,14 @@ const DeptAPI = {
 
   getDeptDetail(query: number) {
     return request<ApiResponse<DeptTable>>({
-      url: `/system/dept/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createDept(body: DeptForm) {
     return request<ApiResponse>({
-      url: `/system/dept/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -26,7 +28,7 @@ const DeptAPI = {
 
   updateDept(id: number, body: DeptForm) {
     return request<ApiResponse>({
-      url: `/system/dept/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -34,7 +36,7 @@ const DeptAPI = {
 
   deleteDept(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/dept/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -42,7 +44,7 @@ const DeptAPI = {
 
   batchAvailableDept(body: BatchType) {
     return request<ApiResponse>({
-      url: `/system/dept/available/setting`,
+      url: `${API_PATH}/available/setting`,
       method: "patch",
       data: body,
     });

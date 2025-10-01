@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/example/demo";
+
 const ExampleAPI = {
   getExampleList(query: ExamplePageQuery) {
     return request<ApiResponse<PageResult<ExampleTable[]>>>({
-      url: `/example/demo/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -11,14 +13,14 @@ const ExampleAPI = {
 
   getExampleDetail(query: number) {
     return request<ApiResponse<ExampleTable>>({ 
-      url: `/example/demo/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createExample(body: ExampleForm) {
     return request<ApiResponse>({
-      url: `/example/demo/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -26,7 +28,7 @@ const ExampleAPI = {
 
   updateExample(id: number, body: ExampleForm) {
     return request<ApiResponse>({
-      url: `/example/demo/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -34,7 +36,7 @@ const ExampleAPI = {
 
   deleteExample(body: number[]) {
     return request<ApiResponse>({
-      url: `/example/demo/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -42,7 +44,7 @@ const ExampleAPI = {
 
   batchAvailableExample(body: BatchType) {
     return request<ApiResponse>({
-      url: `/example/demo/available/setting`,
+      url: `${API_PATH}/available/setting`,
       method: "patch",
       data: body,
     });
@@ -50,7 +52,7 @@ const ExampleAPI = {
 
   exportExample(body: ExamplePageQuery) {
     return request<Blob>({
-      url: `/example/demo/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",
@@ -59,7 +61,7 @@ const ExampleAPI = {
 
   downloadTemplate() {
     return request<ApiResponse>({
-      url: `/example/demo/download/template`,
+      url: `${API_PATH}/download/template`,
       method: "post",
       responseType: "blob",
     });
@@ -67,7 +69,7 @@ const ExampleAPI = {
 
   importExample(body: any) {
     return request<ApiResponse>({
-      url: `/example/demo/import`,
+      url: `${API_PATH}/import`,
       method: "post",
       data: body,
       headers: {

@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/log";
+
 const LogAPI = {
   getLogList(query: LogPageQuery) {
     return request<ApiResponse<PageResult<LogTable[]>>>({
-      url: `/system/log/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -11,14 +13,14 @@ const LogAPI = {
 
   getLogDetail(query: number) {
     return request<ApiResponse<LogTable>>({
-      url: `/system/log/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   deleteLog(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/log/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -26,7 +28,7 @@ const LogAPI = {
 
   exportLog(body: LogPageQuery) {
     return request<Blob>({
-      url: `/system/log/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",

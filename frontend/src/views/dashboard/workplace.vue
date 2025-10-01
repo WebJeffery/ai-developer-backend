@@ -67,7 +67,7 @@
             <template #header>
               <div class="flex justify-between items-center">
                 <span class="font-bold">通知公告</span>
-                <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary" underline="never">更多</ElLink>
+                <ElButton type="primary" link @click="goToNotice()">更多</ElButton>
               </div>
             </template>
             <el-empty v-if="noticeList.length === 0" :image-size="80" description="暂无数据" />
@@ -87,7 +87,7 @@
                   <div class="flex justify-between items-center text-xs">
                     <span class="text-[var(--el-text-color-regular)]">{{ item.creator?.name }} 发布</span>
                     <el-tooltip placement="top" :content="item.description || item.notice_content">
-                      <ElLink href="https://service.fastapiadmin.com/" target="_blank" type="primary">详情↗</ElLink>
+                      <ElButton target="_blank" type="primary" link @click="goToNotice()">详情↗</ElButton>
                     </el-tooltip>
                   </div>
                 </div>
@@ -128,13 +128,13 @@
                 </div>
                 <ElButton size="small" type="danger" plain @click="clearBookmarks()">
                   <el-icon>
-                    <Close />
+                    <Delete />
                   </el-icon>
                   {{ t('common.clear') }}
                 </ElButton>
               </div>
             </template>
-            <ElRow v-if="quickLinks.length > 0" :gutter="12">
+            <ElRow v-if="quickLinks.length > 0" :gutter="8">
               <ElCol 
                 v-for="(item, index) in quickLinks" 
                 :key="index"
@@ -142,8 +142,9 @@
                 class="group mb-4"
               >
                 <ElButton 
+                  plain
                   type="default" 
-                  class="w-full h-20 flex items-center justify-start px-4 relative"
+                  class="w-full relative"
                   @click="handleQuickLinkClick(item)"
                 >
                   <el-icon v-if="item.icon && item.icon.startsWith('el-icon')">
@@ -153,11 +154,12 @@
                   <div v-else :class="`i-svg:menu mr-2`" />
                   
                   <span>{{ item.title }}</span>
-                  <el-icon 
+                  <el-icon
+                    color="var(--el-color-danger)"
                     class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 "
                     @click.stop="handleDeleteLink(item)"
                   >
-                    <CircleCloseFilled />
+                    <CircleClose />
                   </el-icon>
                 </ElButton>
               </ElCol>
@@ -183,7 +185,7 @@ import NoticeAPI, { NoticeTable } from '@/api/system/notice';
 import { ref, onMounted, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { QuestionFilled, Close, CircleCloseFilled } from "@element-plus/icons-vue";
+import { QuestionFilled, Delete, CircleClose } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { quickStartManager, type QuickLink } from '@/utils/quickStartManager';
 
@@ -213,6 +215,13 @@ const formatTime = (time: string | undefined) => {
   if (hours < 24) return `${hours}小时前`;
   if (days < 7) return `${days}天前`;
   return date.toLocaleDateString();
+};
+
+// 跳转通知公告详情页
+const goToNotice = () => {
+  router.push({ name: 'Notice' }).catch(() => {
+    ElMessage.warning(`公告通知跳转失败，请检查路由配置`);
+  });
 };
 
 // 获取通知类型文本和颜色

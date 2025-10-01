@@ -14,7 +14,6 @@ class GenTableCreateSchema(BaseModel):
     """
     代码生成业务表对应pydantic模型
     """
-
     model_config = ConfigDict(from_attributes=True)
 
     table_name: str = Field(default=..., description='表名称')
@@ -80,7 +79,6 @@ class GenTableUpdateSchema(GenTableCreateSchema):
     """
     代码生成业务表模型
     """
-
     pk_column: Optional['GenTableColumnUpdateSchema'] = Field(default=None, description='主键信息')
     sub_table: Optional['GenTableUpdateSchema'] = Field(default=None, description='子表信息')
     columns: List['GenTableColumnUpdateSchema'] = Field(default=..., description='表列信息')
@@ -110,7 +108,6 @@ class GenTableDeleteSchema(BaseModel):
     """
     删除代码生成业务表模型
     """
-
     model_config = ConfigDict(alias_generator=to_camel)
 
     table_ids: str = Field(description='需要删除的代码生成业务表ID')
@@ -120,7 +117,6 @@ class GenTableColumnCreateSchema(BaseModel):
     """
     代码生成业务表字段对应pydantic模型
     """
-
     model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
     table_id: Optional[int] = Field(default=None, description='归属表编号')
@@ -199,7 +195,6 @@ class GenTableColumnDeleteSchema(BaseModel):
     """
     删除代码生成业务表字段模型
     """
-
     model_config = ConfigDict(from_attributes=True)
 
     column_ids: str = Field(description='需要删除的代码生成业务表字段ID')

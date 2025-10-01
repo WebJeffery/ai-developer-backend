@@ -1,10 +1,12 @@
 import request from "@/utils/request";
 
+const API_PATH = "/monitor/online";
+
 const OnlineAPI = {
   // 查询在线用户列表
   getOnlineList(query: OnlineUserPageQuery) {
     return request<ApiResponse<PageResult<OnlineUserTable[]>>>({
-      url: `/monitor/online/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -13,7 +15,7 @@ const OnlineAPI = {
   // 强退用户
   deleteOnline(body: string) {
     return request<ApiResponse>({
-      url: `/monitor/online/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -22,7 +24,7 @@ const OnlineAPI = {
   // 强退用户
   clearOnline() {
     return request<ApiResponse>({
-      url: `/monitor/online/clear`,
+      url: `${API_PATH}/clear`,
       method: "delete",
     });
   },
