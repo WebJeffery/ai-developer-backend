@@ -2,7 +2,7 @@
 
 from typing import Optional, List
 from sqlalchemy import String, Integer, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.base_model import CreatorMixin
 
@@ -34,7 +34,7 @@ class GenTableModel(CreatorMixin):
     columns: Mapped[List['GenTableColumnModel']] = relationship(
         'GenTableColumnModel', 
         order_by='GenTableColumnModel.sort', 
-        back_populates='table',
+        back_populates='tables',
         cascade='all, delete-orphan'
     )
 
@@ -73,7 +73,7 @@ class GenTableColumnModel(CreatorMixin):
     )
     
     # 关系定义
-    table: Mapped['GenTableModel'] = relationship(
+    tables: Mapped['GenTableModel'] = relationship(
         'GenTableModel', 
         back_populates='columns'
     )

@@ -156,7 +156,7 @@ class UserService:
                 raise CustomException(msg="超级管理员不能删除")
             if user.status:
                 raise CustomException(msg="用户已启用,不能删除")
-            if auth.user.id == id:
+            if auth.user and auth.user.id == id:
                 raise CustomException(msg="不能删除当前登陆用户")
         # 删除用户角色关联数据
         await UserCRUD(auth).set_user_roles_crud(user_ids=ids, role_ids=[])
@@ -171,35 +171,35 @@ class UserService:
     async def get_current_user_info_service(cls, auth: AuthSchema) -> Dict:
         """获取当前用户信息"""
         # 获取用户基本信息
-        user = await UserCRUD(auth).get_by_id_crud(id=auth.user.id)
-        if not user:
+        if not auth.user:
             raise CustomException(msg="用户不存在")
+        user = await UserCRUD(auth).get_by_id_crud(id=auth.user.id)
         # 获取部门名称
-        if user.dept_id:
-            dept = await DeptCRUD(auth).get_by_id_crud(id=auth.user.dept_id)
-            user.dept_name = dept.name if dept else None
+        if user and user.dept_id:
+            dept = await DeptCRUD(auth).get_by_id_crud(id=user.dept_id)
+            UserOutSchema.dept_name = dept.name if dept else None
         user_dict = UserOutSchema.model_validate(user).model_dump()
 
         # 获取菜单权限
-        if auth.user.is_superuser:
+        if auth.user and auth.user.is_superuser:
             # 使用树形结构查询，预加载children关系
             menu_all = await MenuCRUD(auth).get_tree_list_crud(search={'type': ('in', [1, 2, 4]), 'status': True})
             menus = [MenuOutSchema.model_validate(menu).model_dump() for menu in menu_all]
             
         else:
-            # 收集用户所有角色的菜单ID
-            menu_ids = []
-            for role in auth.user.roles:
-                for menu in role.menus:
-                    if menu.status and menu.type in [1, 2, 4]:
-                        menu_ids.append(menu.id)
+            # 收集用户所有角色的菜单ID，使用列表推导式优化代码
+            menu_ids = {
+                menu.id 
+                for role in auth.user.roles or [] 
+                for menu in role.menus 
+                if menu.status and menu.type in [1, 2, 4]
+            }
             
             # 使用树形结构查询，预加载children关系
-            if menu_ids:
-                menu_all = await MenuCRUD(auth).get_tree_list_crud(search={'id': ('in', menu_ids)})
-                menus = [MenuOutSchema.model_validate(menu).model_dump() for menu in menu_all]
-            else:
-                menus = []
+            menus = [
+                MenuOutSchema.model_validate(menu).model_dump() 
+                for menu in await MenuCRUD(auth).get_tree_list_crud(search={'id': ('in', list(menu_ids))})
+            ] if menu_ids else []
         user_dict["menus"] = traversal_to_tree(menus)
         return user_dict
 

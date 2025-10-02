@@ -8,10 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Sequence, Any, Dict
 
+from app.api.v1.module_system.params.schema import ParamsCreateSchema
+from app.core.logger import logger
+
 from .model import GenTableModel, GenTableColumnModel
 from app.config.setting import settings
 from app.common.request import PaginationService
-from .schema import GenTableCreateSchema, GenTableUpdateSchema, GenTableOutSchema, GenTableDeleteSchema, GenTableColumnCreateSchema, GenTableColumnUpdateSchema, GenTableColumnOutSchema, GenTableColumnDeleteSchema
+from .schema import GenTableCreateSchema, GenTableUpdateSchema, GenTableOutSchema, GenTableDeleteSchema, GenTableColumnCreateSchema, GenTableColumnUpdateSchema, GenTableColumnOutSchema, GenTableColumnDeleteSchema, GenDBTableSchema
 from .param import GenTableQueryParam
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
@@ -28,41 +31,43 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         """
         根据业务表id获取需要生成的业务表信息
 
-        :param db: orm对象
         :param table_id: 业务表id
         :return: 需要生成的业务表信息对象
         """
-        gen_table_info = (
+        gen_table = (
             (
                 await self.db.execute(
-                    select(GenTableModel).options(selectinload(GenTableModel.columns)).where(GenTableModel.id == table_id)
+                    select(GenTableModel)
+                    .options(selectinload(GenTableModel.columns))
+                    .where(GenTableModel.id == table_id)
                 )
             )
             .scalars()
             .first()
         )
 
-        return gen_table_info
+        return gen_table
 
     async def get_gen_table_by_name(self, table_name: str) -> Optional[GenTableModel]:
         """
         根据业务表名称获取需要生成的业务表信息
 
-        :param db: orm对象
         :param table_name: 业务表名称
         :return: 需要生成的业务表信息对象
         """
-        gen_table_info = (
+        gen_table = (
             (
                 await self.db.execute(
-                    select(GenTableModel).options(selectinload(GenTableModel.columns)).where(GenTableModel.table_name == table_name)
+                    select(GenTableModel)
+                    .options(selectinload(GenTableModel.columns))
+                    .where(GenTableModel.table_name == table_name)
                 )
             )
             .scalars()
             .first()
         )
 
-        return gen_table_info
+        return gen_table
 
     async def get_gen_table_all(self) -> Sequence[GenTableModel]:
         """
@@ -71,11 +76,40 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         :param db: orm对象
         :return: 所有业务表信息
         """
-        gen_table_all = (await self.db.execute(select(GenTableModel).options(selectinload(GenTableModel.columns)))).scalars().all()
+        gen_table_all = (
+            await self.db.execute(
+                select(GenTableModel)
+                .options(selectinload(GenTableModel.columns)))
+            ).scalars().all()
 
         return gen_table_all
+    
+    async def get_gen_table_list(self, search: Optional[GenTableQueryParam] = None):
+        """
+        根据查询参数获取代码生成业务表列表信息
 
-    async def create_table_by_sql(self, sql_statements: List) -> None:
+        :param query_object: 查询参数对象
+        :return: 代码生成业务表列表信息对象
+        """
+        # 构建查询条件
+        conditions = await self.__build_conditions(**search.__dict__) if search else []
+        query = (
+            select(GenTableModel)
+            .options(selectinload(GenTableModel.columns))
+            .where(
+                *conditions
+            )
+            .order_by(GenTableModel.created_at.desc())
+            .distinct()
+        )
+        
+        # 获取所有数据
+        result = await self.db.execute(query)
+        gen_table_all = list(result.scalars().all())
+        
+        return gen_table_all
+
+    async def create_table_by_sql(self, sql: str) -> bool:
         """
         根据sql语句创建表结构
 
@@ -83,68 +117,47 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         :param sql_statements: sql语句的ast列表
         :return:
         """
-        for sql_statement in sql_statements:
-            sql = sql_statement.sql(dialect=settings.DATABASE_TYPE)
+        await self.db.execute(text(sql))
+        try:
             await self.db.execute(text(sql))
+            # 提交事务
+            await self.db.commit()
+            await self.db.flush()
+            return True
+        except Exception as e:
+            # 如果发生异常，回滚事务
+            await self.db.rollback()
+            logger.error(f"创建表时发生错误: {e}")
+            return False
 
-    async def get_gen_table_list(self, query_object: GenTableQueryParam, is_page: bool = False):
+    async def add_gen_table(self, add_model: GenTableCreateSchema) -> GenTableModel:
         """
-        根据查询参数获取代码生成业务表列表信息
-
-        :param db: orm对象
-        :param query_object: 查询参数对象
-        :param is_page: 是否开启分页
-        :return: 代码生成业务表列表信息对象
+        增加
         """
-        # 构建查询条件
-        conditions = []
-        
-        # 访问table_name属性
-        if getattr(query_object, 'table_name', None) and query_object.table_name[1]:
-            conditions.append(func.lower(GenTableModel.table_name).like(f'%{str(query_object.table_name[1]).lower()}%'))
-            
-        # 访问table_comment属性
-        if getattr(query_object, 'table_comment', None):
-            conditions.append(func.lower(GenTableModel.table_comment).like(f'%{str(query_object.table_comment).lower()}%'))
-            
-        # 访问created_at属性而不是start_time和end_time
-        if hasattr(query_object, 'created_at') and query_object.created_at:
-            if isinstance(query_object.created_at, tuple) and query_object.created_at[0] == "between":
-                conditions.append(GenTableModel.created_at.between(*query_object.created_at[1]))
+        gen_table = GenTableModel(**add_model.model_dump(exclude_unset=True, exclude={'sub', 'tree', 'crud'}))
+        self.db.add(gen_table)
+        await self.db.flush()
+        return gen_table
+    
+    async def delete_gen_table(self, delete_model: GenTableDeleteSchema) -> None:
+        """
+        删除
+        """
+        await self.db.execute(delete(GenTableModel).where(GenTableModel.id.in_(delete_model.table_ids)))
+        await self.db.flush()
+    
+    async def edit_gen_table(self, table_id: int, edit_model: GenTableUpdateSchema, auto_commit: bool = True):
+        """
+        修改
+        """
+        edit_dict_data = edit_model.model_dump(exclude_unset=True)
+        await self.db.execute(update(GenTableModel).where(GenTableModel.id == table_id).values(**edit_dict_data))
+        await self.db.flush()
+        if auto_commit:
+            await self.db.commit()
+        return edit_model
 
-        query = (
-            select(GenTableModel)
-            .options(selectinload(GenTableModel.columns))
-            .where(*conditions)
-            .order_by(GenTableModel.created_at.desc())
-            .distinct()
-        )
-        
-        # 获取所有数据
-        result = await self.db.execute(query)
-        all_data = list(result.scalars().all())
-        
-        # 使用PaginationService.paginate进行分页
-        # 注意：这里假设query_object有page_no和page_size属性，如果没有需要从其他地方获取
-        page_no = getattr(query_object, 'page_no', None)
-        page_size = getattr(query_object, 'page_size', None)
-        if is_page and page_no is not None and page_size is not None:
-            paginated_result = await PaginationService.paginate(
-                data_list=all_data, 
-                page_no=page_no, 
-                page_size=page_size
-            )
-            return paginated_result
-        else:
-            return {
-                "items": all_data,
-                "total": len(all_data),
-                "page_no": None,
-                "page_size": None,
-                "has_next": False
-            }
-
-    async def get_gen_db_table_list(self, search: GenTableQueryParam, order_by: Optional[List[Dict[str, str]]] = None) -> list[Any]:
+    async def get_gen_db_table_list(self, table_name: Optional[str] = None) -> list[Any]:
         """
         根据查询参数获取数据库列表信息
 
@@ -153,55 +166,6 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
         :param order_by: 排序字段
         :return: 数据库列表信息对象
         """
-    #  pg数据库   
-    # {
-    #     "table_catalog": "fastapiadmin",
-    #     "table_schema": "pg_catalog",
-    #     "table_name": "pg_foreign_table",
-    #     "table_type": "BASE TABLE",
-    #     "self_referencing_column_name": null,
-    #     "reference_generation": null,
-    #     "user_defined_type_catalog": null,
-    #     "user_defined_type_schema": null,
-    #     "user_defined_type_name": null,
-    #     "is_insertable_into": "YES",
-    #     "is_typed": "NO",
-    #     "commit_action": null
-    #   }
-
-    # mysql
-    # {
-    #     "TABLE_CATALOG": "def",
-    #     "TABLE_SCHEMA": "fastapiadmin",
-    #     "TABLE_NAME": "ai_mcp",
-    #     "TABLE_TYPE": "BASE TABLE",
-    #     "ENGINE": "InnoDB",
-    #     "VERSION": 10,
-    #     "ROW_FORMAT": "Dynamic",
-    #     "TABLE_ROWS": 0,
-    #     "AVG_ROW_LENGTH": 0,
-    #     "DATA_LENGTH": 16384,
-    #     "MAX_DATA_LENGTH": 0,
-    #     "INDEX_LENGTH": 16384,
-    #     "DATA_FREE": 0,
-    #     "AUTO_INCREMENT": null,
-    #     "CREATE_TIME": "2025-10-02T03:43:02",
-    #     "UPDATE_TIME": null,
-    #     "CHECK_TIME": null,
-    #     "TABLE_COLLATION": "utf8mb4_0900_ai_ci",
-    #     "CHECKSUM": null,
-    #     "CREATE_OPTIONS": "",
-    #     "TABLE_COMMENT": "MCP 服务器表"
-    #   },
-
-    # sqlite
-    # {
-    #   "type": "table",
-    #     "name": "system_users",
-    #     "tbl_name": "system_users",
-    #     "rootpage": 47,
-    #     "sql": "CREATE TABLE system_users (\n\tusername VARCHAR(32) NOT NULL, \n\tpassword VARCHAR(255) NOT NULL, \n\tname VARCHAR(32) NOT NULL, \n\tstatus BOOLEAN NOT NULL, \n\tmobile VARCHAR(20), \n\temail VARCHAR(64), \n\tgender VARCHAR(1), \n\tavatar VARCHAR(500), \n\tis_superuser BOOLEAN NOT NULL, \n\tlast_login DATETIME, \n\tdept_id INTEGER, \n\tcreator_id INTEGER, \n\tid INTEGER NOT NULL, \n\tdescription TEXT, \n\tcreated_at DATETIME, \n\tupdated_at DATETIME, \n\tPRIMARY KEY (id), \n\tUNIQUE (username), \n\tUNIQUE (mobile), \n\tUNIQUE (email), \n\tFOREIGN KEY(dept_id) REFERENCES system_dept (id) ON DELETE SET NULL ON UPDATE CASCADE\n)"
-    #   },
 
         # 使用更健壮的方式检测数据库方言
         if settings.DATABASE_TYPE == 'postgresql':
@@ -256,10 +220,13 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableCreateSchema, GenTableUpdateS
             # 检查row是否为Row对象
             if isinstance(row, Row):
                 # 使用._mapping获取字典
-                dict_row = dict(row._mapping)
+                dict_row = GenDBTableSchema(**dict(row._mapping)).model_dump()
+                if table_name:
+                    dict_row['table_name'] = table_name
                 dict_data.append(dict_row)
             else:
-                dict_data.append(row)
+                dict_row = GenDBTableSchema(**dict(row)).model_dump()
+                dict_data.append(dict_row)
         return dict_data
 
     async def get_gen_db_table_list_by_names(self, table_names: List[str]):
@@ -326,22 +293,43 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnCreateSchem
         """初始化CRUD"""
         super().__init__(model=GenTableColumnModel, auth=auth)
 
+    async def get_by_id_crud(self, column_id: int) -> Optional[GenTableColumnModel]:
+        """详情"""
+        return await self.get(id=column_id)
+    
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[GenTableColumnModel]:
+        """列表查询"""
+        return await self.list(search=search, order_by=order_by)
+    
+    async def create_crud(self, data: GenTableColumnCreateSchema) -> Optional[GenTableColumnModel]:
+        """创建"""
+        return await self.create(data=data)
+    
+    async def update_crud(self, id: int, data: GenTableColumnUpdateSchema) -> Optional[GenTableColumnModel]:
+        """更新"""
+        return await self.update(id=id, data=data)
+    
+    async def delete_crud(self, data: GenTableColumnDeleteSchema) -> None:
+        """批量删除"""
+        return await self.delete(ids=data.column_ids)
+
     async def get_gen_table_column_list_by_table_id_crud(self, table_id: int) -> Sequence[GenTableColumnModel]:
         """根据业务表id获取需要生成的业务表字段列表信息"""
         return await self.list(search={"table_id": table_id})
 
-    async def get_gen_table_column_list_by_table_id(self, db: AsyncSession, table_id: int) -> Sequence[GenTableColumnModel]:
+    async def get_gen_table_column_list_by_table_id(self, table_id: int) -> Sequence[GenTableColumnModel]:
         """
         根据业务表id获取需要生成的业务表字段列表信息
 
-        :param db: orm对象
         :param table_id: 业务表id
         :return: 需要生成的业务表字段列表信息对象
         """
         gen_table_column_list = (
             (
-                await db.execute(
-                    select(GenTableColumnModel).where(GenTableColumnModel.table_id == table_id).order_by(GenTableColumnModel.sort)
+                await self.db.execute(
+                    select(GenTableColumnModel)
+                    .where(GenTableColumnModel.table_id == table_id)
+                    .order_by(GenTableColumnModel.sort)
                 )
             )
             .scalars()
