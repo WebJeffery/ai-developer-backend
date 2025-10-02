@@ -168,9 +168,9 @@ class JobLogService:
             'job_kwargs': '关键字参数',
             'job_trigger': '任务触发器',
             'job_message': '日志信息',
-            'status': '执行状态',
             'exception_info': '异常信息',
-            'created_at': '创建时间',
+            'status': '执行状态',
+            'create_time': '创建时间',
         }
 
         # 复制数据并转换状态

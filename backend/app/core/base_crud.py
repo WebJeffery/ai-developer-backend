@@ -14,10 +14,12 @@ from app.api.v1.module_system.user.model import UserModel
 from app.utils.common_util import get_child_id_map, get_child_recursion
 from app.core.exceptions import CustomException
 from app.common.request import PageResultSchema
+from app.core.serialize import Serialize
 
 ModelType = TypeVar("ModelType", bound=MappedBase)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+OutSchemaType = TypeVar("OutSchemaType", bound=BaseModel)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
@@ -130,7 +132,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             raise CustomException(msg=f"树形列表查询失败: {str(e)}")
     
-    async def page(self, offset: int, limit: int, order_by: List[Dict[str, str]], search: Dict) -> Dict:
+    async def page(self, offset: int, limit: int, order_by: List[Dict[str, str]], search: Dict, out_schema: Type[OutSchemaType]) -> Dict:
         try:
             from sqlalchemy.orm import selectinload
 
@@ -160,7 +162,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             objs = result.scalars().all()
 
             data=PageResultSchema(
-                items=objs,
+                items=[out_schema.model_validate(obj).model_dump()  for obj in objs],
                 total=total,
                 page_no=offset // limit + 1 if limit else 1,
                 page_size=limit,
@@ -219,6 +221,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         try:
             obj_dict = data if isinstance(data, dict) else data.model_dump(exclude_unset=True, exclude={"id"})
             obj = await self.get(id=id)
+            if not obj:
+                raise CustomException(msg="更新对象不存在")
             
             for key, value in obj_dict.items():
                 if hasattr(obj, key):

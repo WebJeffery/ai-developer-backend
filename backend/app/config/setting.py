@@ -107,10 +107,8 @@ class Settings(BaseSettings):
     # 数据库类型
     DATABASE_TYPE: Literal['sqlite','mysql', 'postgresql']
     
-    # SQLite数据库连接
-    SQLITE_DB_NAME: str
 
-    # MySQL数据库连接
+    # MySQL/PostgreSQL/SQLite数据库连接
     DATABASE_HOST: str
     DATABASE_PORT: int
     DATABASE_USER: str
@@ -295,7 +293,7 @@ class Settings(BaseSettings):
         elif self.DATABASE_TYPE == "postgresql":
             return f"postgresql+asyncpg://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         elif self.DATABASE_TYPE == "sqlite":
-            return f"sqlite+aiosqlite:///{self.BASE_DIR.joinpath(self.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
+            return f"sqlite+aiosqlite:///{self.BASE_DIR.joinpath(self.DATABASE_NAME + '.db')}?characterEncoding=UTF-8"
         else:
             raise ValueError(f"数据库驱动不支持: {self.DATABASE_TYPE}, 请选择 请选择 mysql、postgresql、sqlite")
 
@@ -307,7 +305,7 @@ class Settings(BaseSettings):
         elif self.DATABASE_TYPE == "postgresql":
             return f"postgresql+psycopg2://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         elif self.DATABASE_TYPE == "sqlite":
-            return f"sqlite:///{self.BASE_DIR.joinpath(self.SQLITE_DB_NAME)}?characterEncoding=UTF-8"
+            return f"sqlite:///{self.BASE_DIR.joinpath(self.DATABASE_NAME + '.db')}?charset=utf8"
         else:
             raise ValueError(f"数据库驱动不支持: {self.DATABASE_TYPE}, 请选择 mysql、postgresql、sqlite")
 

@@ -50,35 +50,20 @@ class GenTableService:
         if not isinstance(db, AsyncSession):
             raise CustomException(msg='数据库连接类型不正确')
         gen_table_dao = GenTableCRUD(auth=auth)
-        gen_table_list_result = await gen_table_dao.get_gen_table_list(db, query_object, is_page)
+        gen_table_list_result = await gen_table_dao.get_gen_table_list(query_object, is_page)
         return gen_table_list_result
 
     @classmethod
-    async def get_gen_db_table_list_service(
-        cls, auth: AuthSchema, query_object: GenTableQueryParam, is_page: bool = False
-    ) -> Dict:
+    async def get_gen_db_table_list_service(cls, auth: AuthSchema, search: GenTableQueryParam, order_by: Optional[List[Dict[str, str]]] = None) -> list[Any]:
         """获取数据库列表信息"""
-        if not auth.db:
-            raise CustomException(msg='数据库连接不存在')
         # 确保db是AsyncSession类型
-        db = auth.db
-        if not isinstance(db, AsyncSession):
-            raise CustomException(msg='数据库连接类型不正确')
-        gen_table_dao = GenTableCRUD(auth=auth)
-        gen_db_table_list_result = await gen_table_dao.get_gen_db_table_list(db, query_object, is_page)
+        gen_db_table_list_result = await GenTableCRUD(auth=auth).get_gen_db_table_list(search, order_by)
         return gen_db_table_list_result
 
     @classmethod
     async def get_gen_db_table_list_by_name_service(cls, auth: AuthSchema, table_names: List[str]) -> List[GenTableOutSchema]:
         """根据表名称组获取数据库列表信息"""
-        if not auth.db:
-            raise CustomException(msg='数据库连接不存在')
-        # 确保db是AsyncSession类型
-        db = auth.db
-        if not isinstance(db, AsyncSession):
-            raise CustomException(msg='数据库连接类型不正确')
-        gen_table_dao = GenTableCRUD(auth=auth)
-        gen_db_table_list_result = await gen_table_dao.get_gen_db_table_list_by_names(db, table_names)
+        gen_db_table_list_result = await GenTableCRUD(auth=auth).get_gen_db_table_list_by_names(table_names)
         return [GenTableOutSchema(**gen_table) for gen_table in CamelCaseUtil.transform_result(gen_db_table_list_result)]
 
     @classmethod

@@ -13,8 +13,8 @@ class Serialize(Generic[ModelType, SchemaType]):
     序列化工具类，提供模型、Schema和字典之间的转换功能
     """
     
-    @staticmethod
-    def schema_to_model(schema: SchemaType, model: Type[ModelType]) -> ModelType:
+    @classmethod
+    def schema_to_model(cls,schema: Type[SchemaType], model: Type[ModelType]) -> ModelType:
         """
         将Pydantic Schema转换为SQLAlchemy模型
         
@@ -29,12 +29,12 @@ class Serialize(Generic[ModelType, SchemaType]):
             Exception: 转换过程中可能抛出的异常
         """
         try:
-            return model(**schema.model_dump())
+            return model(**cls.model_to_dict(model, schema))
         except Exception as e:
             raise ValueError(f"序列化失败: {str(e)}")
 
-    @staticmethod
-    def model_to_schema(model: ModelType, schema: Type[SchemaType]) -> SchemaType:
+    @classmethod
+    def model_to_dict(cls, model: Type[ModelType], schema: Type[SchemaType]) -> Dict[str, Any]:
         """
         将SQLAlchemy模型转换为Pydantic Schema
         
@@ -43,29 +43,13 @@ class Serialize(Generic[ModelType, SchemaType]):
             schema: Pydantic Schema类
             
         Returns:
-            Pydantic Schema实例
+            包含模型数据的字典
             
         Raises:
             Exception: 转换过程中可能抛出的异常
         """
         try:
-            return schema.model_validate(model)
+            return schema.model_validate(model).model_dump()
         except Exception as e:
             raise ValueError(f"反序列化失败: {str(e)}")
-    
-    @staticmethod
-    def schema_to_dict(
-        schema: SchemaType, 
-    ) -> Dict[str, Any]:
-        """
-        将Pydantic Schema转换为字典
-        
-        Args:
-            schema: Pydantic Schema实例
-            include: 包含的字段
-            exclude: 排除的字段
-            
-        Returns:
-            包含Schema数据的字典
-        """
-        return schema.model_dump()
+

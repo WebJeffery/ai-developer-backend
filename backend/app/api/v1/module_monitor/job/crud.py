@@ -8,7 +8,6 @@ from .model import JobModel, JobLogModel
 from .schema import JobCreateSchema,JobUpdateSchema,JobLogCreateSchema,JobLogUpdateSchema
 
 
-
 class JobCRUD(CRUDBase[JobModel, JobCreateSchema, JobUpdateSchema]):
     """定时任务数据层"""
 
@@ -61,10 +60,6 @@ class JobLogCRUD(CRUDBase[JobLogModel, JobLogCreateSchema, JobLogUpdateSchema]):
     async def get_obj_log_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[JobLogModel]:
         """获取定时任务日志列表"""
         return await self.list(search=search, order_by=order_by)
-    
-    async def create_obj_log_crud(self, data: JobLogCreateSchema) -> Optional[JobLogModel]:
-        """创建定时任务日志"""
-        return await self.create(data=data)
     
     async def delete_obj_log_crud(self, ids: List[int]) -> None:
         """删除定时任务日志"""

@@ -148,8 +148,8 @@ async def get_gen_db_table_list_controller(
     search: GenTableQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["generator:dblist:query"]))
 ) -> JSONResponse:
-    result_dict_list = await GenTableService.get_gen_db_table_list_service(auth=auth, query_object=search, is_page=False)
-    result_dict = await PaginationService.paginate(data_list=result_dict_list["items"], page_no=page.page_no, page_size=page.page_size)
+    result_dict_list = await GenTableService.get_gen_db_table_list_service(auth=auth, search=search, order_by=page.order_by)
+    result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
     logger.info('获取数据库表列表成功')
     return SuccessResponse(data=result_dict, msg="获取数据库表列表成功")
 
