@@ -1,0 +1,18 @@
+[
+  {
+    "notice_title": "系统通知",
+    "notice_type": "1",
+    "notice_content": "维护通知：2025-10-01 fastapi_vue3_admin系统凌晨维护",
+    "status": true,
+    "description": "通知",
+    "creator_id": 1
+  },
+  {
+    "notice_title": "系统公告",
+    "notice_type": "2",
+    "notice_content": "温馨提醒：2025-10-01 fastapi_vue3_admin新版本发布啦",
+    "status": true,
+    "description": "公告",
+    "creator_id": 1
+  }
+]

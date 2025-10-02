@@ -18,6 +18,7 @@ from app.api.v1.module_system.dept.model import DeptModel
 from app.api.v1.module_system.menu.model import MenuModel
 from app.api.v1.module_system.params.model import ParamsModel
 from app.api.v1.module_system.dict.model import DictTypeModel, DictDataModel
+from app.api.v1.module_system.notice.model import NoticeModel
 
 
 class InitializeData:
@@ -47,6 +48,8 @@ class InitializeData:
             UserRolesModel,
             RoleDeptsModel,
             RoleMenusModel,
+            # 通知表（无外键依赖）
+            NoticeModel,
         ]
     
     async def __init_create_table(self) -> None:
