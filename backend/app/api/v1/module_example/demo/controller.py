@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Body, Depends, Path, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 import urllib.parse
+import json
 
 from app.common.response import StreamResponse, SuccessResponse
 from app.common.request import PaginationService
@@ -39,8 +40,8 @@ async def get_obj_list_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:query"]))
 ) -> JSONResponse:
     result_dict_list = await DemoService.get_demo_list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
-    logger.info(f"查询示例列表成功")
+    result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
+    logger.info("查询示例列表成功")
     return SuccessResponse(data=result_dict, msg="查询示例列表成功")
 
 @DemoRouter.post("/create", summary="创建示例", description="创建示例")
@@ -49,7 +50,7 @@ async def create_obj_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:create"]))
 ) -> JSONResponse:
     result_dict = await DemoService.create_demo_service(auth=auth, data=data)
-    logger.info(f"创建示例成功: {result_dict}")
+    logger.info(f"创建示例成功: {result_dict.get('name')}")
     return SuccessResponse(data=result_dict, msg="创建示例成功")
 
 @DemoRouter.put("/update/{id}", summary="修改示例", description="修改示例")
@@ -59,7 +60,7 @@ async def update_obj_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:update"]))
 ) -> JSONResponse:
     result_dict = await DemoService.update_demo_service(auth=auth, id=id, data=data)
-    logger.info(f"修改示例成功: {result_dict}")
+    logger.info(f"修改示例成功: {result_dict.get('name')}")
     return SuccessResponse(data=result_dict, msg="修改示例成功")
 
 @DemoRouter.delete("/delete", summary="删除示例", description="删除示例")
@@ -93,7 +94,7 @@ async def export_obj_list_controller(
     return StreamResponse(
         data=bytes2file_response(export_result),
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        headers = {
+        headers={
             'Content-Disposition': 'attachment; filename=example.xlsx'
         }
     )
@@ -108,14 +109,14 @@ async def import_obj_list_controller(
     return SuccessResponse(data=batch_import_result, msg="导入示例成功")
 
 @DemoRouter.post('/download/template', summary="获取示例导入模板", description="获取示例导入模板", dependencies=[Depends(AuthPermission(permissions=["demo:example:download"]))])
-async def export_obj_template_controller()-> StreamingResponse:
+async def export_obj_template_controller() -> StreamingResponse:
     example_import_template_result = await DemoService.import_template_download_service()
     logger.info('获取示例导入模板成功')
 
     return StreamResponse(
         data=bytes2file_response(example_import_template_result),
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        headers = {
+        headers={
             'Content-Disposition': f'attachment; filename={urllib.parse.quote("示例导入模板.xlsx")}',
             'Access-Control-Expose-Headers': 'Content-Disposition'
         }

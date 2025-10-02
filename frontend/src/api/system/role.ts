@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/role";
+
 const RoleAPI = {
   getRoleList(query?: TablePageQuery) {
     return request<ApiResponse<PageResult<RoleTable[]>>>({
-      url: `/system/role/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -11,14 +13,14 @@ const RoleAPI = {
 
   getRoleDetail(query: number) {
     return request<ApiResponse<RoleTable>>({
-      url: `/system/role/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createRole(body: RoleForm) {
     return request<ApiResponse>({
-      url: `/system/role/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -26,7 +28,7 @@ const RoleAPI = {
 
   updateRole(id: number, body: RoleForm) {
     return request<ApiResponse>({
-      url: `/system/role/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -34,7 +36,7 @@ const RoleAPI = {
 
   deleteRole(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/role/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -42,7 +44,7 @@ const RoleAPI = {
 
   batchAvailableRole(body: BatchType) {
     return request<ApiResponse>({
-      url: `/system/role/available/setting`,
+      url: `${API_PATH}/available/setting`,
       method: "patch",
       data: body,
     });
@@ -50,7 +52,7 @@ const RoleAPI = {
 
   setPermission(body: permissionDataType) {
     return request<ApiResponse>({
-      url: `/system/role/permission/setting`,
+      url: `${API_PATH}/permission/setting`,
       method: "patch",
       data: body,
     });
@@ -58,7 +60,7 @@ const RoleAPI = {
 
   exportRole(body: TablePageQuery) {
     return request<Blob>({
-      url: `/system/role/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",

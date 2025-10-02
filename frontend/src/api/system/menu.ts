@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/menu";
+
 const MenuAPI = {
   getMenuList(query?: MenuPageQuery) {
     return request<ApiResponse<MenuTable[]>>({
-      url: `/system/menu/tree`,
+      url: `${API_PATH}/tree`,
       method: "get",
       params: query,
     });
@@ -11,14 +13,14 @@ const MenuAPI = {
 
   getMenuDetail(query: number) {
     return request<ApiResponse<MenuTable>>({
-      url: `/system/menu/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createMenu(body: MenuForm) {
     return request<ApiResponse>({
-      url: `/system/menu/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -26,7 +28,7 @@ const MenuAPI = {
 
   updateMenu(id: number, body: MenuForm) {
     return request<ApiResponse>({
-      url: `/system/menu/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -34,7 +36,7 @@ const MenuAPI = {
 
   deleteMenu(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/menu/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -42,7 +44,7 @@ const MenuAPI = {
 
   batchAvailableMenu(body: BatchType) {
     return request<ApiResponse>({
-      url: `/system/menu/available/setting`,
+      url: `${API_PATH}/available/setting`,
       method: "patch",
       data: body,
     });

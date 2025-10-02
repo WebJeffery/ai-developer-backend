@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from typing import Optional
-from sqlalchemy import Boolean, String, Integer, Text, ForeignKey
+from sqlalchemy import Boolean, String, Integer, Text, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.base_model import CreatorMixin, MappedBase
@@ -48,6 +49,7 @@ class JobLogModel(MappedBase):
     job_message: Mapped[Optional[str]] = mapped_column(String(500),nullable=True,default='',comment='日志信息')
     exception_info: Mapped[Optional[str]] = mapped_column(String(2000),nullable=True,default='',comment='异常信息')
     job_id: Mapped[Optional[int]] = mapped_column(ForeignKey('monitor_job.id'), comment='任务ID')
-    
+    status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
+    create_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now, comment='创建时间')
     # 任务关联关系
     job: Mapped[Optional["JobModel"]] = relationship(back_populates="job_logs", lazy="selectin")

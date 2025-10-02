@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 
 from app.core.ap_scheduler import SchedulerUtil
 from app.core.exceptions import CustomException
@@ -23,9 +23,7 @@ class JobService:
         return JobOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_job_list_service(cls, auth: AuthSchema, search: JobQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
-        if order_by:
-            order_by = eval(order_by)
+    async def get_job_list_service(cls, auth: AuthSchema, search: Optional[JobQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         obj_list = await JobCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
         return [JobOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
@@ -34,7 +32,7 @@ class JobService:
         exist_obj = await JobCRUD(auth).get(name=data.name)
         if exist_obj:
             raise CustomException(msg='创建失败，该定时任务已存在')
-        if data.trigger == 'cron' and not CronUtil.validate_cron_expression(data.trigger_args):
+        if data.trigger == 'cron' and data.trigger_args and not CronUtil.validate_cron_expression(data.trigger_args):
             raise CustomException(msg=f'新增定时任务{data.name}失败, Cron表达式不正确')
         
         obj = await JobCRUD(auth).create_obj_crud(data=data)
@@ -46,9 +44,11 @@ class JobService:
         exist_obj = await JobCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该定时任务不存在')
-        if data.trigger == 'cron' and not CronUtil.validate_cron_expression(data.trigger_args):
+        if data.trigger == 'cron' and data.trigger_args and not CronUtil.validate_cron_expression(data.trigger_args):
             raise CustomException(msg=f'新增定时任务{data.name}失败, Cron表达式不正确')
         obj = await JobCRUD(auth).update_obj_crud(id=id, data=data)
+        if not obj:
+            raise CustomException(msg='更新失败，该数据定时任务不存在')
         SchedulerUtil().modify_job(job_id=obj.id)
         return JobOutSchema.model_validate(obj).model_dump()
     
@@ -130,12 +130,8 @@ class JobLogService:
         return JobLogOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_job_log_list_service(cls, auth: AuthSchema, search: JobLogQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_job_log_list_service(cls, auth: AuthSchema, search: Optional[JobLogQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         """获取定时任务日志列表"""
-        if order_by:
-            order_by = eval(order_by)
-        else:
-            order_by = [{"created_at": "desc"}]
         obj_list = await JobLogCRUD(auth).get_obj_log_list_crud(search=search.__dict__, order_by=order_by)
         return [JobLogOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
@@ -172,9 +168,9 @@ class JobLogService:
             'job_kwargs': '关键字参数',
             'job_trigger': '任务触发器',
             'job_message': '日志信息',
-            'status': '执行状态',
             'exception_info': '异常信息',
-            'created_at': '创建时间',
+            'status': '执行状态',
+            'create_time': '创建时间',
         }
 
         # 复制数据并转换状态

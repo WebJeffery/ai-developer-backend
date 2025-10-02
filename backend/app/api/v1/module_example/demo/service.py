@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import io
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 from fastapi import UploadFile
 import pandas as pd
 
@@ -25,14 +25,15 @@ class DemoService:
     async def get_demo_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
         """详情"""
         obj = await DemoCRUD(auth).get_by_id_crud(id=id)
+        if not obj:
+            raise CustomException(msg="该数据不存在")
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_demo_list_service(cls, auth: AuthSchema, search: DemoQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_demo_list_service(cls, auth: AuthSchema, search: Optional[DemoQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         """列表查询"""
-        if order_by:
-            order_by = eval(order_by)
-        obj_list = await DemoCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
+        search_dict = search.__dict__ if search else None
+        obj_list = await DemoCRUD(auth).get_list_crud(search=search_dict, order_by=order_by)
         return [DemoOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
     @classmethod
@@ -45,26 +46,33 @@ class DemoService:
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_demo_service(cls, auth: AuthSchema, id:int, data: DemoUpdateSchema) -> Dict:
+    async def update_demo_service(cls, auth: AuthSchema, id: int, data: DemoUpdateSchema) -> Dict:
         """更新"""
+        # 检查数据是否存在
         obj = await DemoCRUD(auth).get_by_id_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
+        
+        # 检查名称是否重复
         exist_obj = await DemoCRUD(auth).get(name=data.name)
-        if exist_obj and exist_obj.id != data.id:
+        if exist_obj and exist_obj.id != id:
             raise CustomException(msg='更新失败，名称重复')
+            
         obj = await DemoCRUD(auth).update_crud(id=id, data=data)
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def delete_demo_service(cls, auth: AuthSchema, ids: list[int]) -> None:
+    async def delete_demo_service(cls, auth: AuthSchema, ids: List[int]) -> None:
         """删除"""
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
+        
+        # 检查所有要删除的数据是否存在
         for id in ids:
             obj = await DemoCRUD(auth).get_by_id_crud(id=id)
             if not obj:
-                raise CustomException(msg='删除失败，该数据不存在')
+                raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+                
         await DemoCRUD(auth).delete_crud(ids=ids)
     
     @classmethod
@@ -90,10 +98,14 @@ class DemoService:
         for item in data:
             # 处理状态
             item['status'] = '正常' if item.get('status') else '停用'
-            # 处理公告类型
-            item['creator'] = item.get('creator', {}).get('name', '未知') if isinstance(item.get('creator'), dict) else '未知'
+            # 处理创建者
+            creator_info = item.get('creator')
+            if isinstance(creator_info, dict):
+                item['creator'] = creator_info.get('name', '未知')
+            else:
+                item['creator'] = '未知'
 
-        return ExcelUtil.export_list2excel(list_data=obj_list, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
 
     @classmethod
     async def batch_import_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:

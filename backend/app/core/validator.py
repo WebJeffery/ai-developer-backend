@@ -13,8 +13,7 @@ from app.core.exceptions import CustomException
 DateTimeStr = Annotated[
     datetime,
     AfterValidator(lambda x: datetime_validator(x)),
-    PlainSerializer(lambda x: x, return_type=str),
-    # PlainSerializer(lambda x: x.strftime('%Y-%m-%d %H:%M:%S') if isinstance(x, datetime) else x, return_type=str),
+    PlainSerializer(lambda x: x.strftime('%Y-%m-%d %H:%M:%S') if isinstance(x, datetime) else str(x), return_type=str),
     WithJsonSchema({'type': 'string'}, mode='serialization')
 ]
 
@@ -34,7 +33,7 @@ Email = Annotated[
     WithJsonSchema({'type': 'string'}, mode='serialization')
 ]
 
-def datetime_validator(value: Union[str, datetime]) -> Union[str, datetime, None]:
+def datetime_validator(value: Union[str, datetime]) -> datetime:
     """
     日期格式验证器
     
@@ -45,13 +44,14 @@ def datetime_validator(value: Union[str, datetime]) -> Union[str, datetime, None
     pattern = "%Y-%m-%d %H:%M:%S"
     try:
         if isinstance(value, str):
-            value = datetime.strptime(value, pattern)
+            return datetime.strptime(value, pattern)
         elif isinstance(value, datetime):
-            value = value.strftime(pattern)
+            return value
     except Exception:
         raise CustomException(code=RET.ERROR.code, msg="无效的日期格式")
 
-    return value
+    # 如果 value 是 None 或其他类型，抛出异常
+    raise CustomException(code=RET.ERROR.code, msg="无效的日期格式")
 
 def email_validator(value: str) -> str:
     """

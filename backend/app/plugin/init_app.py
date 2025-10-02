@@ -15,22 +15,7 @@ from app.config.setting import settings
 from app.core.ap_scheduler import SchedulerUtil
 from app.core.logger import logger
 from app.utils.common_util import import_module, import_modules_async
-from app.core.exceptions import (
-    CustomException,
-    CustomExceptionHandler,
-    HTTPException,
-    HttpExceptionHandler,
-    ValidationExceptionHandler,
-    RequestValidationError,
-    SQLAlchemyError,
-    SQLAlchemyExceptionHandler,
-    ValueExceptionHandler,
-    FieldValidationError,
-    FieldValidationExceptionHandler,
-    AllExceptionHandler,
-    ResponseValidationHandle,
-    ResponseValidationError
-)
+from app.core.exceptions import handle_exception
 from app.scripts.initialize import InitializeData
 from app.api.v1.module_system.params.service import ParamsService
 from app.api.v1.module_system.dict.service import DictDataService
@@ -77,14 +62,7 @@ def register_exceptions(app: FastAPI) -> None:
     """
     异常捕捉
     """
-    app.add_exception_handler(CustomException, CustomExceptionHandler)
-    app.add_exception_handler(HTTPException, HttpExceptionHandler)
-    app.add_exception_handler(RequestValidationError,ValidationExceptionHandler)
-    app.add_exception_handler(SQLAlchemyError, SQLAlchemyExceptionHandler)
-    app.add_exception_handler(ValueError, ValueExceptionHandler)
-    app.add_exception_handler(Exception, AllExceptionHandler)
-    app.add_exception_handler(FieldValidationError,FieldValidationExceptionHandler)
-    app.add_exception_handler(ResponseValidationError,ResponseValidationHandle)
+    handle_exception(app)
 
 def register_routers(app: FastAPI) -> None:
     """
@@ -110,7 +88,7 @@ def reset_api_docs(app: FastAPI) -> None:
     @app.get(settings.DOCS_URL, include_in_schema=False)
     async def custom_swagger_ui_html() -> HTMLResponse:
         return get_swagger_ui_html(
-            openapi_url=app.root_path + app.openapi_url,
+            openapi_url=str(app.root_path) + str(app.openapi_url),
             title=app.title + " - Swagger UI",
             oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
             swagger_js_url=settings.SWAGGER_JS_URL,
@@ -118,14 +96,14 @@ def reset_api_docs(app: FastAPI) -> None:
             swagger_favicon_url=settings.FAVICON_URL,
         )
 
-    @app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
+    @app.get(str(app.swagger_ui_oauth2_redirect_url), include_in_schema=False)
     async def swagger_ui_redirect():
         return get_swagger_ui_oauth2_redirect_html()
 
     @app.get(settings.REDOC_URL, include_in_schema=False)
     async def custom_redoc_html():
         return get_redoc_html(
-            openapi_url=app.root_path + app.openapi_url,
+            openapi_url=str(app.root_path) + str(app.openapi_url),
             title=app.title + " - ReDoc",
             redoc_js_url=settings.REDOC_JS_URL,
             redoc_favicon_url=settings.FAVICON_URL,

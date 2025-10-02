@@ -56,7 +56,7 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         return await self.get(mobile=mobile)
 
-    async def get_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[UserModel]:
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[UserModel]:
         """
         获取用户列表
         

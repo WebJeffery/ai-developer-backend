@@ -2,8 +2,8 @@
 
 import time
 from typing import Union, Dict
-from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio.client import Redis
 
@@ -82,33 +82,3 @@ async def logout_controller(
         logger.info('退出成功')
         return SuccessResponse(msg='退出成功')
     return ErrorResponse(msg='退出失败')
-
-
-# 以下接口为预留，后期会用
-@AuthRouter.post("/background_tasks", summary="模拟fastapi自带后台任务-模拟流式响应")
-async def stream_response__controller(
-    background_tasks: BackgroundTasks,
-    message: str
-):
-    def task(message):
-        for i in range(5):
-            yield f"睡眠 {message} {i}\n"
-            time.sleep(1)
-    background_tasks.add_task(task, message)
-
-    return StreamingResponse(
-        data=task(message),
-        headers={"X-Custom-Header": "Streaming-Response"},
-        media_type="text/plain",
-    )
-
-
-@AuthRouter.websocket("/ws", name="websocket")
-async def websocket_endpoint_controller(
-    websocket: WebSocket
-):
-    # ws://127.0.0.1:8000/ws
-    await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")

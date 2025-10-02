@@ -20,7 +20,7 @@ class NoticeCRUD(CRUDBase[NoticeModel, NoticeCreateSchema, NoticeUpdateSchema]):
         """获取公告详情"""
         return await self.get(id=id)
     
-    async def get_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[NoticeModel]:
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[NoticeModel]:
         """获取公告列表"""
         return await self.list(search=search, order_by=order_by)
     

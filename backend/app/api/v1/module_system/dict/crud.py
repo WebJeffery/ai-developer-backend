@@ -20,7 +20,7 @@ class DictTypeCRUD(CRUDBase[DictTypeModel, DictTypeCreateSchema, DictTypeUpdateS
         """获取数据字典类型详情"""
         return await self.get(id=id)
     
-    async def get_obj_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[DictTypeModel]:
+    async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DictTypeModel]:
         """获取数据字典类型列表"""
         return await self.list(search=search, order_by=order_by)
     
@@ -53,7 +53,7 @@ class DictDataCRUD(CRUDBase[DictDataModel, DictDataCreateSchema, DictDataUpdateS
         """获取数据字典数据详情"""
         return await self.get(id=id)
     
-    async def get_obj_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[DictDataModel]:
+    async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DictDataModel]:
         """获取数据字典数据列表"""
         return await self.list(search=search, order_by=order_by)
     

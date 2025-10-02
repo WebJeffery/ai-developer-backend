@@ -64,6 +64,8 @@ class LoginService:
         
         # 验证码校验
         if settings.CAPTCHA_ENABLE and not request_from_docs:
+            if not login_form.captcha_key or not login_form.captcha:
+                raise CustomException(msg="验证码不能为空")
             await CaptchaService.check_captcha_service(redis=redis, key=login_form.captcha_key, captcha=login_form.captcha)
 
         # 用户认证
@@ -81,6 +83,10 @@ class LoginService:
         
         # 更新最后登录时间
         user = await UserCRUD(auth).update_last_login_crud(id=user.id)
+        if not user:
+            raise CustomException(msg="用户不存在")
+        if not login_form.login_type:
+            raise CustomException(msg="登录类型不能为空")
 
         # 创建token
         token = await cls.create_token_service(request=request, redis=redis, user=user, login_type=login_form.login_type)
@@ -111,7 +117,11 @@ class LoginService:
             request_ip = x_forwarded_for.split(',')[0].strip()
         else:
             # 若没有 X-Forwarded-For 头，则使用 request.client.host
-            request_ip = request.client.host
+            if request.client:
+                request_ip = request.client.host
+            else:
+                request_ip = "127.0.0.1"
+
         login_location = await IpLocalUtil.get_ip_location(request_ip)
         request.scope["login_location"] = login_location
         
@@ -131,7 +141,7 @@ class LoginService:
             login_location=login_location,
             os=user_agent.os.family,
             browser = user_agent.browser.family,
-            login_time=user.last_login.isoformat() if isinstance(user.last_login, datetime) else str(user.last_login),
+            login_time=user.last_login,
             login_type=login_type
         ).model_dump_json()
 
@@ -162,7 +172,7 @@ class LoginService:
         return JWTOutSchema(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=access_expires.total_seconds(),
+            expires_in=int(access_expires.total_seconds()),
             token_type=settings.TOKEN_TYPE
         )
 
@@ -231,7 +241,7 @@ class LoginService:
         return JWTOutSchema(
             access_token=access_token,
             refresh_token=refresh_token_new,
-            expires_in=access_expires.total_seconds(),
+            expires_in=int(access_expires.total_seconds()),
             token_type=settings.TOKEN_TYPE
         )
 

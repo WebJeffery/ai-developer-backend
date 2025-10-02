@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/position";
+
 const PositionAPI = {
   getPositionList(query?: PositionPageQuery) {
     return request<ApiResponse<PageResult<PositionTable[]>>>({
-      url: `/system/position/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -11,14 +13,14 @@ const PositionAPI = {
 
   getPositionDetail(query: number) {
     return request<ApiResponse<PositionTable>>({
-      url: `/system/position/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createPosition(body: PositionForm) {
     return request<ApiResponse>({
-      url: `/system/position/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -26,7 +28,7 @@ const PositionAPI = {
 
   updatePosition(id: number, body: PositionForm) {
     return request<ApiResponse>({
-      url: `/system/position/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -34,7 +36,7 @@ const PositionAPI = {
 
   deletePosition(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/position/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -42,7 +44,7 @@ const PositionAPI = {
 
   batchAvailablePosition(body: BatchType) {
     return request<ApiResponse>({
-      url: `/system/position/available/setting`,
+      url: `${API_PATH}/available/setting`,
       method: "patch",
       data: body,
     });
@@ -50,7 +52,7 @@ const PositionAPI = {
 
   exportPosition(body: PositionPageQuery) {
     return request<Blob>({
-      url: `/system/position/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",

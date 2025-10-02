@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
@@ -39,7 +39,7 @@ class DeptService:
         return DeptOutSchema.model_validate(dept).model_dump()
 
     @classmethod
-    async def get_dept_tree_service(cls, auth: AuthSchema, search: DeptQueryParam, order_by: List[Dict] = None) -> List[Dict]:
+    async def get_dept_tree_service(cls, auth: AuthSchema, search: Optional[DeptQueryParam]= None, order_by: Optional[List[Dict]] = None) -> List[Dict]:
         """
         获取部门树形列表service
         
@@ -48,10 +48,6 @@ class DeptService:
         :param order_by: 排序参数
         :return: 部门树形列表对象
         """
-        if order_by:
-            order_by = eval(order_by)
-        else:
-            order_by = [{"order": "asc"}]
         # 使用树形结构查询，预加载children关系
         dept_list = await DeptCRUD(auth).get_tree_list_crud(search=search.__dict__, order_by=order_by)
         # 转换为字典列表

@@ -30,7 +30,13 @@ class GenTableModel(CreatorMixin):
     gen_path: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, default='/', comment='生成路径（不填默认项目路径）')
     options: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True, comment='其它生成选项')
     
-    columns: Mapped[List['GenTableColumnModel']] = relationship('GenTableColumnModel', order_by='GenTableColumnModel.sort', back_populates='table')
+    # 关系定义
+    columns: Mapped[List['GenTableColumnModel']] = relationship(
+        'GenTableColumnModel', 
+        order_by='GenTableColumnModel.sort', 
+        back_populates='tables',
+        cascade='all, delete-orphan'
+    )
 
 
 class GenTableColumnModel(CreatorMixin):
@@ -58,5 +64,16 @@ class GenTableColumnModel(CreatorMixin):
     dict_type: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, default='', comment='字典类型')
     sort: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment='排序')
 
-    table_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('gen_table.id'), nullable=True, comment='归属表编号')
-    table: Mapped['GenTableModel'] = relationship('GenTableModel', back_populates='columns')
+    # 外键关系
+    table_id: Mapped[Optional[int]] = mapped_column(
+        Integer, 
+        ForeignKey('gen_table.id', ondelete='CASCADE'), 
+        nullable=True, 
+        comment='归属表编号'
+    )
+    
+    # 关系定义
+    tables: Mapped['GenTableModel'] = relationship(
+        'GenTableModel', 
+        back_populates='columns'
+    )

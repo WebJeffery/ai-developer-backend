@@ -1,5 +1,7 @@
 import request from "@/utils/request";
 
+const API_PATH = "/application/myapp";
+
 export const ApplicationAPI = {
   /**
    * 获取应用详情
@@ -7,7 +9,7 @@ export const ApplicationAPI = {
    */
   getApplicationDetail(id: number) {
     return request<ApiResponse<ApplicationInfo>>({
-      url: `/application/application/detail/${id}`,
+      url: `${API_PATH}/detail/${id}`,
       method: "get",
     });
   },
@@ -18,7 +20,7 @@ export const ApplicationAPI = {
    */
   getApplicationList(query: ApplicationPageQuery) {
     return request<ApiResponse<PageResult<ApplicationInfo[]>>>({
-      url: `/application/application/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -30,7 +32,7 @@ export const ApplicationAPI = {
    */
   createApplication(body: ApplicationForm) {
     return request<ApiResponse>({
-      url: `/application/application/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -43,7 +45,7 @@ export const ApplicationAPI = {
    */
   updateApplication(id: number, body: ApplicationForm) {
     return request<ApiResponse>({
-      url: `/application/application/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -55,7 +57,7 @@ export const ApplicationAPI = {
    */
   deleteApplication(body: number[]) {
     return request<ApiResponse>({
-      url: `/application/application/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -67,7 +69,7 @@ export const ApplicationAPI = {
    */
   batchAvailableApplication(body: BatchType) {
     return request<ApiResponse>({
-      url: `/application/application/available/setting`,
+      url: `${API_PATH}/available/setting`,
       method: "patch",
       data: body,
     });

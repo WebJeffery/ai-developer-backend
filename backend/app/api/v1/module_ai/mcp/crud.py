@@ -39,6 +39,3 @@ class McpCRUD(CRUDBase[McpModel, McpCreateSchema, McpUpdateSchema]):
     async def delete_crud(self, ids: List[int]) -> None:
         """批量删除"""
         return await self.delete(ids=ids)
-
-
-mcp_crud: McpCRUD = McpCRUD(auth=AuthSchema())

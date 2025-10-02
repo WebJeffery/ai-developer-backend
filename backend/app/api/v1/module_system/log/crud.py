@@ -34,7 +34,7 @@ class OperationLogCRUD(CRUDBase[OperationLogModel, OperationLogCreateSchema, Non
         """
         return await self.get(id=id)
 
-    async def get_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[OperationLogModel]:
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[OperationLogModel]:
         """
         获取操作日志列表
         

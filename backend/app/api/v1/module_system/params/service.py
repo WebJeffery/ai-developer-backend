@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from redis.asyncio.client import Redis
 from fastapi import UploadFile
@@ -39,7 +39,7 @@ class ParamsService:
         return ParamsOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_config_value_by_key_service(cls, auth: AuthSchema, config_key: str) -> str:
+    async def get_config_value_by_key_service(cls, auth: AuthSchema, config_key: str) -> str | None:
         """根据配置键获取配置值"""
         obj = await ParamsCRUD(auth).get_obj_by_key_crud(key=config_key)
         if not obj:
@@ -47,9 +47,7 @@ class ParamsService:
         return obj.config_value
 
     @classmethod
-    async def get_obj_list_service(cls, auth: AuthSchema, search: ParamsQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
-        if order_by:
-            order_by = eval(order_by)
+    async def get_obj_list_service(cls, auth: AuthSchema, search: Optional[ParamsQueryParam] = None, order_by: Optional[List[Dict[str, str]]]= None) -> List[Dict]:
         obj_list = None
         if search:
             obj_list = await ParamsCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
@@ -91,6 +89,8 @@ class ParamsService:
             raise CustomException(msg='更新失败，系统配置key不允许修改')
         
         new_obj = await ParamsCRUD(auth).update_obj_crud(id=id, data=data)
+        if not new_obj:
+            raise CustomException(msg='更新失败，系统配置不存在')
         new_obj_dict = ParamsOutSchema.model_validate(new_obj).model_dump()
 
         # 同步redis
@@ -171,7 +171,7 @@ class ParamsService:
         ).model_dump()
 
     @classmethod
-    async def init_config_service(cls, redis: Redis) -> bool:
+    async def init_config_service(cls, redis: Redis) -> None:
         async with AsyncSessionLocal() as session:
             async with session.begin():
                 auth = AuthSchema(db=session)

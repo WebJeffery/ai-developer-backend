@@ -24,7 +24,7 @@ class ParamsCRUD(CRUDBase[ParamsModel, ParamsCreateSchema, ParamsUpdateSchema]):
         """根据key获取配置管理型详情"""
         return await self.get(config_key=key)
     
-    async def get_obj_list_crud(self, search: Dict = None, order_by: List[Dict[str, str]] = None) -> Sequence[ParamsModel]:
+    async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[ParamsModel]:
         """获取配置管理型列表"""
         return await self.list(search=search, order_by=order_by)
     

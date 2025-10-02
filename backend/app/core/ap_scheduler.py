@@ -3,25 +3,24 @@
 import json
 import importlib
 from datetime import datetime
-import croniter
-from typing import Union, List, Dict, Any, Optional, Callable, Coroutine
+from typing import Union, List, Any, Optional
 from asyncio import iscoroutinefunction
 from apscheduler.job import Job
-from apscheduler.events import JobExecutionEvent, JobSubmissionEvent, EVENT_ALL, JobEvent, EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
+from apscheduler.events import JobExecutionEvent, EVENT_ALL, JobEvent
 from apscheduler.executors.asyncio import AsyncIOExecutor
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.executors.pool import ProcessPoolExecutor
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.jobstores.redis import RedisJobStore
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from apscheduler.jobstores.mongodb import MongoDBJobStore
-from apscheduler.jobstores.base import JobLookupError, ConflictingIdError
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.combining import OrTrigger
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from pymongo import MongoClient
+# from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+# from apscheduler.jobstores.mongodb import MongoDBJobStore
+# from apscheduler.jobstores.base import JobLookupError, ConflictingIdError
+# from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.triggers.combining import OrTrigger
+# from pymongo import MongoClient
 
 from app.config.setting import settings
 from app.core.database import engine, session_connect, SessionLocal, AsyncSessionLocal
@@ -93,7 +92,7 @@ class SchedulerUtil:
                 # 获取调用目标字符串
                 invoke_target = query_job_info.get('func')
                 # 获取调用函数位置参数
-                job_args = ','.join(query_job_info.get('args'))
+                job_args = ','.join(map(str, query_job_info.get('args', [])))
                 # 获取调用函数关键字参数
                 job_kwargs = json.dumps(query_job_info.get('kwargs'))
                 # 获取任务触发器
@@ -114,7 +113,8 @@ class SchedulerUtil:
                     create_time=datetime.now(),
                 )
                 session = SessionLocal()
-                JobLogCRUD(AuthSchema(db=session)).create_obj_log_crud(data=job_log)
+                session.add(**job_log.model_dump())
+                session.commit()
                 session.close()
 
     @classmethod
@@ -149,7 +149,7 @@ class SchedulerUtil:
         logger.info('关闭定时任务成功')
 
     @classmethod
-    def get_job(cls, job_id: Union[str, int]) -> Job:
+    def get_job(cls, job_id: Union[str, int]) -> Optional[Job]:
         """
         获取
 
@@ -173,12 +173,12 @@ class SchedulerUtil:
         :param job_info: 任务对象信息
         :return:
         """
+        # 动态导入模块
+        # 1. 解析调用目标
+        # app.module_task.scheduler_test.job
+        module_path, func_name = str(job_info.func).rsplit('.', 1)
+        module_path = "app.module_task." + module_path
         try:
-            # 动态导入模块
-            # 1. 解析调用目标
-            # app.module_task.scheduler_test.job
-            module_path, func_name = str(job_info.func).rsplit('.', 1)
-            module_path = "app.module_task." + module_path
             module = importlib.import_module(module_path)
             job_func = getattr(module, func_name)
             
@@ -316,7 +316,7 @@ class SchedulerUtil:
         logger.info(f"查看获取全部任务：{cls.get_all_jobs()}， 状态： {cls.get_job_status()}")
 
     @classmethod
-    def reschedule_job(cls, job_id: Union[str, int]) -> Job:
+    def reschedule_job(cls, job_id: Union[str, int]) -> Optional[Job]:
         """
         重启
         :param job_id: 任务id

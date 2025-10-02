@@ -16,7 +16,7 @@ class PageResultSchema(BaseModel):
     page_size: Optional[int] = Field(default=None, ge=1, description="页面大小，默认为10") 
     total: int = Field(default=0, ge=0, description="总记录数")
     has_next: Optional[bool] = Field(default=False, description="是否有下一页")
-    items: List[Any] = Field(default_factory=list, description="分页后的数据列表")
+    items: Optional[List[Any]] = Field(default_factory=list, description="分页后的数据列表")
 
 
 class PaginationService:

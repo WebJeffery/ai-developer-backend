@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from app.core.exceptions import CustomException
 from app.utils.excel_util import ExcelUtil
@@ -26,12 +26,8 @@ class OperationLogService:
         return log_dict
 
     @classmethod
-    async def get_log_list_service(cls, auth: AuthSchema, search: OperationLogQueryParam, order_by: List[Dict] = None) -> List[Dict]:
-        """获取日志列表"""
-        if order_by:
-            order_by = eval(order_by)
-        else:
-            order_by = [{"created_at": "desc"}]
+    async def get_log_list_service(cls, auth: AuthSchema, search: Optional[OperationLogQueryParam], order_by: Optional[List[Dict]] = None) -> List[Dict]:
+        """获取日志列表"""            
         log_list = await OperationLogCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         log_dict_list = [OperationLogOutSchema.model_validate(log).model_dump() for log in log_list]
         return log_dict_list

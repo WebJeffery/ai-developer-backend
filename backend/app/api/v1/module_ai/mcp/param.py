@@ -16,7 +16,6 @@ class McpQueryParam:
         name: Optional[str] = Query(None, description="MCP 名称"),
         type: Optional[int] = Query(None, description="MCP 类型"),
     ) -> None:
-        super().__init__()
         
         # 模糊查询字段
         self.name = ("like", name) if name else None

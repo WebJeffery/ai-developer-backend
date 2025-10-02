@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/auth";
+
 const AuthAPI = {
   login(body: LoginFormData) {
     return request<ApiResponse<LoginResult>>({
-      url: `/system/auth/login`,
+      url: `${API_PATH}/login`,
       method: "post",
       headers: {
         "Content-Type": "multipart/form-data",
@@ -14,7 +16,7 @@ const AuthAPI = {
 
   refreshToken(body: RefreshToekenBody) {
     return request<ApiResponse<LoginResult>>({
-      url: `/system/auth/token/refresh`,
+      url: `${API_PATH}/token/refresh`,
       method: "post",
       data: body,
     });
@@ -22,14 +24,14 @@ const AuthAPI = {
 
   getCaptcha() {
     return request<ApiResponse<CaptchaInfo>>({
-      url: `/system/auth/captcha/get`,
+      url: `${API_PATH}/captcha/get`,
       method: "get",
     });
   },
 
   logout(body: LogoutBody) {
     return request<ApiResponse>({
-      url: `/system/auth/logout`,
+      url: `${API_PATH}/logout`,
       method: "post",
       data: body,
     });

@@ -1,17 +1,19 @@
 import request from "@/utils/request";
 import { MenuTable, MenuForm } from "@/api/system/menu";
 
+const API_PATH = "/system/user";
+
 export const UserAPI = {
   getCurrentUserInfo() {
     return request<ApiResponse<UserInfo>>({
-      url: `/system/user/current/info`,
+      url: `${API_PATH}/current/info`,
       method: "get",
     });
   },
 
   uploadCurrentUserAvatar(body: any) {
     return request<ApiResponse<UploadFilePath>>({
-      url: `/system/user/current/avatar/upload`,
+      url: `${API_PATH}/current/avatar/upload`,
       method: "post",
       data: body,
       headers: { "Content-Type": "multipart/form-data" },
@@ -20,7 +22,7 @@ export const UserAPI = {
 
   updateCurrentUserInfo(body: InfoFormState) {
     return request<ApiResponse<UserInfo>>({
-      url: `/system/user/current/info/update`,
+      url: `${API_PATH}/current/info/update`,
       method: "put",
       data: body,
     });
@@ -28,7 +30,7 @@ export const UserAPI = {
 
   changeCurrentUserPassword(body: PasswordFormState) {
     return request<ApiResponse>({
-      url: `/system/user/current/password/change`,
+      url: `${API_PATH}/current/password/change`,
       method: "put",
       data: body,
     });
@@ -36,7 +38,7 @@ export const UserAPI = {
 
   resetUserPassword(body: ResetPasswordForm) {
     return request<ApiResponse>({
-      url: `/system/user/reset/password`,
+      url: `${API_PATH}/reset/password`,
       method: "put",
       data: body,
     });
@@ -44,7 +46,7 @@ export const UserAPI = {
 
   registerUser(body: RegisterForm) {
     return request<ApiResponse>({
-      url: `/system/user/register`,
+      url: `${API_PATH}/register`,
       method: "post",
       data: body,
     });
@@ -52,7 +54,7 @@ export const UserAPI = {
 
   forgetPassword(body: ForgetPasswordForm) {
     return request<ApiResponse>({
-      url: `/system/user/forget/password`,
+      url: `${API_PATH}/forget/password`,
       method: "post",
       data: body,
     });
@@ -60,7 +62,7 @@ export const UserAPI = {
 
   getUserList(query: UserPageQuery) {
     return request<ApiResponse<PageResult<UserInfo[]>>>({
-      url: `/system/user/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -68,14 +70,14 @@ export const UserAPI = {
 
   getUserDetail(query: number) {
     return request<ApiResponse<UserInfo>>({
-      url: `/system/user/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createUser(body: UserForm) {
     return request<ApiResponse>({
-      url: `/system/user/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -83,7 +85,7 @@ export const UserAPI = {
 
   updateUser(id: number, body: UserForm) {
     return request<ApiResponse>({
-      url: `/system/user/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -91,7 +93,7 @@ export const UserAPI = {
 
   deleteUser(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/user/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -99,7 +101,7 @@ export const UserAPI = {
 
   batchAvailableUser(body: BatchType) {
     return request<ApiResponse>({
-      url: `/system/user/available/setting`,
+      url: `${API_PATH}/available/setting`,
       method: "patch",
       data: body,
     });
@@ -107,7 +109,7 @@ export const UserAPI = {
 
   exportUser(body: UserPageQuery) {
     return request<Blob>({
-      url: `/system/user/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",
@@ -116,7 +118,7 @@ export const UserAPI = {
 
   downloadTemplate() {
     return request<ApiResponse>({
-      url: `/system/user/import/template`,
+      url: `${API_PATH}/import/template`,
       method: "post",
       responseType: "blob",
     });
@@ -124,7 +126,7 @@ export const UserAPI = {
 
   importUser(body: any) {
     return request<ApiResponse>({
-      url: `/system/user/import/data`,
+      url: `${API_PATH}/import/data`,
       method: "post",
       data: body,
       headers: {

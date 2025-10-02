@@ -1,5 +1,7 @@
 import request from "@/utils/request";
 
+const API_PATH = "/monitor/resource";
+
 export const ResourceAPI = {
   /**
    * 获取目录列表
@@ -7,7 +9,7 @@ export const ResourceAPI = {
    */
   getResourceList(query: ResourcePageQuery) {
     return request<ApiResponse<PageResult<ResourceItem[]>>>({
-      url: `/monitor/resource/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -20,7 +22,7 @@ export const ResourceAPI = {
    */
   uploadFile(formData: FormData) {
     return request<ApiResponse<ResourceUploadSchema>>({
-      url: `/monitor/resource/upload`,
+      url: `${API_PATH}/upload`,
       method: "post",
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
@@ -33,7 +35,7 @@ export const ResourceAPI = {
    */
   downloadFile(path: string) {
     return request<Blob>({
-      url: `/monitor/resource/download`,
+      url: `${API_PATH}/download`,
       method: "get",
       params: { path },
       responseType: "blob",
@@ -46,7 +48,7 @@ export const ResourceAPI = {
    */
   deleteResource(body: string[]) {
     return request<ApiResponse>({
-      url: `/monitor/resource/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -58,7 +60,7 @@ export const ResourceAPI = {
    */
   moveResource(body: ResourceMoveQuery) {
     return request<ApiResponse>({
-      url: `/monitor/resource/move`,
+      url: `${API_PATH}/move`,
       method: "post",
       data: body,
     });
@@ -70,7 +72,7 @@ export const ResourceAPI = {
    */
   copyResource(body: ResourceCopyQuery) {
     return request<ApiResponse>({
-      url: `/monitor/resource/copy`,
+      url: `${API_PATH}/copy`,
       method: "post",
       data: body,
     });
@@ -82,7 +84,7 @@ export const ResourceAPI = {
    */
   renameResource(body: ResourceRenameQuery) {
     return request<ApiResponse>({
-      url: `/monitor/resource/rename`,
+      url: `${API_PATH}/rename`,
       method: "post",
       data: body,
     });
@@ -94,7 +96,7 @@ export const ResourceAPI = {
    */
   createDirectory(body: ResourceCreateDirQuery) {
     return request<ApiResponse>({
-      url: `/monitor/resource/create-dir`,
+      url: `${API_PATH}/create-dir`,
       method: "post",
       data: body,
     });
@@ -106,7 +108,7 @@ export const ResourceAPI = {
    */
   exportResource(body: ResourcePageQuery) {
     return request<Blob>({
-      url: `/monitor/resource/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",

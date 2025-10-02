@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/system/notice";
+
 const NoticeAPI = {
   getNoticeList(query: NoticePageQuery) {
     return request<ApiResponse<PageResult<NoticeTable[]>>>({
-      url: `/system/notice/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -11,21 +13,21 @@ const NoticeAPI = {
 
   getNoticeListAvailable() {
     return request<ApiResponse<PageResult<NoticeTable[]>>>({
-      url: `/system/notice/available`,
+      url: `${API_PATH}/available`,
       method: "get",
     });
   },
 
   getNoticeDetail(query: number) {
     return request<ApiResponse<NoticeTable>>({
-      url: `/system/notice/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createNotice(body: NoticeForm) {
     return request<ApiResponse>({
-      url: `/system/notice/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -33,7 +35,7 @@ const NoticeAPI = {
 
   updateNotice(id: number, body: NoticeForm) {
     return request<ApiResponse>({
-      url: `/system/notice/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -41,7 +43,7 @@ const NoticeAPI = {
 
   deleteNotice(body: number[]) {
     return request<ApiResponse>({
-      url: `/system/notice/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -49,7 +51,7 @@ const NoticeAPI = {
 
   batchAvailableNotice(body: BatchType) {
     return request<ApiResponse>({
-      url: `/system/notice/available/setting`,
+      url: `${API_PATH}/available/setting`,
       method: "patch",
       data: body,
     });
@@ -57,7 +59,7 @@ const NoticeAPI = {
 
   exportNotice(body: NoticePageQuery) {
     return request<Blob>({
-      url: `/system/notice/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",

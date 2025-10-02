@@ -52,8 +52,8 @@ class JobLogCreateSchema(BaseModel):
     job_kwargs: Optional[str] = Field(default=None, description='关键字参数')
     job_trigger: Optional[str] = Field(default=None, description='任务触发器')
     job_message: Optional[str] = Field(default=None, description='日志信息')
-    status: Optional[bool] = Field(default=None, description='任务状态:正常,失败')
     exception_info: Optional[str] = Field(default=None, description='异常信息')
+    status: Optional[bool] = Field(default=False, description='任务状态:正常,失败')
     create_time: Optional[DateTimeStr] = Field(default=None, description='创建时间')
 
 

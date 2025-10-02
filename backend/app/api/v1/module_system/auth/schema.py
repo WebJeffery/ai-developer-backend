@@ -15,7 +15,7 @@ class AuthSchema(BaseModel):
 
     user: Optional[UserOutSchema] = Field(default=None, description='用户信息')
     check_data_scope: bool = Field(default=True, description='是否检查数据权限')
-    db: AsyncSession | Session | None = Field(default=None, description='数据库会话')
+    db: AsyncSession = Field(description='数据库会话')
 
 
 class JWTPayloadSchema(BaseModel):

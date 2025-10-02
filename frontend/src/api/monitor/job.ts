@@ -1,9 +1,11 @@
 import request from "@/utils/request";
 
+const API_PATH = "/monitor/job";
+
 const JobAPI = {
   getJobList(query: JobPageQuery) {
     return request<ApiResponse<PageResult<JobTable[]>>>({
-      url: `/monitor/job/list`,
+      url: `${API_PATH}/list`,
       method: "get",
       params: query,
     });
@@ -11,14 +13,14 @@ const JobAPI = {
 
   getJobDetail(query: number) {
     return request<ApiResponse<JobTable>>({
-      url: `/monitor/job/detail/${query}`,
+      url: `${API_PATH}/detail/${query}`,
       method: "get",
     });
   },
 
   createJob(body: JobForm) {
     return request<ApiResponse>({
-      url: `/monitor/job/create`,
+      url: `${API_PATH}/create`,
       method: "post",
       data: body,
     });
@@ -26,7 +28,7 @@ const JobAPI = {
 
   updateJob(id: number, body: JobForm) {
     return request<ApiResponse>({
-      url: `/monitor/job/update/${id}`,
+      url: `${API_PATH}/update/${id}`,
       method: "put",
       data: body,
     });
@@ -34,7 +36,7 @@ const JobAPI = {
 
   deleteJob(body: number[]) {
     return request<ApiResponse>({
-      url: `/monitor/job/delete`,
+      url: `${API_PATH}/delete`,
       method: "delete",
       data: body,
     });
@@ -42,7 +44,7 @@ const JobAPI = {
 
   exportJob(body: JobPageQuery) {
     return request<Blob>({
-      url: `/monitor/job/export`,
+      url: `${API_PATH}/export`,
       method: "post",
       data: body,
       responseType: "blob",
@@ -51,14 +53,14 @@ const JobAPI = {
 
   clearJob() {
     return request<ApiResponse>({
-      url: `/monitor/job/clear`,
+      url: `${API_PATH}/clear`,
       method: "delete",
     });
   },
 
   OptionJob(params: JobOptionData) {
     return request<ApiResponse>({
-      url: `/monitor/job/option`,
+      url: `${API_PATH}/option`,
       method: "put",
       data: params,
     });
@@ -67,7 +69,7 @@ const JobAPI = {
   // 获取定时任务运行日志（实时状态）
   getJobRunLog() {
     return request<ApiResponse<JobRunLog[]>>({
-      url: `/monitor/job/log`,
+      url: `${API_PATH}/log`,
       method: "get",
     });
   },
@@ -75,7 +77,7 @@ const JobAPI = {
   // 获取定时任务日志详情
   getJobLogDetail(id: number) {
     return request<ApiResponse<JobLogDetail>>({
-      url: `/monitor/job/log/detail/${id}`,
+      url: `${API_PATH}/log/detail/${id}`,
       method: "get",
     });
   },
@@ -83,7 +85,7 @@ const JobAPI = {
   // 查询定时任务日志列表
   getJobLogList(query: JobLogPageQuery) {
     return request<ApiResponse<PageResult<JobLogTable[]>>>({
-      url: `/monitor/job/log/list`,
+      url: `${API_PATH}/log/list`,
       method: "get",
       params: query,
     });
@@ -92,7 +94,7 @@ const JobAPI = {
   // 删除定时任务日志
   deleteJobLog(ids: number[]) {
     return request<ApiResponse>({
-      url: `/monitor/job/log/delete`,
+      url: `${API_PATH}/log/delete`,
       method: "delete",
       data: ids,
     });
@@ -101,7 +103,7 @@ const JobAPI = {
   // 清空定时任务日志
   clearJobLog() {
     return request<ApiResponse>({
-      url: `/monitor/job/log/clear`,
+      url: `${API_PATH}/log/clear`,
       method: "delete",
     });
   },
@@ -109,7 +111,7 @@ const JobAPI = {
   // 导出定时任务日志
   exportJobLog(query: JobLogPageQuery) {
     return request<Blob>({
-      url: `/monitor/job/log/export`,
+      url: `${API_PATH}/log/export`,
       method: "post",
       data: query,
       responseType: "blob",

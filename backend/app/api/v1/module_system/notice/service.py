@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 
 
 from app.core.base_schema import BatchSetAvailable
@@ -28,9 +28,7 @@ class NoticeService:
         return [NoticeOutSchema.model_validate(notice_obj).model_dump() for notice_obj in notice_obj_list]
 
     @classmethod
-    async def get_notice_list_service(cls, auth: AuthSchema, search: NoticeQueryParam = None, order_by: List[Dict[str, str]] = None) -> List[Dict]:
-        if order_by:
-            order_by = eval(order_by)
+    async def get_notice_list_service(cls, auth: AuthSchema, search: Optional[NoticeQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         notice_obj_list = await NoticeCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         return [NoticeOutSchema.model_validate(notice_obj).model_dump() for notice_obj in notice_obj_list]
     

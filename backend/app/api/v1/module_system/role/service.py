@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
@@ -26,12 +26,8 @@ class RoleService:
         return RoleOutSchema.model_validate(role).model_dump()
 
     @classmethod
-    async def get_role_list_service(cls, auth: AuthSchema, search: RoleQueryParam, order_by: List[Dict[str, str]] = None) -> List[Dict]:
+    async def get_role_list_service(cls, auth: AuthSchema, search: Optional[RoleQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         """获取角色列表"""
-        if order_by:
-            order_by = eval(order_by)
-        else:
-            order_by = [{"order": "asc"}]
         role_list = await RoleCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         return [RoleOutSchema.model_validate(role).model_dump() for role in role_list]
 
