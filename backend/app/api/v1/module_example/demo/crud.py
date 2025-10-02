@@ -19,7 +19,7 @@ class DemoCRUD(CRUDBase[DemoModel, DemoCreateSchema, DemoUpdateSchema]):
         """详情"""
         return await self.get(id=id)
     
-    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DemoModel]:
+    async def list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DemoModel]:
         """列表查询"""
         return await self.list(search=search, order_by=order_by)
     

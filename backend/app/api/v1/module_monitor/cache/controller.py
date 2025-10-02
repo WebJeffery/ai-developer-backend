@@ -89,7 +89,7 @@ async def clear_monitor_cache_name_controller(
     """清除指定缓存名称下的所有缓存"""
     result = await CacheService.clear_cache_monitor_cache_name_service(redis=redis, cache_name=cache_name)
     if not result:
-        raise CustomException(message='清除缓存失败', data=result)
+        raise CustomException(msg='清除缓存失败', data=result)
     logger.info(f'清除缓存{cache_name}成功')
     return SuccessResponse(msg=f'{cache_name}对应键值清除成功', data=result)
 
@@ -107,7 +107,7 @@ async def clear_monitor_cache_key_controller(
     """清除指定缓存键"""
     result = await CacheService.clear_cache_monitor_cache_key_service(redis=redis, cache_key=cache_key)
     if not result:
-        raise CustomException(message='清除缓存失败', data=result)
+        raise CustomException(msg='清除缓存失败', data=result)
     logger.info(f'清除缓存键{cache_key}成功')
     return SuccessResponse(msg=f'{cache_key}清除成功', data=result)
 
@@ -124,6 +124,6 @@ async def clear_monitor_cache_all_controller(
     """清除所有缓存"""
     result = await CacheService.clear_cache_monitor_all_service(redis=redis)
     if not result:
-        raise CustomException(message='清除缓存失败', data=result)
+        raise CustomException(msg='清除缓存失败', data=result)
     logger.info('清除所有缓存成功')
     return SuccessResponse(msg='所有缓存清除成功', data=result)

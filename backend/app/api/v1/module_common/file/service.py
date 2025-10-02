@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
 from typing import Dict
 from fastapi import UploadFile, BackgroundTasks
 
@@ -33,12 +34,10 @@ class FileService:
         
 
     @classmethod
-    async def download_service(cls, background_tasks: BackgroundTasks, file_path: str, delete: bool) -> DownloadFileSchema:
+    async def download_service(cls, file_path: str) -> DownloadFileSchema:
         """
         下载文件
-        :param background_tasks: 后台任务
         :param file_path: 文件路径
-        :param delete: 是否在下载完成后删除文件
         :return: 结果
         """
         if not file_path:
@@ -46,9 +45,8 @@ class FileService:
         if not UploadUtil.check_file_exists(file_path):
             raise CustomException(msg="文件不存在")
         file_name = UploadUtil.download_file(file_path)
-        if delete:
-            background_tasks.add_task(UploadUtil.delete_file, file_path)
+
         return DownloadFileSchema(
             file_path=file_path,
-            file_name=file_name,
+            file_name=str(file_name),
         )

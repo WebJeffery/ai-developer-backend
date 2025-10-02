@@ -284,27 +284,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             raise CustomException(msg=f"批量更新失败: {str(e)}")
 
-    async def update_relationships(self, objs_to_update: List[ModelType], relationship_field: str, related_objs: List[ModelType]) -> None:
-        """
-        更新对象关系
-        
-        Args:
-            objs_to_update: 需要更新关系的对象列表
-            relationship_field: 关系字段名称
-            related_objs: 关联对象列表
-            
-        Raises:
-            CustomException: 更新关系失败时抛出异常
-        """
-        try:
-            for obj in objs_to_update:
-                relationship = getattr(obj, relationship_field)
-                relationship.clear()
-                relationship.extend(related_objs)
-            await self.db.flush()
-        except Exception as e:
-            raise CustomException(msg=f"更新关系失败: {str(e)}")
-
     async def __filter_permissions(self, sql: Select) -> Select:
         """过滤数据权限"""
         # 如果不需要检查数据权限,则直接返回

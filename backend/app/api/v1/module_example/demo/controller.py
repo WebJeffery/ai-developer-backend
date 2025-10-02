@@ -3,7 +3,6 @@
 from fastapi import APIRouter, Body, Depends, Path, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 import urllib.parse
-import json
 
 from app.common.response import StreamResponse, SuccessResponse
 from app.common.request import PaginationService
@@ -29,7 +28,7 @@ async def get_obj_detail_controller(
     id: int = Path(..., description="示例ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:query"]))
 ) -> JSONResponse:
-    result_dict = await DemoService.get_demo_detail_service(id=id, auth=auth)
+    result_dict = await DemoService.detail_service(id=id, auth=auth)
     logger.info(f"获取示例详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取示例详情成功")
 
@@ -39,7 +38,7 @@ async def get_obj_list_controller(
     search: DemoQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:query"]))
 ) -> JSONResponse:
-    result_dict_list = await DemoService.get_demo_list_service(auth=auth, search=search, order_by=page.order_by)
+    result_dict_list = await DemoService.list_service(auth=auth, search=search, order_by=page.order_by)
     result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
     logger.info("查询示例列表成功")
     return SuccessResponse(data=result_dict, msg="查询示例列表成功")
@@ -49,7 +48,7 @@ async def create_obj_controller(
     data: DemoCreateSchema,
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:create"]))
 ) -> JSONResponse:
-    result_dict = await DemoService.create_demo_service(auth=auth, data=data)
+    result_dict = await DemoService.create_service(auth=auth, data=data)
     logger.info(f"创建示例成功: {result_dict.get('name')}")
     return SuccessResponse(data=result_dict, msg="创建示例成功")
 
@@ -59,7 +58,7 @@ async def update_obj_controller(
     id: int = Path(..., description="示例ID"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:update"]))
 ) -> JSONResponse:
-    result_dict = await DemoService.update_demo_service(auth=auth, id=id, data=data)
+    result_dict = await DemoService.update_service(auth=auth, id=id, data=data)
     logger.info(f"修改示例成功: {result_dict.get('name')}")
     return SuccessResponse(data=result_dict, msg="修改示例成功")
 
@@ -68,7 +67,7 @@ async def delete_obj_controller(
     ids: list[int] = Body(..., description="ID列表"),
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:delete"]))
 ) -> JSONResponse:
-    await DemoService.delete_demo_service(auth=auth, ids=ids)
+    await DemoService.delete_service(auth=auth, ids=ids)
     logger.info(f"删除示例成功: {ids}")
     return SuccessResponse(msg="删除示例成功")
 
@@ -77,7 +76,7 @@ async def batch_set_available_obj_controller(
     data: BatchSetAvailable,
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:patch"]))
 ) -> JSONResponse:
-    await DemoService.set_demo_available_service(auth=auth, data=data)
+    await DemoService.set_available_service(auth=auth, data=data)
     logger.info(f"批量修改示例状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改示例状态成功")
 
@@ -87,7 +86,7 @@ async def export_obj_list_controller(
     auth: AuthSchema = Depends(AuthPermission(permissions=["demo:example:export"]))
 ) -> StreamingResponse:
     # 获取全量数据
-    result_dict_list = await DemoService.get_demo_list_service(search=search, auth=auth)
+    result_dict_list = await DemoService.list_service(search=search, auth=auth)
     export_result = await DemoService.batch_export_service(obj_list=result_dict_list)
     logger.info('导出示例成功')
 

@@ -20,7 +20,7 @@ class ApplicationCRUD(CRUDBase[ApplicationModel, ApplicationCreateSchema, Applic
         """获取应用详情"""
         return await self.get(id=id)
     
-    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[ApplicationModel]:
+    async def list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[ApplicationModel]:
         """列表查询"""
         return await self.list(search=search, order_by=order_by)
     

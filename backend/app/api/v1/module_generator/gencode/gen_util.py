@@ -12,7 +12,7 @@ class GenUtils:
     """代码生成器工具类"""
 
     @classmethod
-    def init_table(cls, gen_table: GenTableSchema, oper_name: str) -> None:
+    def init_table(cls, gen_table: GenTableSchema) -> None:
         """
         初始化表信息
 
@@ -26,10 +26,8 @@ class GenUtils:
         gen_table.business_name = cls.get_business_name(gen_table.table_name)
         gen_table.function_name = cls.replace_text(gen_table.table_comment)
         gen_table.function_author = settings.author
-        gen_table.create_by = oper_name
-        gen_table.create_time = datetime.now()
-        gen_table.update_by = oper_name
-        gen_table.update_time = datetime.now()
+        gen_table.created_at = datetime.now()
+        gen_table.updated_at = datetime.now()
 
     @classmethod
     def init_column_field(cls, column: GenTableColumnSchema, table: GenTableSchema) -> None:
@@ -42,8 +40,7 @@ class GenUtils:
         """
         data_type = cls.get_db_type(column.column_type)
         column_name = column.column_name
-        column.table_id = table.table_id
-        column.create_by = table.create_by
+        column.table_id = table.id
         # 设置Python字段名
         column.python_field = cls.to_camel_case(column_name)
         # 设置默认类型

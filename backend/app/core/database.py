@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from redis import asyncio as aioredis
+from redis.asyncio import Redis
+from redis import exceptions
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import FastAPI
 from sqlalchemy import create_engine, Engine
@@ -59,14 +60,14 @@ def session_connect() -> AsyncSession:
     except Exception as e:
         raise CustomException(msg=f"数据库连接失败: {e}")
 
-async def redis_connect(app: FastAPI, status: bool) -> aioredis.Redis:
+async def redis_connect(app: FastAPI, status: bool) -> Redis | None:
     """创建或关闭Redis连接"""
     if not settings.REDIS_ENABLE:
         raise CustomException(msg="请先开启Redis连接", data="请启用 app/core/config.py: REDIS_ENABLE")
 
     if status:
         try:
-            rd = await aioredis.from_url(
+            rd = await Redis.from_url(
                 url=settings.REDIS_URI,
                 encoding='utf-8',
                 decode_responses=True,
@@ -79,17 +80,17 @@ async def redis_connect(app: FastAPI, status: bool) -> aioredis.Redis:
                 logger.info("Redis连接成功...")
                 return rd
             raise CustomException(msg="Redis连接失败")
-        except aioredis.AuthenticationError as e:
-            raise aioredis.AuthenticationError(f"Redis认证失败: {e}")
-        except aioredis.TimeoutError as e:
-            raise aioredis.TimeoutError(f"Redis连接超时: {e}")
-        except aioredis.RedisError as e:
-            raise aioredis.RedisError(f"Redis连接错误: {e}")
+        except exceptions.AuthenticationError as e:
+            raise exceptions.AuthenticationError(f"Redis认证失败: {e}")
+        except exceptions.TimeoutError as e:
+            raise exceptions.TimeoutError(f"Redis连接超时: {e}")
+        except exceptions.RedisError as e:
+            raise exceptions.RedisError(f"Redis连接错误: {e}")
     else:
         await app.state.redis.close()
         logger.info('Redis连接已关闭')
 
-async def mongodb_connect(app: FastAPI, status: bool) -> AsyncIOMotorClient:
+async def mongodb_connect(app: FastAPI, status: bool) -> AsyncIOMotorClient | None:
     """创建或关闭MongoDB连接"""
     if not settings.MONGO_DB_ENABLE:
         raise CustomException(msg="请先开启MongoDB连接", data="请启用 app/core/config.py: MONGO_DB_ENABLE")
@@ -107,7 +108,7 @@ async def mongodb_connect(app: FastAPI, status: bool) -> AsyncIOMotorClient:
             app.state.mongo = client[settings.MONGO_DB_NAME]
             data = await client.server_info()
             logger.info("MongoDB连接成功...", data)
-            return data
+            return client
         except Exception as e:
             raise ValueError(f"MongoDB连接失败: {e}")
     else:

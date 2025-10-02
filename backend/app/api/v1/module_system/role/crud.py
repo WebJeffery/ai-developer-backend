@@ -29,11 +29,12 @@ class RoleCRUD(CRUDBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
         """设置角色的菜单权限"""
         roles = await self.list(search={"id": ("in", role_ids)})
         menus = await MenuCRUD(self.auth).get_list_crud(search={"id": ("in", menu_ids)})
-        await self.update_relationships(
-            objs_to_update=roles,
-            relationship_field="menus",
-            related_objs=menus
-        )
+
+        for obj in roles:
+            relationship = obj.menus
+            relationship.clear()
+            relationship.extend(menus)
+        await self.db.flush()
 
     async def set_role_data_scope_crud(self, role_ids: List[int], data_scope: int) -> None:
         """设置角色的数据范围"""
@@ -43,11 +44,12 @@ class RoleCRUD(CRUDBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
         """设置角色的部门权限"""
         roles = await self.list(search={"id": ("in", role_ids)})
         depts = await DeptCRUD(self.auth).get_list_crud(search={"id": ("in", dept_ids)})
-        await self.update_relationships(
-            objs_to_update=roles,
-            relationship_field="depts",
-            related_objs=depts
-        )
+
+        for obj in roles:
+            relationship = obj.depts
+            relationship.clear()
+            relationship.extend(depts)
+        await self.db.flush()
 
     async def set_available_crud(self, ids: List[int], status: bool) -> None:
         """设置角色的可用状态"""

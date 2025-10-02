@@ -80,7 +80,7 @@ if __name__ == '__main__':
     # 启动服务
     # python3 main.py run --env=dev(不加默认为dev)
     # 生成迁移
-    # python3 main.py revision "初始化迁移" --env=dev(不加默认为dev)
+    # python3 main.py revision "数据迁移" --env=dev(不加默认为dev)
     # 应用迁移
     # python3 main.py upgrade --env=dev(不加默认为dev)
     

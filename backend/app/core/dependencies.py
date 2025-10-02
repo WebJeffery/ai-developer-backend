@@ -145,10 +145,14 @@ class AuthPermission:
         if {"*:*:*"} <= self.permissions:
             return auth
 
+        # 检查用户是否有角色
+        if not auth.user or not auth.user.roles:
+            raise CustomException(msg="无权限操作", code=10403, status_code=403)
+        
         # 获取用户权限集合
         user_permissions = {
             menu.permission 
-            for role in auth.user.roles 
+            for role in auth.user.roles
             for menu in role.menus 
             if menu.permission and menu.status
         }

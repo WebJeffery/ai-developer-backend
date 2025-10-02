@@ -3,7 +3,6 @@
 import json
 from typing import Any, List, Dict, Optional
 from redis.asyncio.client import Redis
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import RedisInitKeyConfig
 from app.utils.excel_util import ExcelUtil

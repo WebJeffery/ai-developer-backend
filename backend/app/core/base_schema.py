@@ -55,5 +55,5 @@ class DownloadFileSchema(BaseModel):
     """
     下载文件模型
     """
-    file_path: Optional[str] = Field(default=None, description='新文件映射路径')
-    file_name: Optional[str] = Field(default=None, description='新文件名称')
+    file_path: str = Field(..., description='新文件映射路径')
+    file_name: str = Field(..., description='新文件名称')

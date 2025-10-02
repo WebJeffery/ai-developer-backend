@@ -645,11 +645,11 @@ class GenConstant:
         'decimal',
     ]
     COLUMNNAME_NOT_ADD_SHOW = ['create_by', 'create_time']
-    COLUMNNAME_NOT_EDIT_SHOW = ['update_by', 'update_time']
-    COLUMNNAME_NOT_EDIT = ['id', 'create_by', 'create_time', 'del_flag']
-    COLUMNNAME_NOT_LIST = ['id', 'create_by', 'create_time', 'del_flag', 'update_by', 'update_time']
-    COLUMNNAME_NOT_QUERY = ['id', 'create_by', 'create_time', 'del_flag', 'update_by', 'update_time', 'remark']
-    BASE_ENTITY = ['createBy', 'createTime', 'updateBy', 'updateTime', 'remark']
+    COLUMNNAME_NOT_EDIT_SHOW = ['updated_at']
+    COLUMNNAME_NOT_EDIT = ['id', 'created_at', 'updated_at', 'del_flag']
+    COLUMNNAME_NOT_LIST = ['id', 'created_at', 'updated_at', 'del_flag']
+    COLUMNNAME_NOT_QUERY = ['id', 'created_at', 'updated_at', 'del_flag', 'remark']
+    BASE_ENTITY = ['createdAt', 'updatedAt', 'remark']
     TREE_ENTITY = ['parentName', 'parentId', 'orderNum', 'ancestors', 'children']
     HTML_INPUT = 'input'
     HTML_TEXTAREA = 'textarea'

@@ -79,7 +79,7 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         Returns:
             Optional[UserModel]: 更新后的用户信息
         """
-        return await self.update(id=id, data={"last_login": datetime.now()})
+        return await self.update(id=id, data=UserUpdateSchema(last_login=datetime.now()))
 
     async def set_available_crud(self, ids: List[int], status: bool) -> None:
         """
@@ -104,11 +104,13 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
             role_objs = await RoleCRUD(self.auth).get_list_crud(search={"id": ("in", role_ids)})
         else:
             role_objs = []
-        await self.update_relationships(
-            objs_to_update=user_objs,
-            relationship_field="roles",
-            related_objs=role_objs
-        )
+        
+        for obj in user_objs:
+            relationship = obj.roles
+            relationship.clear()
+            relationship.extend(role_objs)
+        await self.db.flush()
+
 
     async def set_user_positions_crud(self, user_ids: List[int], position_ids: List[int]) -> None:
         """
@@ -123,11 +125,12 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
             position_objs = await PositionCRUD(self.auth).get_list_crud(search={"id": ("in", position_ids)})
         else:
             position_objs = []
-        await self.update_relationships(
-            objs_to_update=user_objs,
-            relationship_field="positions",
-            related_objs=position_objs
-        )
+
+        for obj in user_objs:
+            relationship = obj.positions
+            relationship.clear()
+            relationship.extend(position_objs)
+        await self.db.flush()
 
     async def change_password_crud(self, id: int, password_hash: str) -> Optional[UserModel]:
         """
@@ -140,7 +143,9 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         Returns:
             Optional[UserModel]: 更新后的用户信息
         """
-        return await self.update(id=id, data={"password": password_hash})
+        return await self.update(id=id, data=UserUpdateSchema(password=password_hash))
+
+
 
     async def forget_password_crud(self, id: int, password_hash: str) -> Optional[UserModel]:
         """
@@ -153,7 +158,7 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         Returns:
             Optional[UserModel]: 更新后的用户信息
         """
-        return await self.update(id=id, data={"password": password_hash})
+        return await self.update(id=id, data=UserUpdateSchema(password=password_hash))
 
     async def register_user_crud(self, data: UserForgetPasswordSchema) -> Optional[UserModel]:
         """
@@ -168,4 +173,4 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         if await self.get_by_username_crud(username=data.username):
             return None
         
-        return await self.create(data=data)
+        return await self.create(data=UserCreateSchema(**data.model_dump()))

@@ -22,7 +22,7 @@ class DemoService:
     """
     
     @classmethod
-    async def get_demo_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
+    async def detail_service(cls, auth: AuthSchema, id: int) -> Dict:
         """详情"""
         obj = await DemoCRUD(auth).get_by_id_crud(id=id)
         if not obj:
@@ -30,14 +30,14 @@ class DemoService:
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_demo_list_service(cls, auth: AuthSchema, search: Optional[DemoQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
+    async def list_service(cls, auth: AuthSchema, search: Optional[DemoQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
         """列表查询"""
         search_dict = search.__dict__ if search else None
-        obj_list = await DemoCRUD(auth).get_list_crud(search=search_dict, order_by=order_by)
+        obj_list = await DemoCRUD(auth).list_crud(search=search_dict, order_by=order_by)
         return [DemoOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
     @classmethod
-    async def create_demo_service(cls, auth: AuthSchema, data: DemoCreateSchema) -> Dict:
+    async def create_service(cls, auth: AuthSchema, data: DemoCreateSchema) -> Dict:
         """创建"""
         obj = await DemoCRUD(auth).get(name=data.name)
         if obj:
@@ -46,7 +46,7 @@ class DemoService:
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_demo_service(cls, auth: AuthSchema, id: int, data: DemoUpdateSchema) -> Dict:
+    async def update_service(cls, auth: AuthSchema, id: int, data: DemoUpdateSchema) -> Dict:
         """更新"""
         # 检查数据是否存在
         obj = await DemoCRUD(auth).get_by_id_crud(id=id)
@@ -62,7 +62,7 @@ class DemoService:
         return DemoOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def delete_demo_service(cls, auth: AuthSchema, ids: List[int]) -> None:
+    async def delete_service(cls, auth: AuthSchema, ids: List[int]) -> None:
         """删除"""
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
@@ -76,7 +76,7 @@ class DemoService:
         await DemoCRUD(auth).delete_crud(ids=ids)
     
     @classmethod
-    async def set_demo_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
+    async def set_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """批量设置状态"""
         await DemoCRUD(auth).set_available_crud(ids=data.ids, status=data.status)
     

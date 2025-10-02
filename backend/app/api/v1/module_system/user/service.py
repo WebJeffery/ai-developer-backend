@@ -45,9 +45,10 @@ class UserService:
         # 如果用户绑定了部门,则获取部门名称
         if user.dept_id:
             dept = await DeptCRUD(auth).get_by_id_crud(id=user.dept_id)
-            user.dept_name = dept.name if dept else None
+            UserOutSchema.dept_name = dept.name if dept else None
         else:
-            user.dept_name = None
+            UserOutSchema.dept_name = None
+            
             
         return UserOutSchema.model_validate(user).model_dump()
 
@@ -58,9 +59,9 @@ class UserService:
         for user in user_list:
             if user.dept_id:
                 dept = await DeptCRUD(auth).get_by_id_crud(id=user.dept_id)
-                user.dept_name = dept.name if dept else None
+                UserOutSchema.dept_name = dept.name if dept else None
             else:
-                user.dept_name = None
+                UserOutSchema.dept_name = None
             user_dict = UserOutSchema.model_validate(user).model_dump()
             user_dict_list.append(user_dict)
 
@@ -80,9 +81,11 @@ class UserService:
                 raise CustomException(msg='部门不存在')
 
         # 创建用户
-        data.password = PwdUtil.set_password_hash(password=data.password)
-        user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
-        new_user = await UserCRUD(auth).create(data=user_dict)
+        if data.password:
+            data.password = PwdUtil.set_password_hash(password=data.password)
+        # user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
+        # new_user = await UserCRUD(auth).create(data=user_dict)
+        new_user = await UserCRUD(auth).create(data=data)
 
         # 设置角色和岗位
         if data.role_ids and len(data.role_ids) > 0:
@@ -118,8 +121,9 @@ class UserService:
             data.password = PwdUtil.set_password_hash(password=data.password)
 
         # 更新用户
-        user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
-        new_user = await UserCRUD(auth).update(id=id, data=user_dict)
+        # user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
+        # new_user = await UserCRUD(auth).update(id=id, data=user_dict)
+        new_user = await UserCRUD(auth).update(id=id, data=data)
 
         # 更新角色和岗位
         if data.role_ids and len(data.role_ids) > 0:
@@ -206,10 +210,13 @@ class UserService:
     @classmethod
     async def update_current_user_info_service(cls, auth: AuthSchema, data: CurrentUserUpdateSchema) -> Dict:
         """更新当前用户信息"""
+        if not auth.user:
+            raise CustomException(msg="用户不存在")
         user = await UserCRUD(auth).get_by_id_crud(id=auth.user.id)
         if not user:
             raise CustomException(msg="用户不存在")
-        new_user = await UserCRUD(auth).update(id=auth.user.id, data=data)
+        user_update_data = UserUpdateSchema(**data.model_dump())
+        new_user = await UserCRUD(auth).update(id=auth.user.id, data=user_update_data)
         return UserOutSchema.model_validate(new_user).model_dump()
 
     @classmethod
@@ -240,6 +247,8 @@ class UserService:
     @classmethod
     async def change_user_password_service(cls, auth: AuthSchema, data: UserChangePasswordSchema) -> Dict:
         """修改用户密码"""
+        if not auth.user:
+            raise CustomException(msg="用户不存在")
         if not data.old_password or not data.new_password:
             raise CustomException(msg='密码不能为空')
 
@@ -282,12 +291,12 @@ class UserService:
         data.password = PwdUtil.set_password_hash(password=data.password)
         data.name = data.username
         data.creator_id = 1
-        dict_data = data.model_dump(exclude_unset=True)
-        # dict_data['creator_id'] = data.creator_id
-        # dict_data['dept_id'] = data.dept_id
-        # dict_data['description'] = data.description
-        result = await UserCRUD(auth).create(data=dict_data)
-        await UserCRUD(auth).set_user_roles_crud(user_ids=[result.id], role_ids=data.role_ids)
+        # dict_data = data.model_dump(exclude_unset=True)
+        # result = await UserCRUD(auth).create(data=dict_data)
+        user_create_data = UserCreateSchema(**data.model_dump())
+        result = await UserCRUD(auth).create(data=user_create_data)
+        if data.role_ids:
+            await UserCRUD(auth).set_user_roles_crud(user_ids=[result.id], role_ids=data.role_ids)
         # await UserCRUD(auth).set_user_positions_crud(user_ids=[result.id], position_ids=data.position_ids)
         return UserOutSchema.model_validate(result).model_dump()
 
@@ -368,8 +377,8 @@ class UserService:
                     user_data = {
                         "username": str(row['username']).strip(),
                         "name": str(row['name']).strip(),
-                        "email": str(row['email']).strip() if not pd.isna(row['email']) else None,
-                        "mobile": str(row['mobile']).strip() if not pd.isna(row['mobile']) else None,
+                        "email": str(row['email']).strip(),
+                        "mobile": str(row['mobile']).strip(),
                         "gender": gender,
                         "status": status,
                         "dept_id": dept_id,
@@ -380,12 +389,14 @@ class UserService:
                     exists_user = await UserCRUD(auth).get_by_username_crud(username=user_data["username"])
                     if exists_user:
                         if update_support:
-                            await UserCRUD(auth).update(id=exists_user.id, data=user_data)
+                            user_update_data = UserUpdateSchema(**user_data)
+                            await UserCRUD(auth).update(id=exists_user.id, data=user_update_data)
                             success_count += 1
                         else:
                             error_msgs.append(f"第{index+1}行: 用户 {user_data['username']} 已存在")
                     else:
-                        await UserCRUD(auth).create(data=user_data)
+                        user_create_data = UserCreateSchema(**user_data)
+                        await UserCRUD(auth).create(data=user_create_data)
                         success_count += 1
                         
                 except Exception as e:

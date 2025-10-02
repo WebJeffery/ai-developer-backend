@@ -29,6 +29,11 @@ class MenuService:
     @classmethod
     async def get_menu_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
         menu = await MenuCRUD(auth).get_by_id_crud(id=id)
+        if menu and menu.parent_id:
+            parent = await MenuCRUD(auth).get_by_id_crud(id=menu.parent_id)
+            if parent:
+                MenuOutSchema.parent_name = parent.name
+        
         menu_dict = MenuOutSchema.model_validate(menu).model_dump()
         return menu_dict
 

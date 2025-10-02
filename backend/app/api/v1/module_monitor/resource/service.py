@@ -11,7 +11,6 @@ from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.utils.excel_util import ExcelUtil
 from app.config.setting import settings
-from ...module_system.auth.schema import AuthSchema
 from .param import ResourceSearchQueryParam
 from .schema import (
     ResourceItemSchema,
@@ -160,12 +159,7 @@ class ResourceService:
             return {}
     
     @classmethod
-    async def get_directory_list_service(
-        cls, 
-        path: Optional[str] = None,
-        include_hidden: bool = False,
-        base_url: Optional[str] = None
-    ) -> Dict:
+    async def get_directory_list_service(cls, path: Optional[str] = None, include_hidden: bool = False, base_url: Optional[str] = None) -> Dict:
         """获取目录列表"""
         try:
             # 如果没有指定路径，使用静态文件根目录
@@ -224,12 +218,7 @@ class ResourceService:
             raise CustomException(msg=f'获取目录列表失败: {str(e)}')
 
     @classmethod
-    async def search_resources_service(
-        cls,
-        search: Optional[ResourceSearchQueryParam] = None,
-        order_by: Optional[str] = None,
-        base_url: Optional[str] = None
-    ) -> List[Dict]:
+    async def get_resources_list_service(cls, search: Optional[ResourceSearchQueryParam] = None, order_by: Optional[str] = None, base_url: Optional[str] = None) -> List[Dict]:
         """搜索资源列表（用于分页和导出）"""
         try:
             # 确定搜索路径
@@ -278,21 +267,9 @@ class ResourceService:
                 
             return sorted_resources
             
-        except CustomException:
-            raise
         except Exception as e:
             logger.error(f'搜索资源失败: {str(e)}')
             raise CustomException(msg=f'搜索资源失败: {str(e)}')
-
-    @classmethod
-    async def get_resources_list_service(
-        cls,
-        search: Optional[ResourceSearchQueryParam] = None,
-        order_by: Optional[str] = None,
-        base_url: Optional[str] = None
-    ) -> List[Dict]:
-        """获取资源列表（用于分页查询）"""
-        return await cls.search_resources_service(search=search, order_by=order_by, base_url=base_url)
 
     @classmethod
     async def export_resource_service(cls, data_list: List[Dict[str, Any]]) -> bytes:
@@ -343,7 +320,6 @@ class ResourceService:
             
         return stats
     
-    
     @classmethod
     def _sort_results(cls, results: List[Dict], order_by: Optional[str] = None) -> List[Dict]:
         """排序搜索结果"""
@@ -386,13 +362,7 @@ class ResourceService:
             return results
 
     @classmethod
-    async def upload_file_service(
-        cls, 
-        auth: AuthSchema, 
-        file: UploadFile, 
-        target_path: Optional[str] = None,
-        base_url: Optional[str] = None
-    ) -> Dict:
+    async def upload_file_service(cls,  file: UploadFile, target_path: Optional[str] = None, base_url: Optional[str] = None) -> Dict:
         """上传文件到指定目录"""
         if not file or not file.filename:
             raise CustomException(msg="请选择要上传的文件")
@@ -445,7 +415,6 @@ class ResourceService:
             
             return ResourceUploadSchema(
                 filename=filename,
-                file_path=file_url,  # 返回HTTP URL而不是文件系统路径
                 file_url=file_url,
                 file_size=file_info.get('size', 0),
                 upload_time=datetime.now()
@@ -456,7 +425,7 @@ class ResourceService:
             raise CustomException(msg=f"文件上传失败: {str(e)}")
 
     @classmethod
-    async def download_file_service(cls, auth: AuthSchema, file_path: str, base_url: Optional[str] = None) -> str:
+    async def download_file_service(cls, file_path: str, base_url: Optional[str] = None) -> str:
         """下载文件（返回文件路径）"""
         try:
             safe_path = cls._get_safe_path(file_path)
@@ -479,7 +448,7 @@ class ResourceService:
             raise CustomException(msg=f"下载文件失败: {str(e)}")
 
     @classmethod
-    async def delete_file_service(cls, auth: AuthSchema, paths: List[str]) -> None:
+    async def delete_file_service(cls, paths: List[str]) -> None:
         """删除文件或目录"""
         if not paths:
             raise CustomException(msg='删除失败，删除路径不能为空')
@@ -504,7 +473,7 @@ class ResourceService:
                 raise CustomException(msg=f"删除失败 {path}: {str(e)}")
 
     @classmethod
-    async def batch_delete_service(cls, auth: AuthSchema, paths: List[str]) -> Dict[str, List[str]]:
+    async def batch_delete_service(cls, paths: List[str]) -> Dict[str, List[str]]:
         """批量删除文件或目录"""
         if not paths:
             raise CustomException(msg='删除失败，删除路径不能为空')
@@ -539,7 +508,7 @@ class ResourceService:
         }
 
     @classmethod
-    async def move_file_service(cls, auth: AuthSchema, data: ResourceMoveSchema) -> None:
+    async def move_file_service(cls, data: ResourceMoveSchema) -> None:
         """移动文件或目录"""
         try:
             source_path = cls._get_safe_path(data.source_path)
@@ -574,7 +543,7 @@ class ResourceService:
             raise CustomException(msg=f"移动失败: {str(e)}")
 
     @classmethod
-    async def copy_file_service(cls, auth: AuthSchema, data: ResourceCopySchema) -> None:
+    async def copy_file_service(cls, data: ResourceCopySchema) -> None:
         """复制文件或目录"""
         try:
             source_path = cls._get_safe_path(data.source_path)
@@ -606,7 +575,7 @@ class ResourceService:
             raise CustomException(msg=f"复制失败: {str(e)}")
 
     @classmethod
-    async def rename_file_service(cls, auth: AuthSchema, data: ResourceRenameSchema) -> None:
+    async def rename_file_service(cls, data: ResourceRenameSchema) -> None:
         """重命名文件或目录"""
         try:
             old_path = cls._get_safe_path(data.old_path)
@@ -632,7 +601,7 @@ class ResourceService:
             raise CustomException(msg=f"重命名失败: {str(e)}")
 
     @classmethod
-    async def create_directory_service(cls, auth: AuthSchema, data: ResourceCreateDirSchema) -> None:
+    async def create_directory_service(cls, data: ResourceCreateDirSchema) -> None:
         """创建目录"""
         try:
             parent_path = cls._get_safe_path(data.parent_path)

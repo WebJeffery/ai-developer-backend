@@ -36,6 +36,10 @@ class DeptService:
         :return: 部门详情对象
         """
         dept = await DeptCRUD(auth).get_by_id_crud(id=id)
+        if dept and dept.parent_id:
+            parent = await DeptCRUD(auth).get(id=dept.parent_id)
+            if parent:
+                DeptOutSchema.parent_name = parent.name
         return DeptOutSchema.model_validate(dept).model_dump()
 
     @classmethod

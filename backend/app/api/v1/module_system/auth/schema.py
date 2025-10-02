@@ -4,7 +4,6 @@ from typing import Optional, Union
 from datetime import datetime
 from pydantic import ConfigDict, Field, BaseModel, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from ..user.schema import UserOutSchema
 

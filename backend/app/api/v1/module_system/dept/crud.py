@@ -26,11 +26,6 @@ class DeptCRUD(CRUDBase[DeptModel, DeptCreateSchema, DeptUpdateSchema]):
         obj = await self.get(id=id)
         if not obj:
             return None
-            
-        if obj.parent_id:
-            parent = await self.get(id=obj.parent_id)
-            if parent:
-                obj.parent_name = parent.name
         return obj
 
     async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DeptModel]:
@@ -41,15 +36,7 @@ class DeptCRUD(CRUDBase[DeptModel, DeptCreateSchema, DeptUpdateSchema]):
         :param order_by: 排序字段
         :return: 部门列表
         """
-        obj_list = await self.list(search=search, order_by=order_by)
-        parent_ids = [obj.parent_id for obj in obj_list if obj.parent_id]
-        if parent_ids:
-            parents = await self.list(search={"id": ("in", parent_ids)})
-            parent_map = {p.id: p.name for p in parents}
-            for obj in obj_list:
-                if obj.parent_id:
-                    obj.parent_name = parent_map.get(obj.parent_id)
-        return obj_list
+        return await self.list(search=search, order_by=order_by)
 
     async def get_tree_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DeptModel]:
         """
