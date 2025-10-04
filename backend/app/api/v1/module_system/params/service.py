@@ -124,14 +124,19 @@ class ParamsService:
                 raise CustomException(msg=f'{exist_obj.config_name} 删除失败，系统初始化配置不可以删除')
         
         await ParamsCRUD(auth).delete_obj_crud(ids=ids)
+        
         # 同步删除Redis缓存
-        redis_key = f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{exist_obj.config_key}"
-        try:
-            await RedisCURD(redis).delete(redis_key)
-            logger.info(f"删除系统配置成功: {id}")
-        except Exception as e:
-            logger.error(f"删除系统配置失败: {e}")
-            raise CustomException(msg="删除字典类型失败")
+        for id in ids:
+            exist_obj = await ParamsCRUD(auth).get_obj_by_id_crud(id=id)
+            if not exist_obj:
+                continue
+            redis_key = f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{exist_obj.config_key}"
+            try:
+                await RedisCURD(redis).delete(redis_key)
+                logger.info(f"删除系统配置成功: {id}")
+            except Exception as e:
+                logger.error(f"删除系统配置失败: {e}")
+                raise CustomException(msg="删除字典类型失败")
     
     @classmethod
     async def export_obj_service(cls, data_list: List[Dict[str, Any]]) -> bytes:
@@ -189,10 +194,10 @@ class ParamsService:
                             value=value,
                         )
                         if not result:
-                            logger.error(f"初始化系统配置失败: {config_obj_dict}")
+                            logger.error(f"❌️ 初始化系统配置失败: {config_obj_dict}")
                             raise CustomException(msg="初始化系统配置失败")
                 except Exception as e:
-                    logger.error(f"初始化系统配置失败: {e}")
+                    logger.error(f"❌️ 初始化系统配置失败: {e}")
                     raise CustomException(msg="初始化系统配置失败")
 
     @classmethod

@@ -12,6 +12,7 @@ backend/venv
 backend/logs
 backend/*.db
 backend/site
+backend/app/alembic/versions/*
 
 frontend/__pycache__
 frontend/.vscode

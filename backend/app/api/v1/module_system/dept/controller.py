@@ -23,7 +23,7 @@ DeptRouter = APIRouter(route_class=OperationLogRoute, prefix="/dept", tags=["部
 @DeptRouter.get("/tree", summary="查询部门树", description="查询部门树")
 async def get_dept_tree_controller(
     search: DeptQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:dept:query"]))
 ) -> JSONResponse:
     order_by = [{"order": "asc"}]
     result_dict_list = await DeptService.get_dept_tree_service(search=search, auth=auth, order_by=order_by)
@@ -34,7 +34,7 @@ async def get_dept_tree_controller(
 @DeptRouter.get("/detail/{id}", summary="查询部门详情", description="查询部门详情")
 async def get_obj_detail_controller(
     id: int = Path(..., description="部门ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:dept:query"]))
 ) -> JSONResponse:
     result_dict = await DeptService.get_dept_detail_service(id=id, auth=auth)
     logger.info(f"查询部门详情成功 {id}")
@@ -44,7 +44,7 @@ async def get_obj_detail_controller(
 @DeptRouter.post("/create", summary="创建部门", description="创建部门")
 async def create_obj_controller(
     data: DeptCreateSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:create"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:dept:create"]))
 ) -> JSONResponse:
     result_dict = await DeptService.create_dept_service(data=data, auth=auth)
     logger.info(f"创建部门成功: {result_dict}")
@@ -55,7 +55,7 @@ async def create_obj_controller(
 async def update_obj_controller(
     data: DeptUpdateSchema,
     id: int = Path(..., description="部门ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:update"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:dept:update"]))
 ) -> JSONResponse:
     result_dict = await DeptService.update_dept_service(auth=auth, id=id, data=data)
     logger.info(f"修改部门成功: {result_dict}")
@@ -65,7 +65,7 @@ async def update_obj_controller(
 @DeptRouter.delete("/delete", summary="删除部门", description="删除部门")
 async def delete_obj_controller(
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:dept:delete"]))
 ) -> JSONResponse:
     await DeptService.delete_dept_service(ids=ids, auth=auth)
     logger.info(f"删除部门成功: {ids}")
@@ -75,7 +75,7 @@ async def delete_obj_controller(
 @DeptRouter.patch("/available/setting", summary="批量修改部门状态", description="批量修改部门状态")
 async def batch_set_available_obj_controller(
     data: BatchSetAvailable,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:dept:patch"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:dept:patch"]))
 ) -> JSONResponse:
     await DeptService.batch_set_available_service(data=data, auth=auth)
     logger.info(f"批量修改部门状态成功: {data.ids}")

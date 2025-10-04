@@ -27,7 +27,7 @@ PositionRouter = APIRouter(route_class=OperationLogRoute, prefix="/position", ta
 async def get_obj_list_controller(
     page: PaginationQueryParam = Depends(),
     search: PositionQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:query"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:position:query"])),
 ) -> JSONResponse:
     order_by = [{"order": "asc"}]
     if page.order_by:
@@ -41,7 +41,7 @@ async def get_obj_list_controller(
 @PositionRouter.get("/detail/{id}", summary="查询岗位详情", description="查询岗位详情")
 async def get_obj_detail_controller(
     id: int = Path(..., description="岗位ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:query"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:position:query"])),
 ) -> JSONResponse:
     result_dict = await PositionService.get_position_detail_service(id=id, auth=auth)
     logger.info(f"查询岗位详情成功 {id}")
@@ -51,7 +51,7 @@ async def get_obj_detail_controller(
 @PositionRouter.post("/create", summary="创建岗位", description="创建岗位")
 async def create_obj_controller(
     data: PositionCreateSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:create"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:position:create"])),
 ) -> JSONResponse:
     result_dict = await PositionService.create_position_service(data=data, auth=auth)
     logger.info(f"创建岗位成功: {result_dict}")
@@ -62,7 +62,7 @@ async def create_obj_controller(
 async def update_obj_controller(
     data: PositionUpdateSchema,
     id: int = Path(..., description="岗位ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:update"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:position:update"])),
 ) -> JSONResponse:
     result_dict = await PositionService.update_position_service(id=id, data=data, auth=auth)
     logger.info(f"修改岗位成功: {result_dict}")
@@ -72,7 +72,7 @@ async def update_obj_controller(
 @PositionRouter.delete("/delete", summary="删除岗位", description="删除岗位")
 async def delete_obj_controller(
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:delete"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:position:delete"])),
 ) -> JSONResponse:
     await PositionService.delete_position_service(ids=ids, auth=auth)
     logger.info(f"删除岗位成功: {ids}")
@@ -82,7 +82,7 @@ async def delete_obj_controller(
 @PositionRouter.patch("/available/setting", summary="批量修改岗位状态", description="批量修改岗位状态")
 async def batch_set_available_obj_controller(
     data: BatchSetAvailable,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:patch"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:position:patch"])),
 ) -> JSONResponse:
     await PositionService.set_position_available_service(data=data, auth=auth)
     logger.info(f"批量修改岗位状态成功: {data.ids}")
@@ -92,7 +92,7 @@ async def batch_set_available_obj_controller(
 @PositionRouter.post('/export', summary="导出岗位", description="导出岗位")
 async def export_obj_list_controller(
     search: PositionQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:position:export"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:position:export"])),
 ) -> StreamingResponse:
     # 获取全量数据
     position_query_result = await PositionService.get_position_list_service(search=search, auth=auth)

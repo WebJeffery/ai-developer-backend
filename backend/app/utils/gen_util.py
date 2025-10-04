@@ -1,18 +1,29 @@
+# -*- coding: utf-8 -*-
+
 import re
-from datetime import datetime
 from typing import List
 
 from app.common.constant import GenConstant
 from app.config.setting import settings
-from app.api.v1.module_generator.gencode.schema import GenTableColumnOutSchema as GenTableColumnSchema, GenTableOutSchema as GenTableSchema
-from .string_util import StringUtil
+from app.utils.string_util import StringUtil
+from app.api.v1.module_generator.gencode.schema import (
+    GenTableOptionModel,
+    GenDBTableSchema,
+    GenTableBaseSchema,
+    GenTableSchema,
+    GenTableOutSchema,
+    GenTableDeleteSchema,
+    GenTableColumnSchema,
+    GenTableColumnOutSchema,
+    GenTableColumnDeleteSchema
+)
 
 
 class GenUtils:
     """代码生成器工具类"""
 
     @classmethod
-    def init_table(cls, gen_table: GenTableSchema, oper_name: str) -> None:
+    def init_table(cls, gen_table: GenTableSchema) -> None:
         """
         初始化表信息
 
@@ -20,16 +31,13 @@ class GenUtils:
         param oper_name: 操作人
         :return:
         """
-        gen_table.class_name = cls.convert_class_name(gen_table.table_name)
-        gen_table.package_name = settings.package_name
-        gen_table.module_name = cls.get_module_name(settings.package_name)
-        gen_table.business_name = cls.get_business_name(gen_table.table_name)
-        gen_table.function_name = cls.replace_text(gen_table.table_comment)
+        gen_table.class_name = cls.convert_class_name(gen_table.table_name or "")
+        gen_table.package_name = cls.get_package_name(gen_table.table_name or "")
+        gen_table.module_name = cls.get_module_name(settings.package_name or "")
+        gen_table.business_name = cls.get_business_name(gen_table.table_name or "")
+        gen_table.function_name = cls.replace_text(gen_table.table_comment or "")
         gen_table.function_author = settings.author
-        gen_table.create_by = oper_name
-        gen_table.create_time = datetime.now()
-        gen_table.update_by = oper_name
-        gen_table.update_time = datetime.now()
+
 
     @classmethod
     def init_column_field(cls, column: GenTableColumnSchema, table: GenTableSchema) -> None:
@@ -40,23 +48,20 @@ class GenUtils:
         param table: 业务表对象
         :return:
         """
-        data_type = cls.get_db_type(column.column_type)
-        column_name = column.column_name
+        data_type = cls.get_db_type(column.column_type or "")
+        column_name = column.column_name or ""
         column.table_id = table.table_id
-        column.create_by = table.create_by
         # 设置Python字段名
-        column.python_field = cls.to_camel_case(column_name)
+        column.python_field = column_name
         # 设置默认类型
-        column.python_type = StringUtil.get_mapping_value_by_key_ignore_case(
-            GenConstant.DB_TO_PYTHON_TYPE_MAPPING, data_type
-        )
+        column.python_type = GenConstant.DB_TO_PYTHON.get(data_type.upper(), "Any")
         column.query_type = GenConstant.QUERY_EQ
 
         if cls.arrays_contains(GenConstant.COLUMNTYPE_STR, data_type) or cls.arrays_contains(
             GenConstant.COLUMNTYPE_TEXT, data_type
         ):
             # 字符串长度超过500设置为文本域
-            column_length = cls.get_column_length(column.column_type)
+            column_length = cls.get_column_length(column.column_type or "")
             html_type = (
                 GenConstant.HTML_TEXTAREA
                 if column_length >= 500 or cls.arrays_contains(GenConstant.COLUMNTYPE_TEXT, data_type)
@@ -72,13 +77,13 @@ class GenUtils:
         column.is_insert = GenConstant.REQUIRE
 
         # 编辑字段
-        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_EDIT, column_name) and not column.pk:
+        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_EDIT, column_name) and not column.is_pk == '1':
             column.is_edit = GenConstant.REQUIRE
         # 列表字段
-        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_LIST, column_name) and not column.pk:
+        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_LIST, column_name) and not column.is_pk == '1':
             column.is_list = GenConstant.REQUIRE
         # 查询字段
-        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_QUERY, column_name) and not column.pk:
+        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_QUERY, column_name) and not column.is_pk == '1':
             column.is_query = GenConstant.REQUIRE
 
         # 查询字段类型
@@ -99,11 +104,8 @@ class GenUtils:
         # 内容字段设置富文本控件
         elif column_name.lower().endswith('content'):
             column.html_type = GenConstant.HTML_EDITOR
-        
-        column.create_by = table.create_by
-        column.create_time = datetime.now()
-        column.update_by = table.update_by
-        column.update_time = datetime.now()
+        else:
+            column.html_type = GenConstant.HTML_INPUT
 
     @classmethod
     def arrays_contains(cls, arr: List[str], target_value: str) -> bool:
@@ -126,6 +128,11 @@ class GenUtils:
         """
         return package_name.split('.')[-1]
 
+    @classmethod
+    def get_package_name(cls, table_name: str) -> str:
+        """获取包名"""
+        return settings.package_name  # 可配置的包名
+        
     @classmethod
     def get_business_name(cls, table_name: str) -> str:
         """
@@ -173,7 +180,7 @@ class GenUtils:
         param text: 需要被替换的字符串
         :return: 替换后的字符串
         """
-        return re.sub(r'(?:表|若依)', '', text)
+        return re.sub(r'(?:表|测试)', '', text)
 
     @classmethod
     def get_db_type(cls, column_type: str) -> str:

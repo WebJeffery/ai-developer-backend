@@ -18,7 +18,7 @@ class Settings(BaseSettings):
         env_file='.env',
         env_file_encoding="utf-8",
         extra='ignore',
-        case_sensitive=True,
+        case_sensitive=True, # 区分大小写
     )
 
     ENVIRONMENT: EnvironmentEnum
@@ -60,9 +60,9 @@ class Settings(BaseSettings):
     TITLE: str              # 文档标题
     VERSION: str            # 版本号
     DESCRIPTION: str        # 文档描述
-    SUMMARY: str     # 文档概述
-    DOCS_URL: str    # Swagger UI路径
-    REDOC_URL: str    # ReDoc路径
+    SUMMARY: str            # 文档概述
+    DOCS_URL: str           # Swagger UI路径
+    REDOC_URL: str          # ReDoc路径
     ROOT_PATH: str          # API路由前缀
 
     # ================================================= #
@@ -70,7 +70,6 @@ class Settings(BaseSettings):
     # ================================================= #
     CORS_ORIGIN_ENABLE: bool = True    # 是否启用跨域
     ALLOW_ORIGINS: List[str] = ["*"]   # 允许的域名列表
-    # ALLOW_ORIGINS: List[str] = ["http://localhost:5180", "http://127.0.0.1:5180"]   # 允许的域名列表
     ALLOW_METHODS: List[str] = ["*"]   # 允许的HTTP方法
     ALLOW_HEADERS: List[str] = ["*"]   # 允许的请求头
     ALLOW_CREDENTIALS: bool = True     # 是否允许携带cookie
@@ -79,30 +78,29 @@ class Settings(BaseSettings):
     # ******************* 登录认证配置 ****************** #
     # ================================================= #
     SECRET_KEY: str = "vgb0tnl9d58+6n-6h-ea&u^1#s0ccp!794=krylxcjq75vzps$"  # JWT密钥
-    ALGORITHM: str = "HS256"                    # JWT算法
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 60 * 24 * 1   # access_token过期时间(秒)1 天
-    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 60 * 24 * 7  # refresh_token过期时间(秒)7 天
-    TOKEN_TYPE: str = "bearer"                  # token类型
-    TOKEN_REQUEST_PATH_EXCLUDE: list[str] = [  # JWT / RBAC 路由白名单
+    ALGORITHM: str = "HS256"                                                # JWT算法
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 60 * 24 * 1                     # access_token过期时间(秒)1 天
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 60 * 24 * 7                    # refresh_token过期时间(秒)7 天
+    TOKEN_TYPE: str = "bearer"                                              # token类型
+    TOKEN_REQUEST_PATH_EXCLUDE: list[str] = [                               # JWT / RBAC 路由白名单
         'api/v1/auth/login',
     ]
 
     # ================================================= #
     # ******************** 数据库配置 ******************* #
     # ================================================= #
-    SQL_DB_ENABLE: bool = True          # 是否启用数据库
+    SQL_DB_ENABLE: bool = True                             # 是否启用数据库
     DATABASE_ECHO: bool | Literal['debug'] = False         # 是否显示SQL日志
     ECHO_POOL: bool | Literal['debug'] = False             # 是否显示连接池日志
-    POOL_SIZE: int = 20                 # 连接池大小
-    MAX_OVERFLOW: int = 10              # 最大溢出连接数
-    POOL_TIMEOUT: int = 30              # 连接超时时间(秒)
-    POOL_RECYCLE: int = 1800            # 连接回收时间(秒)
-    POOL_PRE_PING: bool = True          # 是否开启连接预检
-    FUTURE: bool = True                 # 是否使用SQLAlchemy 2.0特性
-    AUTOCOMMIT: bool = False            # 是否自动提交
-    AUTOFETCH: bool = False             # 是否自动获取
-    EXPIRE_ON_COMMIT: bool = False      # 是否在提交时过期
-    DATABASE_CHARSET: str = 'utf8mb4'
+    POOL_SIZE: int = 20                                    # 连接池大小
+    MAX_OVERFLOW: int = 10                                 # 最大溢出连接数
+    POOL_TIMEOUT: int = 30                                 # 连接超时时间(秒)
+    POOL_RECYCLE: int = 1800                               # 连接回收时间(秒)
+    POOL_PRE_PING: bool = True                             # 是否开启连接预检
+    FUTURE: bool = True                                    # 是否使用SQLAlchemy 2.0特性
+    AUTOCOMMIT: bool = False                               # 是否自动提交
+    AUTOFETCH: bool = False                                # 是否自动获取
+    EXPIRE_ON_COMMIT: bool = False                         # 是否在提交时过期
 
     # 数据库类型
     DATABASE_TYPE: Literal['sqlite','mysql', 'postgresql']
@@ -138,25 +136,25 @@ class Settings(BaseSettings):
     # ================================================= #
     # ******************** 验证码配置 ******************* #
     # ================================================= #
-    CAPTCHA_ENABLE: bool = True         # 是否启用验证码
-    CAPTCHA_EXPIRE_SECONDS: int = 60 * 1    # 验证码过期时间(秒) 1分钟
-    CAPTCHA_FONT_SIZE: int = 40         # 字体大小
+    CAPTCHA_ENABLE: bool = True                              # 是否启用验证码
+    CAPTCHA_EXPIRE_SECONDS: int = 60 * 1                     # 验证码过期时间(秒) 1分钟
+    CAPTCHA_FONT_SIZE: int = 40                              # 字体大小
     CAPTCHA_FONT_PATH: str = 'static/assets/font/Arial.ttf'  # 字体路径
 
     # ================================================= #
     # ********************* 日志配置 ******************* #
     # ================================================= #
-    LOGGER_LEVEL: str           # 日志级别 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     LOGGER_DIR: Path = BASE_DIR.joinpath('logs')
-    BACKUPCOUNT: int = 10       # 日志文件备份数
-    WHEN: str = 'MIDNIGHT'      # 日志分割时间 (MIDNIGHT, H, D, W0-W6)
-    INTERVAL: int = 1           # 日志分割间隔
-    ENCODING: str = 'utf-8'     # 日志编码
     LOGGER_FORMAT: str = '%(asctime)s - %(levelname)8s - [%(name)s:%(filename)s:%(funcName)s:%(lineno)d] %(message)s' # 日志格式
-    OPERATION_LOG_RECORD: bool = True              # 是否记录操作日志
-    OPERATION_RECORD_METHOD: List[str] = ["POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]     # 需要记录的请求方法
-    IGNORE_OPERATION_FUNCTION: List[str] = ["get_captcha_for_login"]   # 忽略记录的函数
-    LOG_RETENTION_DAYS: int = 30    # 日志保留天数，超过此天数的日志文件将被自动清理
+    LOGGER_LEVEL: str = 'INFO'                                                                      # 日志级别 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    BACKUPCOUNT: int = 10                                                                           # 日志文件备份数
+    WHEN: str = 'MIDNIGHT'                                                                          # 日志分割时间 (MIDNIGHT, H, D, W0-W6)
+    INTERVAL: int = 1                                                                               # 日志分割间隔
+    ENCODING: str = 'utf-8'                                                                         # 日志编码
+    LOG_RETENTION_DAYS: int = 30                                                                    # 日志保留天数，超过此天数的日志文件将被自动清理
+    OPERATION_LOG_RECORD: bool = True                                                               # 是否记录操作日志
+    IGNORE_OPERATION_FUNCTION: List[str] = ["get_captcha_for_login"]                                # 忽略记录的函数
+    OPERATION_RECORD_METHOD: List[str] = ["POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]      # 需要记录的请求方法
 
     # ================================================= #
     # ******************* Gzip压缩配置 ******************* #
@@ -168,7 +166,7 @@ class Settings(BaseSettings):
     # ================================================= #
     # ***************** 演示模型配置 ***************** #
     # ================================================= #
-    DEMO_ENABLE: bool            # 是否开启演示模式
+    DEMO_ENABLE: bool                    # 是否开启演示模式
     DEMO_WHITE_LIST_PATH: List[str] = [  # 演示白名单
         "/api/v1/system/auth/login",
         "/api/v1/system/auth/token/refresh",
@@ -181,7 +179,7 @@ class Settings(BaseSettings):
     DEMO_BLACK_LIST_PATH: List[str] = [  # 演示黑名单
         "/auth/login"
     ]
-    DEMO_IP_WHITE_LIST: List[str] = [  # 演示白名单IP
+    DEMO_IP_WHITE_LIST: List[str] = [   # 演示白名单IP
         "127.0.0.1",
         "117.10.167.220",
         "223.104.208.30",
@@ -191,10 +189,10 @@ class Settings(BaseSettings):
     # ================================================= #
     # ***************** 静态文件配置 ***************** #
     # ================================================= #
-    STATIC_ENABLE: bool = True   # 是否启用静态文件
-    STATIC_URL: str = "/static"  # 访问路由
-    STATIC_DIR: str = "static"   # 目录名
-    STATIC_ROOT: Path = BASE_DIR.joinpath(STATIC_DIR)  # 绝对路径
+    STATIC_ENABLE: bool = True                            # 是否启用静态文件
+    STATIC_URL: str = "/static"                           # 访问路由
+    STATIC_DIR: str = "static"                            # 目录名
+    STATIC_ROOT: Path = BASE_DIR.joinpath(STATIC_DIR)     # 绝对路径
 
     # ================================================= #
     # ***************** 模版文件配置 ***************** #
@@ -205,9 +203,9 @@ class Settings(BaseSettings):
     # ================================================= #
     # ***************** 动态文件配置 ***************** #
     # ================================================= #
-    UPLOAD_FILE_PATH: Path = BASE_DIR.joinpath('static/upload')     # 上传目录
-    UPLOAD_MACHINE: str = 'A'  # 上传机器标识
-    ALLOWED_EXTENSIONS: list[str] = [  # 允许的文件类型
+    UPLOAD_FILE_PATH: Path = BASE_DIR.joinpath('static/upload')    # 上传目录
+    UPLOAD_MACHINE: str = 'A'                                      # 上传机器标识
+    ALLOWED_EXTENSIONS: list[str] = [                              # 允许的文件类型
         # 图片
         '.bmp', '.gif', '.jpg', '.jpeg', '.png', '.ico', '.svg',
         # 文档
@@ -245,11 +243,11 @@ class Settings(BaseSettings):
     # ================================================= #
     # ******************* 代码生成配置 ****************** #
     # ================================================= #
-    author: str = 'insistence'
-    package_name: str = 'module_admin.system'
-    auto_remove_pre: bool = False
-    table_prefix: str = 'sys_'
-    allow_overwrite: bool = False
+    author: str = 'insistence'                      # 作者
+    package_name: str = 'module_generator.gencode'  # 默认生成包路径 system 需改成自己的模块名称 如 system monitor tool
+    auto_remove_pre: bool = False                   # 自动去除表前缀，默认是True
+    table_prefix: str = 'gen_'                      # 表前缀（生成类名不会包含表前缀，多个用逗号分隔）
+    allow_overwrite: bool = False                   # 是否允许生成文件覆盖到本地（自定义路径），默认不允许
 
     GEN_PATH: Path = BASE_DIR.joinpath('app/api/v1/module_generator/gen_backend_code')
 
@@ -289,7 +287,7 @@ class Settings(BaseSettings):
     def ASYNC_DB_URI(self) -> str:
         """获取异步数据库连接"""
         if self.DATABASE_TYPE == "mysql":
-            return f"mysql+asyncmy://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset={self.DATABASE_CHARSET}"
+            return f"mysql+asyncmy://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset='utf8mb4'"
         elif self.DATABASE_TYPE == "postgresql":
             return f"postgresql+asyncpg://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         elif self.DATABASE_TYPE == "sqlite":
@@ -301,7 +299,7 @@ class Settings(BaseSettings):
     def DB_URI(self) -> str:
         """获取同步数据库连接"""
         if self.DATABASE_TYPE == "mysql":
-            return f"mysql+pymysql://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset={self.DATABASE_CHARSET}"
+            return f"mysql+pymysql://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset='utf8mb4'"
         elif self.DATABASE_TYPE == "postgresql":
             return f"postgresql+psycopg2://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         elif self.DATABASE_TYPE == "sqlite":
@@ -401,6 +399,7 @@ def get_settings() -> Settings:
     if not env_file.exists():
         raise FileNotFoundError(f"环境配置文件不存在: {env_file}")
 
+    # return Settings(_env_file=env_file)
     return Settings(_env_file=env_file)
 
 settings = get_settings()

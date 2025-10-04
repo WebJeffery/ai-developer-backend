@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pickle
-from typing import Any, Optional
+from typing import Any, Awaitable, List, Optional
 from redis.asyncio.client import Redis
 
 from app.core.logger import logger
@@ -24,7 +24,7 @@ class RedisCURD:
             list: 返回缓存值列表
         """
         try:
-            data = await self.redis.mget(*keys)
+            data = await self.redis.mget(*[str(key) for key in keys])
             return data
         except Exception as e:
             logger.error(f"批量获取缓存失败: {str(e)}")
@@ -154,10 +154,11 @@ class RedisCURD:
             logger.error(f"设置哈希缓存失败: {str(e)}")
             return False
         
-    async def hash_get(self, name: str, keys: list[str]) -> Optional[list[Any]]:
+    async def hash_get(self, name: str, keys: list[str]) -> Awaitable[List[Any]] | List[Any]:
         """获取哈希缓存"""
         try:
-            return self.redis.hmget(name=name, keys=keys)
+            data = self.redis.hmget(name=name, keys=keys)
+            return data
         except Exception as e:
             logger.error(f"获取哈希缓存失败: {str(e)}")
-            return None
+            return []

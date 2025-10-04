@@ -23,7 +23,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 # from pymongo import MongoClient
 
 from app.config.setting import settings
-from app.core.database import engine, session_connect, SessionLocal, AsyncSessionLocal
+from app.core.database import SessionLocal, AsyncSessionLocal
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 
@@ -75,7 +75,7 @@ class SchedulerUtil:
         # 初始化任务状态
         status = True
         exception_info = ''
-        if event_type == 'JobExecutionEvent' and event.exception:
+        if isinstance(event, JobExecutionEvent) and event.exception:
             exception_info = str(event.exception)
             status = False
         if hasattr(event, 'job_id'):

@@ -26,10 +26,10 @@ class BaseSchema(BaseModel):
     """通用输出模型，包含基础字段和审计字段"""
     model_config = ConfigDict(from_attributes=True)
 
-    id: int = Field(description="主键ID")
+    id: Optional[int] = Field(default=None, description="主键ID")
     description: Optional[str] = Field(default=None, description="描述")
-    created_at: DateTimeStr = Field(description="创建时间")
-    updated_at: DateTimeStr = Field(description="更新时间")
+    created_at: Optional[DateTimeStr] = Field(default=None, description="创建时间")
+    updated_at: Optional[DateTimeStr] = Field(default=None, description="更新时间")
     creator_id: Optional[int] = Field(default=None, description="创建人ID")
     creator: Optional[UserInfoSchema] = Field(default=None, description="创建人信息")
 
@@ -55,5 +55,5 @@ class DownloadFileSchema(BaseModel):
     """
     下载文件模型
     """
-    file_path: Optional[str] = Field(default=None, description='新文件映射路径')
-    file_name: Optional[str] = Field(default=None, description='新文件名称')
+    file_path: str = Field(..., description='新文件映射路径')
+    file_name: str = Field(..., description='新文件名称')

@@ -8,7 +8,7 @@ from .model import OperationLogModel
 from .schema import OperationLogCreateSchema
 
 
-class OperationLogCRUD(CRUDBase[OperationLogModel, OperationLogCreateSchema, None]):
+class OperationLogCRUD(CRUDBase[OperationLogModel, OperationLogCreateSchema, OperationLogCreateSchema]):
     """操作日志数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
@@ -23,7 +23,7 @@ class OperationLogCRUD(CRUDBase[OperationLogModel, OperationLogCreateSchema, Non
         :param data: 操作日志创建模型
         :return: 操作日志记录
         """
-        return await self.create(data=data.model_dump())
+        return await self.create(data=data)
 
     async def get_by_id_crud(self, id: int) -> Optional[OperationLogModel]:
         """

@@ -3,6 +3,7 @@
 import random
 import mimetypes
 from datetime import datetime
+import time
 from typing import List, Dict, Tuple
 import aiofiles
 from fastapi import UploadFile
@@ -26,9 +27,9 @@ class UploadUtil:
         return f'{random.randint(1, 999):03}'
 
     @staticmethod
-    def check_file_exists(filepath: Path) -> bool:
+    def check_file_exists(filepath: str) -> bool:
         """检查文件是否存在"""
-        return filepath.exists()
+        return Path(filepath).exists()
 
     @staticmethod
     def check_file_extension(file: UploadFile) -> bool:
@@ -151,7 +152,7 @@ class UploadUtil:
         :param file_path: 文件路径
         :return: 文件树列表
         """
-        return [item for item in Path(file_path).iterdir()]
+        return [{"name": item.name, "is_dir": item.is_dir()} for item in Path(file_path).iterdir()]
 
     @classmethod
     async def download_file(cls, file_path: str) -> str:
@@ -161,8 +162,8 @@ class UploadUtil:
         :return: 文件下载信息
         """
         # 解析文件路径
-        filename = cls.generate_file(file_path)
-        return filename
+        filename = cls.generate_file(Path(file_path))
+        return str(filename)
 
     @classmethod
     async def upload_file_oss(cls, file: UploadFile, oss_folder):
@@ -173,8 +174,10 @@ class UploadUtil:
         auth = oss2.Auth(access_key_id, access_key_secret)
         bucket = oss2.Bucket(auth, end_point, settings.ALI_OSS_BUCKET)
         pic_data = file.file.read()
-        # file_name = oss_folder + str(time.time()) + file.filename.rsplit(".", 1)[-1]
-        target_file_name = oss_folder + str(time.time()) + Path(file.filename).suffix
+        if not file.filename:
+            raise CustomException(msg='文件名为空')
+        file_name = oss_folder + str(time.time()) + file.filename.rsplit(".", 1)[-1]
+        target_file_name = oss_folder + str(time.time()) + Path(file_name).suffix
         bucket.put_object(target_file_name, pic_data)
 
         # 后期优化

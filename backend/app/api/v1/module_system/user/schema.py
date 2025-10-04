@@ -9,7 +9,7 @@ from app.api.v1.module_system.role.schema import RoleOutSchema
 
 class CurrentUserUpdateSchema(BaseModel):
     """基础用户信息"""
-    name: str = Field(..., max_length=32, description="名称")
+    name: Optional[str] = Field(default=None, max_length=32, description="名称")
     mobile: Optional[str] = Field(default=None, description="手机号")
     email: Optional[EmailStr] = Field(default=None, description="邮箱")
     gender: Optional[str] = Field(default=None, description="性别")
@@ -66,7 +66,7 @@ class UserCreateSchema(CurrentUserUpdateSchema):
     model_config = ConfigDict(from_attributes=True)
     
     username: str = Field(default=..., max_length=32, description="用户名")
-    password: str | None = Field(default=None, max_length=128, description="密码哈希值")
+    password: Optional[str] = Field(default=None, max_length=128, description="密码哈希值")
     status: bool = Field(default=True, description="是否可用")
     is_superuser: bool = Field(default=False, description="是否超管")
     description: Optional[str] = Field(default=None, max_length=255, description="备注")
@@ -80,15 +80,12 @@ class UserUpdateSchema(UserCreateSchema):
     """更新"""
     model_config = ConfigDict(from_attributes=True)
 
-    password: str | None = Field(default=None, max_length=128, description="密码哈希值")
-
+    last_login: Optional[DateTimeStr] = Field(default=None, description="最后登录时间")
 
 class UserOutSchema(UserCreateSchema, BaseSchema):
     """响应"""
     model_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True)
     
-    password: str | None = Field(default=None, max_length=128, description="密码哈希值", exclude=True)  # password 不返回
-    last_login: Optional[DateTimeStr] = Field(default=None, description="最后登录时间")
     dept_name: Optional[str] = Field(default=None, description='部门名称')
     dept: Optional[CommonSchema] = Field(default=None, description='部门')
     roles: Optional[List[RoleOutSchema]] = Field(default=[], description='角色')

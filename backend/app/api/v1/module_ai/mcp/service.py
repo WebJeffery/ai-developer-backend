@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from typing import AsyncGenerator, List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any
 
 from app.core.exceptions import CustomException
-from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
 from app.utils.ai_util import AIClient
 from .schema import McpCreateSchema, McpUpdateSchema, McpOutSchema, ChatQuerySchema
 from .param import McpQueryParam
 from .crud import McpCRUD
-from .model import McpModel
 
 
 class McpService:
     """MCP服务层"""
 
     @classmethod
-    async def get_mcp_detail_service(cls, auth: AuthSchema, id: int) -> Dict[str, Any]:
+    async def detail_service(cls, auth: AuthSchema, id: int) -> Dict[str, Any]:
         """详情"""
         obj = await McpCRUD(auth).get_by_id_crud(id=id)
         if not obj:
@@ -24,7 +22,7 @@ class McpService:
         return McpOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def get_mcp_list_service(cls, auth: AuthSchema, search: Optional[McpQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
+    async def list_service(cls, auth: AuthSchema, search: Optional[McpQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
         """列表查询"""
         if order_by:
             order_by = eval(str(order_by))
@@ -32,7 +30,7 @@ class McpService:
         return [McpOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
     @classmethod
-    async def create_mcp_service(cls, auth: AuthSchema, data: McpCreateSchema) -> Dict[str, Any]:
+    async def create_service(cls, auth: AuthSchema, data: McpCreateSchema) -> Dict[str, Any]:
         """创建"""
         obj = await McpCRUD(auth).get_by_name_crud(name=data.name)
         if obj:
@@ -41,7 +39,7 @@ class McpService:
         return McpOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_mcp_service(cls, auth: AuthSchema, id: int, data: McpUpdateSchema) -> Dict[str, Any]:
+    async def update_service(cls, auth: AuthSchema, id: int, data: McpUpdateSchema) -> Dict[str, Any]:
         """更新"""
         obj = await McpCRUD(auth).get_by_id_crud(id=id)
         if not obj:
@@ -53,7 +51,7 @@ class McpService:
         return McpOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def delete_mcp_service(cls, auth: AuthSchema, ids: List[int]) -> None:
+    async def delete_service(cls, auth: AuthSchema, ids: List[int]) -> None:
         """删除"""
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')

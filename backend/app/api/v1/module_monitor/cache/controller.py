@@ -17,7 +17,7 @@ CacheRouter = APIRouter(route_class=OperationLogRoute, prefix="/cache", tags=["�
 
 @CacheRouter.get(
     '/info',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:query']))],
     summary="获取缓存监控信息",
     description="获取缓存监控信息"
 )
@@ -32,7 +32,7 @@ async def get_monitor_cache_info_controller(
 
 @CacheRouter.get(
     '/get/names',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:query']))],
     summary="获取缓存名称列表",
     description="获取缓存名称列表"
 )
@@ -45,7 +45,7 @@ async def get_monitor_cache_name_controller() -> JSONResponse:
 
 @CacheRouter.get(
     '/get/keys/{cache_name}',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:query']))],
     summary="获取缓存键名列表",
     description="获取缓存键名列表"
 )
@@ -61,7 +61,7 @@ async def get_monitor_cache_key_controller(
 
 @CacheRouter.get(
     '/get/value/{cache_name}/{cache_key}',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:query']))],
     summary="获取缓存值",
     description="获取缓存值"
 )
@@ -78,7 +78,7 @@ async def get_monitor_cache_value_controller(
 
 @CacheRouter.delete(
     '/delete/name/{cache_name}',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:delete']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:delete']))],
     summary="清除指定缓存名称的所有缓存",
     description="清除指定缓存名称的所有缓存"
 )
@@ -89,14 +89,14 @@ async def clear_monitor_cache_name_controller(
     """清除指定缓存名称下的所有缓存"""
     result = await CacheService.clear_cache_monitor_cache_name_service(redis=redis, cache_name=cache_name)
     if not result:
-        raise CustomException(message='清除缓存失败', data=result)
+        raise CustomException(msg='清除缓存失败', data=result)
     logger.info(f'清除缓存{cache_name}成功')
     return SuccessResponse(msg=f'{cache_name}对应键值清除成功', data=result)
 
 
 @CacheRouter.delete(
     '/delete/key/{cache_key}',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:delete']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:delete']))],
     summary="清除指定缓存键",
     description="清除指定缓存键"
 )
@@ -107,14 +107,14 @@ async def clear_monitor_cache_key_controller(
     """清除指定缓存键"""
     result = await CacheService.clear_cache_monitor_cache_key_service(redis=redis, cache_key=cache_key)
     if not result:
-        raise CustomException(message='清除缓存失败', data=result)
+        raise CustomException(msg='清除缓存失败', data=result)
     logger.info(f'清除缓存键{cache_key}成功')
     return SuccessResponse(msg=f'{cache_key}清除成功', data=result)
 
 
 @CacheRouter.delete(
     '/delete/all',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:delete']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:delete']))],
     summary="清除所有缓存",
     description="清除所有缓存"
 )
@@ -124,6 +124,6 @@ async def clear_monitor_cache_all_controller(
     """清除所有缓存"""
     result = await CacheService.clear_cache_monitor_all_service(redis=redis)
     if not result:
-        raise CustomException(message='清除缓存失败', data=result)
+        raise CustomException(msg='清除缓存失败', data=result)
     logger.info('清除所有缓存成功')
     return SuccessResponse(msg='所有缓存清除成功', data=result)

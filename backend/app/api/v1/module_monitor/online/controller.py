@@ -19,7 +19,7 @@ OnlineRouter = APIRouter(route_class=OperationLogRoute, prefix="/online", tags=[
 
 @OnlineRouter.get(
     '/list', 
-    dependencies=[Depends(AuthPermission(permissions=['monitor:online:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:online:query']))],
     summary="获取在线用户列表",
     description="获取在线用户列表"
 )
@@ -38,7 +38,7 @@ async def get_online_list_controller(
 
 @OnlineRouter.delete(
     '/delete', 
-    dependencies=[Depends(AuthPermission(permissions=['monitor:online:delete']))],
+    dependencies=[Depends(AuthPermission(['monitor:online:delete']))],
     summary="强制下线",
     description="强制下线"
 )
@@ -56,7 +56,7 @@ async def delete_online_controller(
 
 @OnlineRouter.delete(
     '/clear', 
-    dependencies=[Depends(AuthPermission(permissions=['monitor:online:delete']))],
+    dependencies=[Depends(AuthPermission(['monitor:online:delete']))],
     summary="清除所有在线用户",
     description="清除所有在线用户"
 )
