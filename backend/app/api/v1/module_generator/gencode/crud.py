@@ -3,23 +3,24 @@
 from sqlalchemy.engine.row import Row
 from sqlalchemy import and_, delete, select, text, update
 from sqlalchemy.orm import selectinload
+from sqlglot.expressions import Expression
 from typing import List, Optional, Sequence, Dict
 
 from app.core.logger import logger
-
-from .model import GenTableModel, GenTableColumnModel
 from app.config.setting import settings
-from app.common.request import PaginationService
+from app.core.base_crud import CRUDBase
+from app.api.v1.module_system.auth.schema import AuthSchema
+from .param import GenTableQueryParam, GenTableColumnQueryParam
+from .model import GenTableModel, GenTableColumnModel
 from .schema import (
     GenTableSchema,
+    GenTableOutSchema,
     GenTableDeleteSchema,
     GenTableColumnSchema,
+    GenTableColumnOutSchema,
     GenTableColumnDeleteSchema,
     GenDBTableSchema,
 )
-from .param import GenTableQueryParam, GenTableColumnQueryParam
-from app.core.base_crud import CRUDBase
-from app.api.v1.module_system.auth.schema import AuthSchema
 
 
 class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
@@ -70,12 +71,27 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         )
 
         return gen_table
+    
+    async def get_gen_table_all(self) -> Sequence[GenTableModel]:
+        """
+        获取所有业务表信息
 
-    async def get_gen_table_list(self, search: Optional[GenTableQueryParam] = None):
+        :return: 所有业务表信息列表
+        """
+        gen_table_all = (
+            await self.db.execute(
+                select(GenTableModel)
+                .options(selectinload(GenTableModel.columns))
+                )
+            ).scalars().all()
+
+        return gen_table_all
+
+    async def get_gen_table_list(self, search: Optional[GenTableQueryParam] = None) -> Sequence[GenTableModel]:
         """
         根据查询参数获取代码生成业务表列表信息
 
-        :param query_object: 查询参数对象
+        :param search: 查询参数对象
         :return: 代码生成业务表列表信息对象
         """
         # 构建查询条件
@@ -90,7 +106,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
         # 获取所有数据
         result = await self.db.execute(query)
-        gen_table_all = list(result.scalars().all())
+        gen_table_all = result.scalars().all()
 
         return gen_table_all
 
@@ -105,7 +121,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         await self.db.flush()
         return gen_table
     
-    async def edit_gen_table(self, table_id: int, edit_model: GenTableSchema):
+    async def edit_gen_table(self, table_id: int, edit_model: GenTableSchema) -> GenTableSchema:
         """
         修改
         """
@@ -119,12 +135,12 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         await self.db.commit()
         return edit_model
 
-    async def delete_gen_table(self, delete_model: GenTableDeleteSchema) -> None:
+    async def delete_gen_table(self, data: GenTableDeleteSchema) -> None:
         """
         删除
         """
         await self.db.execute(
-            delete(GenTableModel).where(GenTableModel.id.in_(delete_model.table_ids))
+            delete(GenTableModel).where(GenTableModel.id.in_(data.table_ids))
         )
         await self.db.flush()
 
@@ -212,7 +228,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
                 dict_data.append(dict_row)
         return dict_data
 
-    async def get_db_table_list_by_names(self, table_names: List[str]) -> list[Dict]:
+    async def get_db_table_list_by_names(self, table_names: List[str]) -> list[GenDBTableSchema]:
         """
         根据业务表名称组获取数据库列表信息
 
@@ -280,14 +296,14 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
             # 检查row是否为Row对象
             if isinstance(row, Row):
                 # 使用._mapping获取字典
-                dict_row = GenDBTableSchema(**dict(row._mapping)).model_dump()
+                dict_row = GenDBTableSchema(**dict(row._mapping))
                 dict_data.append(dict_row)
             else:
-                dict_row = GenDBTableSchema(**dict(row)).model_dump()
+                dict_row = GenDBTableSchema(**dict(row))
                 dict_data.append(dict_row)
         return dict_data
 
-    async def create_table_by_sql(self, sql: str) -> bool:
+    async def create_table_by_sql(self, sql_statements: List[Expression | None]) -> None:
         """
         根据sql语句创建表结构
 
@@ -296,16 +312,16 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         :return:
         """
         try:
-            await self.db.execute(text(sql))
-            # 提交事务
-            await self.db.commit()
-            await self.db.flush()
-            return True
+            for sql_statement in sql_statements:
+                # 检查sql_statement是否为空
+                if not sql_statement:
+                    continue
+                sql = sql_statement.sql(dialect=settings.DATABASE_TYPE)
+                await self.db.execute(text(sql))
         except Exception as e:
             # 如果发生异常，回滚事务
             await self.db.rollback()
             logger.error(f"创建表时发生错误: {e}")
-            return False
 
 
 class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, GenTableColumnSchema]):
@@ -315,35 +331,11 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
         """初始化CRUD"""
         super().__init__(model=GenTableColumnModel, auth=auth)
 
-    async def get_by_id_crud(self, column_id: int) -> Optional[GenTableColumnModel]:
-        """详情"""
-        return await self.get(id=column_id)
-
-    async def list_crud(
-        self,
-        search: Optional[Dict] = None,
-        order_by: Optional[List[Dict[str, str]]] = None,
-    ) -> Sequence[GenTableColumnModel]:
-        """列表查询"""
-        return await self.list(search=search, order_by=order_by)
-
-    async def create_crud(
-        self, data: GenTableColumnSchema
-    ) -> Optional[GenTableColumnModel]:
-        """创建"""
-        return await self.create(data=data)
-
-    async def update_crud(
-        self, id: int, data: GenTableColumnSchema
-    ) -> Optional[GenTableColumnModel]:
-        """更新"""
-        return await self.update(id=id, data=data)
-
-    async def delete_crud(self, data: GenTableColumnDeleteSchema) -> None:
-        """批量删除"""
-        return await self.delete(ids=data.column_ids)
-
-    async def get_gen_db_table_columns_by_name(self, table_name: str) -> List[GenTableColumnSchema]:
+    async def get_gen_table_column_list_by_table_id(self, table_id: int) -> Optional[GenTableColumnModel]:
+        """根据业务表ID获取业务表字段列表信息"""
+        return await self.get(table_id=table_id)
+    
+    async def get_gen_db_table_columns_by_name(self, table_name: str | None) -> List[GenTableColumnOutSchema]:
         """
         根据业务表名称获取业务表字段列表信息
 
@@ -412,7 +404,7 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
         ).fetchall()
 
         return [
-            GenTableColumnSchema(
+            GenTableColumnOutSchema(
                 column_name=row[0],
                 is_required=row[1],
                 is_pk=row[2],
@@ -423,3 +415,23 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
             )
             for row in gen_db_table_columns_raw
         ]
+
+    async def list_gen_table_column_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[GenTableColumnModel]:
+        """根据业务表ID查询业务表字段列表"""
+        return await self.list(search=search, order_by=order_by)
+
+    async def create_gen_table_column_crud(self, data: GenTableColumnSchema) -> Optional[GenTableColumnModel]:
+        """创建业务表字段"""
+        return await self.create(data=data)
+
+    async def update_gen_table_column_crud(self, id: int, data: GenTableColumnSchema) -> Optional[GenTableColumnModel]:
+        """更新业务表字段"""
+        return await self.update(id=id, data=data)
+
+    async def delete_gen_table_column_by_table_id_dao(self, data: GenTableDeleteSchema) -> None:
+        """根据业务表ID批量删除"""
+        return await self.delete(ids=data.table_ids)
+
+    async def delete_gen_table_column_by_column_id_dao(self, data: GenTableColumnDeleteSchema) -> None:
+        """根据业务表字段ID批量删除"""
+        return await self.delete(ids=data.column_ids)

@@ -28,7 +28,7 @@ ResourceRouter = APIRouter(route_class=OperationLogRoute, prefix="/resource", ta
     "/list", 
     summary="获取目录列表", 
     description="获取指定目录下的文件和子目录列表",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:query"]))]
+    dependencies=[Depends(AuthPermission(["monitor:resource:query"]))]
 )
 async def get_directory_list_controller(
     request: Request,
@@ -56,7 +56,7 @@ async def get_directory_list_controller(
     "/upload", 
     summary="上传文件", 
     description="上传文件到指定目录",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:upload"]))])
+    dependencies=[Depends(AuthPermission(["monitor:resource:upload"]))])
 async def upload_file_controller(
     file: UploadFile,
     request: Request,
@@ -76,7 +76,7 @@ async def upload_file_controller(
     "/download", 
     summary="下载文件", 
     description="下载指定文件",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:download"]))]
+    dependencies=[Depends(AuthPermission(["monitor:resource:download"]))]
 )
 async def download_file_controller(
     request: Request,
@@ -104,7 +104,7 @@ async def download_file_controller(
     "/delete", 
     summary="删除文件", 
     description="删除指定文件或目录",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:delete"]))]
+    dependencies=[Depends(AuthPermission(["monitor:resource:delete"]))]
 )
 async def delete_files_controller(
     paths: List[str] = Body(..., description="文件路径列表")
@@ -119,7 +119,7 @@ async def delete_files_controller(
     "/move", 
     summary="移动文件", 
     description="移动文件或目录",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:move"]))]
+    dependencies=[Depends(AuthPermission(["monitor:resource:move"]))]
 )
 async def move_file_controller(
     data: ResourceMoveSchema
@@ -134,7 +134,7 @@ async def move_file_controller(
     "/copy", 
     summary="复制文件", 
     description="复制文件或目录",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:copy"]))]
+    dependencies=[Depends(AuthPermission(["monitor:resource:copy"]))]
 )
 async def copy_file_controller(
     data: ResourceCopySchema
@@ -149,7 +149,7 @@ async def copy_file_controller(
     "/rename", 
     summary="重命名文件", 
     description="重命名文件或目录",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:rename"]))]
+    dependencies=[Depends(AuthPermission(["monitor:resource:rename"]))]
 )
 async def rename_file_controller(
     data: ResourceRenameSchema
@@ -164,7 +164,7 @@ async def rename_file_controller(
     "/create-dir", 
     summary="创建目录", 
     description="在指定路径创建新目录",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:create_dir"]))]
+    dependencies=[Depends(AuthPermission(["monitor:resource:create_dir"]))]
 )
 async def create_directory_controller(
     data: ResourceCreateDirSchema
@@ -179,7 +179,7 @@ async def create_directory_controller(
     "/export", 
     summary="导出资源列表", 
     description="导出资源列表",
-    dependencies=[Depends(AuthPermission(permissions=["monitor:resource:export"]))]
+    dependencies=[Depends(AuthPermission(["monitor:resource:export"]))]
 )
 async def export_resource_list_controller(
     request: Request,

@@ -17,7 +17,7 @@ CacheRouter = APIRouter(route_class=OperationLogRoute, prefix="/cache", tags=["�
 
 @CacheRouter.get(
     '/info',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:query']))],
     summary="获取缓存监控信息",
     description="获取缓存监控信息"
 )
@@ -32,7 +32,7 @@ async def get_monitor_cache_info_controller(
 
 @CacheRouter.get(
     '/get/names',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:query']))],
     summary="获取缓存名称列表",
     description="获取缓存名称列表"
 )
@@ -45,7 +45,7 @@ async def get_monitor_cache_name_controller() -> JSONResponse:
 
 @CacheRouter.get(
     '/get/keys/{cache_name}',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:query']))],
     summary="获取缓存键名列表",
     description="获取缓存键名列表"
 )
@@ -61,7 +61,7 @@ async def get_monitor_cache_key_controller(
 
 @CacheRouter.get(
     '/get/value/{cache_name}/{cache_key}',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:query']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:query']))],
     summary="获取缓存值",
     description="获取缓存值"
 )
@@ -78,7 +78,7 @@ async def get_monitor_cache_value_controller(
 
 @CacheRouter.delete(
     '/delete/name/{cache_name}',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:delete']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:delete']))],
     summary="清除指定缓存名称的所有缓存",
     description="清除指定缓存名称的所有缓存"
 )
@@ -96,7 +96,7 @@ async def clear_monitor_cache_name_controller(
 
 @CacheRouter.delete(
     '/delete/key/{cache_key}',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:delete']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:delete']))],
     summary="清除指定缓存键",
     description="清除指定缓存键"
 )
@@ -114,7 +114,7 @@ async def clear_monitor_cache_key_controller(
 
 @CacheRouter.delete(
     '/delete/all',
-    dependencies=[Depends(AuthPermission(permissions=['monitor:cache:delete']))],
+    dependencies=[Depends(AuthPermission(['monitor:cache:delete']))],
     summary="清除所有缓存",
     description="清除所有缓存"
 )

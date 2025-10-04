@@ -183,14 +183,14 @@ class DictDataService:
                 auth = AuthSchema(db=session)
                 obj_list = await DictTypeCRUD(auth).get_obj_list_crud()
                 if not obj_list:
-                    logger.warning("未找到任何字典类型数据")
+                    logger.warning("❗️ 未找到任何字典类型数据")
                     return
                 for obj in obj_list:
                     dict_type = obj.dict_type
                     dict_data_list = await DictDataCRUD(auth).get_obj_list_crud(search={'dict_type': dict_type})
                     
                     if not dict_data_list:
-                        logger.warning(f"字典类型 {dict_type} 未找到对应的字典数据")
+                        logger.warning(f"❗️ 字典类型 {dict_type} 未找到对应的字典数据")
                         continue
                     
                     dict_data = [DictDataOutSchema.model_validate(row).model_dump() for row in dict_data_list if row]
@@ -204,7 +204,7 @@ class DictDataService:
                                 value=value,
                             )
                     except Exception as e:
-                        logger.error(f"初始化字典数据失败: {e}")
+                        logger.error(f"❌️ 初始化字典数据失败: {e}")
                         raise CustomException(msg=f"初始化字典数据失败 {e}")
     
     @classmethod

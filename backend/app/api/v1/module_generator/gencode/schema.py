@@ -1,10 +1,9 @@
 # -*- coding:utf-8 -*-
 
-from typing import Any, List, Literal, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
 
-from app.utils.string_util import StringUtil
 from app.common.constant import GenConstant
 from app.core.base_schema import BaseSchema
 
@@ -17,6 +16,7 @@ class GenTableOptionModel(BaseModel):
     tree_code: Optional[str] = Field(default=None, description='tree_code')
     tree_name: Optional[str] = Field(default=None, description='tree_name')
     tree_parent_code: Optional[str] = Field(default=None, description='tree_parent_code')
+
 
 class GenDBTableSchema(BaseModel):
 
@@ -34,12 +34,13 @@ class GenTableBaseSchema(BaseModel):
     """
     model_config = ConfigDict(from_attributes=True)
 
+    table_id: Optional[int] =  Field(default=None, description='编号')
     table_name: Optional[str] = Field(default=None, description='表名称')
     table_comment: Optional[str] = Field(default=None, description='表描述')
     sub_table_name: Optional[str] = Field(default=None, description='关联子表的表名')
     sub_table_fk_name: Optional[str] = Field(default=None, description='子表关联的外键名')
     class_name: Optional[str] = Field(default=None, description='实体类名称')
-    tpl_category: Optional[Literal['crud', 'tree']] = Field(default=None, description='使用的模板（crud单表操作 tree树表操作）')
+    tpl_category: Optional[str] = Field(default=None, description='使用的模板（crud单表操作 tree树表操作）')
     tpl_web_type: Optional[str] = Field(default=None, description='前端模板类型（element-ui模版 element-plus模版）')
     package_name: Optional[str] = Field(default=None, description='生成包路径')
     module_name: Optional[str] = Field(default=None, description='生成模块名')
@@ -51,16 +52,17 @@ class GenTableBaseSchema(BaseModel):
     options: Optional[str] = Field(default=None, description='其它生成选项')
     description: Optional[str] = Field(default=None, description='功能描述')
 
-    params: Optional[Any] = Field(default=None, description='前端传递过来的表附加信息，转换成json字符串后放到options')
+    params: Optional[GenTableOptionModel] = Field(default=None, description='前端传递过来的表附加信息，转换成json字符串后放到options')
 
 
 class GenTableSchema(GenTableBaseSchema):
     """
     代码生成业务表更新模型
     """
-    pk_column: Optional['GenTableColumnSchema'] = Field(default=None, description='主键信息')
+
+    pk_column: Optional['GenTableColumnOutSchema'] = Field(default=None, description='主键信息')
     sub_table: Optional['GenTableSchema'] = Field(default=None, description='子表信息')
-    columns: Optional[List['GenTableColumnSchema']] = Field(default=None, description='表列信息')
+    columns: Optional[List['GenTableColumnOutSchema']] = Field(default=None, description='表列信息')
     tree_code: Optional[str] = Field(default=None, description='树编码字段tree_code')
     tree_parent_code: Optional[str] = Field(default=None, description='树父编码字段')
     tree_name: Optional[str] = Field(default=None, description='树名称字段ree_name')
@@ -78,13 +80,17 @@ class GenTableSchema(GenTableBaseSchema):
         return self
 
 
+class GenTableOutSchema(GenTableSchema, BaseSchema):
+    model_config = ConfigDict(from_attributes=True)
+
+
 class GenTableDeleteSchema(BaseModel):
     """
     删除代码生成业务表模型
     """
     model_config = ConfigDict(alias_generator=to_camel)
 
-    table_ids: str = Field(..., description='需要删除的代码生成业务表ID')
+    table_ids: List[int] = Field(..., description='需要删除的代码生成业务表ID列表')
 
 
 class GenTableColumnSchema(BaseModel):
@@ -112,6 +118,22 @@ class GenTableColumnSchema(BaseModel):
     dict_type: Optional[str] = Field(default=None, description='字典类型')
     sort: Optional[int] = Field(default=None, description='排序')
     description: Optional[str] = Field(default=None, description='功能描述')
+
+
+class GenTableColumnOutSchema(GenTableColumnSchema, BaseSchema):
+    model_config = ConfigDict(from_attributes=True)
+
+    cap_python_field: Optional[str] = Field(default=None, description='字段大写形式')
+    pk: Optional[bool] = Field(default=None, description='是否主键')
+    increment: Optional[bool] = Field(default=None, description='是否自增')
+    required: Optional[bool] = Field(default=None, description='是否必填')
+    unique: Optional[bool] = Field(default=None, description='是否唯一')
+    insert: Optional[bool] = Field(default=None, description='是否为插入字段')
+    edit: Optional[bool] = Field(default=None, description='是否编辑字段')
+    list: Optional[bool] = Field(default=None, description='是否列表字段')
+    query: Optional[bool] = Field(default=None, description='是否查询字段')
+    super_column: Optional[bool] = Field(default=None, description='是否为基类字段')
+    usable_column: Optional[bool] = Field(default=None, description='是否为基类字段白名单')
 
 
 class GenTableColumnDeleteSchema(BaseModel):

@@ -23,7 +23,7 @@ ParamsRouter = APIRouter(route_class=OperationLogRoute, prefix="/param", tags=["
 @ParamsRouter.get("/detail/{id}", summary="获取参数详情", description="获取参数详情")
 async def get_type_detail_controller(
     id: int = Path(..., description="参数ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:param:query"]))
 ) -> JSONResponse:
     result_dict = await ParamsService.get_obj_detail_service(id=id, auth=auth)
     logger.info(f"获取参数详情成功 {id}")
@@ -33,7 +33,7 @@ async def get_type_detail_controller(
 @ParamsRouter.get("/key/{config_key}", summary="根据配置键获取参数详情", description="根据配置键获取参数详情")
 async def get_obj_by_key_controller(
     config_key: str = Path(..., description="配置键"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:param:query"]))
 ) -> JSONResponse:
     result_dict = await ParamsService.get_obj_by_key_service(config_key=config_key, auth=auth)
     logger.info(f"根据配置键获取参数详情成功 {config_key}")
@@ -43,7 +43,7 @@ async def get_obj_by_key_controller(
 @ParamsRouter.get("/value/{config_key}", summary="根据配置键获取参数值", description="根据配置键获取参数值")
 async def get_config_value_by_key_controller(
     config_key: str = Path(..., description="配置键"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:param:query"]))
 ) -> JSONResponse:
     result_value = await ParamsService.get_config_value_by_key_service(config_key=config_key, auth=auth)
     logger.info(f"根据配置键获取参数值成功 {config_key}")
@@ -52,7 +52,7 @@ async def get_config_value_by_key_controller(
 
 @ParamsRouter.get("/list", summary="获取参数列表", description="获取参数列表")
 async def get_obj_list_controller(
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:query"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:param:query"])),
     page: PaginationQueryParam = Depends(),
     search: ParamsQueryParam = Depends(),
 ) -> JSONResponse:
@@ -66,7 +66,7 @@ async def get_obj_list_controller(
 async def create_obj_controller(
     data: ParamsCreateSchema,
     redis: Redis = Depends(redis_getter),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:create"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:param:create"]))
 ) -> JSONResponse:
     result_dict = await ParamsService.create_obj_service(auth=auth, redis=redis, data=data)
     logger.info(f"创建参数成功: {result_dict}")
@@ -78,7 +78,7 @@ async def update_objs_controller(
     data: ParamsUpdateSchema,
     id: int = Path(..., description="参数ID"),
     redis: Redis = Depends(redis_getter), 
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:update"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:param:update"]))
 ) -> JSONResponse:
     result_dict = await ParamsService.update_obj_service(auth=auth, redis=redis, id=id, data=data)
     logger.info(f"更新参数成功 {result_dict}")
@@ -89,7 +89,7 @@ async def update_objs_controller(
 async def delete_obj_controller(
     redis: Redis = Depends(redis_getter),
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:param:delete"]))
 ) -> JSONResponse:
     await ParamsService.delete_obj_service(auth=auth, redis=redis, ids=ids)
     logger.info(f"删除参数成功: {ids}")
@@ -99,7 +99,7 @@ async def delete_obj_controller(
 @ParamsRouter.post('/export', summary="导出参数", description="导出参数")
 async def export_obj_list_controller(
     search: ParamsQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:param:export"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:param:export"]))
 ) -> StreamingResponse:
     # 获取全量数据
     result_dict_list = await ParamsService.get_obj_list_service(search=search, auth=auth)
@@ -115,7 +115,7 @@ async def export_obj_list_controller(
     )
 
 
-@ParamsRouter.post("/upload", summary="上传文件", dependencies=[Depends(AuthPermission(permissions=["system:param:upload"]))])
+@ParamsRouter.post("/upload", summary="上传文件", dependencies=[Depends(AuthPermission(["system:param:upload"]))])
 async def upload_file_controller(
     file: UploadFile,
     request: Request

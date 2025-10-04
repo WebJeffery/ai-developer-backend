@@ -79,7 +79,7 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         Returns:
             Optional[UserModel]: 更新后的用户信息
         """
-        return await self.update(id=id, data=UserUpdateSchema(last_login=datetime.now()))
+        return await self.update(id=id, data={"last_login": datetime.now()})
 
     async def set_available_crud(self, ids: List[int], status: bool) -> None:
         """

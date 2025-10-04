@@ -21,7 +21,7 @@ MCPRouter = APIRouter(route_class=OperationLogRoute, prefix="/mcp", tags=["MCP�
 @MCPRouter.post("/chat", summary="智能对话", description="与MCP智能助手进行对话")
 async def chat_controller(
     query: ChatQuerySchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["ai:mcp:chat"]))
+    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:chat"]))
 ) -> StreamingResponse:
     """智能对话接口"""
     user_name = auth.user.name if auth.user else "未知用户"
@@ -43,7 +43,7 @@ async def chat_controller(
 @MCPRouter.get("/detail/{id}", summary="获取 MCP 服务器详情", description="获取 MCP 服务器详情")
 async def detail_controller(
     id: int = Path(..., description="MCP ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["ai:mcp:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:query"]))
 ) -> JSONResponse:
     result_dict = await McpService.detail_service(auth=auth, id=id)
     logger.info(f"获取 MCP 服务器详情成功 {id}")
@@ -54,7 +54,7 @@ async def detail_controller(
 async def list_controller(
     page: PaginationQueryParam = Depends(),
     search: McpQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["ai:mcp:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:query"]))
 ) -> JSONResponse:
     result_dict_list = await McpService.list_service(auth=auth, search=search, order_by=page.order_by)
     result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
@@ -65,7 +65,7 @@ async def list_controller(
 @MCPRouter.post("/create", summary="创建 MCP 服务器", description="创建 MCP 服务器")
 async def create_controller(
     data: McpCreateSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["ai:mcp:create"]))
+    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:create"]))
 ) -> JSONResponse:
     result_dict = await McpService.create_service(auth=auth, data=data)
     logger.info(f"创建 MCP 服务器成功: {result_dict}")
@@ -76,7 +76,7 @@ async def create_controller(
 async def update_controller(
     data: McpUpdateSchema,
     id: int = Path(..., description="MCP ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["ai:mcp:update"]))
+    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:update"]))
 ) -> JSONResponse:
     result_dict = await McpService.update_service(auth=auth, id=id, data=data)
     logger.info(f"修改 MCP 服务器成功: {result_dict}")
@@ -86,7 +86,7 @@ async def update_controller(
 @MCPRouter.delete("/delete", summary="删除 MCP 服务器", description="删除 MCP 服务器")
 async def delete_controller(
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["ai:mcp:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:delete"]))
 ) -> JSONResponse:
     await McpService.delete_service(auth=auth, ids=ids)
     logger.info(f"删除 MCP 服务器成功: {ids}")

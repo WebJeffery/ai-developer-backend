@@ -22,7 +22,7 @@ LogRouter = APIRouter(route_class=OperationLogRoute, prefix="/log", tags=["日�
 async def get_obj_list_controller(
     page: PaginationQueryParam = Depends(),
     search: OperationLogQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:log:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:log:query"]))
 ) -> JSONResponse:
     """ 查询日志 """
     order_by = [{"created_at": "desc"}]
@@ -37,7 +37,7 @@ async def get_obj_list_controller(
 @LogRouter.get("/detail/{id}", summary="日志详情", description="日志详情")
 async def get_obj_detail_controller(
     id: int = Path(..., description="操作日志ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:log:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:log:query"]))
 ) -> JSONResponse:
     """ 详情日志 """
     result_dict = await OperationLogService.get_log_detail_service(id=id, auth=auth)
@@ -48,7 +48,7 @@ async def get_obj_detail_controller(
 @LogRouter.delete("/delete", summary="删除日志", description="删除日志")
 async def delete_obj_log_controller(
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:log:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:log:delete"]))
 ) -> JSONResponse:
     """ 删除日志 """
     await OperationLogService.delete_log_service(ids=ids, auth=auth)
@@ -59,7 +59,7 @@ async def delete_obj_log_controller(
 @LogRouter.post("/export", summary="导出日志", description="导出日志")
 async def export_obj_list_controller(
     search: OperationLogQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:log:export"]))
+    auth: AuthSchema = Depends(AuthPermission(["system:log:export"]))
 ) -> StreamingResponse:
     """ 导出日志 """
     operation_log_list = await OperationLogService.get_log_list_service(search=search, auth=auth)

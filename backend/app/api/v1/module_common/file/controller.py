@@ -13,7 +13,7 @@ from .service import FileService
 
 FileRouter = APIRouter(route_class=OperationLogRoute, prefix="/file", tags=["文件管理"])
 
-@FileRouter.post("/upload", summary="上传文件", description="上传文件",dependencies=[Depends(AuthPermission(permissions=["common:file:upload"]))])
+@FileRouter.post("/upload", summary="上传文件", description="上传文件",dependencies=[Depends(AuthPermission(["common:file:upload"]))])
 async def upload_controller(
     file: UploadFile,
     request: Request,
@@ -22,7 +22,7 @@ async def upload_controller(
     logger.info(f"上传文件成功 {result_dict}")
     return SuccessResponse(data=result_dict, msg="上传文件成功")
 
-@FileRouter.post("/download", summary="下载文件", description="下载文件", dependencies=[Depends(AuthPermission(permissions=["common:file:download"]))])
+@FileRouter.post("/download", summary="下载文件", description="下载文件", dependencies=[Depends(AuthPermission(["common:file:download"]))])
 async def download_controller(
     background_tasks: BackgroundTasks,
     file_path: str = Body(..., description="文件路径"), 

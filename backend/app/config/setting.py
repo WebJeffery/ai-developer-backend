@@ -243,11 +243,11 @@ class Settings(BaseSettings):
     # ================================================= #
     # ******************* 代码生成配置 ****************** #
     # ================================================= #
-    author: str = 'insistence'
-    package_name: str = 'module_admin.system'
-    auto_remove_pre: bool = False
-    table_prefix: str = 'gen_'
-    allow_overwrite: bool = False
+    author: str = 'insistence'                      # 作者
+    package_name: str = 'module_generator.gencode'  # 默认生成包路径 system 需改成自己的模块名称 如 system monitor tool
+    auto_remove_pre: bool = False                   # 自动去除表前缀，默认是True
+    table_prefix: str = 'gen_'                      # 表前缀（生成类名不会包含表前缀，多个用逗号分隔）
+    allow_overwrite: bool = False                   # 是否允许生成文件覆盖到本地（自定义路径），默认不允许
 
     GEN_PATH: Path = BASE_DIR.joinpath('app/api/v1/module_generator/gen_backend_code')
 

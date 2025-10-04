@@ -77,7 +77,7 @@ async def redis_connect(app: FastAPI, status: bool) -> Redis | None:
             )
             app.state.redis = rd
             if await rd.ping():
-                logger.info("Redis连接成功...")
+                logger.info("✅️ Redis连接成功...")
                 return rd
             raise CustomException(msg="Redis连接失败")
         except exceptions.AuthenticationError as e:
@@ -113,4 +113,4 @@ async def mongodb_connect(app: FastAPI, status: bool) -> AsyncIOMotorClient | No
             raise ValueError(f"MongoDB连接失败: {e}")
     else:
         app.state.mongo_client.close()
-        logger.info("MongoDB连接已关闭")
+        logger.info("❌️ MongoDB连接已关闭")

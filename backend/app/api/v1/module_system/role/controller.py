@@ -28,7 +28,7 @@ RoleRouter = APIRouter(route_class=OperationLogRoute, prefix="/role", tags=["角
 async def get_obj_list_controller(
     page: PaginationQueryParam = Depends(),
     search: RoleQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:query"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:role:query"])),
 ) -> JSONResponse:
     order_by = [{"order": "asc"}]
     if page.order_by:
@@ -42,7 +42,7 @@ async def get_obj_list_controller(
 @RoleRouter.get("/detail/{id}", summary="查询角色详情", description="查询角色详情")
 async def get_obj_detail_controller(
     id: int = Path(..., description="角色ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:query"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:role:query"])),
 ) -> JSONResponse:
     result_dict = await RoleService.get_role_detail_service(id=id, auth=auth)
     logger.info(f"获取角色详情成功 {id}")
@@ -52,7 +52,7 @@ async def get_obj_detail_controller(
 @RoleRouter.post("/create", summary="创建角色", description="创建角色")
 async def create_obj_controller(
     data: RoleCreateSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:create"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:role:create"])),
 ) -> JSONResponse:
     result_dict = await RoleService.create_role_service(data=data, auth=auth)
     logger.info(f"创建角色成功: {result_dict}")
@@ -63,7 +63,7 @@ async def create_obj_controller(
 async def update_obj_controller(
     data: RoleUpdateSchema,
     id: int = Path(..., description="角色ID"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:update"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:role:update"])),
 ) -> JSONResponse:
     result_dict = await RoleService.update_role_service(id=id, data=data, auth=auth)
     logger.info(f"修改角色成功: {result_dict}")
@@ -73,7 +73,7 @@ async def update_obj_controller(
 @RoleRouter.delete("/delete", summary="删除角色", description="删除角色")
 async def delete_obj_controller(
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:delete"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:role:delete"])),
 ) -> JSONResponse:
     await RoleService.delete_role_service(ids=ids, auth=auth)
     logger.info(f"删除角色成功: {ids}")
@@ -83,7 +83,7 @@ async def delete_obj_controller(
 @RoleRouter.patch("/available/setting", summary="批量修改角色状态", description="批量修改角色状态")
 async def batch_set_available_obj_controller(
     data: BatchSetAvailable,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:patch"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:role:patch"])),
 ) -> JSONResponse:
     await RoleService.set_role_available_service(data=data, auth=auth)
     logger.info(f"批量修改角色状态成功: {data.ids}")
@@ -93,7 +93,7 @@ async def batch_set_available_obj_controller(
 @RoleRouter.patch("/permission/setting", summary="角色授权", description="角色授权")
 async def set_role_permission_controller(
     data: RolePermissionSettingSchema,
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:permission"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:role:permission"])),
 ) -> JSONResponse:
     await RoleService.set_role_permission_service(data=data, auth=auth)
     logger.info(f"设置角色权限成功: {data}")
@@ -103,7 +103,7 @@ async def set_role_permission_controller(
 @RoleRouter.post('/export', summary="导出角色", description="导出角色")
 async def export_obj_list_controller(
     search: RoleQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(permissions=["system:role:export"])),
+    auth: AuthSchema = Depends(AuthPermission(["system:role:export"])),
 ) -> StreamingResponse:
     # 获取全量数据
     role_query_result = await RoleService.get_role_list_service(search=search, auth=auth)

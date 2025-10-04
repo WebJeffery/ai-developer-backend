@@ -194,10 +194,10 @@ class ParamsService:
                             value=value,
                         )
                         if not result:
-                            logger.error(f"初始化系统配置失败: {config_obj_dict}")
+                            logger.error(f"❌️ 初始化系统配置失败: {config_obj_dict}")
                             raise CustomException(msg="初始化系统配置失败")
                 except Exception as e:
-                    logger.error(f"初始化系统配置失败: {e}")
+                    logger.error(f"❌️ 初始化系统配置失败: {e}")
                     raise CustomException(msg="初始化系统配置失败")
 
     @classmethod
