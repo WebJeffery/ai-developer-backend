@@ -82,6 +82,30 @@ class GenTableSchema(GenTableBaseSchema):
 
 class GenTableOutSchema(GenTableSchema, BaseSchema):
     model_config = ConfigDict(from_attributes=True)
+    
+    # 添加数据验证和转换的root_validator
+    @model_validator(mode='before')
+    def handle_null_values(cls, values):
+        # 处理None值，转换为空字符串或适当的默认值
+        # 检查values是否为对象而非字典
+        if hasattr(values, '__dict__'):
+            # 如果是对象，获取其字典表示
+            values_dict = values.__dict__
+            for key in ['table_name', 'table_comment', 'class_name', 'columns']:
+                if key in values_dict and values_dict[key] is None:
+                    if key != 'columns':
+                        setattr(values, key, '')
+                    else:
+                        setattr(values, key, [])
+            return values
+        elif isinstance(values, dict):
+            # 如果是字典，执行原来的逻辑
+            for key, value in values.items():
+                if value is None:
+                    if key in ['table_name', 'table_comment', 'class_name', 'columns']:
+                        values[key] = '' if key != 'columns' else []
+            return values
+        return values
 
 
 class GenTableDeleteSchema(BaseModel):

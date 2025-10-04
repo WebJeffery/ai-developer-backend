@@ -8,38 +8,36 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.base_model import CreatorMixin
 
 
-class {{ tableName|snake_to_pascal_case }}Model(CreatorMixin):
+class {{ table_name|snake_to_pascal_case }}Model(CreatorMixin):
     """
-    {{ functionName }}
+    {{ function_name }}
     """
     
-    __tablename__ = '{{ tableName }}'
-        
-    __table_args__ = {'comment': '{{ functionName }}'}
+    __tablename__ = '{{ table_name }}'
+    __table_args__ = {'comment': '{{ function_name }}'}
 
     {% for column in columns %}
-    {{ column.columnName }}: Mapped[Optional[{{ column.pythonType }}]] = mapped_column({{ column.columnType|get_sqlalchemy_type }}, nullable=True, comment='{{ column.columnComment }}')
+    {{ column.column_name }}: Mapped[Optional[{{ column.python_type }}]] = mapped_column({{ column.column_type|get_sqlalchemy_type }}, nullable=True, comment='{{ column.column_comment }}')
     {% endfor %}
     
     def __repr__(self):
-        return f"<{{ tableName|snake_to_pascal_case }}Model(id={self.id})>"
+        return f"<{{ table_name|snake_to_pascal_case }}Model(id={self.id})>"
         
-{% if subTable %}
+{% if sub_table %}
 
-class {{ subClassName }}(Base):
+class {{ sub_class_name }}(Base):
     """
-    {{ subTable.function_name }}表
+    {{ sub_table.function_name }}表
     """
-    __tablename__ = '{{ subTableName }}'
+    __tablename__ = '{{ sub_table_name }}'
+    __table_args__ = {'comment': '{{ sub_table.function_name }}'}
     
-    __table_args__ = {'comment': '{{ subTable.function_name }}'}
-    
-    {% for column in subTable.columns %}
-    {{ column.column_name }}: Mapped[Optional[{{ column.python_type }}]] = mapped_column({{ column.column_type | get_sqlalchemy_type }}, {% if column.column_name == subTableFkName %}ForeignKey('{{ tableName }}.id'), {% endif %}{% if column.pk %}primary_key=True, {% endif %}nullable=True, comment='{{ column.column_comment }}')
+    {% for column in sub_table.columns %}
+    {{ column.column_name }}: Mapped[Optional[{{ column.python_type }}]] = mapped_column({{ column.column_type | get_sqlalchemy_type }}, {% if column.column_name == sub_table_fk_name %}ForeignKey('{{ table_name }}.id'), {% endif %}{% if column.pk %}primary_key=True, {% endif %}nullable=True, comment='{{ column.column_comment }}')
     {% endfor %}
     
-    {{ tableName }} = relationship('{{ tableName|snake_to_pascal_case }}Model', back_populates='{{ subTable.table_name }}_list')
+    {{ table_name }} = relationship('{{ table_name|snake_to_pascal_case }}Model', back_populates='{{ sub_table.table_name }}_list')
     
-{{ tableName|snake_to_pascal_case }}Model.{{ subTable.table_name }}_list = relationship('{{ subClassName }}', back_populates='{{ tableName }}')
+{{ table_name|snake_to_pascal_case }}Model.{{ sub_table.table_name }}_list = relationship('{{ sub_class_name }}', back_populates='{{ table_name }}')
 
 {% endif %}

@@ -41,6 +41,7 @@ class Jinja2TemplateInitializerUtil:
                     'camel_to_snake': SnakeCaseUtil.camel_to_snake,
                     'snake_to_camel': CamelCaseUtil.snake_to_camel,
                     'get_sqlalchemy_type': Jinja2TemplateUtil.get_sqlalchemy_type,
+                    'snake_to_pascal_case': StringUtil.convert_to_camel_case,
                 }
             )
             return env
@@ -82,38 +83,50 @@ class Jinja2TemplateUtil:
         :param gen_table: 生成表的配置信息
         :return: 模板上下文字典
         """
-        if not gen_table.options:
-            raise CustomException(msg='请先完善生成配置信息')
-        class_name = gen_table.class_name
-        module_name = gen_table.module_name
-        business_name = gen_table.business_name
-        package_name = gen_table.package_name
-        tpl_category = gen_table.tpl_category
-        function_name = gen_table.function_name
+        # 处理options为None的情况
+        options = gen_table.options or '{}'
+        try:
+            params_obj = json.loads(options)
+        except json.JSONDecodeError:
+            params_obj = {}
+            
+        class_name = gen_table.class_name or ''
+        module_name = gen_table.module_name or ''
+        business_name = gen_table.business_name or ''
+        package_name = gen_table.package_name or ''
+        tpl_category = gen_table.tpl_category or ''
+        function_name = gen_table.function_name or ''
         
         context = {
             'tplCategory': tpl_category,
-            'tableName': gen_table.table_name,
+            'tableName': gen_table.table_name or '',
             'functionName': function_name if StringUtil.is_not_empty(function_name) else '【请填写功能名称】',
             'ClassName': class_name,
-            'className': class_name.lower(),
+            'className': class_name.lower() if class_name else '',
             'moduleName': module_name,
-            'BusinessName': business_name.capitalize(),
+            'BusinessName': business_name.capitalize() if business_name else '',
             'businessName': business_name,
-            'basePackage': cls.get_package_prefix(package_name),
+            'basePackage': cls.get_package_prefix(package_name) if package_name else '',
             'packageName': package_name,
-            'author': gen_table.function_author,
+            'author': gen_table.function_author or '',
             'datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'pkColumn': gen_table.pk_column,
             'doImportList': cls.get_do_import_list(gen_table),
             'voImportList': cls.get_vo_import_list(gen_table),
             'permissionPrefix': cls.get_permission_prefix(module_name, business_name),
-            'columns': gen_table.columns,
+            'columns': gen_table.columns or [],
             'table': gen_table,
             'dicts': cls.get_dicts(gen_table),
             'dbType': settings.DATABASE_TYPE,
             'column_not_add_show': GenConstant.COLUMNNAME_NOT_ADD_SHOW,
             'column_not_edit_show': GenConstant.COLUMNNAME_NOT_EDIT_SHOW,
+            # 添加下划线命名的变量以兼容模板文件中的引用
+            'tpl_category': tpl_category,
+            'table_name': gen_table.table_name or '',
+            'function_name': function_name if StringUtil.is_not_empty(function_name) else '【请填写功能名称】',
+            'module_name': module_name,
+            'business_name': business_name,
+            'primaryKey': gen_table.pk_column.python_field if gen_table.pk_column else ''
         }
 
         # 设置菜单、树形结构、子表的上下文
@@ -134,8 +147,12 @@ class Jinja2TemplateUtil:
         :param gen_table: 生成表的配置信息
         :return: 新的模板上下文字典
         """
-        options = gen_table.options
-        params_obj = json.loads(options)
+        # 处理options为None的情况
+        options = gen_table.options or '{}'
+        try:
+            params_obj = json.loads(options)
+        except json.JSONDecodeError:
+            params_obj = {}
         context['parentMenuId'] = cls.get_parent_menu_id(params_obj)
     
     @classmethod
@@ -147,8 +164,12 @@ class Jinja2TemplateUtil:
         :param gen_table: 生成表的配置信息
         :return: 新的模板上下文字典
         """
-        options = gen_table.options
-        params_obj = json.loads(options)
+        # 处理options为None的情况
+        options = gen_table.options or '{}'
+        try:
+            params_obj = json.loads(options)
+        except json.JSONDecodeError:
+            params_obj = {}
         context['treeCode'] = cls.get_tree_code(params_obj)
         context['treeParentCode'] = cls.get_tree_parent_code(params_obj)
         context['treeName'] = cls.get_tree_name(params_obj)
@@ -164,17 +185,18 @@ class Jinja2TemplateUtil:
         :return: 新的模板上下文字典
         """
         sub_table = gen_table.sub_table
-        sub_table_name = gen_table.sub_table_name
-        sub_table_fk_name = gen_table.sub_table_fk_name
-        sub_class_name = sub_table.class_name
-        sub_table_fk_class_name = StringUtil.convert_to_camel_case(sub_table_fk_name)
+        sub_table_name = gen_table.sub_table_name or ''
+        sub_table_fk_name = gen_table.sub_table_fk_name or ''
+        # 处理sub_table为None的情况
+        sub_class_name = sub_table.class_name if sub_table else '' if sub_table else ''
+        sub_table_fk_class_name = StringUtil.convert_to_camel_case(sub_table_fk_name) if sub_table_fk_name else ''
         context['subTable'] = sub_table
         context['subTableName'] = sub_table_name
         context['subTableFkName'] = sub_table_fk_name
         context['subTableFkClassName'] = sub_table_fk_class_name
-        context['subTableFkclassName'] = sub_table_fk_class_name.lower()
+        context['subTableFkclassName'] = sub_table_fk_class_name.lower() if sub_table_fk_class_name else ''
         context['subClassName'] = sub_class_name
-        context['subclassName'] = sub_class_name.lower()
+        context['subclassName'] = sub_class_name.lower() if sub_class_name else ''
 
     @classmethod
     def get_template_list(cls, tpl_category: str, tpl_web_type: str):
@@ -186,8 +208,11 @@ class Jinja2TemplateUtil:
         :return: 模板列表
         """
         use_web_type = 'vue'
-        if tpl_web_type == 'element-plus':
-            use_web_type = 'vue/v3'
+        # 处理空值情况
+        if tpl_web_type and tpl_web_type == 'element-plus':
+            use_web_type = 'vue'
+        # 处理空值情况
+        category = tpl_category or GenConstant.TPL_CRUD
         templates = [
             # Python相关模板
             'python/controller.py.j2',
@@ -197,15 +222,15 @@ class Jinja2TemplateUtil:
             'python/param.py.j2',
             'python/model.py.j2',
             # Vue相关模板
-            'ts/api.ts.j2',
+            f'{use_web_type}/api.ts.j2',
             # SQL脚本模板
             'sql/sql.j2',
         ]
-        if tpl_category == GenConstant.TPL_CRUD:
+        if category == GenConstant.TPL_CRUD:
             templates.append(f'{use_web_type}/index.vue.j2')
-        elif tpl_category == GenConstant.TPL_TREE:
+        elif category == GenConstant.TPL_TREE:
             templates.append(f'{use_web_type}/index-tree.vue.j2')
-        elif tpl_category == GenConstant.TPL_SUB:
+        elif category == GenConstant.TPL_SUB:
             templates.append(f'{use_web_type}/index.vue.j2')
             # templates.append('python/sub-domain.python.jinja2')
         return templates
@@ -219,12 +244,12 @@ class Jinja2TemplateUtil:
         :param gen_table: 生成表的配置信息
         :return: 模板生成文件名
         """
-        package_name = gen_table.package_name
-        module_name = gen_table.module_name
-        business_name = gen_table.business_name
+        package_name = gen_table.package_name or ''
+        module_name = gen_table.module_name or ''
+        business_name = gen_table.business_name or ''
 
         vue_path = cls.FRONTEND_PROJECT_PATH
-        python_path = f'{cls.BACKEND_PROJECT_PATH}/{package_name.replace(".", "/")}'
+        python_path = f'{cls.BACKEND_PROJECT_PATH}/{package_name.replace(".", "/")}' if package_name else cls.BACKEND_PROJECT_PATH
 
         if 'controller.py.j2' in template:
             return f'{python_path}/controller/{business_name}_controller.py'
@@ -265,16 +290,21 @@ class Jinja2TemplateUtil:
         columns = gen_table.columns or []
         import_list = set()
         for column in columns:
-            if column.python_type in GenConstant.TYPE_DATE:
-                import_list.add(f'from datetime import {column.python_type}')
-            elif column.python_type == GenConstant.TYPE_DECIMAL:
+            # 处理column_type为None的情况
+            column_type = column.column_type or ''
+            if column_type in GenConstant.TYPE_DATE:
+                import_list.add(f'from datetime import {column_type}')
+            elif column_type == GenConstant.TYPE_DECIMAL:
                 import_list.add('from decimal import Decimal')
-        if gen_table.sub:
+        if gen_table.sub and gen_table.sub_table:
+            # 处理sub_table.columns为None的情况
             sub_columns = gen_table.sub_table.columns or []
             for sub_column in sub_columns:
-                if sub_column.python_type in GenConstant.TYPE_DATE:
-                    import_list.add(f'from datetime import {sub_column.python_type}')
-                elif sub_column.python_type == GenConstant.TYPE_DECIMAL:
+                # 处理sub_column.column_type为None的情况
+                sub_column_type = sub_column.column_type or ''
+                if sub_column_type in GenConstant.TYPE_DATE:
+                    import_list.add(f'from datetime import {sub_column_type}')
+                elif sub_column_type == GenConstant.TYPE_DECIMAL:
                     import_list.add('from decimal import Decimal')
         return cls.merge_same_imports(list(import_list), 'from datetime import')
     
@@ -290,17 +320,22 @@ class Jinja2TemplateUtil:
         import_list = set()
         import_list.add('from sqlalchemy import Column')
         for column in columns:
-            data_type = cls.get_db_type(column.column_type)
+            # 处理column.column_type为None的情况
+            column_type = column.column_type or ''
+            data_type = cls.get_db_type(column_type)
             if data_type in GenConstant.COLUMNTYPE_GEOMETRY:
                 import_list.add('from geoalchemy2 import Geometry')
             import_list.add(
                 f'from sqlalchemy import {StringUtil.get_mapping_value_by_key_ignore_case(GenConstant.DB_TO_SQLALCHEMY, data_type)}'
             )
-        if gen_table.sub:
+        if gen_table.sub and gen_table.sub_table:
             import_list.add('from sqlalchemy import ForeignKey')
+            # 处理sub_table.columns为None的情况
             sub_columns = gen_table.sub_table.columns or []
             for sub_column in sub_columns:
-                data_type = cls.get_db_type(sub_column.column_type)
+                # 处理sub_column.column_type为None的情况
+                sub_column_type = sub_column.column_type or ''
+                data_type = cls.get_db_type(sub_column_type)
                 import_list.add(
                     f'from sqlalchemy import {StringUtil.get_mapping_value_by_key_ignore_case(GenConstant.DB_TO_SQLALCHEMY, data_type)}'
                 )
@@ -353,8 +388,11 @@ class Jinja2TemplateUtil:
         columns = gen_table.columns or []
         dicts = set()
         cls.add_dicts(dicts, columns)
+        # 处理sub_table为None的情况
         if gen_table.sub_table is not None:
-            cls.add_dicts(dicts, gen_table.sub_table.columns)
+            # 处理sub_table.columns为None的情况
+            sub_columns = gen_table.sub_table.columns or []
+            cls.add_dicts(dicts, sub_columns)
         return ', '.join(dicts)
 
     @classmethod
@@ -367,14 +405,19 @@ class Jinja2TemplateUtil:
         :return: 新的字典列表
         """
         for column in columns:
+            # 处理column.super_column, column.dict_type, column.html_type为None的情况
+            super_column = column.super_column if column.super_column is not None else False
+            dict_type = column.dict_type or ''
+            html_type = column.html_type or ''
+            
             if (
-                not column.super_column
-                and StringUtil.is_not_empty(column.dict_type)
+                not super_column
+                and StringUtil.is_not_empty(dict_type)
                 and StringUtil.equals_any_ignore_case(
-                    column.html_type, [GenConstant.HTML_SELECT, GenConstant.HTML_RADIO, GenConstant.HTML_CHECKBOX]
+                    html_type, [GenConstant.HTML_SELECT, GenConstant.HTML_RADIO, GenConstant.HTML_CHECKBOX]
                 )
             ):
-                dicts.add(f"'{column.dict_type}'")
+                dicts.add(f"'{dict_type}'")
 
     @classmethod
     def get_permission_prefix(cls, module_name: str | None, business_name: str | None) -> str:
@@ -408,7 +451,10 @@ class Jinja2TemplateUtil:
         :return: 树编码
         """
         if GenConstant.TREE_CODE in params_obj:
-            return cls.to_camel_case(params_obj.get(GenConstant.TREE_CODE))
+            tree_code = params_obj.get(GenConstant.TREE_CODE)
+            # 处理tree_code为None的情况
+            if tree_code:
+                return cls.to_camel_case(str(tree_code))
         return ''
     
     @classmethod
@@ -420,7 +466,10 @@ class Jinja2TemplateUtil:
         :return: 树父编码
         """
         if GenConstant.TREE_PARENT_CODE in params_obj:
-            return cls.to_camel_case(params_obj.get(GenConstant.TREE_PARENT_CODE))
+            tree_parent_code = params_obj.get(GenConstant.TREE_PARENT_CODE)
+            # 处理tree_parent_code为None的情况
+            if tree_parent_code:
+                return cls.to_camel_case(str(tree_parent_code))
         return ''
     
     @classmethod
@@ -432,7 +481,10 @@ class Jinja2TemplateUtil:
         :return: 树名称
         """
         if GenConstant.TREE_NAME in params_obj:
-            return cls.to_camel_case(params_obj.get(GenConstant.TREE_NAME))
+            tree_name = params_obj.get(GenConstant.TREE_NAME)
+            # 处理tree_name为None的情况
+            if tree_name:
+                return cls.to_camel_case(str(tree_name))
         return ''
     
     @classmethod
@@ -443,11 +495,17 @@ class Jinja2TemplateUtil:
         :param gen_table: 生成表的配置信息
         :return: 展开列
         """
-        options = gen_table.options
-        params_obj = json.loads(options)
-        tree_name = params_obj.get(GenConstant.TREE_NAME)
+        # 处理options为None的情况
+        options = gen_table.options or '{}'
+        try:
+            params_obj = json.loads(options)
+        except json.JSONDecodeError:
+            params_obj = {}
+        tree_name = params_obj.get(GenConstant.TREE_NAME) or ''
         num = 0
-        for column in gen_table.columns:
+        # 处理gen_table.columns为None的情况
+        columns = gen_table.columns or []
+        for column in columns:
             if column.list:
                 num += 1
                 if column.column_name == tree_name:
@@ -466,15 +524,21 @@ class Jinja2TemplateUtil:
         return parts[0] + ''.join(word.capitalize() for word in parts[1:])
     
     @classmethod
-    def get_sqlalchemy_type(cls, column_type: str):
+    def get_sqlalchemy_type(cls, column_type):
         """
         获取SQLAlchemy类型
 
         :param column_type: 列类型
         :return: SQLAlchemy类型
         """
-        if '(' in column_type:
-            column_type_list = column_type.split('(')
+        # 适配可能传入的是对象而非字符串的情况
+        if hasattr(column_type, 'column_type'):
+            column_type_value = column_type.column_type
+        else:
+            column_type_value = str(column_type)
+            
+        if '(' in column_type_value:
+            column_type_list = column_type_value.split('(')
             if column_type_list[0] in GenConstant.COLUMNTYPE_STR:
                 sqlalchemy_type = (
                     StringUtil.get_mapping_value_by_key_ignore_case(
@@ -489,7 +553,7 @@ class Jinja2TemplateUtil:
                 )
         else:
             sqlalchemy_type = StringUtil.get_mapping_value_by_key_ignore_case(
-                GenConstant.DB_TO_SQLALCHEMY, column_type
+                GenConstant.DB_TO_SQLALCHEMY, column_type_value
             )
 
         return sqlalchemy_type

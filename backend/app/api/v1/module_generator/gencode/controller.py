@@ -10,6 +10,7 @@ from app.core.router_class import OperationLogRoute
 from app.core.base_params import PaginationQueryParam
 from app.common.request import PaginationService
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.constant import RET
 from .param import GenTableQueryParam
 from .schema import GenTableDeleteSchema, GenTableSchema, GenTableOutSchema
 from .service import GenTableColumnService, GenTableService
@@ -62,14 +63,14 @@ async def gen_table_detail_controller(
 ) -> JSONResponse:
     gen_table = await GenTableService.get_gen_table_by_id_service(auth, table_id)
     gen_tables = await GenTableService.get_gen_table_all_service(auth)
-    gen_table_detail_result = dict(info=gen_table, rows=gen_table.columns, tables=gen_tables)
+    gen_table_detail_result = dict(info=gen_table.model_dump(), rows=gen_table.model_dump()['columns'], tables=[gen_table.model_dump() for gen_table in gen_tables])
     logger.info(f'获取table_id为{table_id}的信息成功')
     return SuccessResponse(data=gen_table_detail_result, msg="获取业务表详细信息成功")
 
 
 @GenRouter.post("/create", summary="创建表结构", description="创建表结构")
 async def create_table_controller(
-    sql: str = Query(..., description="SQL语句"),
+    sql: str = Query(..., description="SQL语句：CREATE TABLE user_demo (\n  id INTEGER NOT NULL PRIMARY KEY,\n  username VARCHAR(64) NOT NULL UNIQUE,\n);"),
     auth: AuthSchema = Depends(AuthPermission(["generator:gencode:create"])),
 ) -> JSONResponse:
     result = await GenTableService.create_table_service(auth, sql)
@@ -101,9 +102,19 @@ async def delete_gen_table_controller(
 
 @GenRouter.patch("/batch/output", summary="批量生成代码", description="批量生成代码")
 async def batch_gen_code_controller(
-    table_names: List[str] = Query(None, description="表名列表"),
+    table_names: List[str] = Query(..., description="表名列表"),
     auth: AuthSchema = Depends(AuthPermission(["generator:gencode:operate"]))
 ) -> StreamResponse:
+    # 检查table_names是否为空
+    if not table_names:
+        logger.error('表名列表不能为空')
+        # 返回一个空的StreamResponse，包含错误信息
+        error_content = bytes(f'{RET.ERROR.msg}: 表名列表不能为空', 'utf-8')
+        return StreamResponse(
+            data=bytes2file_response(error_content),
+            media_type='text/plain',
+            headers={'Content-Disposition': 'attachment; filename=error.txt'}
+        )
     batch_gen_code_result = await GenTableService.batch_gen_code_service(auth, table_names)
     logger.info('批量生成代码成功')
     return StreamResponse(
