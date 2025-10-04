@@ -2199,7 +2199,7 @@
         "type": 2,
         "icon": "el-icon-Wallet",
         "order": 2,
-        "permission": "gencode:webcode:query",
+        "permission": "gencode:gencode:query",
         "route_name": "webcode",
         "route_path": "/gencode/webcode",
         "component_path": "gencode/webcode/index",
