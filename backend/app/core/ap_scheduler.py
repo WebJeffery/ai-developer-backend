@@ -66,9 +66,7 @@ class SchedulerUtil:
     @classmethod
     def scheduler_event_listener(cls, event: JobEvent | JobExecutionEvent):
         # 延迟导入避免循环导入
-        from app.api.v1.module_monitor.job.crud import JobLogCRUD
-        from app.api.v1.module_monitor.job.schema import JobLogCreateSchema
-        from app.api.v1.module_system.auth.schema import AuthSchema
+        from app.api.v1.module_application.job.schema import JobLogCreateSchema
         
         # 获取事件类型和任务ID
         event_type = event.__class__.__name__
@@ -125,7 +123,7 @@ class SchedulerUtil:
         :return:
         """
         # 延迟导入避免循环导入
-        from app.api.v1.module_monitor.job.crud import JobCRUD
+        from app.api.v1.module_application.job.crud import JobCRUD
         from app.api.v1.module_system.auth.schema import AuthSchema
         
         scheduler.start()

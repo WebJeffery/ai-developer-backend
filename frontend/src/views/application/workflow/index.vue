@@ -51,10 +51,10 @@
             <template #header>
                 <div class="card-header">
                     <span>
-                        <el-tooltip content="流程列表">
+                        <el-tooltip content="流程管理列表">
                             <QuestionFilled class="w-4 h-4 mx-1" />
                         </el-tooltip>
-                        演示示例列表
+                        流程管理列表
                     </span>
                 </div>
             </template>
@@ -103,7 +103,7 @@
                 </div>
             </div>
 
-            <!-- 表格区域：系统配置列表 -->
+            <!-- 表格区域：工作流列表 -->
             <el-table ref="dataTableRef" v-loading="loading" :data="pageTableData" highlight-current-row
                 class="data-table__content" height="450" border stripe @selection-change="handleSelectionChange">
                 <template #empty>
@@ -234,7 +234,7 @@ defineOptions({
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { ResultEnum } from "@/enums/api/result.enum";
-import ExampleAPI, { ExampleTable, ExampleForm, ExamplePageQuery } from "@/api/demo/example";
+import ExampleAPI, { ExampleTable, ExampleForm, ExamplePageQuery } from "@/api/generator/demo";
 import ImportModal from "@/components/Upload/ImportModal.vue";
 import DatePicker from "@/components/DatePicker/index.vue";
 

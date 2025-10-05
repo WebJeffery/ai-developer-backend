@@ -36,10 +36,10 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['monitor:job:query']"
+          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['app:job:query']"
             >查询</el-button
           >
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['monitor:job:query']">重置</el-button>
+          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['app:job:query']">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
             <el-link
@@ -83,7 +83,7 @@
             type="success"
             icon="plus"
             @click="handleOpenDialog('create')"
-            v-hasPerm="['monitor:job:create']"
+            v-hasPerm="['app:job:create']"
             >新增</el-button
           >
           <el-button
@@ -91,7 +91,7 @@
             icon="delete"
             :disabled="selectIds.length === 0"
             @click="handleDelete(selectIds)"
-            v-hasPerm="['monitor:job:delete']"
+            v-hasPerm="['app:job:delete']"
             >批量删除</el-button
           >
         </div>
@@ -102,11 +102,11 @@
               icon="download"
               circle
               @click="handleExport"
-              v-hasPerm="['monitor:job:export']"
+              v-hasPerm="['app:job:export']"
             />
           </el-tooltip>
           <el-tooltip content="清除">
-            <el-button type="danger" icon="delete" circle @click="handleClear" v-hasPerm="['monitor:job:clear']" />
+            <el-button type="danger" icon="delete" circle @click="handleClear" v-hasPerm="['app:job:clear']" />
           </el-tooltip>
           <el-tooltip content="刷新">
             <el-button
@@ -114,7 +114,7 @@
               icon="refresh"
               circle
               @click="handleRefresh"
-              v-hasPerm="['monitor:job:refresh']"
+              v-hasPerm="['app:job:refresh']"
             />
           </el-tooltip>
         </div>
@@ -217,7 +217,7 @@
                 link
                 icon="edit"
                 @click="handleOpenDialog('update', scope.row.id)"
-                v-hasPerm="['monitor:job:update']"
+                v-hasPerm="['app:job:update']"
               >
                 编辑
               </el-button>
@@ -227,11 +227,11 @@
                 link
                 icon="delete"
                 @click="handleDelete([scope.row.id])"
-                v-hasPerm="['monitor:job:delete']"
+                v-hasPerm="['app:job:delete']"
               >
                 删除
               </el-button>
-              <el-dropdown trigger="click" v-hasPerm="['monitor:job:status']">
+              <el-dropdown trigger="click" v-hasPerm="['app:job:status']">
                 <el-button type="warning" size="small" link icon="ArrowDown"
                   >更多</el-button
                 >
@@ -566,7 +566,7 @@
             @click="handleSubmit"
             >确定</el-button
           >
-          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['monitor:job:detail']"
+          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['app:job:detail']"
             >确定</el-button
           >
         </div>
@@ -585,12 +585,12 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import JobAPI, { JobTable, JobForm, JobPageQuery } from "@/api/monitor/job";
+import JobAPI, { JobTable, JobForm, JobPageQuery } from "@/api/application/job";
 import IntervalTab from "@/components/IntervalTab/index.vue";
 import { useDictStore } from "@/store/index";
 import { vue3CronPlus } from "vue3-cron-plus";
 import "vue3-cron-plus/dist/index.css"; // 引入样式
-import  JobLogDrawer from "@/views/monitor/job/components/JobLogDrawer.vue"
+import  JobLogDrawer from "@/views/application/job/components/JobLogDrawer.vue"
 
 const dictStore = useDictStore();
 

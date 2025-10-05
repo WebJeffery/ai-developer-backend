@@ -15,13 +15,13 @@ from .service import McpService
 from .schema import McpCreateSchema, McpUpdateSchema, ChatQuerySchema
 
 
-MCPRouter = APIRouter(route_class=OperationLogRoute, prefix="/mcp", tags=["MCP智能助手"])
+AIRouter = APIRouter(route_class=OperationLogRoute, prefix="/ai", tags=["MCP智能助手"])
 
 
-@MCPRouter.post("/chat", summary="智能对话", description="与MCP智能助手进行对话")
+@AIRouter.post("/chat", summary="智能对话", description="与MCP智能助手进行对话")
 async def chat_controller(
     query: ChatQuerySchema,
-    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:chat"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:ai:chat"]))
 ) -> StreamingResponse:
     """智能对话接口"""
     user_name = auth.user.name if auth.user else "未知用户"
@@ -40,21 +40,21 @@ async def chat_controller(
     return StreamResponse(generate_response(), media_type="text/plain; charset=utf-8")
 
 
-@MCPRouter.get("/detail/{id}", summary="获取 MCP 服务器详情", description="获取 MCP 服务器详情")
+@AIRouter.get("/detail/{id}", summary="获取 MCP 服务器详情", description="获取 MCP 服务器详情")
 async def detail_controller(
     id: int = Path(..., description="MCP ID"),
-    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:ai:query"]))
 ) -> JSONResponse:
     result_dict = await McpService.detail_service(auth=auth, id=id)
     logger.info(f"获取 MCP 服务器详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取 MCP 服务器详情成功")
 
 
-@MCPRouter.get("/list", summary="查询 MCP 服务器列表", description="查询 MCP 服务器列表")
+@AIRouter.get("/list", summary="查询 MCP 服务器列表", description="查询 MCP 服务器列表")
 async def list_controller(
     page: PaginationQueryParam = Depends(),
     search: McpQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:ai:query"]))
 ) -> JSONResponse:
     result_dict_list = await McpService.list_service(auth=auth, search=search, order_by=page.order_by)
     result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
@@ -62,38 +62,38 @@ async def list_controller(
     return SuccessResponse(data=result_dict, msg="查询 MCP 服务器列表成功")
 
 
-@MCPRouter.post("/create", summary="创建 MCP 服务器", description="创建 MCP 服务器")
+@AIRouter.post("/create", summary="创建 MCP 服务器", description="创建 MCP 服务器")
 async def create_controller(
     data: McpCreateSchema,
-    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:create"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:ai:create"]))
 ) -> JSONResponse:
     result_dict = await McpService.create_service(auth=auth, data=data)
     logger.info(f"创建 MCP 服务器成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="创建 MCP 服务器成功")
 
 
-@MCPRouter.put("/update/{id}", summary="修改 MCP 服务器", description="修改 MCP 服务器")
+@AIRouter.put("/update/{id}", summary="修改 MCP 服务器", description="修改 MCP 服务器")
 async def update_controller(
     data: McpUpdateSchema,
     id: int = Path(..., description="MCP ID"),
-    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:update"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:ai:update"]))
 ) -> JSONResponse:
     result_dict = await McpService.update_service(auth=auth, id=id, data=data)
     logger.info(f"修改 MCP 服务器成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改 MCP 服务器成功")
 
 
-@MCPRouter.delete("/delete", summary="删除 MCP 服务器", description="删除 MCP 服务器")
+@AIRouter.delete("/delete", summary="删除 MCP 服务器", description="删除 MCP 服务器")
 async def delete_controller(
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(["ai:mcp:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:ai:delete"]))
 ) -> JSONResponse:
     await McpService.delete_service(auth=auth, ids=ids)
     logger.info(f"删除 MCP 服务器成功: {ids}")
     return SuccessResponse(msg="删除 MCP 服务器成功")
 
 
-@MCPRouter.websocket("/ws/chat", name="WebSocket聊天")
+@AIRouter.websocket("/ws/chat", name="WebSocket聊天")
 async def websocket_chat_controller(
     websocket: WebSocket,
 ):

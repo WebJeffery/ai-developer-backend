@@ -12,7 +12,7 @@ class JobModel(CreatorMixin):
     """
     定时任务调度表
     """
-    __tablename__ = 'monitor_job'
+    __tablename__ = 'app_job'
     __table_args__ = ({'comment': '定时任务调度表'})
 
     name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, default='', comment='任务名称')
@@ -35,7 +35,7 @@ class JobLogModel(MappedBase):
     """
     定时任务调度日志表
     """
-    __tablename__ = 'monitor_job_log'
+    __tablename__ = 'app_job_log'
     __table_args__ = ({'comment': '定时任务调度日志表'})
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
@@ -48,7 +48,7 @@ class JobLogModel(MappedBase):
     job_trigger: Mapped[Optional[str]] = mapped_column(String(255),nullable=True,default='',comment='任务触发器')
     job_message: Mapped[Optional[str]] = mapped_column(String(500),nullable=True,default='',comment='日志信息')
     exception_info: Mapped[Optional[str]] = mapped_column(String(2000),nullable=True,default='',comment='异常信息')
-    job_id: Mapped[Optional[int]] = mapped_column(ForeignKey('monitor_job.id'), comment='任务ID')
+    job_id: Mapped[Optional[int]] = mapped_column(ForeignKey('app_job.id'), comment='任务ID')
     status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
     create_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now, comment='创建时间')
     # 任务关联关系

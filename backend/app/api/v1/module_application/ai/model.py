@@ -12,7 +12,7 @@ class McpModel(CreatorMixin):
     MCP 服务器表
     """
 
-    __tablename__ = 'ai_mcp'
+    __tablename__ = 'app_ai_mcp'
     __table_args__ = ({'comment': 'MCP 服务器表'})
 
     name: Mapped[str] = mapped_column(String(50), unique=True, comment='MCP 名称')

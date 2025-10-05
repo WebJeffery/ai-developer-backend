@@ -11,7 +11,7 @@ class DemoModel(CreatorMixin):
     """
     示例表
     """
-    __tablename__ = 'example_demo'
+    __tablename__ = 'gen_demo'
     __table_args__ = ({'comment': '示例表'})
 
     name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, default='', comment='名称')

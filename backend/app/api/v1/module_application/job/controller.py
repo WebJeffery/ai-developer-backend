@@ -25,7 +25,7 @@ JobRouter = APIRouter(route_class=OperationLogRoute, prefix="/job", tags=["定�
 @JobRouter.get("/detail/{id}", summary="获取定时任务详情", description="获取定时任务详情")
 async def get_obj_detail_controller(
     id: int = Path(..., description="定时任务ID"),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:query"]))
 ) -> JSONResponse:
     result_dict = await JobService.get_job_detail_service(id=id, auth=auth)
     logger.info(f"获取定时任务详情成功 {id}")
@@ -35,7 +35,7 @@ async def get_obj_detail_controller(
 async def get_obj_list_controller(
     page: PaginationQueryParam = Depends(),
     search: JobQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:query"]))
 ) -> JSONResponse:
     result_dict_list = await JobService.get_job_list_service(auth=auth, search=search, order_by=page.order_by)
     result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
@@ -45,7 +45,7 @@ async def get_obj_list_controller(
 @JobRouter.post("/create", summary="创建定时任务", description="创建定时任务")
 async def create_obj_controller(
     data: JobCreateSchema,
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:create"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:create"]))
 ) -> JSONResponse:
     result_dict = await JobService.create_job_service(auth=auth, data=data)
     logger.info(f"创建定时任务成功: {result_dict}")
@@ -55,7 +55,7 @@ async def create_obj_controller(
 async def update_obj_controller(
     data: JobUpdateSchema,
     id: int = Path(..., description="定时任务ID"),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:update"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:update"]))
 ) -> JSONResponse:
     result_dict = await JobService.update_job_service(auth=auth, id=id, data=data)
     logger.info(f"修改定时任务成功: {result_dict}")
@@ -64,7 +64,7 @@ async def update_obj_controller(
 @JobRouter.delete("/delete", summary="删除定时任务", description="删除定时任务")
 async def delete_obj_controller(
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:delete"]))
 ) -> JSONResponse:
     await JobService.delete_job_service(auth=auth, ids=ids)
     logger.info(f"删除定时任务成功: {ids}")
@@ -73,7 +73,7 @@ async def delete_obj_controller(
 @JobRouter.post('/export', summary="导出定时任务", description="导出定时任务")
 async def export_obj_list_controller(
     search: JobQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:export"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:export"]))
 ) -> StreamingResponse:
     # 获取全量数据
     result_dict_list = await JobService.get_job_list_service(search=search, auth=auth)
@@ -90,7 +90,7 @@ async def export_obj_list_controller(
 
 @JobRouter.delete("/clear", summary="清空定时任务日志", description="清空定时任务日志")
 async def clear_obj_log_controller(
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:delete"]))
 ) -> JSONResponse:
     await JobService.clear_job_service(auth=auth)
     logger.info(f"清空定时任务成功")
@@ -100,13 +100,13 @@ async def clear_obj_log_controller(
 async def option_obj_controller(
     id: int = Body(..., description="定时任务ID"),
     option: int = Body(..., description="操作类型 1: 暂停 2: 恢复 3: 重启"),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:update"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:update"]))
 ) -> JSONResponse:
     await JobService.option_job_service(auth=auth, id=id, option=option)
     logger.info(f"操作定时任务成功: {id}")
     return SuccessResponse(msg="操作定时任务成功")
 
-@JobRouter.get("/log", summary="获取定时任务日志", description="获取定时任务日志", dependencies=[Depends(AuthPermission(["monitor:job:query"]))])
+@JobRouter.get("/log", summary="获取定时任务日志", description="获取定时任务日志", dependencies=[Depends(AuthPermission(["app:job:query"]))])
 async def get_job_log_controller():
     data = [
         {
@@ -134,7 +134,7 @@ async def get_job_log_controller():
 @JobRouter.get("/log/detail/{id}", summary="获取定时任务日志详情", description="获取定时任务日志详情")
 async def get_job_log_detail_controller(
     id: int = Path(..., description="定时任务日志ID"),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:query"]))
 ) -> JSONResponse:
     result_dict = await JobLogService.get_job_log_detail_service(id=id, auth=auth)
     logger.info(f"获取定时任务日志详情成功 {id}")
@@ -145,7 +145,7 @@ async def get_job_log_detail_controller(
 async def get_job_log_list_controller(
     page: PaginationQueryParam = Depends(),
     search: JobLogQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:query"]))
 ) -> JSONResponse:
     order_by = [{"create_time": "desc"}]
     result_dict_list = await JobLogService.get_job_log_list_service(auth=auth, search=search, order_by=order_by)
@@ -157,7 +157,7 @@ async def get_job_log_list_controller(
 @JobRouter.delete("/log/delete", summary="删除定时任务日志", description="删除定时任务日志")
 async def delete_job_log_controller(
     ids: list[int] = Body(..., description="ID列表"),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:delete"]))
 ) -> JSONResponse:
     await JobLogService.delete_job_log_service(auth=auth, ids=ids)
     logger.info(f"删除定时任务日志成功: {ids}")
@@ -166,7 +166,7 @@ async def delete_job_log_controller(
 
 @JobRouter.delete("/log/clear", summary="清空定时任务日志", description="清空定时任务日志")
 async def clear_job_log_controller(
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:delete"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:delete"]))
 ) -> JSONResponse:
     await JobLogService.clear_job_log_service(auth=auth)
     logger.info(f"清空定时任务日志成功")
@@ -176,7 +176,7 @@ async def clear_job_log_controller(
 @JobRouter.post('/log/export', summary="导出定时任务日志", description="导出定时任务日志")
 async def export_job_log_list_controller(
     search: JobLogQueryParam = Depends(),
-    auth: AuthSchema = Depends(AuthPermission(["monitor:job:export"]))
+    auth: AuthSchema = Depends(AuthPermission(["app:job:export"]))
 ) -> StreamingResponse:
     # 获取全量数据
     result_dict_list = await JobLogService.get_job_log_list_service(search=search, auth=auth)

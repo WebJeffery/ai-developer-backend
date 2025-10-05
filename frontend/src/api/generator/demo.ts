@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const API_PATH = "/example/demo";
+const API_PATH = "/generator/demo";
 
 const ExampleAPI = {
   getExampleList(query: ExamplePageQuery) {

@@ -48,11 +48,11 @@ const GencodeAPI = {
   },
 
   // 修改代码生成信息
-  updateGenTable(table_id: number, data: GenTableUpdateSchema) {
+  updateGenTable(table_id: number, body: GenTableUpdateSchema) {
     return request<ApiResponse>({
       url: `${API_PATH}/update/${table_id}`,
       method: 'put',
-      data: data
+      data: body,
     })
   },
 

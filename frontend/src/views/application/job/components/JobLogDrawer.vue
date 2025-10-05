@@ -150,7 +150,7 @@ const props = defineProps({
   }
 })
 
-import JobAPI, { JobLogPageQuery, JobLogTable } from "@/api/monitor/job";
+import JobAPI, { JobLogPageQuery, JobLogTable } from "@/api/application/job";
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 

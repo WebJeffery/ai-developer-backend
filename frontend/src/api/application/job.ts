@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const API_PATH = "/monitor/job";
+const API_PATH = "/application/job";
 
 const JobAPI = {
   getJobList(query: JobPageQuery) {

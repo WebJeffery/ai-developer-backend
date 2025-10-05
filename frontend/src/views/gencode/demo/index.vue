@@ -22,10 +22,10 @@
                 </el-form-item>
                 <!-- 查询、重置、展开/收起按钮 -->
                 <el-form-item class="search-buttons">
-                    <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['demo:example:query']">
+                    <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['generator:demo:query']">
                             查询
                         </el-button>
-                        <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['demo:example:query']">
+                        <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['generator:demo:query']">
                             重置
                         </el-button>
                     <!-- 展开/收起 -->
@@ -62,33 +62,33 @@
             <!-- 功能区域 -->
             <div class="data-table__toolbar">
                 <div class="data-table__toolbar--actions">
-                    <el-button type="success" icon="plus" @click="handleOpenDialog('create')" v-hasPerm="['demo:example:create']">新增</el-button>
+                    <el-button type="success" icon="plus" @click="handleOpenDialog('create')" v-hasPerm="['generator:demo:create']">新增</el-button>
                     <el-button type="danger" icon="delete" :disabled="selectIds.length === 0"
-                        @click="handleDelete(selectIds)" v-hasPerm="['demo:example:delete']">批量删除</el-button>
+                        @click="handleDelete(selectIds)" v-hasPerm="['generator:demo:delete']">批量删除</el-button>
                     <el-dropdown trigger="click">
                         <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
                         <template #dropdown>
                             <el-dropdown-menu>
-                                <el-dropdown-item icon="Check" @click="handleMoreClick(true)" v-hasPerm="['demo:example:batch_available']">批量启用</el-dropdown-item>
+                                <el-dropdown-item icon="Check" @click="handleMoreClick(true)" v-hasPerm="['generator:demo:batch_available']">批量启用</el-dropdown-item>
                         <el-dropdown-item icon="CircleClose"
-                            @click="handleMoreClick(false)" v-hasPerm="['demo:example:batch_available']">批量停用</el-dropdown-item>
+                            @click="handleMoreClick(false)" v-hasPerm="['generator:demo:batch_available']">批量停用</el-dropdown-item>
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>
                 </div>
                 <div class="data-table__toolbar--tools">
                     <el-tooltip content="导入">
-                        <el-button type="info" icon="upload" circle @click="handleOpenImportDialog" v-hasPerm="['demo:example:import']" />
+                        <el-button type="info" icon="upload" circle @click="handleOpenImportDialog" v-hasPerm="['generator:demo:import']" />
                     </el-tooltip>
                     <el-tooltip content="导出">
-                        <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['demo:example:export']" />
+                        <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['generator:demo:export']" />
                     </el-tooltip>
                     <el-tooltip content="刷新">
-                        <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['demo:example:refresh']" />
+                        <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['generator:demo:refresh']" />
                     </el-tooltip>
                     <el-tooltip content="列表筛选">
                         <el-dropdown trigger="click">
-                            <el-button type="default" icon="operation" circle v-hasPerm="['demo:example:filter']" />
+                            <el-button type="default" icon="operation" circle v-hasPerm="['generator:demo:filter']" />
                             <template #dropdown>
                                 <el-dropdown-menu>
                                     <el-dropdown-item v-for="column in tableColumns" :key="column.prop"
@@ -145,11 +145,11 @@
                     label="操作" align="center" min-width="200">
                     <template #default="scope">
                         <el-button type="info" size="small" link icon="document"
-                            @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['demo:example:detail']">详情</el-button>
+                            @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['generator:demo:detail']">详情</el-button>
                         <el-button type="primary" size="small" link icon="edit"
-                            @click="handleOpenDialog('update', scope.row.id)" v-hasPerm="['demo:example:update']">编辑</el-button>
+                            @click="handleOpenDialog('update', scope.row.id)" v-hasPerm="['generator:demo:update']">编辑</el-button>
                         <el-button type="danger" size="small" link icon="delete"
-                            @click="handleDelete([scope.row.id])" v-hasPerm="['demo:example:delete']">删除</el-button>
+                            @click="handleDelete([scope.row.id])" v-hasPerm="['generator:demo:delete']">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -217,7 +217,7 @@
                     <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
                     <el-button @click="handleCloseDialog">取消</el-button>
                     <el-button v-if="dialogVisible.type !== 'detail'" type="primary"
-                        @click="handleSubmit" v-hasPerm="['demo:example:submit']">确定</el-button>
+                        @click="handleSubmit" v-hasPerm="['generator:demo:submit']">确定</el-button>
                     <el-button v-else type="primary" @click="handleCloseDialog">确定</el-button>
                 </div>
             </template>
@@ -238,7 +238,7 @@ defineOptions({
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { ResultEnum } from "@/enums/api/result.enum";
-import ExampleAPI, { ExampleTable, ExampleForm, ExamplePageQuery } from "@/api/demo/example";
+import ExampleAPI, { ExampleTable, ExampleForm, ExamplePageQuery } from "@/api/generator/demo";
 import ImportModal from "@/components/Upload/ImportModal.vue";
 import DatePicker from "@/components/DatePicker/index.vue";
 
