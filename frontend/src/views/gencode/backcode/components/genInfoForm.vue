@@ -102,7 +102,7 @@
         </el-form-item>
       </el-col>
 
-      <el-col :span="24" v-if="info.genType == '1'">
+      <el-col v-if="info.genType == '1'" :span="24">
         <el-form-item prop="genPath">
           <template #label>
             自定义路径
@@ -261,7 +261,7 @@ const rules = ref({
   functionName: [{ required: true, message: "请输入生成功能名", trigger: "blur" }]
 });
 
-function subSelectChange(value) {
+function subSelectChange() {
   props.info.subTableFkName = "";
 }
 
@@ -273,7 +273,7 @@ function tplSelectChange(value) {
 }
 
 function setSubTableColumns(value) {
-  for (var item in props.tables) {
+  for (const item in props.tables) {
     const name = props.tables[item].tableName;
     if (value === name) {
       subColumns.value = props.tables[item].columns;

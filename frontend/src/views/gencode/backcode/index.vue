@@ -115,11 +115,10 @@
             <el-col :span="1.5">
               <el-tooltip content="列表筛选">
                 <el-dropdown trigger="click">
-                  <el-button type="default" icon="operation" circle v-hasPerm="['demo:example:filter']" />
+                  <el-button v-hasPerm="['demo:example:filter']" type="default" icon="operation" circle/>
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop"
-                        :command="column">
+                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
                         <el-checkbox v-model="column.show">
                           {{ column.label }}
                         </el-checkbox>
@@ -257,7 +256,9 @@ const data = reactive({
     page_no: 1,
     page_size: 10,
     table_name: undefined,
-    table_comment: undefined
+    table_comment: undefined,
+    start_time: undefined,
+    end_time: undefined
   },
   preview: {
     open: false,
@@ -308,8 +309,8 @@ function loadingData() {
   }
   
   GencodeAPI.listTable(queryParams).then(response => {
-    tableList.value = response.rows;
-    total.value = response.total;
+    tableList.value = response.data.data.items;
+    total.value = response.data.data.total;
     loading.value = false;
   });
 }
@@ -385,7 +386,9 @@ function handleRefresh() {
     page_no: 1,
     page_size: 10,
     table_name: undefined,
-    table_comment: undefined
+    table_comment: undefined,
+    start_time: undefined,
+    end_time: undefined
   };
   handleQuery();
 }
