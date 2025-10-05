@@ -442,3 +442,5 @@ function handleDelete(row) {
 
 loadingData();
 </script>
+
+<style lang="scss" scoped></style>
