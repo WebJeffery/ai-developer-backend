@@ -2,54 +2,55 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       {% for column in columns %}
-        {% if column.isQuery == "1" %}
-          {% set dictType = column.dictType %}
-          {% set parentheseIndex = column.columnComment.find("（") %}
-          {% set comment = column.columnComment[:parentheseIndex] if parentheseIndex != -1 else column.columnComment %}
+        {% if column.is_query == "1" %}
+          {% set dict_type = column.dict_type %}
+          {% set column_comment = column.column_comment if column.column_comment else '' %}
+          {% set parentheseIndex = column_comment.find("（") %}
+          {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
 
-          {% if column.htmlType == "input" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.pythonField  | snake_to_camel }}">
+          {% if column.html_type == "input" %}
+            <el-form-item label="{{ comment }}" prop="{{ column.python_field  | snake_to_camel }}">
               <el-input
-                v-model="queryParams.{{ column.pythonField | snake_to_camel }}"
+                v-model="queryParams.{{ column.python_field | snake_to_camel }}"
                 placeholder="请输入{{ comment }}"
                 clearable
                 @keyup.enter="handleQuery"
               />
             </el-form-item>
-          {% elif (column.htmlType == "select" or column.htmlType == "radio") and dictType != "" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.pythonField  | snake_to_camel  }}">
+          {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
+            <el-form-item label="{{ comment }}" prop="{{ column.python_field  | snake_to_camel  }}">
               <el-select
-                  v-model="queryParams.{{ column.pythonField | snake_to_camel  }}"
+                  v-model="queryParams.{{ column.python_field | snake_to_camel  }}"
                   placeholder="请选择{{ comment }}"
                   style="width: 180px"
                   clearable>
                 <el-option
-                  v-for="dict in {{ dictType }}"
+                  v-for="dict in {{ dict_type }}"
                   :key="dict.value"
                   :label="dict.label"
                   :value="dict.value"
                 />
               </el-select>
             </el-form-item>
-          {% elif (column.htmlType == "select" or column.htmlType == "radio") and dictType %}
-            <el-form-item label="{{ comment }}" prop="{{ column.pythonField | snake_to_camel  }}">
-              <el-select v-model="queryParams.{{ column.pythonField | snake_to_camel  }}" placeholder="请选择{{ comment }}" clearable>
+          {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
+            <el-form-item label="{{ comment }}" prop="{{ column.python_field | snake_to_camel  }}">
+              <el-select v-model="queryParams.{{ column.python_field | snake_to_camel  }}" placeholder="请选择{{ comment }}" clearable>
                 <el-option label="请选择字典生成" value="" />
               </el-select>
             </el-form-item>
-          {% elif column.htmlType == "datetime" and column.queryType != "BETWEEN" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.pythonField  | snake_to_camel }}">
+          {% elif column.html_type == "datetime" and column.query_type != "BETWEEN" %}
+            <el-form-item label="{{ comment }}" prop="{{ column.python_field  | snake_to_camel }}">
               <el-date-picker clearable
-                v-model="queryParams.{{ column.pythonField | snake_to_camel  }}"
+                v-model="queryParams.{{ column.python_field | snake_to_camel  }}"
                 type="date"
                 value-format="YYYY-MM-DD"
                 placeholder="请选择{{ comment }}">
               </el-date-picker>
             </el-form-item>
-          {% elif column.htmlType == "datetime" and column.queryType == "BETWEEN" %}
+          {% elif column.html_type == "datetime" and column.query_type == "BETWEEN" %}
             <el-form-item label="{{ comment }}" style="width: 308px">
               <el-date-picker
-                v-model="daterange{{ column.pythonField | snake_to_pascal_case }}"
+                v-model="daterange{{ column.python_field | snake_to_pascal_case }}"
                 value-format="YYYY-MM-DD"
                 type="daterange"
                 range-separator="-"
@@ -83,7 +84,7 @@
                       plain
                       icon="Plus"
                       @click="handleAdd"
-                      v-hasPermi="['{{ moduleName }}:{{ businessName }}:add']"
+                      v-hasPermi="['{{ module_name }}:{{ business_name }}:add']"
                     >新增</el-button>
                     <el-button
                       type="success"
@@ -91,7 +92,7 @@
                       icon="Edit"
                       :disabled="single"
                       @click="handleUpdate"
-                      v-hasPermi="['{{ moduleName }}:{{ businessName }}:edit']"
+                      v-hasPermi="['{{ module_name }}:{{ business_name }}:edit']"
                     >修改</el-button>
                     <el-button
                       type="danger"
@@ -99,14 +100,14 @@
                       icon="Delete"
                       :disabled="multiple"
                       @click="handleDelete"
-                      v-hasPermi="['{{ moduleName }}:{{ businessName }}:remove']"
+                      v-hasPermi="['{{ module_name }}:{{ business_name }}:remove']"
                     >删除</el-button>
                   <el-button
                         type="primary"
                         plain
                         icon="Upload"
                         @click="handleImport"
-                        v-hasPermi="['{{ moduleName }}:{{ businessName }}:import']"
+                        v-hasPermi="['{{ module_name }}:{{ business_name }}:import']"
                         >导入</el-button
                     >
                     <el-button
@@ -114,14 +115,14 @@
                       plain
                       icon="Download"
                       @click="handleExport"
-                      v-hasPermi="['{{ moduleName }}:{{ businessName }}:export']"
+                      v-hasPermi="['{{ module_name }}:{{ business_name }}:export']"
                     >导出</el-button>
                 </template>
             </TableSetup>
             <auto-table
                 ref="multipleTable"
                 class="mytable"
-                :tableData="{{ businessName }}List"
+                :tableData="{{ business_name }}List"
                 :columns="columns"
                 :loading="loading"
                 :stripe="stripe"
@@ -130,425 +131,408 @@
                 @onSelectionChange="handleSelectionChange"
             >
               {% for column in columns %}
-                {% set pythonField = column.pythonField | snake_to_camel %}
-                {% set parentheseIndex = column.columnComment.find("（") %}
-                {% set comment = column.columnComment[:parentheseIndex] if parentheseIndex != -1 else column.columnComment %}
+                {% set python_field = column.python_field | snake_to_camel %}
+                {% set column_comment = column.column_comment if column.column_comment else '' %}
+                {% set parentheseIndex = column_comment.find("（") %}
+                {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
 
-                {% if column.isList and column.htmlType == "datetime" %}
-                    <template #{{ pythonField }}="{ row }">
-                      <span>{% raw %}{{{% endraw %} parseTime(row.{{ pythonField }}, '{y}-{m}-{d}') {% raw %}}}{% endraw %}</span>
+                {% if column.is_list and column.html_type == "datetime" %}
+                    <template #{{ python_field }}="{ row }">
+                      <span>{% raw %}{{{% endraw %} parseTime(row.{{ python_field }}, '{y}-{m}-{d}') {% raw %}}}{% endraw %}</span>
                     </template>
-                {% elif column.isList == "1" and column.htmlType == "imageUpload" %}
-                    <template #{{ pythonField }}="{ row }">
-                      <image-preview :src="fullUrl(row.{{ pythonField }})"  v-if="row.{{ pythonField }}" :width="50" :height="50"/>
+                {% elif column.is_list == "1" and column.html_type == "imageUpload" %}
+                    <template #{{ python_field }}="{ row }">
+                      <image-preview :src="fullUrl(row.{{ python_field }})"  v-if="row.{{ python_field }}" :width="50" :height="50"/>
                     </template>
-                {% elif column.isList == "1" and column.dictType != "" %}
-                    <template #{{ pythonField }}="{ row }">
-                      {% if column.htmlType == "checkbox" %}
-                        <dict-tag :options="{{ column.dictType }}" :value="row.{{ pythonField }} ? row.{{ pythonField }}.split(',') : []"/>
+                {% elif column.is_list == "1" and column.dict_type != "" %}
+                    <template #{{ python_field }}="{ row }">
+                      {% if column.html_type == "checkbox" %}
+                        <dict-tag :options="{{ column.dict_type }}" :value="row.{{ python_field }} ? row.{{ python_field }}.split(',') : []"/>
                       {% else %}
-                        <dict-tag :options="{{ column.dictType }}" :value="row.{{ pythonField }}"/>
+                        <dict-tag :options="{{ column.dict_type }}" :value="row.{{ python_field }}"/>
                       {% endif %}
                     </template>
                 {% endif %}
               {% endfor %}
-                <template #operate="{ row }">
-                  <el-button link type="primary" icon="Edit" @click="handleUpdate(row)" v-hasPermi="['{{ moduleName }}:{{ businessName }}:edit']">修改</el-button>
-                  <el-button link type="primary" icon="Delete" @click="handleDelete(row)" v-hasPermi="['{{ moduleName }}:{{ businessName }}:remove']">删除</el-button>
-                </template>
             </auto-table>
-            <div class="table-pagination">
-                <pagination
-                    v-show="total > 0"
-                    :total="total"
-                    v-model:page="queryParams.pageNum"
-                    v-model:limit="queryParams.pageSize"
-                    @pagination="getList"
-                />
-            </div>
         </el-card>
 
-    <!-- 添加或修改{{ functionName }}对话框 -->
-    <el-dialog :title="title" v-model="open" width="800px" append-to-body>
-      <el-form ref="{{ businessName }}Ref" :model="form" :rules="rules" label-width="80px">
-        {% for column in columns %}
-          {% set field = column.pythonField | snake_to_camel %}
-          {% if column.isInsert == "1" and not column.isPk == "1" %}
-            {% if column.usableColumn or not column.superColumn %}
-              {% set parentheseIndex = column.columnComment.find("（") %}
-              {% set comment = column.columnComment[:parentheseIndex] if parentheseIndex != -1 else column.columnComment %}
-              {% set dictType = column.dictType %}
+        <el-dialog v-model="open" title="{{ business_name }}" width="700px" append-to-body>
+            <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+                {% for column in columns %}
+                  {% if column.is_insert == "1" or column.is_edit == "1" %}
+                    {% set dict_type = column.dict_type %}
+                    {% set column_comment = column.column_comment if column.column_comment else '' %}
+                    {% set parentheseIndex = column_comment.find("（") %}
+                    {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
+                    {% set required = 'true' if column.is_required == '1' else 'false' %}
 
-              {% if column.htmlType == "input" %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-input v-model="form.{{ field }}" placeholder="请输入{{ comment }}" />
-                </el-form-item>
-              {% elif column.htmlType == "imageUpload" %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <image-upload v-model="form.{{ field }}"/>
-                </el-form-item>
-              {% elif column.htmlType == "fileUpload" %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <file-upload v-model="form.{{ field }}"/>
-                </el-form-item>
-              {% elif column.htmlType == "editor" %}
-                <el-form-item label="{{ comment }}">
-                  <editor v-model="form.{{ field }}" :min-height="192"/>
-                </el-form-item>
-              {% elif column.htmlType == "select" and dictType != "" %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-select v-model="form.{{ field }}" placeholder="请选择{{ comment }}">
-                    <el-option
-                      v-for="dict in {{ dictType }}"
-                      :key="dict.value"
-                      :label="dict.label"
-                      {% if column.pythonType == "int" %}
-                        :value="parseInt(dict.value)"
-                      {% else %}
-                        :value="dict.value"
-                      {% endif %}
-                    ></el-option>
-                  </el-select>
-                </el-form-item>
-              {% elif column.htmlType == "select" and dictType %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-select v-model="form.{{ field }}" placeholder="请选择{{ comment }}">
-                    <el-option label="请选择字典生成" value="" />
-                  </el-select>
-                </el-form-item>
-              {% elif column.htmlType == "checkbox" and dictType != "" %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-checkbox-group v-model="form.{{ field }}">
-                    <el-checkbox
-                      v-for="dict in {{ dictType }}"
-                      :key="dict.value"
-                      :label="dict.value">
-                      {{ dict.label }}
-                    </el-checkbox>
-                  </el-checkbox-group>
-                </el-form-item>
-              {% elif column.htmlType == "checkbox" and dictType %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-checkbox-group v-model="form.{{ field }}">
-                    <el-checkbox>请选择字典生成</el-checkbox>
-                  </el-checkbox-group>
-                </el-form-item>
-              {% elif column.htmlType == "radio" and dictType != "" %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-radio-group v-model="form.{{ field }}">
-                    <el-radio
-                      v-for="dict in {{ dictType }}"
-                      :key="dict.value"
-                      {% if column.pythonType == "int" %}
-                        :label="parseInt(dict.value)"
-                      {% else %}
-                        :label="dict.value"
-                      {% endif %}
-                    >{{ dict.label }}</el-radio>
-                  </el-radio-group>
-                </el-form-item>
-              {% elif column.htmlType == "radio" and dictType %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-radio-group v-model="form.{{ field }}">
-                    <el-radio label="1">请选择字典生成</el-radio>
-                  </el-radio-group>
-                </el-form-item>
-              {% elif column.htmlType == "datetime" %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-date-picker clearable
-                    v-model="form.{{ field }}"
-                    type="date"
-                    value-format="YYYY-MM-DD"
-                    placeholder="请选择{{ comment }}">
-                  </el-date-picker>
-                </el-form-item>
-              {% elif column.htmlType == "textarea" %}
-                <el-form-item label="{{ comment }}" prop="{{ field }}">
-                  <el-input v-model="form.{{ field }}" type="textarea" placeholder="请输入内容" />
-                </el-form-item>
-              {% endif %}
-            {% endif %}
-          {% endif %}
-        {% endfor %}
+                    {% if column.html_type == "input" %}
+                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                            <el-input v-model="form.{{ column.python_field }}" placeholder="请输入{{ comment }}" />
+                        </el-form-item>
+                    {% elif column.html_type == "textarea" %}
+                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                            <el-input v-model="form.{{ column.python_field }}" type="textarea" placeholder="请输入{{ comment }}" rows="4" />
+                        </el-form-item>
+                    {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
+                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                            <el-select v-model="form.{{ column.python_field }}" placeholder="请选择{{ comment }}">
+                                <el-option v-for="dict in {{ dict_type }}" :key="dict.value" :label="dict.label" :value="dict.value" />
+                            </el-select>
+                        </el-form-item>
+                    {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
+                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                            <el-select v-model="form.{{ column.python_field }}" placeholder="请选择{{ comment }}">
+                                <el-option label="请选择字典生成" value="" />
+                            </el-select>
+                        </el-form-item>
+                    {% elif column.html_type == "date" %}
+                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                            <el-date-picker v-model="form.{{ column.python_field }}" type="date" value-format="YYYY-MM-DD" placeholder="请选择{{ comment }}" />
+                        </el-form-item>
+                    {% elif column.html_type == "datetime" %}
+                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                            <el-date-picker v-model="form.{{ column.python_field }}" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" placeholder="请选择{{ comment }}" />
+                        </el-form-item>
+                    {% elif column.html_type == "checkbox" %}
+                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+                            <el-checkbox v-model="form.{{ column.python_field }}">{{ comment }}</el-checkbox>
+                        </el-form-item>
+                    {% elif column.html_type == "imageUpload" %}
+                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+                            <image-upload v-model="form.{{ column.python_field }}" />
+                        </el-form-item>
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+            </el-form>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="cancel">取消</el-button>
+                    <el-button type="primary" @click="confirm">确定</el-button>
+                </span>
+            </template>
+        </el-dialog>
 
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
-      <!-- 导入数据对话框 -->
-    <ImportData
-        v-if="openImport"
-        v-model="openImport"
-        tableName="{{ tableName }}"
-        @success="handleImportSuccess"
-    />
-  </div>
-</template>
+        <el-dialog v-model="openImport" title="导入" width="400px" append-to-body>
+            <file-uploader
+                v-model="uploadFile"
+                accept=".xlsx"
+                :limit="1"
+                :headers="{Authorization: getToken()}"
+                :before-upload="beforeUpload"
+                @on-success="handleImportSuccess"
+                tip="<b>仅支持.xlsx格式文件导入</b>"
+            >
+                <template #trigger>
+                    <el-button type="primary" plain>点击上传</el-button>
+                </template>
+                <template #tip>
+                    <el-link type="primary" :underline="false" @click="handleTemplate">
+                        下载模板
+                    </el-link>
+                </template>
+            </file-uploader>
+        </el-dialog>
+    </div>
+  </template>
 
-<script setup name="{{ tableName|snake_to_pascal_case }}">
-import { list{{ BusinessName }}, get{{ BusinessName }}, del{{ BusinessName }}, add{{ BusinessName }}, update{{ BusinessName }}, import{{ BusinessName }} } from "@/api/{{ moduleName }}/{{ businessName }}";
-import { listAllTable } from '@/api/system/table'
-import TableSetup from '@/components/TableSetup'
-import AutoTable from '@/components/AutoTable'
-import ImportData from '@/components/ImportData'
-const { proxy } = getCurrentInstance();
-{% if dicts != '' %}
-{% set dictsNoSymbol = dicts.replace("'", "") %}
-const { {{ dictsNoSymbol }} } = proxy.useDict({{ dicts }});
-{% endif %}
+  <script setup>
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
+import { ElMessage, ElMessageBox, ElDialog } from 'element-plus'
+import { parseTime } from '@/utils/date-time'
+import { useI18n } from 'vue-i18n'
+import { useUserStore } from '@/store/modules/user'
+import FileUploader from '@/components/upload/FileUploader.vue'
+import { fullUrl } from '@/utils/index'
+import ImagePreview from '@/components/preview/ImagePreview.vue'
+import TableSetup from '@/components/table/TableSetup.vue'
+import AutoTable from '@/components/table/AutoTable.vue'
+import {
+  list{{ business_name|snake_to_pascal_case }},
+  get{{ business_name|snake_to_pascal_case }},
+  del{{ business_name|snake_to_pascal_case }},
+  add{{ business_name|snake_to_pascal_case }},
+  update{{ business_name|snake_to_pascal_case }},
+  export{{ business_name|snake_to_pascal_case }},
+  import{{ business_name|snake_to_pascal_case }},
+  getImportTemplate{{ business_name|snake_to_pascal_case }}
+} from '@/api/{{ module_name }}/{{ business_name }}'
 
-const {{ businessName }}List = ref([]);
-{#{% if table.sub %}#}
-{#  const {{ subclassName }}List = ref([]);#}
-{#{% endif %}#}
-const open = ref(false);
-const loading = ref(true);
-const showSearch = ref(true);
-const ids = ref([]);
-{#{% if table.sub %}#}
-{#  const checked{{ subClassName }} = ref([]);#}
-{#{% endif %}#}
-const single = ref(true);
-const multiple = ref(true);
-const total = ref(0);
-const title = ref("");
+const { t } = useI18n()
+const userStore = useUserStore()
+const getToken = () => {
+  return userStore.token
+}
+
+// 表格数据
+const {{ business_name }}List = ref([])
+// 加载状态
+const loading = ref(false)
+// 弹出层标题
+const title = ref('')
+// 表单参数
+const form = reactive({})
+// 表单校验
+const rules = ref({})
+// 显示状态
+const open = ref(false)
+// 显示导入状态
+const openImport = ref(false)
+// 选中数组
+const ids = ref([])
+// 非单个禁用
+const single = ref(true)
+// 非多个禁用
+const multiple = ref(true)
+// 显示搜索条件
+const showSearch = ref(true)
+// 表格高度
+const tableHeight = ref('auto')
+// 表格条纹
+const stripe = ref(false)
+// 全屏
+const fullScreen = ref(false)
+// 上传的文件
+const uploadFile = ref()
+// 日期范围
 {% for column in columns %}
-  {% if column.htmlType == "datetime" and column.queryType == "BETWEEN" %}
-    const daterange{{ column.pythonField | snake_to_pascal_case }} = ref([]);
+  {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
+    const daterange{{ column.python_field | snake_to_pascal_case }} = ref([])
   {% endif %}
 {% endfor %}
-
-const columns = ref([])
-const stripe = ref(true)
-const isTable = ref(true)
-const tableHeight = ref(500)
-const fullScreen = ref(false)
-const openImport = ref(false)
-
-const data = reactive({
-  form: {},
-  queryParams: {
-    pageNum: 1,
-    pageSize: 10,
-    {% for column in columns %}
-    {% if column.isQuery == "1" %}
-    {{ column.pythonField | snake_to_camel }}: null{% if not loop.last %},{% endif %}
-
+// 查询参数
+const queryParams = ref({
+  {% for column in columns %}
+    {% if column.is_query == "1" and column.query_type != "BETWEEN" %}
+      {{ column.python_field | snake_to_camel }}: undefined,
     {% endif %}
-    {% endfor %}
-  },
-  rules: {
+  {% endfor %}
+})
+
+const proxy = getCurrentInstance()?.proxy
+
+// 列数据
+const columns = ref([])
+// 是否表格显示
+const isTable = ref(true)
+
+// 获取用户列表
+const getList = async () => {
+  loading.value = true
+  const params = {
+    ...queryParams.value
     {% for column in columns %}
-      {% if column.isRequired == "1" %}
-        {% set parentheseIndex = column.columnComment.find("（") %}
-        {% set comment = column.columnComment[:parentheseIndex] if parentheseIndex != -1 else column.columnComment %}
-        {{ column.pythonField | snake_to_camel }}: [
-          { required: true, message: "{{ comment }}不能为空", trigger: "{% if column.htmlType == "select" or column.htmlType == "radio" %}change{% else %}blur{% endif %}" }
-        ]{% if not loop.last %},{% endif %}
+      {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
+        ,
+        {{ column.python_field | snake_to_camel }}_start: daterange{{ column.python_field | snake_to_pascal_case }}.value && daterange{{ column.python_field | snake_to_pascal_case }}.value.length > 0 ? daterange{{ column.python_field | snake_to_pascal_case }}.value[0] : undefined,
+        {{ column.python_field | snake_to_camel }}_end: daterange{{ column.python_field | snake_to_pascal_case }}.value && daterange{{ column.python_field | snake_to_pascal_case }}.value.length > 0 ? daterange{{ column.python_field | snake_to_pascal_case }}.value[1] : undefined
       {% endif %}
     {% endfor %}
   }
-});
+  try {
+    const response = await list{{ business_name|snake_to_pascal_case }}(params)
+    {{ business_name }}List.value = response.rows
+    loading.value = false
+  } catch (error) {
+    loading.value = false
+  }
+}
 
-const { queryParams, form, rules } = toRefs(data);
-
-/** 查询{{ functionName }}列表 */
-function getList() {
-  loading.value = true;
+// 获取列信息
+const getColumns = async () => {
+  const list = []
   {% for column in columns %}
-    {% if column.htmlType == "datetime" and column.queryType == "BETWEEN" %}
-      queryParams.value.params = {};
+    {% set python_field = column.python_field | snake_to_camel %}
+    {% set column_comment = column.column_comment if column.column_comment else '' %}
+    {% set parentheseIndex = column_comment.find("（") %}
+    {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
+    {% if column.is_list == "1" %}
+      list.push({
+        prop: '{{ python_field }}',
+        label: '{{ comment }}',
+        width: 180,
+        sortable: true,
+        fixed: false,
+        visible: true,
+        formatter: undefined
+      })
     {% endif %}
   {% endfor %}
+  columns.value = list
+  isTable.value = true
+}
+
+// 搜索按钮点击事件
+const handleQuery = () => {
+  getList()
+}
+
+// 重置按钮点击事件
+const resetQuery = () => {
+  // 重置日期范围
   {% for column in columns %}
-    {% if column.htmlType == "datetime" and column.queryType == "BETWEEN" %}
-      if (null != daterange{{ column.pythonField | snake_to_pascal_case }} && '' != daterange{{ column.pythonField | snake_to_pascal_case }}) {
-        queryParams.value.params["begin{{ column.pythonField | snake_to_pascal_case }}"] = daterange{{ column.pythonField | snake_to_pascal_case }}.value[0];
-        queryParams.value.params["end{{ column.pythonField | snake_to_pascal_case }}"] = daterange{{ column.pythonField | snake_to_pascal_case }}.value[1];
-      }
+    {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
+      daterange{{ column.python_field | snake_to_pascal_case }}.value = []
     {% endif %}
   {% endfor %}
-  list{{ BusinessName }}(queryParams.value).then(response => {
-    {{ businessName }}List.value = response.rows;
-    total.value = response.total;
-    loading.value = false;
-  });
+  // 重置表单
+  Object.keys(queryParams.value).forEach(key => {
+    queryParams.value[key] = undefined
+  })
+  getList()
 }
 
-function getColumns() {
-    listAllTable({ tableName: '{{ tableName }}' })
-        .then((response) => {
-            columns.value = response.data
-        })
-        .then(() => {
-            getList()
-        })
+// 多选框选中数据变化
+const handleSelectionChange = (selection) => {
+  ids.value = selection.map(item => item.{{ primaryKey }})
+  single.value = !(selection.length === 1)
+  multiple.value = !(selection.length > 0)
 }
 
-// 取消按钮
-function cancel() {
-  open.value = false;
-  reset();
+// 新增按钮点击事件
+const handleAdd = () => {
+  title.value = '新增{{ function_name }}'
+  open.value = true
+  form = {}
 }
 
-// 表单重置
-function reset() {
-  form.value = {
-    {% for column in columns %}
-      {% if column.htmlType == "checkbox" %}
-        {{ column.pythonField | snake_to_camel  }}: []{% if not loop.last %},{% endif %}
-      {% else %}
-        {{ column.pythonField | snake_to_camel  }}: null{% if not loop.last %},{% endif %}
-      {% endif %}
-    {% endfor %}
-  };
-{#  {% if table.sub %}#}
-{#    {{ subclassName }}List.value = [];#}
-{#  {% endif %}#}
-  proxy.resetForm("{{ businessName }}Ref");
-}
-
-/** 搜索按钮操作 */
-function handleQuery() {
-  queryParams.value.pageNum = 1;
-  getList();
-}
-
-/** 重置按钮操作 */
-function resetQuery() {
-  {% for column in columns %}
-    {% if column.htmlType == "datetime" and column.queryType == "BETWEEN" %}
-      daterange{{ column.pythonField | snake_to_pascal_case }}.value = [];
-    {% endif %}
-  {% endfor %}
-  proxy.resetForm("queryRef");
-  handleQuery();
-}
-
-// 多选框选中数据
-function handleSelectionChange(selection) {
-  ids.value = selection.map(item => item.{{ pkColumn.pythonField }});
-  single.value = selection.length != 1;
-  multiple.value = !selection.length;
-}
-
-/** 新增按钮操作 */
-function handleAdd() {
-  reset();
-  open.value = true;
-  title.value = "添加{{ functionName }}";
-}
-
-/** 新增按钮操作 */
-function handleImport() {
-    openImport.value = true
-}
-
-/** 修改按钮操作 */
-function handleUpdate(row) {
-  reset();
-  const {{ tableName | snake_to_camel }}{{ pkColumn.pythonField | snake_to_pascal_case }} = row.{{ pkColumn.pythonField | snake_to_camel }} || ids.value
-  get{{ BusinessName }}({{ tableName | snake_to_camel }}{{ pkColumn.pythonField | snake_to_pascal_case }}).then(response => {
-    form.value = response.data;
-    {% for column in columns %}
-      {% if column.htmlType == "checkbox" %}
-        form.value.{{ column.pythonField | snake_to_camel }} = form.value.{{ column.pythonField | snake_to_camel }}.split(",");
-      {% endif %}
-    {% endfor %}
-{#    {% if table.sub %}#}
-{#      {{ subclassName }}List.value = response.data.{{ subclassName }}List;#}
-{#    {% endif %}#}
-    open.value = true;
-    title.value = "修改{{ functionName }}";
-  });
-}
-
-/** 提交按钮 */
-function submitForm() {
-  proxy.$refs["{{ businessName }}Ref"].validate(valid => {
-    if (valid) {
-      {% for column in columns %}
-        {% if column.htmlType == "checkbox" %}
-          form.value.{{ column.pythonField | snake_to_camel }} = form.value.{{ column.pythonField | snake_to_camel }}.join(",");
-        {% endif %}
-      {% endfor %}
-{#      {% if table.sub %}#}
-{#        form.value.{{ subclassName }}List = {{ subclassName }}List.value;#}
-{#      {% endif %}#}
-      if (form.value.{{ pkColumn.pythonField }} != null) {
-        update{{ BusinessName }}(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功");
-          open.value = false;
-          getList();
-        });
-      } else {
-        add{{ BusinessName }}(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功");
-          open.value = false;
-          getList();
-        });
-      }
+// 修改按钮点击事件
+const handleUpdate = async () => {
+  if (ids.value.length === 1) {
+    title.value = '修改{{ function_name }}'
+    open.value = true
+    try {
+      const response = await get{{ business_name|snake_to_pascal_case }}({ id: ids.value[0] })
+      Object.assign(form, response)
+    } catch (error) {
+      ElMessage.error(error.msg || '获取详情失败')
     }
-  });
+  }
 }
 
-/** 删除按钮操作 */
-function handleDelete(row) {
-  const _{{ pkColumn.pythonField }}s = row.{{ pkColumn.pythonField }} || ids.value;
-  proxy.$modal.confirm('是否确认删除{{ functionName }}编号为"' + _{{ pkColumn.pythonField }}s + '"的数据项？').then(function() {
-    return del{{ BusinessName }}(_{{ pkColumn.pythonField }}s);
-  }).then(() => {
-    getList();
-    proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {});
+// 取消按钮点击事件
+const cancel = () => {
+  open.value = false
+  openImport.value = false
+  form = {}
+  uploadFile.value = undefined
 }
 
-{#{% if table.sub %}#}
-{#  /** {{ subTable.functionName }}序号 */#}
-{#  function row{{ subClassName }}Index({ row, rowIndex }) {#}
-{#    row.index = rowIndex + 1;#}
-{#  }#}
-{##}
-{#  /** {{ subTable.functionName }}添加按钮操作 */#}
-{#  function handleAdd{{ subClassName }}() {#}
-{#    let obj = {};#}
-{#    {% for column in subTable.columns %}#}
-{#      {% if column.pk or column.pythonField == subTableFkclassName %}#}
-{#      {% elif column.list and pythonField != "" %}#}
-{#        obj.{{ column.pythonField }} = "";#}
-{#      {% endif %}#}
-{#    {% endfor %}#}
-{#    {{ subclassName }}List.value.push(obj);#}
-{#  }#}
-{##}
-{#  /** {{ subTable.functionName }}删除按钮操作 */#}
-{#  function handleDelete{{ subClassName }}() {#}
-{#    if (checked{{ subClassName }}.value.length == 0) {#}
-{#      proxy.$modal.msgError("请先选择要删除的{{ subTable.functionName }}数据");#}
-{#    } else {#}
-{#      const {{ subclassName }}s = {{ subclassName }}List.value;#}
-{#      const checked{{ subClassName }}s = checked{{ subClassName }}.value;#}
-{#      {{ subclassName }}List.value = {{ subclassName }}s.filter(function(item) {#}
-{#        return checked{{ subClassName }}s.indexOf(item.index) == -1#}
-{#      });#}
-{#    }#}
-{#  }#}
-{##}
-{#  /** 复选框选中数据 */#}
-{#  function handle{{ subClassName }}SelectionChange(selection) {#}
-{#    checked{{ subClassName }}.value = selection.map(item => item.index)#}
-{#  }#}
-{#{% endif %}#}
+// 表单校验
+const validateForm = () => {
+  return new Promise((resolve, reject) => {
+    proxy.$refs.formRef.validate(valid => {
+      if (valid) {
+        resolve(true)
+      } else {
+        reject(new Error('表单校验失败'))
+      }
+    })
+  })
+}
 
-/** 导出按钮操作 */
-function handleExport() {
-  proxy.download('{{ moduleName }}/{{ businessName }}/export', {
-    ...queryParams.value
-  }, `{{ businessName }}_${new Date().getTime()}.xlsx`)
+// 确认按钮点击事件
+const confirm = async () => {
+  try {
+    await validateForm()
+    const method = form.id ? update{{ business_name|snake_to_pascal_case }} : add{{ business_name|snake_to_pascal_case }}
+    await method(form)
+    ElMessage.success(form.id ? '修改成功' : '新增成功')
+    open.value = false
+    getList()
+  } catch (error) {
+    ElMessage.error(error.msg || '操作失败')
+  }
+}
+
+// 删除按钮点击事件
+const handleDelete = async () => {
+  if (ids.value.length > 0) {
+    try {
+      await ElMessageBox.confirm('是否确认删除所选数据?', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+      await del{{ business_name|snake_to_pascal_case }}({ ids: ids.value })
+      ElMessage.success('删除成功')
+      getList()
+    } catch (error) {
+      if (error === 'cancel') {
+        return
+      }
+      ElMessage.error(error.msg || '删除失败')
+    }
+  }
+}
+
+// 导出按钮点击事件
+const handleExport = async () => {
+  try {
+    const response = await export{{ business_name|snake_to_pascal_case }}(queryParams.value)
+    proxy.$downloadFile({
+      fileName: `{{ business_name }}_${new Date().getTime()}.xlsx`,
+      url: response.url
+    })
+  } catch (error) {
+    ElMessage.error(error.msg || '导出失败')
+  }
+}
+
+// 导入按钮点击事件
+const handleImport = () => {
+  openImport.value = true
+}
+
+// 下载模板按钮点击事件
+const handleTemplate = async () => {
+  try {
+    const response = await getImportTemplate{{ business_name|snake_to_pascal_case }}()
+    proxy.$downloadFile({
+      fileName: `{{ business_name }}_导入模板.xlsx`,
+      url: response.url
+    })
+  } catch (error) {
+    ElMessage.error(error.msg || '下载模板失败')
+  }
+}
+
+// 上传前
+const beforeUpload = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const file = uploadFile.value[0]
+      if (!file) {
+        throw new Error('请选择文件')
+      }
+      const fileType = file.name.substring(file.name.lastIndexOf('.'))
+      if (fileType !== '.xlsx') {
+        throw new Error('文件类型错误，请上传.xlsx文件')
+      }
+      resolve(true)
+    } catch (error) {
+      ElMessage.error(error.message)
+      reject(false)
+    }
+  })
+}
+
+// 导入成功
+const handleImportSuccess = (sheetName, filedInfo, fileName) => {
+  let data = {
+    table_name: '{{ table_name }}',
+    filed_info: filedInfo,
+    file_name: fileName,
+    sheet_name: sheetName
+  }
+  import{{ business_name|snake_to_pascal_case }}(data).then(() => {
+    proxy.$modal.msgSuccess('导入成功')
+    openImport.value = false
+    getList()
+  })
+  getList()
 }
 
 //表格全屏
@@ -589,7 +573,7 @@ function updateTableHeight() {
         if (fullScreen.value) {
             tableHeight.value = window.innerHeight - 145
         } else {
-            tableHeight.value =
+            tableHeight.value = 
                 window.innerHeight -
                 proxy.$refs.tSetup.$el.clientHeight -
                 proxy.$refs.queryRef.$el.clientHeight -
@@ -597,21 +581,6 @@ function updateTableHeight() {
                 220
         }
     }
-}
-//导入成功
-function handleImportSuccess(sheetName, filedInfo, fileName) {
-    let data = {
-        tableName: '{{ tableName }}',
-        filedInfo: filedInfo,
-        fileName: fileName,
-        sheetName: sheetName
-    }
-    import{{ BusinessName }}(data).then(() => {
-        proxy.$modal.msgSuccess('导入成功')
-        openImport.value = false
-        getList()
-    })
-    getList()
 }
 
 onMounted(() => {

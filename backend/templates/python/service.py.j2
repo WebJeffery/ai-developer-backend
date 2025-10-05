@@ -12,78 +12,78 @@ from app.common.response import SuccessResponse
 from app.api.v1.module_system.user.schema import UserOutSchema
 from app.api.v1.module_system.auth.schema import AuthSchema
 from app.utils.excel_util import ExcelUtil
-from {{ packageName }}.crud.{{ tableName }}_crud import {{ tableName|snake_to_pascal_case }}Dao
-from {{ packageName }}.schema import {{ tableName|snake_to_pascal_case }}CreateSchema, {{ tableName|snake_to_pascal_case }}UpdateSchema
-from {{ packageName }}.param import {{ tableName|snake_to_pascal_case }}QueryParam
+from {{ package_name }}.crud.{{ table_name }}_crud import {{ table_name|snake_to_pascal_case }}Dao
+from {{ package_name }}.schema import {{ table_name|snake_to_pascal_case }}CreateSchema, {{ table_name|snake_to_pascal_case }}UpdateSchema
+from {{ package_name }}.param import {{ table_name|snake_to_pascal_case }}QueryParam
 
 
-class {{ tableName|snake_to_pascal_case }}Service:
+class {{ table_name|snake_to_pascal_case }}Service:
     """
-    {{ functionName }}服务层
+    {{ function_name }}服务层
     """
 
     @classmethod
-    async def get_{{ tableName }}_list_service(
-        cls, auth: AuthSchema, search: {{ tableName|snake_to_pascal_case }}QueryParam = None, order_by: Optional[str] = None
+    async def get_{{ table_name }}_list_service(
+        cls, auth: AuthSchema, search: {{ table_name|snake_to_pascal_case }}QueryParam = None, order_by: Optional[str] = None
     ):
         """
-        获取{{ functionName }}列表信息service
+        获取{{ function_name }}列表信息service
 
         :param auth: 认证信息
         :param search: 查询参数对象
         :param order_by: 排序字段
-        :return: {{ functionName }}列表信息对象
+        :return: {{ function_name }}列表信息对象
         """
         # 确保db是AsyncSession类型
         if not isinstance(auth.db, AsyncSession):
             raise CustomException(msg='数据库会话类型不正确')
             
-        {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
-        {{ tableName }}_list_result = await {{ tableName }}_dao.get_{{ tableName }}_list(auth.db, search, order_by)
+        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
+        {{ table_name }}_list_result = await {{ table_name }}_dao.get_{{ table_name }}_list(auth.db, search, order_by)
 
-        return {{ tableName }}_list_result
+        return {{ table_name }}_list_result
 
     @classmethod
-    async def get_{{ tableName }}_by_id_service(cls, auth: AuthSchema, {{ tableName }}_id: int):
+    async def get_{{ table_name }}_by_id_service(cls, auth: AuthSchema, {{ table_name }}_id: int):
         """
-        根据{{ tableName }}id获取{{ functionName }}信息service
+        根据{{ table_name }}id获取{{ function_name }}信息service
 
         :param auth: 认证信息
-        :param {{ tableName }}_id: {{ tableName }}id
-        :return: {{ functionName }}信息对象
+        :param {{ table_name }}_id: {{ table_name }}id
+        :return: {{ function_name }}信息对象
         """
         # 确保db是AsyncSession类型
         if not isinstance(auth.db, AsyncSession):
             raise CustomException(msg='数据库会话类型不正确')
             
-        {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
-        {{ tableName }} = await {{ tableName }}_dao.get_{{ tableName }}_by_id(auth.db, {{ tableName }}_id)
-        if {{ tableName }}:
-            return {{ tableName }}
+        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
+        {{ table_name }} = await {{ table_name }}_dao.get_{{ table_name }}_by_id(auth.db, {{ table_name }}_id)
+        if {{ table_name }}:
+            return {{ table_name }}
         else:
-            raise CustomException(msg='{{ functionName }}不存在')
+            raise CustomException(msg='{{ function_name }}不存在')
 
     @classmethod
-    async def add_{{ tableName }}_service(
-        cls, auth: AuthSchema, data: {{ tableName|snake_to_pascal_case }}CreateSchema
+    async def add_{{ table_name }}_service(
+        cls, auth: AuthSchema, data: {{ table_name|snake_to_pascal_case }}CreateSchema
     ) -> SuccessResponse:
         """
-        新增{{ functionName }}service
+        新增{{ function_name }}service
 
         :param auth: 认证信息
-        :param data: 新增{{ functionName }}对象
-        :return: 新增{{ functionName }}结果
+        :param data: 新增{{ function_name }}对象
+        :return: 新增{{ function_name }}结果
         """
         # 确保db是AsyncSession类型
         if not isinstance(auth.db, AsyncSession):
             raise CustomException(msg='数据库会话类型不正确')
             
-        {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
+        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
         
         try:
             data_dict = data.model_dump()
             data_dict['create_time'] = datetime.now()
-            await {{ tableName }}_dao.create(data=data_dict)
+            await {{ table_name }}_dao.create(data=data_dict)
             if isinstance(auth.db, AsyncSession):
                 await auth.db.commit()
             return SuccessResponse(msg='新增成功')
@@ -96,28 +96,28 @@ class {{ tableName|snake_to_pascal_case }}Service:
             raise CustomException(msg=f'新增失败: {str(e)}')
 
     @classmethod
-    async def update_{{ tableName }}_service(cls, auth: AuthSchema, id: int, data: {{ tableName|snake_to_pascal_case }}UpdateSchema) -> SuccessResponse:
+    async def update_{{ table_name }}_service(cls, auth: AuthSchema, id: int, data: {{ table_name|snake_to_pascal_case }}UpdateSchema) -> SuccessResponse:
         """
-        编辑{{ functionName }}service
+        编辑{{ function_name }}service
 
         :param auth: 认证信息
-        :param id: {{ functionName }}ID
-        :param data: 编辑{{ functionName }}对象
-        :return: 编辑{{ functionName }}结果
+        :param id: {{ function_name }}ID
+        :param data: 编辑{{ function_name }}对象
+        :return: 编辑{{ function_name }}结果
         """
         # 确保db是AsyncSession类型
         if not isinstance(auth.db, AsyncSession):
             raise CustomException(msg='数据库会话类型不正确')
             
-        {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
+        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
         
         # 检查记录是否存在
-        {{ tableName }}_info = await cls.get_{{ tableName }}_by_id_service(auth, id)
-        if {{ tableName }}_info:
+        {{ table_name }}_info = await cls.get_{{ table_name }}_by_id_service(auth, id)
+        if {{ table_name }}_info:
             try:
                 data_dict = data.model_dump(exclude_unset=True)
                 data_dict['update_time'] = datetime.now()
-                await {{ tableName }}_dao.update(id=id, data=data_dict)
+                await {{ table_name }}_dao.update(id=id, data=data_dict)
                 if isinstance(auth.db, AsyncSession):
                     await auth.db.commit()
                 return SuccessResponse(msg='更新成功')
@@ -129,25 +129,25 @@ class {{ tableName|snake_to_pascal_case }}Service:
                         pass  # 忽略回滚错误
                 raise CustomException(msg=f'更新失败: {str(e)}')
         else:
-            raise CustomException(msg='{{ functionName }}不存在')
+            raise CustomException(msg='{{ function_name }}不存在')
 
     @classmethod
-    async def del_{{ tableName }}_service(cls, auth: AuthSchema, ids: List[int]) -> SuccessResponse:
+    async def del_{{ table_name }}_service(cls, auth: AuthSchema, ids: List[int]) -> SuccessResponse:
         """
-        删除{{ functionName }}service
+        删除{{ function_name }}service
 
         :param auth: 认证信息
-        :param ids: {{ functionName }}id列表
-        :return: 删除{{ functionName }}结果
+        :param ids: {{ function_name }}id列表
+        :return: 删除{{ function_name }}结果
         """
         # 确保db是AsyncSession类型
         if not isinstance(auth.db, AsyncSession):
             raise CustomException(msg='数据库会话类型不正确')
             
-        {{ tableName }}_dao = {{ tableName|snake_to_pascal_case }}Dao(auth=auth)
+        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
         
         try:
-            await {{ tableName }}_dao.delete(ids=ids)
+            await {{ table_name }}_dao.delete(ids=ids)
             if isinstance(auth.db, AsyncSession):
                 await auth.db.commit()
             return SuccessResponse(msg='删除成功')
@@ -160,18 +160,18 @@ class {{ tableName|snake_to_pascal_case }}Service:
             raise CustomException(msg=f'删除失败: {str(e)}')
 
     @classmethod
-    async def export_{{ tableName }}_list_service(cls, {{ tableName }}_list: List[Dict[str, Any]]) -> bytes:
+    async def export_{{ table_name }}_list_service(cls, {{ table_name }}_list: List[Dict[str, Any]]) -> bytes:
         """
-        导出{{ functionName }}列表service
+        导出{{ function_name }}列表service
 
-        :param {{ tableName }}_list: {{ functionName }}列表数据
+        :param {{ table_name }}_list: {{ function_name }}列表数据
         :return: 导出的Excel文件二进制数据
         """
         # 定义字段映射
         mapping_dict = {
             'id': '编号',
             {% for column in columns %}
-            '{{ column.columnName }}': '{{ column.columnComment }}',
+            '{{ column.column_name }}': '{{ column.column_comment }}',
             {% endfor %}
             'create_by': '创建者',
             'create_time': '创建时间',
@@ -181,7 +181,7 @@ class {{ tableName|snake_to_pascal_case }}Service:
         }
 
         # 复制数据并进行必要的转换
-        data = {{ tableName }}_list.copy()
+        data = {{ table_name }}_list.copy()
         for item in data:
             # 在这里可以添加特定字段的转换逻辑
             pass
@@ -189,9 +189,9 @@ class {{ tableName|snake_to_pascal_case }}Service:
         return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
 
     @classmethod
-    async def import_{{ tableName }}_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:
+    async def import_{{ table_name }}_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:
         """
-        导入{{ functionName }}service
+        导入{{ function_name }}service
 
         :param auth: 认证信息
         :param file: 上传的Excel文件
@@ -201,7 +201,7 @@ class {{ tableName|snake_to_pascal_case }}Service:
         # 定义表头映射
         header_dict = {
             {% for column in columns %}
-            '{{ column.columnComment }}': '{{ column.columnName }}',
+            '{{ column.column_comment }}': '{{ column.column_name }}',
             {% endfor %}
         }
 
@@ -231,12 +231,12 @@ class {{ tableName|snake_to_pascal_case }}Service:
                     # 构建数据对象
                     data = {}
                     {% for column in columns %}
-                    data['{{ column.columnName }}'] = row['{{ column.columnName }}']
+                    data['{{ column.column_name }}'] = row['{{ column.column_name }}']
                     {% endfor %}
 
                     # 处理导入逻辑
                     # 这里需要根据实际情况调整，比如检查是否已存在相同记录
-                    await {{ tableName|snake_to_pascal_case }}Dao(auth).create(data=data)
+                    await {{ table_name|snake_to_pascal_case }}Dao(auth).create(data=data)
                     success_count += 1
                         
                 except Exception as e:
@@ -253,15 +253,15 @@ class {{ tableName|snake_to_pascal_case }}Service:
             raise CustomException(msg=f"导入失败: {str(e)}")
 
     @classmethod
-    async def get_import_template_{{ tableName }}_service(cls) -> bytes:
+    async def get_import_template_{{ table_name }}_service(cls) -> bytes:
         """
-        获取{{ functionName }}导入模板service
+        获取{{ function_name }}导入模板service
 
         :return: Excel模板文件二进制数据
         """
         header_list = [
             {% for column in columns %}
-            '{{ column.columnComment }}',
+            '{{ column.column_comment }}',
             {% endfor %}
         ]
         selector_header_list = []  # 需要下拉选择的列

@@ -5,7 +5,7 @@ const API_PATH = "/generator/gencode";
 const GencodeAPI = {
   // 查询生成表数据
   listTable(query: TablePageQuery) {
-    return request<ApiResponse<PageResult<GenTableOutVO>>>({
+    return request<ApiResponse<PageResult<GenTableOutVO[]>>>({
       url: `${API_PATH}/list`,
       method: 'get',
       params: query
@@ -13,11 +13,20 @@ const GencodeAPI = {
   },
 
   // 查询db数据库列表
-  listDbTable(query: DBTablePageQuery) {
-    return request<ApiResponse<PageResult<TablePageVO>>>({
+  listDbTable(query: TablePageQuery) {
+    return request<ApiResponse<PageResult<TablePageVO[]>>>({
       url: `${API_PATH}/db/list`,
       method: 'get',
       params: query
+    })
+  },
+
+  // 导入表
+  importTable(table_names: string[]) {
+    return request<ApiResponse>({
+      url: `${API_PATH}/import`,
+      method: 'post',
+      data: { table_names }
     })
   },
 
@@ -39,29 +48,11 @@ const GencodeAPI = {
   },
 
   // 修改代码生成信息
-  updateGenTable(data: GenTableUpdateSchema) {
+  updateGenTable(table_id: number, body: GenTableUpdateSchema) {
     return request<ApiResponse>({
-      url: `${API_PATH}/update`,
+      url: `${API_PATH}/update/${table_id}`,
       method: 'put',
-      data
-    })
-  },
-
-  // 导入表
-  importTable(tables: string[]) {
-    return request<ApiResponse>({
-      url: `${API_PATH}/import`,
-      method: 'post',
-      data: { tables }
-    })
-  },
-
-
-  // 预览生成代码
-  previewTable(tableId: number) {
-    return request<ApiResponse<GeneratorPreviewVO[]>>({
-      url: `${API_PATH}/preview/${tableId}`,
-      method: 'get'
+      data: body,
     })
   },
 
@@ -75,27 +66,35 @@ const GencodeAPI = {
   },
 
   // 批量生成代码
-  batchGenCode(tables: string) {
+  batchGenCode(table_names: string[]) {
     return request<Blob>({
-      url: `${API_PATH}/batch/out`,
+      url: `${API_PATH}/batch/output`,
       method: 'patch',
-      params: { tables },
+      params: { table_names },
       responseType: 'blob'
     })
   },
 
   // 生成代码到指定路径
-  genCodeToPath(tableName: string) {
+  genCodeToPath(table_name: string) {
     return request<ApiResponse>({
-      url: `${API_PATH}/out/path/${tableName}`,
+      url: `${API_PATH}/output/${table_name}`,
       method: 'post'
     })
   },
 
+  // 预览生成代码
+  previewTable(table_id: number) {
+    return request<ApiResponse<GeneratorPreviewVO[]>>({
+      url: `${API_PATH}/preview/${table_id}`,
+      method: 'get'
+    })
+  },
+
   // 同步数据库
-  syncDb(tableName: string) {
+  syncDb(table_name: string) {
     return request<ApiResponse>({
-      url: `${API_PATH}/sync/db/${tableName}`,
+      url: `${API_PATH}/synch_db/${table_name}`,
       method: 'post'
     })
   }
@@ -123,12 +122,6 @@ export interface TablePageQuery extends PageQuery {
   start_time?: string;
   /** 结束时间 */
   end_time?: string;
-}
-
-/** 数据库表分页查询参数 */
-export interface DBTablePageQuery extends PageQuery {
-  /** 数据库列名称 */
-  column_name?: string;
 }
 
 /** 数据表分页对象 */

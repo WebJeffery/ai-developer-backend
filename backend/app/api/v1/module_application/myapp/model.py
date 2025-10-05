@@ -11,7 +11,7 @@ class ApplicationModel(CreatorMixin):
     应用系统表 - 用于管理分系统和外部应用
     """
 
-    __tablename__ = 'application_myapp'
+    __tablename__ = 'app_myapp'
     __table_args__ = ({'comment': '应用系统表'})
 
     # 基本信息（必备字段）

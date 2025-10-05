@@ -138,7 +138,7 @@
               <ElCol 
                 v-for="(item, index) in quickLinks" 
                 :key="index"
-                :span="8"
+                :span="6"
                 class="group mb-4"
               >
                 <ElButton 
@@ -147,16 +147,16 @@
                   class="w-full relative"
                   @click="handleQuickLinkClick(item)"
                 >
-                  <el-icon v-if="item.icon && item.icon.startsWith('el-icon')">
+                  <el-icon v-if="item.icon && item.icon.startsWith('el-icon')" :color="getRandomColor()">
                     <component :is="item.icon.replace('el-icon-', '')" />
                   </el-icon>
-                  <div v-else-if="item.icon" :class="`i-svg:${item.icon} mr-2`" />
-                  <div v-else :class="`i-svg:menu mr-2`" />
+                  <div v-else-if="item.icon" :class="`i-svg:${item.icon} mr-2`" :style="{ color: getRandomColor() }" />
+                  <div v-else :class="`i-svg:menu mr-2`" :style="{ color: getRandomColor() }" />
                   
                   <span>{{ item.title }}</span>
                   <el-icon
                     color="var(--el-color-danger)"
-                    class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 "
+                    class="absolute top-0 right-0 opacity-0 group-hover:opacity-100 "
                     @click.stop="handleDeleteLink(item)"
                   >
                     <CircleClose />
@@ -277,6 +277,17 @@ const handleQuickLinkClick = (item: QuickLink) => {
   }
 };
 
+const getRandomColor = () => {
+  // 预定义几个亮且鲜艳的颜色
+  const colors = [
+    '#FF5733', '#33FF57', '#3357FF', '#FF33E6', 
+    '#FFFF33', '#33FFFF', '#FF3333', '#5733FF',
+    '#33FFE6', '#E633FF'
+  ];
+  // 随机选择一个颜色返回
+  const randomIndex = Math.floor(Math.random() * colors.length);
+  return colors[randomIndex];
+}
 // 处理删除链接
 const handleDeleteLink = (item: QuickLink) => {
   ElMessageBox.confirm(

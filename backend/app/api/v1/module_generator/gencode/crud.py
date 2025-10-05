@@ -95,14 +95,16 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         :return: 代码生成业务表列表信息对象
         """
         # 构建查询条件
-        conditions = await self.__build_conditions(**search.__dict__) if search else []
-        query = (
-            select(GenTableModel)
-            .options(selectinload(GenTableModel.columns))
-            .where(*conditions)
-            .order_by(GenTableModel.created_at.desc())
-            .distinct()
-        )
+        query = select(GenTableModel).options(selectinload(GenTableModel.columns))
+        
+        if search:
+            # 手动构建查询条件
+            if search.table_name and search.table_name[1]:  # ('like', value)
+                query = query.where(GenTableModel.table_name.like(f"%{search.table_name[1]}%"))
+            if search.table_comment and search.table_comment[1]:  # ('like', value)
+                query = query.where(GenTableModel.table_comment.like(f"%{search.table_comment[1]}%"))
+
+        query = query.order_by(GenTableModel.created_at.desc()).distinct()
 
         # 获取所有数据
         result = await self.db.execute(query)
@@ -167,7 +169,6 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
                         text("table_catalog = (select current_database())"),
                         text("is_insertable_into = 'YES'"),
                         text("table_schema = 'public'"),
-
                     )
                 )
             )
@@ -189,31 +190,44 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         else:
             query_sql = (
                 select(
-                    text(f"{settings.DATABASE_NAME} as database_name"),
+                    text("'' as database_name"),  # SQLite没有数据库名概念，设为空字符串
                     text("name as table_name"),
                     text("type as table_type"),
-                    text("tbl_name as table_comment"),
+                    text("name as table_comment"),  # SQLite中使用name作为表名和注释
                 )
                 .select_from(text("sqlite_master"))
                 .where(
                     and_(
                         text("type = 'table'"),
-                    )
+                    )   
                 )
             )
         
         # 动态条件构造
-        if search and search.table_name:
-            query_sql = query_sql.where(
-                text("lower(table_name) like lower(:table_name)")
-            )
-        if search and search.table_comment:
-            query_sql = query_sql.where(
-                text("lower(table_comment) like lower(:table_comment)")
-            )
+        params = {}
+        if search and search.table_name and search.table_name[1]:
+            if settings.DATABASE_TYPE == "sqlite":
+                query_sql = query_sql.where(
+                    text("lower(name) like lower(:table_name)")
+                )
+            else:
+                query_sql = query_sql.where(
+                    text("lower(table_name) like lower(:table_name)")
+                )
+            params['table_name'] = f"%{search.table_name[1]}%"
+        if search and search.table_comment and search.table_comment[1]:
+            if settings.DATABASE_TYPE == "sqlite":
+                query_sql = query_sql.where(
+                    text("lower(name) like lower(:table_comment)")
+                )
+            else:
+                query_sql = query_sql.where(
+                    text("lower(table_comment) like lower(:table_comment)")
+                )
+            params['table_comment'] = f"%{search.table_comment[1]}%"
 
-        # 执行查询
-        all_data =(await self.db.execute(query_sql)).fetchall()
+        # 执行查询并绑定参数
+        all_data = (await self.db.execute(query_sql, params)).fetchall()
 
         # 将Row对象转换为字典列表，解决JSON序列化问题
         dict_data = []
@@ -250,7 +264,6 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
                         text("table_catalog = (select current_database())"),
                         text("is_insertable_into = 'YES'"),
                         text("table_schema = 'public'"),
-
                     )
                 )
             )
@@ -272,10 +285,10 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         else:
             query_sql = (
                 select(
-                    text(f"{settings.DATABASE_NAME} as database_name"),
+                    text("'' as database_name"),  # SQLite没有数据库名概念，设为空字符串
                     text("name as table_name"),
                     text("type as table_type"),
-                    text("tbl_name as table_comment"),
+                    text("name as table_comment"),  # SQLite中使用name作为表名和注释
                 )
                 .select_from(text("sqlite_master"))
                 .where(
@@ -285,10 +298,25 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
                 )
             )
         
-        query_sql = query_sql.where(
-            text(f"table_name in :{table_names}")
-        )
-        gen_db_table_list = (await self.db.execute(query_sql)).fetchall()
+        # 修复SQL查询中的参数绑定问题
+        if table_names:
+            if settings.DATABASE_TYPE == "sqlite":
+                # 对于SQLite，我们直接在SQL中使用表名，因为参数绑定有问题
+                table_names_str = "','".join(table_names)
+                query_sql = query_sql.where(
+                    text(f"name IN ('{table_names_str}')")
+                )
+                gen_db_table_list = (await self.db.execute(query_sql)).fetchall()
+            else:
+                # MySQL和PostgreSQL使用:table_names占位符
+                query_sql = query_sql.where(
+                    text("table_name IN :table_names")
+                )
+                # 使用params方法正确绑定参数
+                query_sql = query_sql.params(table_names=tuple(table_names))
+                gen_db_table_list = (await self.db.execute(query_sql)).fetchall()
+        else:
+            gen_db_table_list = (await self.db.execute(query_sql)).fetchall()
         
         # 将Row对象转换为字典列表，解决JSON序列化问题
         dict_data = []
@@ -358,10 +386,9 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
                     (CASE WHEN extra = 'auto_increment' THEN '1' ELSE '0' END) AS is_increment,
                     column_type
                 FROM 
-                    information_schema.tables
+                    information_schema.columns
                 WHERE 
                     table_catalog = (select current_database())
-                    AND is_insertable_into = 'YES'
                     AND table_schema = 'public'
                     AND table_name = :table_name
             """
@@ -373,29 +400,27 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
                     (CASE WHEN column_key = 'PRI' THEN '1' ELSE '0' END) AS is_pk,
                     ordinal_position AS sort,
                     column_comment,
-                    (CASE WHEN extra = 'auto_increment' THEN '1' ELSE '0' END) AS is_increment,
+                    (CASE WHEN extra = 'auto_increment' THEN '1' ELSE '0' end) AS is_increment,
                     column_type
                 FROM 
-                    information_schema.tables
+                    information_schema.columns
                 WHERE 
                     table_schema = (SELECT DATABASE())
                     AND table_name = :table_name
             """
         else:
-            query_sql = f"""
+            # 修复SQLite查询语句，使用PRAGMA获取表结构信息
+            query_sql = """
                 SELECT
-                    column_name,
-                    (CASE WHEN (is_nullable = 'no' AND column_key != 'PRI') THEN '1' ELSE '0' END) AS is_required,
-                    (CASE WHEN column_key = 'PRI' THEN '1' ELSE '0' END) AS is_pk,
-                    ordinal_position AS sort,
-                    column_comment,
-                    (CASE WHEN extra = 'auto_increment' THEN '1' ELSE '0' END) AS is_increment,
-                    column_type
+                    name as column_name,
+                    (CASE WHEN (type != '' AND pk != 1) THEN '1' ELSE '0' END) AS is_required,
+                    (CASE WHEN pk = 1 THEN '1' ELSE '0' END) AS is_pk,
+                    cid AS sort,
+                    '' as column_comment,
+                    (CASE WHEN type LIKE '%AUTOINCREMENT%' THEN '1' ELSE '0' END) AS is_increment,
+                    type as column_type
                 FROM 
-                    sqlite_master
-                WHERE 
-                    type = 'table'
-                    AND name = :table_name
+                    pragma_table_info(:table_name)
             """
 
         query = text(query_sql).bindparams(table_name=table_name)
@@ -403,18 +428,24 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
             await self.db.execute(query)
         ).fetchall()
 
-        return [
-            GenTableColumnOutSchema(
-                column_name=row[0],
-                is_required=row[1],
-                is_pk=row[2],
-                sort=row[3],
-                column_comment=row[4],
-                is_increment=row[5],
-                column_type=row[6],
-            )
-            for row in gen_db_table_columns_raw
-        ]
+        result = []
+        for row in gen_db_table_columns_raw:
+            # 构造字段信息字典
+            column_dict = {
+                "column_name": row[0],
+                "is_required": row[1],
+                "is_pk": row[2],
+                "sort": row[3],
+                "column_comment": row[4],
+                "is_increment": row[5],
+                "column_type": row[6]
+            }
+            
+            # 创建GenTableColumnOutSchema对象
+            column_schema = GenTableColumnOutSchema(**column_dict)
+            result.append(column_schema)
+        
+        return result
 
     async def list_gen_table_column_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[GenTableColumnModel]:
         """根据业务表ID查询业务表字段列表"""
@@ -430,7 +461,14 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
 
     async def delete_gen_table_column_by_table_id_dao(self, data: GenTableDeleteSchema) -> None:
         """根据业务表ID批量删除"""
-        return await self.delete(ids=data.table_ids)
+        # 先查询出这些表ID对应的所有字段ID
+        query = select(GenTableColumnModel.id).where(GenTableColumnModel.table_id.in_(data.table_ids))
+        result = await self.db.execute(query)
+        column_ids = [row[0] for row in result.fetchall()]
+        
+        # 如果有字段ID，则删除这些字段
+        if column_ids:
+            await self.delete(ids=column_ids)
 
     async def delete_gen_table_column_by_column_id_dao(self, data: GenTableColumnDeleteSchema) -> None:
         """根据业务表字段ID批量删除"""

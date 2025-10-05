@@ -4,74 +4,74 @@ from typing import List, Optional
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from {{ packageName }}.model.{{ tableName }}_model import {{ tableName|snake_to_pascal_case }}Model
-from {{ packageName }}.schema import {{ tableName|snake_to_pascal_case }}CreateSchema, {{ tableName|snake_to_pascal_case }}UpdateSchema
+from {{ package_name }}.model.{{ table_name }}_model import {{ table_name|snake_to_pascal_case }}Model
+from {{ package_name }}.schema import {{ table_name|snake_to_pascal_case }}CreateSchema, {{ table_name|snake_to_pascal_case }}UpdateSchema
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
 
 
-class {{ tableName|snake_to_pascal_case }}Dao(CRUDBase[{{ tableName|snake_to_pascal_case }}Model, {{ tableName|snake_to_pascal_case }}CreateSchema, {{ tableName|snake_to_pascal_case }}UpdateSchema]):
+class {{ table_name|snake_to_pascal_case }}Dao(CRUDBase[{{ table_name|snake_to_pascal_case }}Model, {{ table_name|snake_to_pascal_case }}CreateSchema, {{ table_name|snake_to_pascal_case }}UpdateSchema]):
     """
-    {{ functionName }}模块数据库操作层
+    {{ function_name }}模块数据库操作层
     """
 
     def __init__(self, auth: AuthSchema) -> None:
         """初始化CRUD"""
-        super().__init__(model={{ tableName|snake_to_pascal_case }}Model, auth=auth)
+        super().__init__(model={{ table_name|snake_to_pascal_case }}Model, auth=auth)
 
-    async def get_{{ tableName }}_by_id(self, db: AsyncSession, {{ tableName }}_id: int):
+    async def get_{{ table_name }}_by_id(self, db: AsyncSession, {{ table_name }}_id: int):
         """
-        根据{{ tableName }}id获取{{ functionName }}信息
+        根据{{ table_name }}id获取{{ function_name }}信息
 
         :param db: orm对象
-        :param {{ tableName }}_id: {{ tableName }}id
-        :return: {{ functionName }}信息对象
+        :param {{ table_name }}_id: {{ table_name }}id
+        :return: {{ function_name }}信息对象
         """
-        {{ tableName }}_info = (
+        {{ table_name }}_info = (
             (
                 await db.execute(
-                    select({{ tableName|snake_to_pascal_case }}Model)
-                    .where({{ tableName|snake_to_pascal_case }}Model.id == {{ tableName }}_id)
+                    select({{ table_name|snake_to_pascal_case }}Model)
+                    .where({{ table_name|snake_to_pascal_case }}Model.id == {{ table_name }}_id)
                 )
             )
             .scalars()
             .first()
         )
 
-        return {{ tableName }}_info
+        return {{ table_name }}_info
 
-    async def get_{{ tableName }}_list(self, db: AsyncSession, search: {{ tableName|snake_to_pascal_case }}QueryParam = None, order_by: Optional[str] = None):
+    async def get_{{ table_name }}_list(self, db: AsyncSession, search: {{ table_name|snake_to_pascal_case }}QueryParam = None, order_by: Optional[str] = None):
         """
-        根据查询参数获取{{ functionName }}列表信息
+        根据查询参数获取{{ function_name }}列表信息
 
         :param db: orm对象
         :param search: 查询参数对象
         :param order_by: 排序字段
-        :return: {{ functionName }}列表信息对象
+        :return: {{ function_name }}列表信息对象
         """
-        query = select({{ tableName|snake_to_pascal_case }}Model)
+        query = select({{ table_name|snake_to_pascal_case }}Model)
         
         # 添加查询条件
         if search and hasattr(search, '__dict__'):
             for attr, value in search.__dict__.items():
-                if value is not None and hasattr({{ tableName|snake_to_pascal_case }}Model, attr):
+                if value is not None and hasattr({{ table_name|snake_to_pascal_case }}Model, attr):
                     if isinstance(value, tuple) and len(value) == 2:
                         operator, val = value
                         if operator == "like":
-                            query = query.where(getattr({{ tableName|snake_to_pascal_case }}Model, attr).like(f"%{val}%"))
+                            query = query.where(getattr({{ table_name|snake_to_pascal_case }}Model, attr).like(f"%{val}%"))
                         elif operator == "between":
-                            query = query.where(getattr({{ tableName|snake_to_pascal_case }}Model, attr).between(val[0], val[1]))
+                            query = query.where(getattr({{ table_name|snake_to_pascal_case }}Model, attr).between(val[0], val[1]))
                         else:
-                            query = query.where(getattr({{ tableName|snake_to_pascal_case }}Model, attr) == val)
+                            query = query.where(getattr({{ table_name|snake_to_pascal_case }}Model, attr) == val)
                     else:
-                        query = query.where(getattr({{ tableName|snake_to_pascal_case }}Model, attr) == value)
+                        query = query.where(getattr({{ table_name|snake_to_pascal_case }}Model, attr) == value)
         
         # 添加排序
         if order_by:
             # 这里应该解析order_by参数并应用排序
-            query = query.order_by({{ tableName|snake_to_pascal_case }}Model.created_at.desc())
+            query = query.order_by({{ table_name|snake_to_pascal_case }}Model.created_at.desc())
         else:
-            query = query.order_by({{ tableName|snake_to_pascal_case }}Model.id.desc())
+            query = query.order_by({{ table_name|snake_to_pascal_case }}Model.id.desc())
         
         # 执行查询
         result = await db.execute(query)
@@ -81,13 +81,13 @@ class {{ tableName|snake_to_pascal_case }}Dao(CRUDBase[{{ tableName|snake_to_pas
 
     async def delete(self, db: AsyncSession, ids: List[int]) -> int:
         """
-        删除{{ functionName }}信息
+        删除{{ function_name }}信息
 
         :param db: orm对象
-        :param ids: {{ functionName }}id列表
+        :param ids: {{ function_name }}id列表
         :return: 删除的记录数
         """
         result = await db.execute(
-            delete({{ tableName|snake_to_pascal_case }}Model).where({{ tableName|snake_to_pascal_case }}Model.id.in_(ids))
+            delete({{ table_name|snake_to_pascal_case }}Model).where({{ table_name|snake_to_pascal_case }}Model.id.in_(ids))
         )
         return result.rowcount

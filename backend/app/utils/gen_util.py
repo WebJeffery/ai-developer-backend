@@ -31,12 +31,19 @@ class GenUtils:
         param oper_name: 操作人
         :return:
         """
-        gen_table.class_name = cls.convert_class_name(gen_table.table_name or "")
-        gen_table.package_name = cls.get_package_name(gen_table.table_name or "")
-        gen_table.module_name = cls.get_module_name(settings.package_name or "")
-        gen_table.business_name = cls.get_business_name(gen_table.table_name or "")
-        gen_table.function_name = cls.replace_text(gen_table.table_comment or "")
-        gen_table.function_author = settings.author
+        # 只有当字段为None时才设置默认值
+        if gen_table.class_name is None:
+            gen_table.class_name = cls.convert_class_name(gen_table.table_name or "")
+        if gen_table.package_name is None:
+            gen_table.package_name = cls.get_package_name(gen_table.table_name or "")
+        if gen_table.module_name is None:
+            gen_table.module_name = cls.get_module_name(settings.package_name or "")
+        if gen_table.business_name is None:
+            gen_table.business_name = cls.get_business_name(gen_table.table_name or "")
+        if gen_table.function_name is None:
+            gen_table.function_name = cls.replace_text(gen_table.table_comment or "")
+        if gen_table.function_author is None:
+            gen_table.function_author = settings.author
 
 
     @classmethod
@@ -50,62 +57,77 @@ class GenUtils:
         """
         data_type = cls.get_db_type(column.column_type or "")
         column_name = column.column_name or ""
-        column.table_id = table.table_id
-        # 设置Python字段名
-        column.python_field = column_name
-        # 设置默认类型
-        column.python_type = GenConstant.DB_TO_PYTHON.get(data_type.upper(), "Any")
-        column.query_type = GenConstant.QUERY_EQ
+        # 只有当table_id为None时才设置
+        if column.table_id is None:
+            column.table_id = table.table_id
+        # 只有当python_field为None时才设置
+        if column.python_field is None:
+            column.python_field = column_name
+        # 只有当python_type为None时才设置默认类型
+        if column.python_type is None:
+            column.python_type = GenConstant.DB_TO_PYTHON.get(data_type.upper(), "Any")
+        # 只有当query_type为None时才设置默认查询类型
+        if column.query_type is None:
+            column.query_type = GenConstant.QUERY_EQ
 
-        if cls.arrays_contains(GenConstant.COLUMNTYPE_STR, data_type) or cls.arrays_contains(
-            GenConstant.COLUMNTYPE_TEXT, data_type
-        ):
-            # 字符串长度超过500设置为文本域
-            column_length = cls.get_column_length(column.column_type or "")
-            html_type = (
-                GenConstant.HTML_TEXTAREA
-                if column_length >= 500 or cls.arrays_contains(GenConstant.COLUMNTYPE_TEXT, data_type)
-                else GenConstant.HTML_INPUT
-            )
-            column.html_type = html_type
-        elif cls.arrays_contains(GenConstant.COLUMNTYPE_TIME, data_type):
-            column.html_type = GenConstant.HTML_DATETIME
-        elif cls.arrays_contains(GenConstant.COLUMNTYPE_NUMBER, data_type):
-            column.html_type = GenConstant.HTML_INPUT
+        # 只有当html_type为None时才设置HTML类型
+        if column.html_type is None:
+            if cls.arrays_contains(GenConstant.COLUMNTYPE_STR, data_type) or cls.arrays_contains(
+                GenConstant.COLUMNTYPE_TEXT, data_type
+            ):
+                # 字符串长度超过500设置为文本域
+                column_length = cls.get_column_length(column.column_type or "")
+                html_type = (
+                    GenConstant.HTML_TEXTAREA
+                    if column_length >= 500 or cls.arrays_contains(GenConstant.COLUMNTYPE_TEXT, data_type)
+                    else GenConstant.HTML_INPUT
+                )
+                column.html_type = html_type
+            elif cls.arrays_contains(GenConstant.COLUMNTYPE_TIME, data_type):
+                column.html_type = GenConstant.HTML_DATETIME
+            elif cls.arrays_contains(GenConstant.COLUMNTYPE_NUMBER, data_type):
+                column.html_type = GenConstant.HTML_INPUT
+            else:
+                column.html_type = GenConstant.HTML_INPUT
 
-        # 插入字段（默认所有字段都需要插入）
-        column.is_insert = GenConstant.REQUIRE
+        # 只有当is_insert为None时才设置插入字段（默认所有字段都需要插入）
+        if column.is_insert is None:
+            column.is_insert = GenConstant.REQUIRE
 
-        # 编辑字段
-        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_EDIT, column_name) and not column.is_pk == '1':
+        # 只有当is_edit为None时才设置编辑字段
+        if column.is_edit is None and not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_EDIT, column_name) and not column.is_pk == '1':
             column.is_edit = GenConstant.REQUIRE
-        # 列表字段
-        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_LIST, column_name) and not column.is_pk == '1':
+        # 只有当is_list为None时才设置列表字段
+        if column.is_list is None and not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_LIST, column_name) and not column.is_pk == '1':
             column.is_list = GenConstant.REQUIRE
-        # 查询字段
-        if not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_QUERY, column_name) and not column.is_pk == '1':
+        # 只有当is_query为None时才设置查询字段
+        if column.is_query is None and not cls.arrays_contains(GenConstant.COLUMNNAME_NOT_QUERY, column_name) and not column.is_pk == '1':
             column.is_query = GenConstant.REQUIRE
 
-        # 查询字段类型
-        if column_name.lower().endswith('name'):
-            column.query_type = GenConstant.QUERY_LIKE
-        # 状态字段设置单选框
-        if column_name.lower().endswith('status'):
-            column.html_type = GenConstant.HTML_RADIO
-        # 类型&性别字段设置下拉框
-        elif column_name.lower().endswith('type') or column_name.lower().endswith('sex'):
-            column.html_type = GenConstant.HTML_SELECT
-        # 图片字段设置图片上传控件
-        elif column_name.lower().endswith('image'):
-            column.html_type = GenConstant.HTML_IMAGE_UPLOAD
-        # 文件字段设置文件上传控件
-        elif column_name.lower().endswith('file'):
-            column.html_type = GenConstant.HTML_FILE_UPLOAD
-        # 内容字段设置富文本控件
-        elif column_name.lower().endswith('content'):
-            column.html_type = GenConstant.HTML_EDITOR
-        else:
-            column.html_type = GenConstant.HTML_INPUT
+        # 只有当query_type为None时才设置查询字段类型
+        if column.query_type is None:
+            if column_name.lower().endswith('name'):
+                column.query_type = GenConstant.QUERY_LIKE
+
+        # 只有当html_type为None时才设置HTML类型（重复设置）
+        if column.html_type is None:
+            # 状态字段设置单选框
+            if column_name.lower().endswith('status'):
+                column.html_type = GenConstant.HTML_RADIO
+            # 类型&性别字段设置下拉框
+            elif column_name.lower().endswith('type') or column_name.lower().endswith('sex'):
+                column.html_type = GenConstant.HTML_SELECT
+            # 图片字段设置图片上传控件
+            elif column_name.lower().endswith('image'):
+                column.html_type = GenConstant.HTML_IMAGE_UPLOAD
+            # 文件字段设置文件上传控件
+            elif column_name.lower().endswith('file'):
+                column.html_type = GenConstant.HTML_FILE_UPLOAD
+            # 内容字段设置富文本控件
+            elif column_name.lower().endswith('content'):
+                column.html_type = GenConstant.HTML_EDITOR
+            else:
+                column.html_type = GenConstant.HTML_INPUT
 
     @classmethod
     def arrays_contains(cls, arr: List[str], target_value: str) -> bool:

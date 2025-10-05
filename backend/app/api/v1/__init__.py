@@ -11,14 +11,8 @@ from .module_monitor import MonitorRouter
 # 通用模块
 from .module_common import CommonRouter
 
-# 示例模块
-from .module_example import ExampleRouter
-
 # 应用模块
 from .module_application import ApplicationRouter
-
-# AI模块
-from .module_ai import AIRouter
 
 # 代码生成模块
 from .module_generator import GeneratorRouter
@@ -31,7 +25,5 @@ router = APIRouter()
 router.include_router(SystemRouter)
 router.include_router(MonitorRouter)
 router.include_router(CommonRouter)
-router.include_router(ExampleRouter)
 router.include_router(ApplicationRouter)
-router.include_router(AIRouter)
 router.include_router(GeneratorRouter)

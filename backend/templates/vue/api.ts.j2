@@ -1,0 +1,53 @@
+import request from '@/utils/request'
+
+// 查询{{ function_name }}列表
+export function list{{ business_name|snake_to_pascal_case }}(query) {
+  return request({
+    url: '/{{ module_name }}/{{ business_name }}/list',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询{{ function_name }}详细
+export function get{{ business_name|snake_to_pascal_case }}(id) {
+  return request({
+    url: '/{{ module_name }}/{{ business_name }}/' + id,
+    method: 'get'
+  })
+}
+
+// 新增{{ function_name }}
+export function add{{ business_name|snake_to_pascal_case }}(data) {
+  return request({
+    url: '/{{ module_name }}/{{ business_name }}/create',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改{{ function_name }}
+export function update{{ business_name|snake_to_pascal_case }}(data) {
+  return request({
+    url: '/{{ module_name }}/{{ business_name }}/update',
+    method: 'put',
+    data: data
+  })
+}
+
+// 删除{{ function_name }}
+export function del{{ business_name|snake_to_pascal_case }}(ids) {
+  return request({
+    url: '/{{ module_name }}/{{ business_name }}/' + ids,
+    method: 'delete'
+  })
+}
+
+// 导入{{ function_name }}
+export function import{{ business_name|snake_to_pascal_case }}(data) {
+    return request({
+      url: '/{{ module_name }}/{{ business_name }}/import',
+      method: 'post',
+      data: data
+    })
+}
