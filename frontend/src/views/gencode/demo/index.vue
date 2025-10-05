@@ -22,12 +22,8 @@
                 </el-form-item>
                 <!-- 查询、重置、展开/收起按钮 -->
                 <el-form-item class="search-buttons">
-                    <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['generator:demo:query']">
-                            查询
-                        </el-button>
-                        <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['generator:demo:query']">
-                            重置
-                        </el-button>
+                    <el-button v-hasPerm="['generator:demo:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+                    <el-button v-hasPerm="['generator:demo:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
                     <!-- 展开/收起 -->
                     <template v-if="isExpandable">
                         <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
@@ -64,20 +60,18 @@
                 <div class="data-table__toolbar--actions">
                     <el-row :gutter="10">
                         <el-col :span="1.5">
-                            <el-button type="success" icon="plus" @click="handleOpenDialog('create')" v-hasPerm="['generator:demo:create']">新增</el-button>
+                            <el-button v-hasPerm="['generator:demo:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
                         </el-col>
                         <el-col :span="1.5">
-                            <el-button type="danger" icon="delete" :disabled="selectIds.length === 0"
-                                @click="handleDelete(selectIds)" v-hasPerm="['generator:demo:delete']">批量删除</el-button>
+                            <el-button v-hasPerm="['generator:demo:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
                         </el-col>
                         <el-col :span="1.5">
                             <el-dropdown trigger="click">
                                 <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item icon="Check" @click="handleMoreClick(true)" v-hasPerm="['generator:demo:batch_available']">批量启用</el-dropdown-item>
-                                <el-dropdown-item icon="CircleClose"
-                                    @click="handleMoreClick(false)" v-hasPerm="['generator:demo:batch_available']">批量停用</el-dropdown-item>
+                                        <el-dropdown-item v-hasPerm="['generator:demo:batch_available']" icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
+                                        <el-dropdown-item v-hasPerm="['generator:demo:batch_available']" icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -88,27 +82,26 @@
                     <el-row :gutter="10">
                         <el-col :span="1.5">
                             <el-tooltip content="导入">
-                                <el-button type="info" icon="upload" circle @click="handleOpenImportDialog" v-hasPerm="['generator:demo:import']" />
+                                <el-button v-hasPerm="['generator:demo:import']" type="info" icon="upload" circle @click="handleOpenImportDialog"/>
                             </el-tooltip>
                         </el-col>
                         <el-col :span="1.5">
                             <el-tooltip content="导出">
-                                <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['generator:demo:export']" />
+                                <el-button v-hasPerm="['generator:demo:export']" type="warning" icon="download" circle @click="handleExport"/>
                             </el-tooltip>
                         </el-col>
                         <el-col :span="1.5">
                             <el-tooltip content="刷新">
-                                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['generator:demo:refresh']" />
+                                <el-button v-hasPerm="['generator:demo:refresh']" type="primary" icon="refresh" circle @click="handleRefresh"/>
                             </el-tooltip>
                         </el-col>
                         <el-col :span="1.5">
                             <el-tooltip content="列表筛选">
                                 <el-dropdown trigger="click">
-                                    <el-button type="default" icon="operation" circle v-hasPerm="['generator:demo:filter']" />
+                                    <el-button v-hasPerm="['generator:demo:filter']" type="default" icon="operation" circle/>
                                     <template #dropdown>
                                         <el-dropdown-menu>
-                                            <el-dropdown-item v-for="column in tableColumns" :key="column.prop"
-                                                :command="column">
+                                            <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
                                                 <el-checkbox v-model="column.show">
                                                     {{ column.label }}
                                                 </el-checkbox>
@@ -123,59 +116,55 @@
             </div>
 
             <!-- 表格区域：系统配置列表 -->
-            <el-table ref="dataTableRef" v-loading="loading" :data="pageTableData" highlight-current-row
-                class="data-table__content" height="450" border stripe @selection-change="handleSelectionChange">
+            <el-table
+                ref="dataTableRef"
+                v-loading="loading"
+                :data="pageTableData"
+                highlight-current-row
+                class="data-table__content"
+                height="450"
+                border
+                stripe
+                @selection-change="handleSelectionChange"
+            >
                 <template #empty>
                     <el-empty :image-size="80" description="暂无数据" />
                 </template>
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'selection')?.show" type="selection"
-                    min-width="55" align="center" />
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'index')?.show" fixed label="序号"
-                    min-width="60">
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'selection')?.show" type="selection" min-width="55" align="center" />
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'index')?.show" fixed label="序号" min-width="60">
                     <template #default="scope">
                         {{ (queryFormData.page_no - 1) * queryFormData.page_size + scope.$index + 1 }}
                     </template>
                 </el-table-column>
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'name')?.show" label="名称"
-                    prop="name" min-width="140" />
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'status')?.show" label="状态" prop="status"
-                    min-width="80">
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'name')?.show" label="名称" prop="name" min-width="140" />
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'status')?.show" label="状态" prop="status" min-width="80">
                     <template #default="scope">
                         <el-tag :type="scope.row.status === true ? 'success' : 'danger'">
                             {{ scope.row.status === true ? "启用" : "停用" }}
                         </el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'description')?.show" label="描述"
-                    prop="description" min-width="140" />
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'created_at')?.show" label="创建时间"
-                    prop="created_at" min-width="180" sortable />
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'updated_at')?.show" label="更新时间"
-                    prop="updated_at" min-width="180" sortable />
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'creator')?.show" key="creator" label="创建人"
-                    min-width="100">
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'description')?.show" label="描述" prop="description" min-width="140" />
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'created_at')?.show" label="创建时间" prop="created_at" min-width="180" sortable />
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'updated_at')?.show" label="更新时间" prop="updated_at" min-width="180" sortable />
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'creator')?.show" key="creator" label="创建人" min-width="100">
                     <template #default="scope">
                         {{ scope.row.creator?.name }}
                     </template>
                 </el-table-column>
 
-                <el-table-column v-if="tableColumns.find(col => col.prop === 'operation')?.show" fixed="right"
-                    label="操作" align="center" min-width="200">
+                <el-table-column v-if="tableColumns.find(col => col.prop === 'operation')?.show" fixed="right" label="操作" align="center" min-width="200">
                     <template #default="scope">
-                        <el-button type="info" size="small" link icon="document"
-                            @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['generator:demo:detail']">详情</el-button>
-                        <el-button type="primary" size="small" link icon="edit"
-                            @click="handleOpenDialog('update', scope.row.id)" v-hasPerm="['generator:demo:update']">编辑</el-button>
-                        <el-button type="danger" size="small" link icon="delete"
-                            @click="handleDelete([scope.row.id])" v-hasPerm="['generator:demo:delete']">删除</el-button>
+                        <el-button v-hasPerm="['generator:demo:detail']" type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
+                        <el-button v-hasPerm="['generator:demo:update']" type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)">编辑</el-button>
+                        <el-button v-hasPerm="['generator:demo:delete']" type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
 
             <!-- 分页区域 -->
             <template #footer>
-                <pagination v-model:total="total" v-model:page="queryFormData.page_no"
-                    v-model:limit="queryFormData.page_size" @pagination="loadingData" />
+                <pagination v-model:total="total" v-model:page="queryFormData.page_no" v-model:limit="queryFormData.page_size" @pagination="loadingData" />
             </template>
         </el-card>
 
@@ -208,8 +197,7 @@
             </template>
             <!-- 新增、编辑表单 -->
             <template v-else>
-                <el-form ref="dataFormRef" :model="formData" :rules="rules" label-suffix=":" label-width="auto"
-                    label-position="right">
+                <el-form ref="dataFormRef" :model="formData" :rules="rules" label-suffix=":" label-width="auto" label-position="right">
                     <el-form-item label="名称" prop="name">
                         <el-input v-model="formData.name" placeholder="请输入名称" :maxlength="50" />
                     </el-form-item>
@@ -224,8 +212,7 @@
                         </el-radio-group>
                     </el-form-item>
                     <el-form-item label="描述" prop="description">
-                        <el-input v-model="formData.description" :rows="4" :maxlength="100" show-word-limit
-                            type="textarea" placeholder="请输入描述" />
+                        <el-input v-model="formData.description" :rows="4" :maxlength="100" show-word-limit type="textarea" placeholder="请输入描述" />
                     </el-form-item>
                 </el-form>
             </template>
@@ -234,8 +221,7 @@
                 <div class="dialog-footer">
                     <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
                     <el-button @click="handleCloseDialog">取消</el-button>
-                    <el-button v-if="dialogVisible.type !== 'detail'" type="primary"
-                        @click="handleSubmit" v-hasPerm="['generator:demo:submit']">确定</el-button>
+                    <el-button v-if="dialogVisible.type !== 'detail'" v-hasPerm="['generator:demo:create']" type="primary" @click="handleSubmit">确定</el-button>
                     <el-button v-else type="primary" @click="handleCloseDialog">确定</el-button>
                 </div>
             </template>
@@ -294,14 +280,14 @@ const dateRange = ref<[Date, Date] | []>([]);
 
 // 处理日期范围变化
 function handleDateRangeChange(range: [Date, Date]) {
-  dateRange.value = range;
-  if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
-  } else {
-    queryFormData.start_time = undefined;
-    queryFormData.end_time = undefined;
-  }
+    dateRange.value = range;
+    if (range && range.length === 2) {
+        queryFormData.start_time = range[0].toISOString();
+        queryFormData.end_time = range[1].toISOString();
+    } else {
+        queryFormData.start_time = undefined;
+        queryFormData.end_time = undefined;
+    }
 }
 
 // 分页查询参数
@@ -525,37 +511,37 @@ async function handleExport() {
 
 // 处理上传
 const handleUpload = async (formData: FormData, file: File) => {
-  try {
-    const response = await ExampleAPI.importExample(formData);
-    if (response.data.code === ResultEnum.SUCCESS) {
-      ElMessage.success(`${response.data.msg}，${response.data.data}`);
-      emit('import-success');
+    try {
+        const response = await ExampleAPI.importExample(formData);
+        if (response.data.code === ResultEnum.SUCCESS) {
+        ElMessage.success(`${response.data.msg}，${response.data.data}`);
+        emit('import-success');
+        }
+    } catch (error: any) {
+        console.error(error);
     }
-  } catch (error: any) {
-    console.error(error);
-  }
 };
 
 // 下载导入模板
 const handleDownloadTemplate = () => {
-  ExampleAPI.downloadTemplate().then((response: any) => {
-    const fileData = response.data;
-    const fileName = decodeURI(response.headers['content-disposition'].split('; ')[1].split('=')[1]);
-    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8';
+    ExampleAPI.downloadTemplate().then((response: any) => {
+        const fileData = response.data;
+        const fileName = decodeURI(response.headers['content-disposition'].split('; ')[1].split('=')[1]);
+        const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8';
 
-    const blob = new Blob([fileData], { type: fileType });
-    const downloadUrl = window.URL.createObjectURL(blob);
+        const blob = new Blob([fileData], { type: fileType });
+        const downloadUrl = window.URL.createObjectURL(blob);
 
-    const downloadLink = document.createElement('a');
-    downloadLink.href = downloadUrl;
-    downloadLink.download = fileName;
+        const downloadLink = document.createElement('a');
+        downloadLink.href = downloadUrl;
+        downloadLink.download = fileName;
 
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
 
-    document.body.removeChild(downloadLink);
-    window.URL.revokeObjectURL(downloadUrl);
-  });
+        document.body.removeChild(downloadLink);
+        window.URL.revokeObjectURL(downloadUrl);
+    });
 };
 
 // 打开导入弹窗
