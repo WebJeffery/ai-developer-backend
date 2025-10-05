@@ -59,25 +59,39 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button type="success" icon="plus" @click="handleOpenDialog('create')" v-hasPerm="['system:dict_data:create']">新增</el-button>
-          <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)" v-hasPerm="['system:dict_data:delete']">批量删除</el-button>
-          <el-dropdown trigger="click" v-hasPerm="['system:dict_data:patch']">
-            <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
-                <el-dropdown-item icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:dict_data:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:dict_data:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-dropdown v-hasPerm="['system:dict_data:patch']" trigger="click">
+                <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
+                    <el-dropdown-item icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </el-col>
+          </el-row>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-tooltip content="导出">
-            <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:dict_data:export']" />
-          </el-tooltip>
-          <el-tooltip content="刷新">
-            <el-button type="default" icon="refresh" circle @click="handleRefresh" />
-          </el-tooltip>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-tooltip content="导出">
+                <el-button v-hasPerm="['system:dict_data:export']" type="warning" icon="download" circle @click="handleExport"/>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button type="default" icon="refresh" circle @click="handleRefresh" />
+              </el-tooltip>
+            </el-col>
+          </el-row>
         </div>
       </div>
 
@@ -126,8 +140,8 @@
         <el-table-column fixed="right" label="操作" align="center" min-width="200">
           <template #default="scope">
             <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
-            <el-button type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)" v-hasPerm="['system:dict_data:update']">编辑</el-button>
-            <el-button type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])" v-hasPerm="['system:dict_data:delete']">删除</el-button>
+            <el-button v-hasPerm="['system:dict_data:update']" type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)">编辑</el-button>
+            <el-button v-hasPerm="['system:dict_data:delete']" type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

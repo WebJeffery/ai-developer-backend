@@ -29,33 +29,49 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button type="success" icon="plus" @click="handleUpload" v-hasPerm="['monitor:resource:upload']">上传文件</el-button>
-          <el-button type="primary" icon="folder-add" @click="handleCreateDir" v-hasPerm="['monitor:resource:create_dir']">新建文件夹</el-button>
-          <el-button type="danger" icon="delete" :disabled="selectedItems.length === 0" @click="handleBatchDelete" v-hasPerm="['monitor:resource:delete']">批量删除</el-button>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['monitor:resource:upload']" type="success" icon="plus" @click="handleUpload">上传文件</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['monitor:resource:create_dir']" type="primary" icon="folder-add" @click="handleCreateDir">新建文件夹</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['monitor:resource:delete']" type="danger" icon="delete" :disabled="selectedItems.length === 0" @click="handleBatchDelete">批量删除</el-button>
+            </el-col>
+          </el-row>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-checkbox v-model="showHiddenFiles" @change="handleShowHiddenChange" v-hasPerm="['monitor:resource:show_hidden']">
-          显示隐藏文件
-        </el-checkbox>
-        <el-button-group>
-          <el-button
-            :type="viewMode === 'list' ? 'primary' : ''"
-            @click="viewMode = 'list'"
-            v-hasPerm="['monitor:resource:view_list']"
-          >
-            <el-icon><List /></el-icon>
-          </el-button>
-          <el-button
-            :type="viewMode === 'grid' ? 'primary' : ''"
-            @click="viewMode = 'grid'"
-            v-hasPerm="['monitor:resource:view_grid']"
-          >
-            <el-icon><Grid /></el-icon>
-          </el-button>
-        </el-button-group>
-          <el-tooltip content="刷新">
-            <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['monitor:resource:refresh']" />
-          </el-tooltip>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-checkbox v-model="showHiddenFiles" v-hasPerm="['monitor:resource:show_hidden']"  @change="handleShowHiddenChange">
+                显示隐藏文件
+              </el-checkbox>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button-group>
+                <el-button
+                  v-hasPerm="['monitor:resource:view_list']"
+                  :type="viewMode === 'list' ? 'primary' : ''"
+                  @click="viewMode = 'list'"
+                >
+                  <el-icon><List /></el-icon>
+                </el-button>
+                <el-button
+                  v-hasPerm="['monitor:resource:view_grid']"
+                  :type="viewMode === 'grid' ? 'primary' : ''"
+                  @click="viewMode = 'grid'"
+                >
+                  <el-icon><Grid /></el-icon>
+                </el-button>
+              </el-button-group>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button v-hasPerm="['monitor:resource:refresh']" type="primary" icon="refresh" circle @click="handleRefresh"/>
+              </el-tooltip>
+            </el-col>
+          </el-row>
         </div>
       </div>
 

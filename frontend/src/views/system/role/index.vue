@@ -58,6 +58,17 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+
+            </el-col>
+            <el-col :span="1.5">
+              
+            </el-col>
+            <el-col :span="1.5">
+              
+            </el-col>
+          </el-row>
           <el-button v-hasPerm="['system:role:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
           <el-button v-hasPerm="['system:role:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
           <el-dropdown v-hasPerm="['system:role:patch']" trigger="click">
@@ -73,24 +84,32 @@
           </el-dropdown>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-tooltip content="导出">
-            <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:role:export']" />
-          </el-tooltip>
-          <el-tooltip content="刷新">
-              <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:role:refresh']" />
-            </el-tooltip>
-          <el-tooltip content="列表筛选">
-            <el-dropdown trigger="click">
-                <el-button type="default" icon="operation" circle />
-                <template #dropdown>
-                  <el-dropdown-menu v-hasPerm="['system:role:filter']">
-                  <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
-                    <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </el-tooltip>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-tooltip content="导出">
+                <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:role:export']" />
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:role:refresh']" />
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="列表筛选">
+                <el-dropdown trigger="click">
+                    <el-button type="default" icon="operation" circle />
+                    <template #dropdown>
+                      <el-dropdown-menu v-hasPerm="['system:role:filter']">
+                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
+                        <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </el-tooltip>
+            </el-col>
+          </el-row>
         </div>
       </div>
 

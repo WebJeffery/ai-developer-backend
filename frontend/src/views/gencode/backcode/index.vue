@@ -2,7 +2,7 @@
   <div class="app-container">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form v-show="showSearch" ref="queryRef" :model="queryFormData" :inline="true" label-suffix=":">
+      <el-form ref="queryRef" :model="queryFormData" :inline="true" label-suffix=":">
         <el-form-item label="表名称" prop="table_name">
           <el-input
             v-model="queryFormData.table_name"
@@ -32,8 +32,8 @@
           ></el-date-picker>
         </el-form-item>
         <el-form-item>
-          <el-button v-hasPermi="['generator:gencode:query']" type="primary" icon="Sesearcharch" @click="handleQuery">搜索</el-button>
-          <el-button v-hasPermi="['generator:gencode:query']" icon="refresh" @click="resetQuery">重置</el-button>
+          <el-button v-hasPerm="['generator:gencode:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['generator:gencode:query']" icon="refresh" @click="handleRefresh">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -57,69 +57,59 @@
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button
-                v-hasPermi="['generator:gencode:code']"
+                v-hasPerm="['generator:gencode:create']"
                 type="primary"
+                plain
+                icon="Plus"
+                @click="openCreateTable"
+              >创建</el-button>
+            </el-col>
+            <el-col :span="1.5">
+                <el-button
+                v-hasPerm="['generator:gencode:update']"
+                type="success"
+                plain
+                icon="Edit"
+                :disabled="single"
+                @click="handleEditTable"
+                >修改</el-button>
+              </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['generator:gencode:delete']"
+                type="danger"
+                plain
+                icon="Delete"
+                :disabled="multiple"
+                @click="handleDelete"
+              >删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['generator:gencode:import']"
+                type="info"
+                plain
+                icon="Upload"
+                @click="openImportTable"
+              >导入</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['generator:gencode:code']"
+                type="warning"
                 plain
                 icon="Download"
                 :disabled="multiple"
                 @click="handleGenTable"
               >生成</el-button>
             </el-col>
-            <el-col :span="1.5">
-              <el-button
-                type="primary"
-                plain
-                icon="Plus"
-                @click="openCreateTable"
-                v-hasRole="['admin']"
-              >创建</el-button>
-            </el-col>
-            <el-col :span="1.5">
-              <el-button
-                type="info"
-                plain
-                icon="Upload"
-                @click="openImportTable"
-                v-hasPermi="['generator:gencode:import']"
-              >导入</el-button>
-            </el-col>
-            <el-col :span="1.5">
-                <el-button
-                type="success"
-                plain
-                icon="Edit"
-                :disabled="single"
-                @click="handleEditTable"
-                v-hasPermi="['generator:gencode:update']"
-                >修改</el-button>
-              </el-col>
-            <el-col :span="1.5">
-              <el-button
-                type="danger"
-                plain
-                icon="Delete"
-                :disabled="multiple"
-                @click="handleDelete"
-                v-hasPermi="['generator:gencode:delete']"
-              >删除</el-button>
-            </el-col>
           </el-row>
         </div>
         <div class="data-table__toolbar--tools">
           <el-row :gutter="10">
             <el-col :span="1.5">
-              <el-tooltip content="导入">
-                <el-button type="info" icon="upload" circle @click="handleOpenImportDialog" v-hasPerm="['demo:example:import']" />
-              </el-tooltip>
-            </el-col>
-            <el-col :span="1.5">
-              <el-tooltip content="导出">
-                <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['demo:example:export']" />
-              </el-tooltip>
-            </el-col>
-            <el-col :span="1.5">
               <el-tooltip content="刷新">
-                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['demo:example:refresh']" />
+                <el-button v-hasPerm="['demo:example:refresh']"  type="primary" icon="refresh" circle @click="handleRefresh"/>
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
@@ -140,7 +130,6 @@
               </el-tooltip>
             </el-col>
           </el-row>
-          
         </div>
       </div>
 
@@ -187,19 +176,19 @@
         <el-table-column label="操作" align="center" width="330" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="预览" placement="top">
-              <el-button link type="primary" icon="View" @click="handlePreview(scope.row)" v-hasPermi="['generator:gencode:query']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:query']" link type="primary" icon="View" @click="handlePreview(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="编辑" placement="top">
-              <el-button link type="primary" icon="Edit" @click="handleEditTable(scope.row)" v-hasPermi="['generator:gencode:update']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:update']" link type="primary" icon="Edit" @click="handleEditTable(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['generator:gencode:delete']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:delete']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="同步" placement="top">
-              <el-button link type="primary" icon="Refresh" @click="handleSynchDb(scope.row)" v-hasPermi="['generator:gencode:edit']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:edit']" link type="primary" icon="Refresh" @click="handleSynchDb(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="生成代码" placement="top">
-              <el-button link type="primary" icon="Download" @click="handleGenTable(scope.row)" v-hasPermi="['generator:gencode:code']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:code']" link type="primary" icon="Download" @click="handleGenTable(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -208,7 +197,6 @@
       <!-- 分页区域 -->
       <template #footer>
         <pagination 
-          v-show="total>0"
           v-model:total="total" 
           v-model:page="queryFormData.page_no"
           v-model:limit="queryFormData.page_size" 
@@ -255,7 +243,6 @@ const createRef = ref();
 
 const tableList = ref([]);
 const loading = ref(true);
-const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);
 const multiple = ref(true);
@@ -391,7 +378,7 @@ function openCreateTable() {
 }
 
 /** 重置按钮操作 */
-function resetQuery() {
+function handleRefresh() {
   dateRange.value = [];
   // 手动重置表单
   queryFormData.value = {

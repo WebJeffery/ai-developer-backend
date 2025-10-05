@@ -61,15 +61,25 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)" v-hasPerm="['system:log:delete']">批量删除</el-button>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:log:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
+            </el-col>
+          </el-row>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-tooltip content="导出">
-            <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:log:export']" />
-          </el-tooltip>
-          <el-tooltip content="刷新">
-            <el-button type="default" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:log:refresh']" />
-          </el-tooltip>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-tooltip content="导出">
+                <el-button v-hasPerm="['system:log:export']" type="warning" icon="download" circle @click="handleExport"/>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button v-hasPerm="['system:log:refresh']" type="default" icon="refresh" circle @click="handleRefresh"/>
+              </el-tooltip>
+            </el-col>
+          </el-row>
         </div>
       </div>
 

@@ -235,7 +235,7 @@
 </template>
 
 <script setup>
-import { listMenu } from "@/api/system/menu";
+import MenuAPI from "@/api/system/menu";
 
 const subColumns = ref([]);
 const menuOptions = ref([]);
@@ -284,7 +284,7 @@ function setSubTableColumns(value) {
 
 /** 查询菜单下拉树结构 */
 function getMenuTreeselect() {
-  listMenu().then(response => {
+  MenuAPI.getMenuList().then(response => {
     menuOptions.value = proxy.handleTree(response.data, "menuId");
   });
 }

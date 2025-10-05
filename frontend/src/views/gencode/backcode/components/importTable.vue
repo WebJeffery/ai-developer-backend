@@ -1,10 +1,10 @@
 <template>
   <!-- 导入表 -->
-  <el-dialog title="导入表" v-model="visible" width="800px" top="5vh" append-to-body>
-    <el-form :model="queryParams" ref="queryRef" :inline="true">
+  <el-dialog v-model="visible" title="导入表"  width="800px" top="5vh" append-to-body>
+    <el-form ref="queryRef" :model="queryFormData" :inline="true">
       <el-form-item label="表名称" prop="tableName">
         <el-input
-          v-model="queryParams.tableName"
+          v-model="queryFormData.table_name"
           placeholder="请输入表名称"
           clearable
           style="width: 180px"
@@ -13,7 +13,7 @@
       </el-form-item>
       <el-form-item label="表描述" prop="tableComment">
         <el-input
-          v-model="queryParams.tableComment"
+          v-model="queryFormData.table_comment"
           placeholder="请输入表描述"
           clearable
           style="width: 180px"
@@ -26,18 +26,25 @@
       </el-form-item>
     </el-form>
     <el-row>
-      <el-table @row-click="clickRow" ref="table" :data="dbTableList" @selection-change="handleSelectionChange" height="260px">
+      <el-table  ref="table" :data="dbTableList" height="300px" @row-click="clickRow" @selection-change="handleSelectionChange">
+        <template #empty>
+          <el-empty :image-size="80" description="暂无数据" />
+        </template>
         <el-table-column type="selection" width="55"></el-table-column>
-        <el-table-column prop="tableName" label="表名称" :show-overflow-tooltip="true"></el-table-column>
-        <el-table-column prop="tableComment" label="表描述" :show-overflow-tooltip="true"></el-table-column>
-        <el-table-column prop="createTime" label="创建时间"></el-table-column>
-        <el-table-column prop="updateTime" label="更新时间"></el-table-column>
+        <el-table-column label="序号" type="index" min-width="55" align="center" fixed>
+          <template #default="scope">
+            <span>{{(queryFormData.page_no - 1) * queryFormData.page_size + scope.$index + 1}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="database_name" label="数据库名称" :show-overflow-tooltip="true"></el-table-column>
+        <el-table-column prop="table_name" label="表名称" :show-overflow-tooltip="true"></el-table-column>
+        <el-table-column prop="table_comment" label="表描述" :show-overflow-tooltip="true"></el-table-column>
+        <el-table-column prop="table_type" label="表类型"></el-table-column>
       </el-table>
       <pagination
-        v-show="total>0"
+        v-model:page="queryFormData.page_no"
+        v-model:limit="queryFormData.page_size"
         :total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
         @pagination="getList"
       />
     </el-row>
@@ -59,11 +66,11 @@ const tables = ref([]);
 const dbTableList = ref([]);
 const { proxy } = getCurrentInstance();
 
-const queryParams = reactive({
-  pageNum: 1,
-  pageSize: 10,
-  tableName: undefined,
-  tableComment: undefined
+const queryFormData = reactive({
+  page_no: 1,
+  page_size: 10,
+  table_name: undefined,
+  table_comment: undefined
 });
 
 const emit = defineEmits(["ok"]);
@@ -81,20 +88,21 @@ function clickRow(row) {
 
 /** 多选框选中数据 */
 function handleSelectionChange(selection) {
-  tables.value = selection.map(item => item.tableName);
+  tables.value = selection.map(item => item.table_name);
 }
 
 /** 查询表数据 */
 function getList() {
-  GencodeAPI.listDbTable(queryParams).then(res => {
-    dbTableList.value = res.rows;
-    total.value = res.total;
+  GencodeAPI.listDbTable(queryFormData).then(res => {
+    console.log(res.data);
+    dbTableList.value = res.data.data.items;
+    total.value = res.data.data.total;
   });
 }
 
 /** 搜索按钮操作 */
 function handleQuery() {
-  queryParams.pageNum = 1;
+  queryFormData.page_no = 1;
   getList();
 }
 

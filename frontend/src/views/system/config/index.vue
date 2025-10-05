@@ -60,28 +60,42 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button type="success" icon="plus" @click="handleOpenDialog('create')" v-hasPerm="['system:config:create']">新增</el-button>
-          <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)" v-hasPerm="['system:config:delete']">批量删除</el-button>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:config:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:config:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
+            </el-col>
+          </el-row>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-tooltip content="导出">
-            <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:config:export']" />
-          </el-tooltip>
-          <el-tooltip content="刷新">
-              <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:config:refresh']" />
-            </el-tooltip>
-          <el-tooltip content="列表筛选">
-            <el-dropdown trigger="click" v-hasPerm="['system:config:filter']">
-              <el-button type="default" icon="operation" circle />
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
-                    <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </el-tooltip>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-tooltip content="导出">
+                <el-button v-hasPerm="['system:config:export']" type="warning" icon="download" circle @click="handleExport"/>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button v-hasPerm="['system:config:refresh']" type="primary" icon="refresh" circle @click="handleRefresh"/>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="列表筛选">
+                <el-dropdown v-hasPerm="['system:config:filter']" trigger="click">
+                  <el-button type="default" icon="operation" circle />
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
+                        <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </el-tooltip>
+            </el-col>
+          </el-row>
         </div>
       </div>
 

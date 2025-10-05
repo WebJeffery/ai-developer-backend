@@ -132,14 +132,12 @@ export interface TablePageVO {
   /** 表描述 */
   table_comment: string;
 
-  /** 存储引擎 */
-  engine: string;
+  /** 数据库名称 */
+  database_name: string;
 
-  /** 字符集排序规则 */
-  table_collation: string;
+  /** 表单类型 */
+  table_type: string;
 
-  /** 创建时间 */
-  create_time: string;
 }
 
 /** 代码生成表输出对象 */

@@ -58,34 +58,48 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button v-hasPerm="['system:dept:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
-          <el-button v-hasPerm="['system:dept:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
-          <el-dropdown v-hasPerm="['system:dept:patch']" trigger="click">
-            <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
-                <el-dropdown-item icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:dept:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:dept:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-dropdown v-hasPerm="['system:dept:patch']" trigger="click">
+                <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
+                    <el-dropdown-item icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </el-col>
+          </el-row>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-tooltip content="刷新">
-              <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:dept:refresh']" />
-            </el-tooltip>
-          <el-tooltip content="列表筛选">
-            <el-dropdown trigger="click" v-hasPerm="['system:dept:filter']">
-              <el-button type="default" icon="operation" circle />
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
-                    <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </el-tooltip>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:dept:refresh']" />
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="列表筛选">
+                <el-dropdown trigger="click" v-hasPerm="['system:dept:filter']">
+                  <el-button type="default" icon="operation" circle />
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
+                        <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </el-tooltip>
+            </el-col>
+          </el-row>
         </div>
       </div>
 
