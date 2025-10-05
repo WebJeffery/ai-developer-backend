@@ -570,15 +570,8 @@
         <div class="dialog-footer">
           <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
-          <el-button
-            v-if="dialogVisible.type !== 'detail'"
-            type="primary"
-            @click="handleSubmit"
-            >确定</el-button
-          >
-          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['app:job:detail']"
-            >确定</el-button
-          >
+          <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-else v-hasPerm="['app:job:detail']" type="primary" @click="handleCloseDialog" >确定</el-button>
         </div>
       </template>
     </el-dialog>

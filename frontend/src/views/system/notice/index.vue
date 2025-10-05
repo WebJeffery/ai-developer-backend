@@ -32,10 +32,10 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['system:notice:query']">
+          <el-button v-hasPerm="['system:notice:query']" type="primary" icon="search" @click="handleQuery">
               查询
             </el-button>
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['system:notice:query']">
+          <el-button v-hasPerm="['system:notice:query']" icon="refresh" @click="handleResetQuery">
               重置
             </el-button>
           <!-- 展开/收起 -->
@@ -96,17 +96,17 @@
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="导出">
-                <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:notice:export']" />
+                <el-button v-hasPerm="['system:notice:export']" type="warning" icon="download" circle @click="handleExport" />
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="刷新">
-                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:notice:refresh']" />
+                <el-button v-hasPerm="['system:notice:refresh']" type="primary" icon="refresh" circle @click="handleRefresh" />
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="列表筛选">
-                <el-dropdown trigger="click" v-hasPerm="['system:notice:filter']">
+                <el-dropdown v-hasPerm="['system:notice:filter']" trigger="click">
                   <el-button type="default" icon="operation" circle />
                   <template #dropdown>
                     <el-dropdown-menu>
@@ -162,9 +162,9 @@
 
         <el-table-column v-if="tableColumns.find(col => col.prop === 'operation')?.show" fixed="right" label="操作" align="center" min-width="200">
           <template #default="scope">
-            <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['system:notice:detail']">详情</el-button>
-            <el-button type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)" v-hasPerm="['system:notice:update']">编辑</el-button>
-            <el-button type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])" v-hasPerm="['system:notice:delete']">删除</el-button>
+            <el-button v-hasPerm="['system:notice:detail']" type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
+            <el-button v-hasPerm="['system:notice:update']" type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)">编辑</el-button>
+            <el-button v-hasPerm="['system:notice:delete']" type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -218,7 +218,8 @@
           </el-form-item>
           <el-form-item label="类型" prop="notice_type">
             <el-select v-model="formData.notice_type" placeholder="请选择类型" clearable>
-              <el-option v-for="item in dictStore.getDictArray('sys_notice_type')"
+              <el-option
+                v-for="item in dictStore.getDictArray('sys_notice_type')"
                 :key="item.dict_value"
                 :value="item.dict_value"
                 :label="item.dict_label"
@@ -250,8 +251,8 @@
         <div class="dialog-footer">
           <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
-          <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit" v-hasPerm="['system:notice:submit']">确定</el-button>
-          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['system:notice:detail']">确定</el-button>
+          <el-button v-if="dialogVisible.type !== 'detail'" v-hasPerm="['system:notice:submit']" type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-else v-hasPerm="['system:notice:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
         </div>
       </template>
     </el-dialog>

@@ -40,7 +40,7 @@
     <template #footer> 
       <!-- 操作按钮 -->
       <el-button @click="resetForm">取消</el-button>
-      <el-button type="primary" :disabled="!hasChanges" @click="submitChanges" v-hasPerm="['system:config:update']">保存</el-button>
+      <el-button v-hasPerm="['system:config:update']" type="primary" :disabled="!hasChanges" @click="submitChanges">保存</el-button>
     </template>
   </el-drawer>
 </template>

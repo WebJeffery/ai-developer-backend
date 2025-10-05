@@ -9,7 +9,10 @@
       </template>
     </el-input>
 
-    <el-tree ref="deptTreeRef" class="mt-2" :data="deptOptions"
+    <el-tree 
+      ref="deptTreeRef"
+      class="mt-2" 
+      :data="deptOptions"
       :props="{ children: 'children', label: 'label', disabled: '' }" 
       :expand-on-click-node="false"
       :filter-node-method="handleFilter" 

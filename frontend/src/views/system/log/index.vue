@@ -25,8 +25,8 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['system:log:query']">查询</el-button>
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['system:log:query']">重置</el-button>
+          <el-button v-hasPerm="['system:log:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['system:log:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
             <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
@@ -134,8 +134,8 @@
         </el-table-column>
         <el-table-column label="操作" fixed="right" align="center" min-width="150">
           <template #default="scope">
-            <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['system:log:detail']">详情</el-button>
-            <el-button type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])" v-hasPerm="['system:log:delete']">删除</el-button>
+            <el-button v-hasPerm="['system:log:detail']" type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
+            <el-button v-hasPerm="['system:log:delete']" type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -189,7 +189,7 @@
         <div class="dialog-footer">
           <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
-          <el-button type="primary" @click="handleCloseDialog" v-hasPerm="['system:log:detail']">确定</el-button>
+          <el-button v-hasPerm="['system:log:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
         </div>
       </template>
     </el-dialog>

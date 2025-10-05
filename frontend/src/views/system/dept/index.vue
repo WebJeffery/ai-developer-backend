@@ -22,8 +22,8 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['system:dept:query']">查询</el-button>
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['system:dept:query']">重置</el-button>
+          <el-button v-hasPerm="['system:dept:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['system:dept:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
             <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
@@ -82,12 +82,12 @@
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="刷新">
-                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:dept:refresh']" />
+                <el-button v-hasPerm="['system:dept:refresh']" type="primary" icon="refresh" circle @click="handleRefresh"/>
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="列表筛选">
-                <el-dropdown trigger="click" v-hasPerm="['system:dept:filter']">
+                <el-dropdown v-hasPerm="['system:dept:filter']" trigger="click">
                   <el-button type="default" icon="operation" circle />
                   <template #dropdown>
                     <el-dropdown-menu>
@@ -127,7 +127,7 @@
         <el-table-column v-if="tableColumns.find(col => col.prop === 'operation')?.show" fixed="right" label="操作" align="center"  min-width="200">
           <template #default="scope">
             <el-button v-hasPerm="['system:dept:create']" type="success" size="small" link icon="plus" @click="handleOpenDialog('create', undefined, scope.row.id)">新增</el-button>
-            <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['system:dept:detail']">详情</el-button>
+            <el-button v-hasPerm="['system:dept:detail']" type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
             <el-button v-hasPerm="['system:dept:update']" type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)">编辑</el-button>
             <el-button v-hasPerm="['system:dept:delete']" type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
           </template>
@@ -186,8 +186,8 @@
         <div class="dialog-footer">
           <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
-          <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit" v-hasPerm="['system:dept:submit']">确定</el-button>
-          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['system:dept:detail']">确定</el-button>
+          <el-button v-if="dialogVisible.type !== 'detail'" v-hasPerm="['system:dept:submit']" type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-else v-hasPerm="['system:dept:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
         </div>
       </template>
     </el-dialog>

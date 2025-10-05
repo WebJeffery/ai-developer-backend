@@ -7,8 +7,8 @@
           <el-input v-model="queryFormData.name" placeholder="请输入文件名或目录名" clearable />
         </el-form-item>
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['monitor:resource:query']">查询</el-button>
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['monitor:resource:query']">重置</el-button>
+          <el-button v-hasPerm="['monitor:resource:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['monitor:resource:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -123,9 +123,9 @@
                 <Document v-else />
               </el-icon>
               <span 
+                v-hasPerm="['monitor:resource:preview']"
                 :class="{ 'file-name-clickable': true }"
                 @click="handleFileNameClick(row)"
-                v-hasPerm="['monitor:resource:preview']"
               >
                 {{ row.name }}
               </span>
@@ -147,19 +147,19 @@
           <template #default="{ row }">
             <el-button
               v-if="!row.is_dir"
+              v-hasPerm="['monitor:resource:download']"
               type="success"
               size="small"
               link
               icon="download"
               @click="handleDownload(row)"
-              v-hasPerm="['monitor:resource:download']"
             >
               下载
             </el-button>
-            <el-button type="primary" size="small" link icon="edit" @click="handleRename(row)" v-hasPerm="['monitor:resource:rename']">
+            <el-button v-hasPerm="['monitor:resource:rename']" type="primary" size="small" link icon="edit" @click="handleRename(row)">
               重命名
             </el-button>
-            <el-button type="danger" size="small" link icon="delete" @click="handleDelete(row)" v-hasPerm="['monitor:resource:delete']">
+            <el-button v-hasPerm="['monitor:resource:delete']" type="danger" size="small" link icon="delete" @click="handleDelete(row)">
               删除
             </el-button>
           </template>
@@ -227,7 +227,7 @@
       </el-upload>
       <template #footer>
         <el-button @click="uploadDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" @click="handleUploadConfirm" v-hasPerm="['monitor:resource:upload']">
+        <el-button v-hasPerm="['monitor:resource:upload']" type="primary" :loading="uploading" @click="handleUploadConfirm">
           确定上传
         </el-button>
       </template>
@@ -250,7 +250,7 @@
       </el-form>
       <template #footer>
         <el-button @click="createDirDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateDirConfirm" v-hasPerm="['monitor:resource:create_dir']">确定</el-button>
+        <el-button v-hasPerm="['monitor:resource:create_dir']" type="primary" @click="handleCreateDirConfirm">确定</el-button>
       </template>
     </el-dialog>
 
@@ -271,7 +271,7 @@
       </el-form>
       <template #footer>
         <el-button @click="renameDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleRenameConfirm" v-hasPerm="['monitor:resource:rename']">确定</el-button>
+        <el-button v-hasPerm="['monitor:resource:rename']" type="primary" @click="handleRenameConfirm">确定</el-button>
       </template>
     </el-dialog>
   </div>

@@ -22,8 +22,8 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['system:position:query']">查询</el-button>
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['system:position:query']">重置</el-button>
+          <el-button v-hasPerm="['system:position:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['system:position:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
             <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
@@ -82,12 +82,12 @@
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="导出">
-                <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:position:export']" />
+                <el-button v-hasPerm="['system:position:export']" type="warning" icon="download" circle @click="handleExport" />
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="刷新">
-                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:position:refresh']" />
+                <el-button v-hasPerm="['system:position:refresh']" type="primary" icon="refresh" circle @click="handleRefresh" />
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
@@ -139,9 +139,9 @@
 
         <el-table-column v-if="tableColumns.find(col => col.prop === 'operation')?.show" fixed="right" label="操作" align="center" min-width="200">
           <template #default="scope">
-            <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['system:position:detail']">详情</el-button>
-            <el-button type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)" v-hasPerm="['system:position:update']">编辑</el-button>
-            <el-button type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])" v-hasPerm="['system:position:delete']">删除</el-button>
+            <el-button v-hasPerm="['system:position:detail']" type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
+            <el-button v-hasPerm="['system:position:update']" type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)">编辑</el-button>
+            <el-button v-hasPerm="['system:position:delete']" type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -196,8 +196,8 @@
         <div class="dialog-footer">
           <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
-          <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit" v-hasPerm="['system:position:submit']">确定</el-button>
-          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['system:position:detail']">确定</el-button>
+          <el-button v-if="dialogVisible.type !== 'detail'" v-hasPerm="['system:position:submit']" type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-else v-hasPerm="['system:position:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
         </div>
       </template>
     </el-dialog>

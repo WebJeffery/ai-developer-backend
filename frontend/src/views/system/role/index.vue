@@ -22,8 +22,8 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['system:role:query']">查询</el-button>
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['system:role:query']">重置</el-button>
+          <el-button v-hasPerm="['system:role:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['system:role:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
             <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
@@ -87,12 +87,12 @@
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="导出">
-                <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:role:export']" />
+                <el-button v-hasPerm="['system:role:export']" type="warning" icon="download" circle @click="handleExport" />
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="刷新">
-                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:role:refresh']" />
+                <el-button v-hasPerm="['system:role:refresh']" type="primary" icon="refresh" circle @click="handleRefresh" />
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
@@ -163,12 +163,12 @@
               @click="scope.row.id === 1 ? ElMessage.warning('系统默认角色，不可操作') : handleOpenAssignPermDialog(scope.row.id, scope.row.name)"
             >分配权限</el-button>
             <el-button 
+              v-hasPerm="['system:role:detail']"
               type="info" 
               size="small" 
               link 
               icon="document" 
               @click="handleOpenDialog('detail', scope.row.id)"
-              v-hasPerm="['system:role:detail']"
             >详情</el-button>
             <el-button 
               v-hasPerm="['system:role:update']" 
@@ -258,7 +258,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" @click="handleSubmit" v-hasPerm="['system:role:submit']">确 定</el-button>
+          <el-button v-hasPerm="['system:role:submit']" type="primary" @click="handleSubmit">确 定</el-button>
         </div>
       </template>
     </el-dialog>
