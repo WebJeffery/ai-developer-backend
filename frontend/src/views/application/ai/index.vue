@@ -16,23 +16,8 @@
             </el-icon>
             <span class="status-text">{{ connectionStatusText }}</span>
           </div>
-          <el-button 
-            v-if="messages.length > 0"
-            text 
-            @click="clearCurrentChat"
-            v-hasPerm="['ai:mcp:clear']"
-          >
-            <el-icon><Delete /></el-icon>
-            清空对话
-          </el-button>
-          <el-button 
-            text 
-            @click="toggleConnection"
-            v-hasPerm="['ai:mcp:connection']"
-          >
-            <el-icon><Setting /></el-icon>
-            {{ isConnected ? '断开连接' : '重新连接' }}
-          </el-button>
+          <el-button v-if="messages.length > 0" v-hasPerm="['ai:mcp:clear']" text :icon="Delete" @click="clearCurrentChat">清空对话</el-button>
+          <el-button v-hasPerm="['ai:mcp:connection']" text :icon="Setting" @click="toggleConnection">{{ isConnected ? '断开连接' : '重新连接' }}</el-button>
         </div>
       </div>
 
@@ -100,12 +85,8 @@
                 <div v-else class="message-text" v-html="formatMessage(message.content)"></div>
               </div>
               <div v-if="!message.loading" class="message-actions">
-                <el-button text size="small" @click="copyMessage(message.content)">
-                  <el-icon><CopyDocument /></el-icon>
-                </el-button>
-                <el-button v-if="message.type === 'assistant'" text size="small">
-                  <el-icon><RefreshLeft /></el-icon>
-                </el-button>
+                <el-button text size="small" :icon="CopyDocument" @click="copyMessage(message.content)"></el-button>
+                <el-button v-if="message.type === 'assistant'" text size="small" :icon="RefreshLeft"></el-button>
               </div>
             </div>
           </div>
@@ -324,7 +305,7 @@ const sendMessage = async () => {
     // 发送消息到 WebSocket
     if (ws?.readyState === WebSocket.OPEN) {
       const payload = {
-        message: message,
+        message,
         timestamp: Date.now()
       }
       ws.send(JSON.stringify(payload))
@@ -403,26 +384,6 @@ const scrollToBottom = () => {
       messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
     }
   })
-}
-
-// 格式化时间
-const formatTime = (timestamp: number) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  
-  if (date.toDateString() === now.toDateString()) {
-    return date.toLocaleTimeString('zh-CN', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
-  } else {
-    return date.toLocaleString('zh-CN', { 
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
-  }
 }
 
 // 格式化消息内容

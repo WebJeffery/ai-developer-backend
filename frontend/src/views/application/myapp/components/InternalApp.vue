@@ -37,7 +37,6 @@ const loading = ref(true);
 
 // 从路由参数获取应用信息
 const appUrl = computed(() => route.query.url as string);
-const appId = computed(() => route.query.appId as string);
 const appName = computed(() => route.query.appName as string);
 
 // iframe加载完成

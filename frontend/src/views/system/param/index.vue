@@ -24,8 +24,8 @@
           />
         </el-form-item>
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['system:config:query']">查询</el-button>
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['system:config:query']">重置</el-button>
+          <el-button v-hasPerm="['system:config:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['system:config:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
             <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
@@ -60,28 +60,42 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button type="success" icon="plus" @click="handleOpenDialog('create')" v-hasPerm="['system:config:create']">新增</el-button>
-          <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)" v-hasPerm="['system:config:delete']">批量删除</el-button>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:config:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button v-hasPerm="['system:config:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
+            </el-col>
+          </el-row>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-tooltip content="导出">
-            <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['system:config:export']" />
-          </el-tooltip>
-          <el-tooltip content="刷新">
-              <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:config:refresh']" />
-            </el-tooltip>
-          <el-tooltip content="列表筛选">
-            <el-dropdown trigger="click" v-hasPerm="['system:config:filter']">
-              <el-button type="default" icon="operation" circle />
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
-                    <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </el-tooltip>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-tooltip content="导出">
+                <el-button v-hasPerm="['system:config:export']" type="warning" icon="download" circle @click="handleExport"/>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button v-hasPerm="['system:config:refresh']" type="primary" icon="refresh" circle @click="handleRefresh"/>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="列表筛选">
+                <el-dropdown v-hasPerm="['system:config:filter']" trigger="click">
+                  <el-button type="default" icon="operation" circle />
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
+                        <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </el-tooltip>
+            </el-col>
+          </el-row>
         </div>
       </div>
 
@@ -115,9 +129,9 @@
         </el-table-column>
         <el-table-column v-if="tableColumns.find(col => col.prop === 'operation')?.show" fixed="right" label="操作" align="center" min-width="200">
           <template #default="scope">
-            <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)" v-hasPerm="['system:config:detail']">详情</el-button>
-            <el-button type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)" v-hasPerm="['system:config:update']">编辑</el-button>
-            <el-button type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])" v-hasPerm="['system:config:delete']">删除</el-button>
+            <el-button v-hasPerm="['system:config:detail']" type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
+            <el-button v-hasPerm="['system:config:update']" type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)">编辑</el-button>
+            <el-button v-hasPerm="['system:config:delete']" type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -174,8 +188,8 @@
         <div class="dialog-footer">
           <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
-          <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit" v-hasPerm="['system:config:submit']">确定</el-button>
-          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['system:config:detail']">确定</el-button>
+          <el-button v-if="dialogVisible.type !== 'detail'" v-hasPerm="['system:config:create']" type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-else v-hasPerm="['system:config:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
         </div>
       </template>
     </el-dialog>
@@ -186,7 +200,7 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "Config",
+  name: "Params",
   inheritAttrs: false,
 });
 

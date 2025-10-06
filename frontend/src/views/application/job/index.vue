@@ -36,10 +36,8 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['app:job:query']"
-            >查询</el-button
-          >
-          <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['app:job:query']">重置</el-button>
+          <el-button v-hasPerm="['app:job:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['app:job:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
             <el-link
@@ -79,44 +77,56 @@
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
         <div class="data-table__toolbar--actions">
-          <el-button
-            type="success"
-            icon="plus"
-            @click="handleOpenDialog('create')"
-            v-hasPerm="['app:job:create']"
-            >新增</el-button
-          >
-          <el-button
-            type="danger"
-            icon="delete"
-            :disabled="selectIds.length === 0"
-            @click="handleDelete(selectIds)"
-            v-hasPerm="['app:job:delete']"
-            >批量删除</el-button
-          >
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['app:job:create']"
+                type="success"
+                icon="plus"
+                @click="handleOpenDialog('create')"
+              >新增</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['app:job:delete']"
+                type="danger"
+                icon="delete"
+                :disabled="selectIds.length === 0"
+                @click="handleDelete(selectIds)"
+                >批量删除</el-button>
+            </el-col>
+          </el-row>
         </div>
         <div class="data-table__toolbar--tools">
-          <el-tooltip content="导出">
-            <el-button
-              type="warning"
-              icon="download"
-              circle
-              @click="handleExport"
-              v-hasPerm="['app:job:export']"
-            />
-          </el-tooltip>
-          <el-tooltip content="清除">
-            <el-button type="danger" icon="delete" circle @click="handleClear" v-hasPerm="['app:job:clear']" />
-          </el-tooltip>
-          <el-tooltip content="刷新">
-            <el-button
-              type="primary"
-              icon="refresh"
-              circle
-              @click="handleRefresh"
-              v-hasPerm="['app:job:refresh']"
-            />
-          </el-tooltip>
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-tooltip content="导出">
+                <el-button
+                  v-hasPerm="['app:job:export']"
+                  type="warning"
+                  icon="download"
+                  circle
+                  @click="handleExport"
+                />
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="清除">
+                <el-button v-hasPerm="['app:job:clear']" type="danger" icon="delete" circle @click="handleClear"/>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button
+                  v-hasPerm="['app:job:refresh']"
+                  type="primary"
+                  icon="refresh"
+                  circle
+                  @click="handleRefresh"
+                />
+              </el-tooltip>
+            </el-col>
+          </el-row>
         </div>
       </div>
 
@@ -212,41 +222,41 @@
                 详情
               </el-button>
               <el-button
+                v-hasPerm="['app:job:update']"
                 type="primary"
                 size="small"
                 link
                 icon="edit"
                 @click="handleOpenDialog('update', scope.row.id)"
-                v-hasPerm="['app:job:update']"
               >
                 编辑
               </el-button>
               <el-button
+                v-hasPerm="['app:job:delete']"
                 type="danger"
                 size="small"
                 link
                 icon="delete"
                 @click="handleDelete([scope.row.id])"
-                v-hasPerm="['app:job:delete']"
               >
                 删除
               </el-button>
-              <el-dropdown trigger="click" v-hasPerm="['app:job:status']">
-                <el-button type="warning" size="small" link icon="ArrowDown"
-                  >更多</el-button
-                >
+              <el-dropdown v-hasPerm="['app:job:status']" trigger="click">
+                <el-button type="warning" size="small" link icon="ArrowDown">更多</el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item
                       icon="Check"
                       @click="handleOption(scope.row.id, 1)"
-                      >暂停</el-dropdown-item
                     >
+                      暂停
+                    </el-dropdown-item>
                     <el-dropdown-item
                       icon="CircleClose"
                       @click="handleOption(scope.row.id, 2)"
-                      >恢复</el-dropdown-item
                     >
+                      恢复
+                    </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -560,15 +570,8 @@
         <div class="dialog-footer">
           <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
-          <el-button
-            v-if="dialogVisible.type !== 'detail'"
-            type="primary"
-            @click="handleSubmit"
-            >确定</el-button
-          >
-          <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['app:job:detail']"
-            >确定</el-button
-          >
+          <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-else v-hasPerm="['app:job:detail']" type="primary" @click="handleCloseDialog" >确定</el-button>
         </div>
       </template>
     </el-dialog>

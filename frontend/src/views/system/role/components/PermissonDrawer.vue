@@ -35,7 +35,7 @@
                 </el-form-item>
               </el-form>
               
-              <div class="mt-5 max-h-[60vh] b-1 b-solid b-[#e5e7eb] p-10px overflow-auto box-border" v-if="permissionState.data_scope === 5 && deptTreeData.length">
+              <div v-if="permissionState.data_scope === 5 && deptTreeData.length" class="mt-5 max-h-[60vh] b-1 b-solid b-[#e5e7eb] p-10px overflow-auto box-border">
                 <el-input v-model="deptFilterText" placeholder="部门名称" />
                 <el-tree 
                   ref="deptTreeRef"
@@ -46,8 +46,8 @@
                   default-expand-all
                   :highlight-current="true"
                   :check-strictly="!parentChildLinked"
-                  @check="deptTreeCheck"
                   style="height: calc(100% - 60px); overflow-y: auto; margin-top: 10px;"
+                  @check="deptTreeCheck"
                   >
                   <template #empty>
                     <el-empty :image-size="80" description="暂无数据" />
@@ -108,8 +108,9 @@
             default-expand-all
             :highlight-current="true"
             :check-strictly="!parentChildLinked"
+            style="height: calc(100% - 60px); overflow: auto; margin-top: 10px;"
             @check="menuTreeCheck"
-            style="height: calc(100% - 60px); overflow: auto; margin-top: 10px;">
+          >
             <template #empty>
               <el-empty :image-size="80" description="暂无数据" />
             </template>
@@ -188,11 +189,11 @@ const init = async () => {
   try {
     // 获取全部部门树
     const deptResponse = await DeptAPI.getDeptList();
-    deptTreeData.value = formatTree(listToTree(deptResponse.data.data.items));
+    deptTreeData.value = formatTree(listToTree(deptResponse.data.data));
 
     // 获取全部菜单树
     const menuResponse = await MenuAPI.getMenuList();
-    menuTreeData.value = formatTree(listToTree(menuResponse.data.data.items));
+    menuTreeData.value = formatTree(listToTree(menuResponse.data.data));
 
     // 获取角色详情
     const roleResponse = await RoleAPI.getRoleDetail(props.roleId);

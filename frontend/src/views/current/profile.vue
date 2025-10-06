@@ -24,8 +24,8 @@
                 
               <el-upload
                   ref="uploadRef"
-                  class="el-upload"
                   v-model:file-list="fileList"
+                  class="el-upload"
                   name="file"
                   :show-file-list="false"
                   :before-upload="handleBeforeUpload"
@@ -36,7 +36,7 @@
                   @change="handleFileChange"
                 >
                   <template #trigger>
-                      <el-button type="primary" :icon="Camera" class="upload-trigger" v-hasPerm="['system:user:update']"/>
+                      <el-button v-hasPerm="['system:user:update']" type="primary" :icon="Camera" class="upload-trigger"/>
                     </template>
                 </el-upload>
             </div>
@@ -145,7 +145,7 @@
                   </el-form-item>
 
                   <el-form-item>
-                    <el-button type="primary" :loading="infoSubmitting" icon="edit" @click="handleSave" v-hasPerm="['system:user:update']">保存更改</el-button>
+                    <el-button v-hasPerm="['system:user:update']" type="primary" :loading="infoSubmitting" icon="edit" @click="handleSave">保存更改</el-button>
                   </el-form-item>
                 </el-form>
               </div>
@@ -185,7 +185,7 @@
                   </el-form-item>
 
                   <el-form-item>
-                    <el-button type="primary" :loading="passwordChanging" icon="edit" @click="handlePasswordChange" v-hasPerm="['current:profile:change_password']">更新密码</el-button>
+                    <el-button v-hasPerm="['current:profile:change_password']" type="primary" :loading="passwordChanging" icon="edit" @click="handlePasswordChange">更新密码</el-button>
                   </el-form-item>
                 </el-form>
               </div>
@@ -198,12 +198,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { FormInstance, UploadRequestOptions, UploadFile } from 'element-plus'
+import type { FormInstance, UploadRequestOptions, UploadFile, ElUpload } from 'element-plus'
 import UserAPI, { type InfoFormState, type PasswordFormState } from '@/api/system/user';
 import { useUserStore, useDictStore } from "@/store";
 import { useUserStoreHook } from "@/store/modules/user.store";
 import { Camera } from '@element-plus/icons-vue';
-import { ElUpload, ElMessage } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { useI18n } from "vue-i18n";
 import { nextTick } from 'vue';
 import router from "@/router";

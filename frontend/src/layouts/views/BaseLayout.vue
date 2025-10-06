@@ -28,7 +28,6 @@
 <script setup lang="ts">
 import { useLayout } from "../composables/useLayout";
 import { useLayoutResponsive } from "../composables/useLayoutResponsive";
-import { defaultSettings } from "@/settings";
 import { useSettingsStore } from "@/store";
 
 const settingStore = useSettingsStore();

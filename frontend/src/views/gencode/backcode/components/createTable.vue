@@ -1,8 +1,8 @@
 <template>
   <!-- 创建表 -->
-  <el-dialog title="创建表" v-model="visible" width="800px" top="5vh" append-to-body>
+  <el-dialog v-model="visible" title="创建表" width="800px" top="5vh" append-to-body>
     <span>创建表语句(支持多个建表语句)：</span>
-    <el-input type="textarea" :rows="10" placeholder="请输入文本" v-model="content"></el-input>
+    <el-input v-model="content" type="textarea" :rows="10" placeholder="请输入文本"></el-input>
     <template #footer>
       <div class="dialog-footer">
         <el-button type="primary" @click="handleImportTable">确 定</el-button>
@@ -12,12 +12,12 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import GencodeAPI from "@/api/generator/gencode";
+import { ElMessage } from 'element-plus';
 
 const visible = ref(false);
 const content = ref("");
-const { proxy } = getCurrentInstance();
 const emit = defineEmits(["ok"]);
 
 /** 显示弹框 */
@@ -28,12 +28,12 @@ function show() {
 /** 导入按钮操作 */
 function handleImportTable() {
   if (content.value === "") {
-    proxy.$modal.msgError("请输入建表语句");
+    ElMessage.error("请输入建表语句");
     return;
   }
-  GencodeAPI.createTable({ sql: content.value }).then(res => {
-    proxy.$modal.msgSuccess(res.msg);
-    if (res.code === 200) {
+  GencodeAPI.createTable(content.value).then(res => {
+    ElMessage.success(res.data.msg || "创建成功");
+    if (res.data.code === 200) {
       visible.value = false;
       emit("ok");
     }

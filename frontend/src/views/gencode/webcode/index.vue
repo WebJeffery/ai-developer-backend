@@ -29,12 +29,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import Palette from './components/Palette.vue';
 import Canvas from './components/Canvas.vue';
 import Inspector from './components/Inspector.vue';
-import { ComponentSchema, PageSchema, generateId } from './utils/schema';
-import { generateVueFile, exportAsFile, copyToClipboard } from './utils/serializer';
+import { ComponentSchema } from './utils/schema';
 
 // 响应式数据
 const components = ref<ComponentSchema[]>([]);

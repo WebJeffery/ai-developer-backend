@@ -2,7 +2,7 @@
   <div class="app-container">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form v-show="showSearch" ref="queryRef" :model="queryFormData" :inline="true" label-suffix=":">
+      <el-form ref="queryRef" :model="queryFormData" :inline="true" label-suffix=":">
         <el-form-item label="表名称" prop="table_name">
           <el-input
             v-model="queryFormData.table_name"
@@ -32,8 +32,8 @@
           ></el-date-picker>
         </el-form-item>
         <el-form-item>
-          <el-button v-hasPermi="['generator:gencode:query']" type="primary" icon="Sesearcharch" @click="handleQuery">搜索</el-button>
-          <el-button v-hasPermi="['generator:gencode:query']" icon="refresh" @click="resetQuery">重置</el-button>
+          <el-button v-hasPerm="['generator:gencode:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['generator:gencode:query']" icon="refresh" @click="handleRefresh">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -57,79 +57,68 @@
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button
-                v-hasPermi="['generator:gencode:code']"
+                v-hasPerm="['generator:gencode:create']"
                 type="primary"
+                plain
+                icon="Plus"
+                @click="openCreateTable"
+              >创建</el-button>
+            </el-col>
+            <el-col :span="1.5">
+                <el-button
+                v-hasPerm="['generator:gencode:update']"
+                type="success"
+                plain
+                icon="Edit"
+                :disabled="single"
+                @click="handleEditTable"
+                >修改</el-button>
+              </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['generator:gencode:delete']"
+                type="danger"
+                plain
+                icon="Delete"
+                :disabled="multiple"
+                @click="handleDelete"
+              >删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['generator:gencode:import']"
+                type="info"
+                plain
+                icon="Upload"
+                @click="openImportTable"
+              >导入</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['generator:gencode:code']"
+                type="warning"
                 plain
                 icon="Download"
                 :disabled="multiple"
                 @click="handleGenTable"
               >生成</el-button>
             </el-col>
-            <el-col :span="1.5">
-              <el-button
-                type="primary"
-                plain
-                icon="Plus"
-                @click="openCreateTable"
-                v-hasRole="['admin']"
-              >创建</el-button>
-            </el-col>
-            <el-col :span="1.5">
-              <el-button
-                type="info"
-                plain
-                icon="Upload"
-                @click="openImportTable"
-                v-hasPermi="['generator:gencode:import']"
-              >导入</el-button>
-            </el-col>
-            <el-col :span="1.5">
-                <el-button
-                type="success"
-                plain
-                icon="Edit"
-                :disabled="single"
-                @click="handleEditTable"
-                v-hasPermi="['generator:gencode:update']"
-                >修改</el-button>
-              </el-col>
-            <el-col :span="1.5">
-              <el-button
-                type="danger"
-                plain
-                icon="Delete"
-                :disabled="multiple"
-                @click="handleDelete"
-                v-hasPermi="['generator:gencode:delete']"
-              >删除</el-button>
-            </el-col>
           </el-row>
         </div>
         <div class="data-table__toolbar--tools">
           <el-row :gutter="10">
             <el-col :span="1.5">
-              <el-tooltip content="导入">
-                <el-button type="info" icon="upload" circle @click="handleOpenImportDialog" v-hasPerm="['demo:example:import']" />
-              </el-tooltip>
-            </el-col>
-            <el-col :span="1.5">
-              <el-tooltip content="导出">
-                <el-button type="warning" icon="download" circle @click="handleExport" v-hasPerm="['demo:example:export']" />
-              </el-tooltip>
-            </el-col>
-            <el-col :span="1.5">
               <el-tooltip content="刷新">
-                <el-button type="primary" icon="refresh" circle @click="handleRefresh" v-hasPerm="['demo:example:refresh']" />
+                <el-button v-hasPerm="['demo:example:refresh']"  type="primary" icon="refresh" circle @click="handleRefresh"/>
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="列表筛选">
                 <el-dropdown trigger="click">
-                  <el-button type="default" icon="operation" circle v-hasPerm="['demo:example:filter']" />
+                  <el-button v-hasPerm="['demo:example:filter']" type="default" icon="operation" circle/>
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop"
-                        :command="column">
+                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
                         <el-checkbox v-model="column.show">
                           {{ column.label }}
                         </el-checkbox>
@@ -140,7 +129,6 @@
               </el-tooltip>
             </el-col>
           </el-row>
-          
         </div>
       </div>
 
@@ -187,19 +175,19 @@
         <el-table-column label="操作" align="center" width="330" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="预览" placement="top">
-              <el-button link type="primary" icon="View" @click="handlePreview(scope.row)" v-hasPermi="['generator:gencode:query']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:query']" link type="primary" icon="View" @click="handlePreview(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="编辑" placement="top">
-              <el-button link type="primary" icon="Edit" @click="handleEditTable(scope.row)" v-hasPermi="['generator:gencode:update']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:update']" link type="primary" icon="Edit" @click="handleEditTable(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['generator:gencode:delete']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:delete']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="同步" placement="top">
-              <el-button link type="primary" icon="Refresh" @click="handleSynchDb(scope.row)" v-hasPermi="['generator:gencode:edit']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:edit']" link type="primary" icon="Refresh" @click="handleSynchDb(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="生成代码" placement="top">
-              <el-button link type="primary" icon="Download" @click="handleGenTable(scope.row)" v-hasPermi="['generator:gencode:code']"></el-button>
+              <el-button v-hasPerm="['generator:gencode:code']" link type="primary" icon="Download" @click="handleGenTable(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -208,7 +196,6 @@
       <!-- 分页区域 -->
       <template #footer>
         <pagination 
-          v-show="total>0"
           v-model:total="total" 
           v-model:page="queryFormData.page_no"
           v-model:limit="queryFormData.page_size" 
@@ -218,19 +205,19 @@
     </el-card>
 
     <!-- 预览界面 -->
-    <el-dialog v-model="preview.open" :title="preview.title" width="80%" top="5vh" append-to-body class="scrollbar">
-      <el-tabs v-model="preview.activeName">
-        <el-tab-pane
-          v-for="(value, key) in preview.data"
-          :label="key.substring(key.lastIndexOf('/')+1,key.indexOf('.jinja2'))"
-          :name="key.substring(key.lastIndexOf('/')+1,key.indexOf('.jinja2'))"
-          :key="value"
-        >
-          <el-link :underline="false" icon="DocumentCopy" @click="() => navigator.clipboard.writeText(value).then(() => copyTextSuccess())" style="float:right">&nbsp;复制</el-link>
-          <pre>{{ value }}</pre>
-        </el-tab-pane>
-      </el-tabs>
-    </el-dialog>
+  <el-dialog v-model="preview.open" :title="preview.title" width="80%" top="5vh" append-to-body class="scrollbar">
+    <el-tabs v-model="preview.activeName">
+      <el-tab-pane
+        v-for="(value, key) in preview.data"
+        :label="String(key).substring(String(key).lastIndexOf('/')+1,String(key).indexOf('.jinja2'))"
+        :name="String(key).substring(String(key).lastIndexOf('/')+1,String(key).indexOf('.jinja2'))"
+        :key="value"
+      >
+        <el-link :underline="false" icon="DocumentCopy" @click="() => handleCopyText(value)" style="float:right">&nbsp;复制</el-link>
+        <pre>{{ value }}</pre>
+      </el-tab-pane>
+    </el-tabs>
+  </el-dialog>
     <import-table ref="importRef" @ok="handleQuery" />
     <create-table ref="createRef" @ok="handleQuery" />
   </div>
@@ -253,15 +240,14 @@ const route = useRoute();
 const importRef = ref();
 const createRef = ref();
 
-const tableList = ref([]);
+const tableList = ref<Array<any>>([]);
 const loading = ref(true);
-const showSearch = ref(true);
-const ids = ref([]);
+const ids = ref<Array<number>>([]);
 const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
-const tableNames = ref([]);
-const dateRange = ref([]);
+const tableNames = ref<Array<string>>([]);
+const dateRange = ref<Array<string>>([]);
 const uniqueId = ref("");
 
 
@@ -298,8 +284,8 @@ const { queryFormData, preview } = toRefs(data);
 
 onActivated(() => {
   const time = route.query.t;
-  if (time != null && time != uniqueId.value) {
-    uniqueId.value = time;
+  if (time != null && String(time) != uniqueId.value) {
+    uniqueId.value = String(time);
     queryFormData.value.page_no = Number(route.query.page_no || 1);
     dateRange.value = [];
     loadingData();
@@ -314,15 +300,9 @@ function loadingData() {
     ...queryFormData.value
   };
   
-  // 如果有日期范围，添加到查询参数中
-  if (dateRange.value && dateRange.value.length === 2) {
-    queryParams.start_time = dateRange.value[0];
-    queryParams.end_time = dateRange.value[1];
-  }
-  
   GencodeAPI.listTable(queryParams).then(response => {
-    tableList.value = response.rows;
-    total.value = response.total;
+    tableList.value = response.data.data.items;
+    total.value = response.data.data.total;
     loading.value = false;
   });
 }
@@ -334,32 +314,32 @@ function handleQuery() {
 }
 
 /** 生成代码操作 */
-function handleGenTable(row) {
+function handleGenTable(row: any) {
   const tbNames = row?.table_name || tableNames.value;
   if (!tbNames || (Array.isArray(tbNames) && tbNames.length === 0)) {
     ElMessage.error("请选择要生成的数据");
     return;
   }
   
-  if (row?.genType === "1") {
-    GencodeAPI.genCodeToPath(row.tableName).then(() => {
-      ElMessage.success("成功生成到自定义路径：" + row.genPath);
+  if (row?.gen_type === "1") {
+    GencodeAPI.genCodeToPath(row.table_name).then(() => {
+      ElMessage.success("成功生成到自定义路径：" + row.gen_path);
     });
   } else {
-    GencodeAPI.batchGenCode(tbNames).then(response => {
-      const blob = new Blob([response], { type: 'application/zip' });
-      const url = window.URL.createObjectURL(blob);
+    GencodeAPI.batchGenCode(tbNames).then((response: any) => {
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = 'code.zip';
       link.click();
-      window.URL.revokeObjectURL(url);
+      URL.revokeObjectURL(url);
     });
   }
 }
 
 /** 同步数据库操作 */
-function handleSynchDb(row) {
+function handleSynchDb(row: any) {
   const tableName = row.table_name;
   ElMessageBox.confirm(
     '确认要强制同步"' + tableName + '"表结构吗？',
@@ -391,7 +371,7 @@ function openCreateTable() {
 }
 
 /** 重置按钮操作 */
-function resetQuery() {
+function handleRefresh() {
   dateRange.value = [];
   // 手动重置表单
   queryFormData.value = {
@@ -404,8 +384,8 @@ function resetQuery() {
 }
 
 /** 预览按钮 */
-function handlePreview(row) {
-  GencodeAPI.previewTable(row.tableId).then(response => {
+function handlePreview(row: any) {
+  GencodeAPI.previewTable(row.id).then(response => {
     preview.value.data = response.data;
     preview.value.open = true;
     preview.value.activeName = "do.py";
@@ -417,38 +397,51 @@ function copyTextSuccess() {
   ElMessage.success("复制成功");
 }
 
+/** 处理文本复制 */
+function handleCopyText(value: string) {
+  if (window && window.navigator && window.navigator.clipboard) {
+    window.navigator.clipboard.writeText(value).then(() => {
+      copyTextSuccess();
+    }).catch(() => {
+      ElMessage.error("复制失败");
+    });
+  }
+}
+
 // 多选框选中数据
-function handleSelectionChange(selection) {
-  ids.value = selection.map(item => item.tableId);
-  tableNames.value = selection.map(item => item.table_name);
-  single.value = selection.length != 1;
-  multiple.value = !selection.length;
-}
+  function handleSelectionChange(selection: Array<any>) {
+    ids.value = selection.map((item: any) => item.id);
+    tableNames.value = selection.map((item: any) => item.table_name);
+    single.value = selection.length != 1;
+    multiple.value = !selection.length;
+  }
 
-/** 修改按钮操作 */
-function handleEditTable(row) {
-  const tableId = row.tableId || ids.value[0];
-  router.push({ path: "/tool/gen-edit/index/" + tableId, query: { page_no: queryFormData.value.page_no } });
-}
+  /** 修改按钮操作 */
+  function handleEditTable(row: any) {
+    const tableId = row.id || ids.value[0];
+    router.push({ path: "/tool/gen-edit/index/" + tableId, query: { page_no: queryFormData.value.page_no } });
+  }
 
-/** 删除按钮操作 */
-function handleDelete(row) {
-  const tableIds = row?.tableId ? [row.tableId] : ids.value;
-  ElMessageBox.confirm(
-    '是否确认删除表编号为"' + tableIds + '"的数据项？',
-    '删除确认',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    return GencodeAPI.deleteTable(tableIds);
-  }).then(() => {
-    loadingData();
-    ElMessage.success("删除成功");
-  }).catch(() => {});
-}
+  /** 删除按钮操作 */
+  function handleDelete(row: any) {
+    const tableIds = row?.id ? [row.id] : ids.value;
+    ElMessageBox.confirm(
+      '是否确认删除表编号为"' + tableIds + '"的数据项？',
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(() => {
+      return GencodeAPI.deleteTable({ table_ids: tableIds });
+    }).then(() => {
+      loadingData();
+      ElMessage.success("删除成功");
+    }).catch(() => {});
+  }
 
 loadingData();
 </script>
+
+<style lang="scss" scoped></style>

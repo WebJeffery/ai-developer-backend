@@ -33,8 +33,8 @@
             </el-form-item>
             <!-- 查询、重置、展开/收起按钮 -->
             <el-form-item class="search-buttons">
-              <el-button type="primary" icon="search" @click="handleQuery" v-hasPerm="['system:user:query']">查询</el-button>
-              <el-button icon="refresh" @click="handleResetQuery" v-hasPerm="['system:user:query']">重置</el-button>
+              <el-button v-hasPerm="['system:user:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+              <el-button v-hasPerm="['system:user:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
                 <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
@@ -68,31 +68,47 @@
           <!-- 功能区域 -->
           <div class="data-table__toolbar">
             <div class="data-table__toolbar--actions">
-              <el-button v-hasPerm="['system:user:create']" type="success" icon="plus"  @click="handleOpenDialog('create')">新增</el-button>
-              <el-button v-hasPerm="['system:user:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
-              <el-dropdown v-hasPerm="['system:user:patch']" trigger="click">
-                <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">
-                  更多
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu v-hasPerm="['system:user:filter']">
-                    <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
-                    <el-dropdown-item icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+              <el-row :gutter="10">
+                <el-col :span="1.5">
+                  <el-button v-hasPerm="['system:user:create']" type="success" icon="plus"  @click="handleOpenDialog('create')">新增</el-button>
+                </el-col>
+                <el-col :span="1.5">
+                  <el-button v-hasPerm="['system:user:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
+                </el-col>
+                <el-col :span="1.5">
+                  <el-dropdown v-hasPerm="['system:user:patch']" trigger="click">
+                    <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">
+                      更多
+                    </el-button>
+                    <template #dropdown>
+                      <el-dropdown-menu v-hasPerm="['system:user:filter']">
+                        <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
+                        <el-dropdown-item icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </el-col>
+              </el-row>
             </div>
 
             <div class="data-table__toolbar--tools">
-              <el-tooltip content="导入">
-                <el-button v-hasPerm="['system:user:import']" type="info" icon="upload" circle @click="handleOpenImportDialog" />
-              </el-tooltip>
-              <el-tooltip content="导出">
-                <el-button v-hasPerm="['system:user:export']" type="warning" icon="download" circle @click="handleExport" />
-              </el-tooltip>
-              <el-tooltip content="刷新">
-                <el-button type="default" icon="refresh" circle @click="handleRefresh" v-hasPerm="['system:user:refresh']" />
-              </el-tooltip>
+              <el-row :gutter="10">
+                <el-col :span="1.5">
+                  <el-tooltip content="导入">
+                    <el-button v-hasPerm="['system:user:import']" type="info" icon="upload" circle @click="handleOpenImportDialog" />
+                  </el-tooltip>
+                </el-col>
+                <el-col :span="1.5">
+                  <el-tooltip content="导出">
+                    <el-button v-hasPerm="['system:user:export']" type="warning" icon="download" circle @click="handleExport" />
+                  </el-tooltip>
+                </el-col>
+                <el-col :span="1.5">
+                  <el-tooltip content="刷新">
+                    <el-button v-hasPerm="['system:user:refresh']" type="default" icon="refresh" circle @click="handleRefresh"/>
+                  </el-tooltip>
+                </el-col>
+              </el-row>
             </div>
           </div>
 
@@ -162,12 +178,12 @@
                   @click="hancleResetPassword(scope.row)"
                 >重置密码</el-button>
                 <el-button 
+                  v-hasPerm="['system:user:detail']"
                   type="info" 
                   size="small" 
                   link 
                   icon="document" 
                   @click="handleOpenDialog('detail', scope.row.id)"
-                  v-hasPerm="['system:user:detail']"
                 >详情</el-button>
                 <el-button 
                   v-if="scope.row.username !== 'admin'" 
@@ -307,8 +323,8 @@
           <template #footer>
             <div class="dialog-footer">
               <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
-              <el-button v-if="dialogVisible.type === 'create' || dialogVisible.type === 'update'" type="primary" @click="handleSubmit" v-hasPerm="['system:user:submit']">确定</el-button>
-              <el-button v-else type="primary" @click="handleCloseDialog" v-hasPerm="['system:user:detail']">确定</el-button>
+              <el-button v-if="dialogVisible.type === 'create' || dialogVisible.type === 'update'" v-hasPerm="['system:user:create']" type="primary" @click="handleSubmit">确定</el-button>
+              <el-button v-else v-hasPerm="['system:user:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
               <el-button @click="handleCloseDialog">取消</el-button>
             </div>
           </template>
@@ -317,7 +333,7 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="handleSubmit" v-hasPerm="['system:user:submit']">确 定</el-button>
+          <el-button v-hasPerm="['system:user:submit']" type="primary" @click="handleSubmit">确 定</el-button>
           <el-button @click="handleCloseDialog">取 消</el-button>
         </div>
       </template>

@@ -48,22 +48,22 @@
 
           <el-table-column label="插入" min-width="5%">
             <template #default="scope">
-              <el-checkbox true-label="1" false-label="0" v-model="scope.row.isInsert"></el-checkbox>
+              <el-checkbox v-model="scope.row.isInsert" true-label="1" false-label="0"></el-checkbox>
             </template>
           </el-table-column>
           <el-table-column label="编辑" min-width="5%">
             <template #default="scope">
-              <el-checkbox true-label="1" false-label="0" v-model="scope.row.isEdit"></el-checkbox>
+              <el-checkbox v-model="scope.row.isEdit" true-label="1" false-label="0"></el-checkbox>
             </template>
           </el-table-column>
           <el-table-column label="列表" min-width="5%">
             <template #default="scope">
-              <el-checkbox true-label="1" false-label="0" v-model="scope.row.isList"></el-checkbox>
+              <el-checkbox v-model="scope.row.isList" true-label="1" false-label="0"></el-checkbox>
             </template>
           </el-table-column>
           <el-table-column label="查询" min-width="5%">
             <template #default="scope">
-              <el-checkbox true-label="1" false-label="0" v-model="scope.row.isQuery"></el-checkbox>
+              <el-checkbox v-model="scope.row.isQuery" true-label="1" false-label="0"></el-checkbox>
             </template>
           </el-table-column>
           <el-table-column label="查询方式" min-width="10%">
@@ -82,12 +82,12 @@
           </el-table-column>
           <el-table-column label="必填" min-width="5%">
             <template #default="scope">
-              <el-checkbox true-label="1" false-label="0" v-model="scope.row.isRequired"></el-checkbox>
+              <el-checkbox v-model="scope.row.isRequired" true-label="1" false-label="0"></el-checkbox>
             </template>
           </el-table-column>
           <el-table-column label="唯一" min-width="5%">
             <template #default="scope">
-              <el-checkbox true-label="1" false-label="0" v-model="scope.row.isUnique"></el-checkbox>
+              <el-checkbox v-model="scope.row.isUnique" true-label="1" false-label="0"></el-checkbox>
             </template>
           </el-table-column>
           <el-table-column label="显示类型" min-width="12%">
@@ -122,7 +122,12 @@
         </el-table>
       </el-tab-pane>
       <el-tab-pane label="生成信息" name="genInfo">
-        <gen-info-form ref="genInfo" :info="info" :tables="tables" />
+        <!-- 将GenTableSchema类型转换为GenInfo类型 -->
+          <gen-info-form 
+            ref="genInfo" 
+            :info="convertToGenInfo(info)" 
+            :tables="tables" 
+          />
       </el-tab-pane>
     </el-tabs>
     <el-form label-width="100px">
@@ -134,74 +139,96 @@
   </el-card>
 </template>
 
-<script setup name="GenEdit">
+<script setup lang="ts" name="GenEdit">
 import GencodeAPI from "@/api/generator/gencode";
-import { optionselect as getDictOptionselect } from "@/api/system/dict/type";
-import basicInfoForm from "./components/basicInfoForm";
-import genInfoForm from "./components/genInfoForm";
+import DictAPI from "@/api/system/dict";
+import { ElMessage } from 'element-plus';
+import router from '@/router';
+import type { GenTableSchema, GenTableDetailResult } from '@/api/generator/gencode';
 
 const route = useRoute();
-const { proxy } = getCurrentInstance();
+const basicInfoRef = ref();
+const genInfoRef = ref();
 
 const activeName = ref("columnInfo");
 const tableHeight = ref(document.documentElement.scrollHeight - 245 + "px");
-const tables = ref([]);
-const columns = ref([]);
-const dictOptions = ref([]);
-const info = ref({});
+const tables = ref<Array<any>>([]);
+const columns = ref<Array<any>>([]);
+const dictOptions = ref<Array<any>>([]);
+const info = ref<GenTableSchema>({} as GenTableSchema);
+
+/**
+ * 将对象转换为GenInfo类型
+ */
+function convertToGenInfo(tableSchema: any): any {
+  if (!tableSchema) {
+    return {};
+  }
+  return {
+    tplCategory: tableSchema.tpl_category,
+    tplWebType: tableSchema.tpl_web_type,
+    packageName: tableSchema.package_name,
+    moduleName: tableSchema.module_name,
+    businessName: tableSchema.business_name,
+    functionName: tableSchema.function_name,
+    genType: tableSchema.gen_type,
+    parentMenuId: tableSchema.parent_menu_id,
+    genPath: tableSchema.gen_path,
+    subTableName: tableSchema.sub_table_name,
+    subTableFkName: tableSchema.sub_table_fk_name,
+    treeCode: tableSchema.tree_code,
+    treeParentCode: tableSchema.tree_parent_code,
+    treeName: tableSchema.tree_name
+  };
+}
 
 /** 提交按钮 */
 function submitForm() {
-  const basicForm = proxy.$refs.basicInfo.$refs.basicInfoForm;
-  const genForm = proxy.$refs.genInfo.$refs.genInfoForm;
-  Promise.all([basicForm, genForm].map(getFormPromise)).then(res => {
-    const validateResult = res.every(item => !!item);
-    if (validateResult) {
-      const genTable = Object.assign({}, info.value);
-      genTable.columns = columns.value;
-      genTable.params = {
-        treeCode: info.value.treeCode,
-        treeName: info.value.treeName,
-        treeParentCode: info.value.treeParentCode,
-        parentMenuId: info.value.parentMenuId
-      };
-      GencodeAPI.updateGenTable(genTable).then(res => {
-        proxy.$modal.msgSuccess(res.msg);
-        if (res.code === 200) {
-          close();
-        }
-      });
-    } else {
-      proxy.$modal.msgError("表单校验未通过，请重新检查提交内容");
-    }
-  });
-}
-
-function getFormPromise(form) {
-  return new Promise(resolve => {
-    form.validate(res => {
-      resolve(res);
+  // 简化表单验证逻辑
+  const genTable = Object.assign({}, info.value);
+  genTable.columns = columns.value;
+  genTable.tree_code = info.value.tree_code;
+  genTable.tree_name = info.value.tree_name;
+  genTable.tree_parent_code = info.value.tree_parent_code;
+  genTable.parent_menu_id = info.value.parent_menu_id;
+  
+  // 确保id存在且为number类型
+  if (info.value && info.value.id !== undefined) {
+    GencodeAPI.updateGenTable(Number(info.value.id), genTable).then((res: any) => {
+      ElMessage.success(res.data.message || "更新成功");
+      if (res.data.code === 200) {
+        close();
+      }
     });
-  });
+  } else {
+    ElMessage.error("表ID不存在，无法更新");
+  }
 }
 
 function close() {
-  const obj = { path: "/tool/gen", query: { t: Date.now(), pageNum: route.query.pageNum } };
-  proxy.$tab.closeOpenPage(obj);
+  const pageNum = route.query.page_no || route.query.pageNum;
+  router.push({ path: "/tool/gen", query: { t: Date.now(), page_no: pageNum } });
 }
 
 (() => {
   const tableId = route.params && route.params.tableId;
   if (tableId) {
     // 获取表详细信息
-    GencodeAPI.getGenTable(tableId).then(res => {
-      columns.value = res.data.rows;
-      info.value = res.data.info;
-      tables.value = res.data.tables;
+    GencodeAPI.getGenTableDetail(Number(tableId)).then(res => {
+      if (res.data && res.data.data) {
+        columns.value = res.data.data.rows || [];
+        // 确保info包含所有必要的字段，特别是columns
+        const tableInfo = res.data.data.info || {};
+        info.value = {
+          ...tableInfo,
+          columns: columns.value
+        };
+        tables.value = res.data.data.tables || [];
+      }
     });
     /** 查询字典下拉列表 */
-    GencodeAPI.getDictOptionselect().then(response => {
-      dictOptions.value = response.data;
+    DictAPI.getDictTypeOptionselect().then((response: any) => {
+      dictOptions.value = response.data.data || [];
     });
   }
 })();
