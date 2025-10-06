@@ -70,7 +70,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         },
         vueTemplate: true,
         // 导入函数类型声明文件路径 (false:关闭自动生成)
-        // dts: true,
         dts: "src/types/auto-imports.d.ts",
       }),
       // 组件自动导入
@@ -82,7 +81,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // 指定自定义组件位置(默认:src/components)
         dirs: ["src/components", "src/**/components"],
         // 导入组件类型声明文件路径 (false:关闭自动生成)
-        // dts: false,
         dts: "src/types/components.d.ts",
       }),
     ],
@@ -189,6 +187,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         "element-plus/es/components/container/style/index",
         "element-plus/es/components/main/style/index",
         "element-plus/es/components/aside/style/index",
+        "element-plus/es/components/footer/style/index",
+        "element-plus/es/components/header/style/index",
+        "element-plus/es/components/slider/style/index",
+        "element-plus/es/components/button-group/style/index",
       ],
     },
     // 构建配置
