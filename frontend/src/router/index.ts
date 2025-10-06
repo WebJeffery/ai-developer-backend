@@ -89,9 +89,6 @@ const router = createRouter({
 // 全局注册 router
 // 为了捕获并处理全局错误，在注册路由时添加错误处理
 export function setupRouter(app: App<Element>) {
-  app.config.errorHandler = (err, instance, info) => {
-    console.error('全局错误捕获:', err, '实例:', instance, '信息:', info);
-  };
   app.use(router);
 }
 

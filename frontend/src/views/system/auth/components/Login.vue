@@ -228,9 +228,10 @@ async function handleLoginSubmit() {
     appStore.showGuide(true);
 
   } catch (error: any) {
-    console.error(error);
-    // 5. 统一错误处理
-    getCaptcha(); // 刷新验证码
+    if (error) {
+      getCaptcha(); // 刷新验证码
+    }
+
   } finally {
     loading.value = false;
   }

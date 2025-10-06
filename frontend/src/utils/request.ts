@@ -60,8 +60,6 @@ httpRequest.interceptors.response.use((response: AxiosResponse<ApiResponse>) => 
     
     return response;
   }, async (error: AxiosError<ApiResponse>) => {
-    console.log(error);
-
     const data = error.response?.data;
     
     // 处理blob类型的错误响应

@@ -82,7 +82,7 @@ export const usePermissionStore = defineStore("permission", () => {
    *
    * @returns Promise<RouteRecordRaw[]> 解析后的动态路由列表
    */
-  async function generateRoutes() {
+  async function generateRoutes():Promise<RouteRecordRaw[]> {
     try {
       const userStore = useUserStore();
       // 确保获取用户信息和路由列表
@@ -103,7 +103,6 @@ export const usePermissionStore = defineStore("permission", () => {
     } catch (error: any) {
       // 即使失败也要设置状态，避免无限重试
       isRouteGenerated.value = false;
-
       throw error;
     }
   }

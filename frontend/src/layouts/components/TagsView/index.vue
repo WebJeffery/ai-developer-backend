@@ -13,7 +13,7 @@
           <router-link
             v-for="tag in displayedViews" :key="tag.fullPath"
             :class="['tags-item', { active: tagsViewStore.isActive(tag) }]" :to="{ path: tag.path, query: tag.query }"
-            @click="router.push({path: tag.fullPath, query: tag.query})"
+            @click="tagSwitchSource = 'tab'"
             @click.middle="handleMiddleClick(tag)">
             <!-- 为所有标签添加右键菜单 -->
             <el-dropdown 
@@ -341,14 +341,6 @@ const updateCurrentTag = () => {
 };
 
 /**
- * 处理标签点击
- */
-// const handleTabClick = (tag: TagView) => {
-//   // 设置标签切换来源为标签容器点击
-//   tagSwitchSource.value = 'tab';
-// };
-
-/**
  * 处理中键点击
  */
 const handleMiddleClick = (tag: TagView) => {
@@ -606,7 +598,7 @@ const scrollState = ref({
 })
 
 /**
- * 自动滚动到最新标签
+ * 自动滚动到最新标签或确保当前激活标签可见
  */
 const autoScrollToLatestTag = () => {
   const scrollWrapper = scrollbarRef.value?.wrapRef
@@ -619,7 +611,36 @@ const autoScrollToLatestTag = () => {
   // 判断容器是否已满（内容宽度是否超过容器宽度）
   const isContainerFull = contentWidth > containerWidth
 
-  // 如果容器已满且还没有滚动到最新标签，则滚动到最右边
+  // 查找当前激活的标签元素
+  const activeTagElement = document.querySelector('.tags-item.active')
+  
+  if (activeTagElement) {
+    // 将Element类型断言为HTMLElement类型以访问offsetWidth属性
+    const activeHtmlElement = activeTagElement as HTMLElement;
+    // 计算激活标签的位置信息
+    const activeTagRect = activeHtmlElement.getBoundingClientRect()
+    const containerRect = scrollWrapper.getBoundingClientRect()
+    
+    // 计算标签相对于容器的位置
+    const tagLeft = activeTagRect.left - containerRect.left + scrollWrapper.scrollLeft
+    const tagRight = tagLeft + activeHtmlElement.offsetWidth
+    
+    // 检查标签是否完全在可见区域内
+    if (tagLeft < scrollWrapper.scrollLeft || tagRight > scrollWrapper.scrollLeft + containerWidth) {
+      // 如果标签不在可见区域内，滚动到使标签居中的位置
+      const targetScrollLeft = tagLeft - (containerWidth - activeHtmlElement.offsetWidth) / 2
+      const maxScrollLeft = contentWidth - containerWidth
+      const minScrollLeft = 0
+      const clampedScrollLeft = Math.max(minScrollLeft, Math.min(maxScrollLeft, targetScrollLeft))
+      
+      scrollbarRef.value.setScrollLeft(clampedScrollLeft)
+      scrollState.value.hasScrolledToLatest = true
+      scrollState.value.isContainerFull = isContainerFull
+      return
+    }
+  }
+
+  // 如果没有找到激活标签或激活标签已经在可见区域内，则使用原来的逻辑
   if (isContainerFull && !scrollState.value.hasScrolledToLatest) {
     // 计算需要滚动到的位置，确保最新标签在右侧可见
     const maxScrollLeft = contentWidth - containerWidth
@@ -633,7 +654,6 @@ const autoScrollToLatestTag = () => {
     scrollState.value.hasScrolledToLatest = false
     scrollState.value.isContainerFull = false
   }
-  // 如果容器已满且已经滚动过，则保持当前位置
 }
 
 // 监听路由变化
@@ -666,15 +686,15 @@ watch(
   }
 );
 
-// 监听当前路由变化，确保点击隐藏标签时滚动到最新位置
-// watch(
-//   () => route.path,
-//   () => {
-//     nextTick(() => {
-//       autoScrollToLatestTag();
-//     });
-//   }
-// );
+// 监听当前路由变化，确保路由切换时自动滚动到当前标签
+watch(
+  () => route.path,
+  () => {
+    nextTick(() => {
+      autoScrollToLatestTag();
+    });
+  }
+);
 
 // 初始化
 onMounted(() => {

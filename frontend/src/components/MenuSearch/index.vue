@@ -137,7 +137,7 @@ const permissionStore = usePermissionStore();
 const isModalVisible = ref(false);
 const searchKeyword = ref("");
 const searchInputRef = ref();
-const excludedRoutes = ref(["/redirect", "/login", "/401", "/404"]);
+const excludedRoutes = ref(["/redirect", "/login", "/401", "/404", "/500", "/:pathMatch(.*)*"]);
 const menuItems = ref<SearchItem[]>([]);
 const searchResults = ref<SearchItem[]>([]);
 const activeIndex = ref(-1);
@@ -290,14 +290,35 @@ function navigateToRoute(item: SearchItem) {
 
 function loadRoutes(routes: RouteRecordRaw[], parentPath = "") {
   routes.forEach((route) => {
+    // 计算完整路径
     const path = route.path.startsWith("/")
       ? route.path
       : `${parentPath}${parentPath.endsWith("/") ? "" : "/"}${route.path}`;
-    if (excludedRoutes.value.includes(route.path) || isExternal(route.path)) return;
 
+    // 检查是否需要排除
+    if (excludedRoutes.value.includes(route.path) || isExternal(route.path) || route.meta?.hidden) return;
+
+    // 处理有子路由的情况
     if (route.children) {
+      // 如果父路由本身有title，也添加到menuItems中
+      if (route.meta?.title) {
+        const title = route.meta.title === "dashboard" ? "首页" : route.meta.title;
+        menuItems.value.push({
+          title,
+          path,
+          name: typeof route.name === "string" ? route.name : undefined,
+          icon: route.meta.icon,
+          redirect: typeof route.redirect === "string" ? route.redirect : undefined,
+          params: route.meta.params
+            ? JSON.parse(JSON.stringify(toRaw(route.meta.params)))
+            : undefined,
+        });
+      }
+      // 递归处理子路由
       loadRoutes(route.children, path);
-    } else if (route.meta?.title) {
+    } 
+    // 处理没有子路由但有title的情况
+    else if (route.meta?.title) {
       const title = route.meta.title === "dashboard" ? "首页" : route.meta.title;
       menuItems.value.push({
         title,

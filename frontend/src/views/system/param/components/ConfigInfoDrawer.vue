@@ -27,7 +27,6 @@
               :data="{ type: key }"
               :name="'file'"
               :max-file-size="item.maxFileSize"
-              :file-list="fileLists[key] || []"
               @on-success="(fileInfo: UploadFilePath) => handleUploadSuccess(fileInfo, key)"
               @on-error="handleUploadError"
               @input="markModified(key)"
@@ -55,12 +54,6 @@ import SingleImageUpload from '@/components/Upload/SingleImageUpload.vue';
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 
-// 文件列表类型定义
-interface FileListItem {
-  url: string;
-}
-
-
 const appStore = useAppStore();
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "500px" : "90%"));
 
@@ -77,9 +70,6 @@ const configState = reactive<ConfigTable>({
   config_type: undefined,
   description: ''
 });
-
-// 存储文件上传列表
-const fileLists = reactive<Record<string, FileListItem[]>>({});
 
 // 记录修改过的字段
 const modifiedFields = reactive<Record<string, boolean>>({});
@@ -174,9 +164,6 @@ const handleUploadSuccess = (fileInfo: UploadFilePath, type: string) => {
   } else if (type in logoConfigs.value) {
     logoConfigs.value[type as keyof typeof logoConfigs.value].config_value = fileUrl;
   }
-  
-  // 更新文件列表
-  fileLists[type] = [{ url: fileUrl }];
   
   // 标记为已修改
   markModified(type);

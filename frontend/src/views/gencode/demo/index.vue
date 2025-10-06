@@ -66,12 +66,12 @@
                             <el-button v-hasPerm="['generator:demo:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
                         </el-col>
                         <el-col :span="1.5">
-                            <el-dropdown trigger="click">
+                            <el-dropdown v-hasPerm="['generator:demo:batch']" trigger="click">
                                 <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item v-hasPerm="['generator:demo:batch_available']" icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
-                                        <el-dropdown-item v-hasPerm="['generator:demo:batch_available']" icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
+                                        <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>
+                                        <el-dropdown-item icon="CircleClose" @click="handleMoreClick(false)">批量停用</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
