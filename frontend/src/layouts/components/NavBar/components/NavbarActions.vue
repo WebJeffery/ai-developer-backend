@@ -95,7 +95,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 
 import { DeviceEnum } from "@/enums/settings/device.enum";
 import { useAppStore, useSettingsStore, useUserStore, useLockStore } from "@/store";
@@ -111,7 +111,7 @@ import Notification from "@/components/Notification/index.vue";
 import LockDialog from './LockDialog.vue'
 import LockPage from './LockPage.vue'
 import Guide from '@/components/Guide/index.vue'
-import ConfigInfoDrawer from "@/views/system/config/components/ConfigInfoDrawer.vue"
+import ConfigInfoDrawer from "@/views/system/param/components/ConfigInfoDrawer.vue"
 
 
 const { t } = useI18n();
@@ -119,7 +119,6 @@ const appStore = useAppStore();
 const settingStore = useSettingsStore();
 const userStore = useUserStore();
 
-const route = useRoute();
 const router = useRouter();
 
 // 是否为桌面设备
@@ -225,7 +224,6 @@ function logout() {
     lockScroll: false,
   }).then(() => {
     userStore.logout().then(() => {
-      // router.push(`/login?redirect=${route.fullPath}`);
       router.push(`/login`);
     });
   }).catch(() => {

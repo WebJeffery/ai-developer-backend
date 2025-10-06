@@ -109,31 +109,30 @@ function resolvePath(routePath: string) {
   }
 
   if (routePath.startsWith("/")) {
-    return routePath;
+    return activeTopMenuPath.value + routePath;
   }
-  return `${routePath}`;
+  return `${activeTopMenuPath.value}/${routePath}`;
 }
-
-// 优化后的路由监听逻辑，仅在顶级路径实际变化时更新菜单
-let prevTopMenuPath = '';
 
 watch(
   () => route.path,
   (newPath) => {
     // 获取顶级路径
-    const topMenuPath = 
-      newPath.split("/").filter(Boolean).length > 1 ? newPath.match(/^\/[^/]+/)?.[0] || "/" : "/";
+    const topMenuPath = newPath.split("/").filter(Boolean).length > 1 ? newPath.match(/^\/[^/]+/)?.[0] || "/" : "/";
+
+    // 如果当前路径属于当前激活的顶部菜单
+    if (newPath.startsWith(activeTopMenuPath.value)) {
+      // no-op
+    }
 
     // 仅在顶级路径实际变化时才执行更新
-    if (topMenuPath !== prevTopMenuPath) {
-      prevTopMenuPath = topMenuPath;
-
+    else if (topMenuPath !== activeTopMenuPath.value) {
       // 主动更新顶部菜单和左侧菜单
       const appStore = useAppStore();
       const permissionStore = usePermissionStore();
 
       appStore.activeTopMenu(topMenuPath);
-      permissionStore.updateSideMenu(topMenuPath);
+      permissionStore.setMixLayoutSideMenus(topMenuPath);
     }
   },
   { immediate: true }

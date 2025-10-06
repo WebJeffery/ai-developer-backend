@@ -12,12 +12,12 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import GencodeAPI from "@/api/generator/gencode";
+import { ElMessage } from 'element-plus';
 
 const visible = ref(false);
 const content = ref("");
-const { proxy } = getCurrentInstance();
 const emit = defineEmits(["ok"]);
 
 /** 显示弹框 */
@@ -28,12 +28,12 @@ function show() {
 /** 导入按钮操作 */
 function handleImportTable() {
   if (content.value === "") {
-    proxy.$modal.msgError("请输入建表语句");
+    ElMessage.error("请输入建表语句");
     return;
   }
-  GencodeAPI.createTable({ sql: content.value }).then(res => {
-    proxy.$modal.msgSuccess(res.msg);
-    if (res.code === 200) {
+  GencodeAPI.createTable(content.value).then(res => {
+    ElMessage.success(res.data.msg || "创建成功");
+    if (res.data.code === 200) {
       visible.value = false;
       emit("ok");
     }

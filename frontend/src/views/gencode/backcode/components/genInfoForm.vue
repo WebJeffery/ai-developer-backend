@@ -119,7 +119,7 @@
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item @click="info.genPath = '/'">恢复默认的生成基础路径</el-dropdown-item>
+                    <el-dropdown-item @click="handleResetGenPath">恢复默认的生成基础路径</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -142,7 +142,7 @@
             </template>
             <el-select v-model="info.treeCode" placeholder="请选择">
               <el-option
-                v-for="(column, index) in info.columns"
+                v-for="(column, index) in info.columns || []"
                 :key="index"
                 :label="column.columnName + '：' + column.columnComment"
                 :value="column.columnName"
@@ -160,7 +160,7 @@
             </template>
             <el-select v-model="info.treeParentCode" placeholder="请选择">
               <el-option
-                v-for="(column, index) in info.columns"
+                v-for="(column, index) in info.columns || []"
                 :key="index"
                 :label="column.columnName + '：' + column.columnComment"
                 :value="column.columnName"
@@ -178,7 +178,7 @@
             </template>
             <el-select v-model="info.treeName" placeholder="请选择">
               <el-option
-                v-for="(column, index) in info.columns"
+                v-for="(column, index) in info.columns || []"
                 :key="index"
                 :label="column.columnName + '：' + column.columnComment"
                 :value="column.columnName"
@@ -202,10 +202,11 @@
             </template>
             <el-select v-model="info.subTableName" placeholder="请选择" @change="subSelectChange">
               <el-option
-                v-for="(table, index) in tables"
+                v-for="(table, index) in tables || []"
                 :key="index"
-                :label="table.tableName + '：' + table.tableComment"
-                :value="table.tableName"
+                :label="(table.tableName || '') + '：' + (table.tableComment || '')"
+                :value="table.tableName || ''"
+                :disabled="!table.tableName"
               ></el-option>
             </el-select>
           </el-form-item>
@@ -234,21 +235,78 @@
   </el-form>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import MenuAPI from "@/api/system/menu";
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
-const subColumns = ref([]);
-const menuOptions = ref([]);
-const { proxy } = getCurrentInstance();
+const subColumns = ref<Array<{ columnName: string; columnComment: string }>>([]);
+const menuOptions = ref<Array<{ id: number; menuId: number; menuName: string; parent_id: number; children: Array<any> }>>([]);
+const router = useRouter();
 
-const props = defineProps({
-  info: {
-    type: Object,
-    default: null
+// 定义类型接口
+interface TableColumn {
+  columnName: string;
+  columnComment: string;
+}
+
+interface TableInfo {
+  tableName?: string;
+  tableComment?: string;
+  columns?: TableColumn[];
+}
+
+interface GenInfo {
+  tplCategory?: string;
+  tplWebType?: string;
+  packageName?: string;
+  moduleName?: string;
+  businessName?: string;
+  functionName?: string;
+  genType?: string;
+  parentMenuId?: number;
+  genPath?: string;
+  subTableName?: string;
+  subTableFkName?: string;
+  columns?: TableColumn[];
+  treeCode?: string;
+  treeParentCode?: string;
+  treeName?: string;
+}
+
+const props = defineProps<{
+  info?: GenInfo;
+  tables?: TableInfo[];
+}>();
+
+const emit = defineEmits<{
+  (e: 'update:info', value: GenInfo): void;
+}>();
+
+// 使用computed创建一个安全的info对象，确保所有属性都有默认值
+const info = computed<GenInfo>({
+  get() {
+    return {
+      tplCategory: '',
+      tplWebType: 'element-plus',
+      packageName: '',
+      moduleName: '',
+      businessName: '',
+      functionName: '',
+      genType: '0',
+      parentMenuId: undefined,
+      genPath: '',
+      subTableName: '',
+      subTableFkName: '',
+      columns: [],
+      treeCode: '',
+      treeParentCode: '',
+      treeName: '',
+      ...props.info
+    };
   },
-  tables: {
-    type: Array,
-    default: null
+  set(newValue: GenInfo) {
+    emit('update:info', newValue);
   }
 });
 
@@ -262,44 +320,104 @@ const rules = ref({
 });
 
 function subSelectChange() {
-  props.info.subTableFkName = "";
+  emit('update:info', {
+    ...info.value,
+    subTableFkName: ""
+  });
 }
 
-function tplSelectChange(value) {
+function tplSelectChange(value: string) {
   if (value !== "sub") {
-    props.info.subTableName = "";
-    props.info.subTableFkName = "";
+    emit('update:info', {
+      ...info.value,
+      subTableName: "",
+      subTableFkName: ""
+    });
   }
 }
 
-function setSubTableColumns(value) {
-  for (const item in props.tables) {
-    const name = props.tables[item].tableName;
-    if (value === name) {
-      subColumns.value = props.tables[item].columns;
+function setSubTableColumns(value?: string) {
+  if (!value || !props.tables) {
+    subColumns.value = [];
+    return;
+  }
+  
+  for (const item of props.tables) {
+    if (item.tableName === value && item.columns) {
+      subColumns.value = item.columns;
       break;
     }
   }
 }
 
+// 恢复默认生成路径的方法
+function handleResetGenPath() {
+  emit('update:info', {
+    ...info.value,
+    genPath: '/'
+  });
+}
+
 /** 查询菜单下拉树结构 */
 function getMenuTreeselect() {
-  MenuAPI.getMenuList().then(response => {
-    menuOptions.value = proxy.handleTree(response.data, "menuId");
+  MenuAPI.getMenuList().then((response: any) => {
+    // 简单的树形结构处理逻辑
+    function buildTree(data: any[], idField: string): any[] {
+      const result: any[] = [];
+      const map: Record<string, any> = {};
+      
+      // 构建id映射
+      data.forEach(item => {
+        map[item[idField]] = item;
+        item.children = [];
+        // 转换属性名以匹配tree-select的期望格式
+        if (item.id !== undefined) {
+          item.menuId = item.id;
+        }
+        if (item.menu_name !== undefined) {
+          item.menuName = item.menu_name;
+        }
+      });
+      
+      // 构建树
+      data.forEach(item => {
+        if (item.parent_id === 0 || !map[item.parent_id]) {
+          result.push(item);
+        } else {
+          map[item.parent_id].children.push(item);
+        }
+      });
+      
+      return result;
+    }
+    
+    if (response && response.data && response.data.data) {
+      menuOptions.value = buildTree(response.data.data, "id");
+    }
   });
 }
 
 onMounted(() => {
   getMenuTreeselect();
-})
+  // 初始化时检查tplWebType是否为空
+  if (!props.info?.tplWebType) {
+    emit('update:info', {
+      ...info.value,
+      tplWebType: "element-plus"
+    });
+  }
+});
 
-watch(() => props.info.subTableName, val => {
+watch(() => props.info?.subTableName, (val) => {
   setSubTableColumns(val);
 });
 
-watch(() => props.info.tplWebType, val => {
-  if (val === '') {
-    props.info.tplWebType = "element-plus";
+watch(() => props.info?.tplWebType, (val) => {
+  if (val === '' || val === undefined) {
+    emit('update:info', {
+      ...info.value,
+      tplWebType: "element-plus"
+    });
   }
 });
 

@@ -287,7 +287,7 @@ class Settings(BaseSettings):
     def ASYNC_DB_URI(self) -> str:
         """获取异步数据库连接"""
         if self.DATABASE_TYPE == "mysql":
-            return f"mysql+asyncmy://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset='utf8mb4'"
+            return f"mysql+asyncmy://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset=utf8mb4"
         elif self.DATABASE_TYPE == "postgresql":
             return f"postgresql+asyncpg://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         elif self.DATABASE_TYPE == "sqlite":
@@ -299,7 +299,7 @@ class Settings(BaseSettings):
     def DB_URI(self) -> str:
         """获取同步数据库连接"""
         if self.DATABASE_TYPE == "mysql":
-            return f"mysql+pymysql://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset='utf8mb4'"
+            return f"mysql+pymysql://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}?charset=utf8mb4"
         elif self.DATABASE_TYPE == "postgresql":
             return f"postgresql+psycopg2://{self.DATABASE_USER}:{quote_plus(self.DATABASE_PASSWORD)}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         elif self.DATABASE_TYPE == "sqlite":

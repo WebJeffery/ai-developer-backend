@@ -57,14 +57,16 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import GencodeAPI from "@/api/generator/gencode";
+import { ElMessage } from 'element-plus';
 
 const total = ref(0);
 const visible = ref(false);
-const tables = ref([]);
-const dbTableList = ref([]);
-const { proxy } = getCurrentInstance();
+const tables = ref<Array<string>>([]);
+const dbTableList = ref<Array<any>>([]);
+const queryRef = ref();
+const table = ref();
 
 const queryFormData = reactive({
   page_no: 1,
@@ -82,12 +84,12 @@ function show() {
 }
 
 /** 单击选择行 */
-function clickRow(row) {
-  proxy.$refs.table.toggleRowSelection(row);
+function clickRow(row: any) {
+  table.value?.toggleRowSelection(row);
 }
 
 /** 多选框选中数据 */
-function handleSelectionChange(selection) {
+function handleSelectionChange(selection: Array<any>) {
   tables.value = selection.map(item => item.table_name);
 }
 
@@ -108,7 +110,9 @@ function handleQuery() {
 
 /** 重置按钮操作 */
 function resetQuery() {
-  proxy.resetForm("queryRef");
+  if (queryRef.value) {
+    queryRef.value.resetFields();
+  }
   handleQuery();
 }
 
@@ -116,12 +120,13 @@ function resetQuery() {
 function handleImportTable() {
   const tableNames = tables.value.join(",");
   if (tableNames == "") {
-    proxy.$modal.msgError("请选择要导入的表");
+    ElMessage.error("请选择要导入的表");
     return;
   }
-  GencodeAPI.importTable({ tables: tableNames }).then(res => {
-    proxy.$modal.msgSuccess(res.msg);
-    if (res.code === 200) {
+  // 因为tables.value已经是string[]类型了，直接传入
+  GencodeAPI.importTable(tables.value).then((res: any) => {
+    ElMessage.success(res.data.message);
+    if (res.data.code === 200) {
       visible.value = false;
       emit("ok");
     }

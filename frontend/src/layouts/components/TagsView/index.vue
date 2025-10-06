@@ -13,7 +13,7 @@
           <router-link
             v-for="tag in displayedViews" :key="tag.fullPath"
             :class="['tags-item', { active: tagsViewStore.isActive(tag) }]" :to="{ path: tag.path, query: tag.query }"
-            @click="handleTabClick(tag)"
+            @click="router.push({path: tag.fullPath, query: tag.query})"
             @click.middle="handleMiddleClick(tag)">
             <!-- 为所有标签添加右键菜单 -->
             <el-dropdown 
@@ -343,10 +343,10 @@ const updateCurrentTag = () => {
 /**
  * 处理标签点击
  */
-const handleTabClick = (tag: TagView) => {
-  // 设置标签切换来源为标签容器点击
-  tagSwitchSource.value = 'tab';
-};
+// const handleTabClick = (tag: TagView) => {
+//   // 设置标签切换来源为标签容器点击
+//   tagSwitchSource.value = 'tab';
+// };
 
 /**
  * 处理中键点击
@@ -386,13 +386,14 @@ const handleScroll = (event: WheelEvent) => {
  * 刷新标签
  */
 const refreshSelectedTag = (tag: TagView | null) => {
+  if (!tag) return;
   // 总是使用当前路由对应的标签
-  const currentTag = routePathMap.value.get(route.path);
-  if (!currentTag) return;
+  // const currentTag = routePathMap.value.get(route.path);
+  // if (!currentTag) return;
 
-  tagsViewStore.delCachedView(currentTag);
+  tagsViewStore.delCachedView(tag);
   nextTick(() => {
-    router.replace("/redirect" + currentTag.fullPath);
+    router.replace("/redirect" + tag.fullPath);
   });
 };
 

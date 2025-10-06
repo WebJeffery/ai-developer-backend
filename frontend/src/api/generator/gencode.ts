@@ -26,7 +26,7 @@ const GencodeAPI = {
     return request<ApiResponse>({
       url: `${API_PATH}/import`,
       method: 'post',
-      data: { table_names }
+      params: { table_names }
     })
   },
 
@@ -48,7 +48,7 @@ const GencodeAPI = {
   },
 
   // 修改代码生成信息
-  updateGenTable(table_id: number, body: GenTableUpdateSchema) {
+  updateGenTable(table_id: number, body: GenTableSchema) {
     return request<ApiResponse>({
       url: `${API_PATH}/update/${table_id}`,
       method: 'put',
@@ -57,11 +57,11 @@ const GencodeAPI = {
   },
 
   // 删除表数据
-  deleteTable(tableIds: number[]) {
+  deleteTable(data: GenTableDeleteSchema) {
     return request<ApiResponse>({
       url: `${API_PATH}/delete`,
       method: 'delete',
-      data: tableIds
+      data: data
     })
   },
 
@@ -118,10 +118,6 @@ export interface TablePageQuery extends PageQuery {
   table_name?: string;
   /** 表描述 */
   table_comment?: string;
-  /** 开始时间 */
-  start_time?: string;
-  /** 结束时间 */
-  end_time?: string;
 }
 
 /** 数据表分页对象 */
@@ -192,18 +188,18 @@ export interface GenTableOutVO {
   crud?: boolean;
 }
 
-/** 代码生成表更新模型 */
-export interface GenTableUpdateSchema extends GenTableOutVO {
+/** 代码生成业务表模型 */
+export interface GenTableSchema extends GenTableOutVO {
   /** 主键信息 */
-  pk_column?: GenTableColumnUpdateSchema;
+  pk_column?: GenTableColumnOutSchema;
   /** 子表信息 */
-  sub_table?: GenTableUpdateSchema;
+  sub_table?: GenTableSchema;
   /** 表列信息 */
-  columns: GenTableColumnUpdateSchema[];
+  columns: GenTableColumnOutSchema[];
 }
 
-/** 代码生成表列更新模型 */
-export interface GenTableColumnUpdateSchema {
+/** 代码生成业务表列模型 */
+export interface GenTableColumnSchema {
   /** 主键 */
   id?: number;
   /** 归属表编号 */
@@ -242,6 +238,12 @@ export interface GenTableColumnUpdateSchema {
   dict_type: string;
   /** 排序 */
   sort?: number;
+  /** 功能描述 */
+  description?: string;
+}
+
+/** 代码生成业务表列输出模型 */
+export interface GenTableColumnOutSchema extends GenTableColumnSchema {
   /** 字段大写形式 */
   cap_python_field?: string;
   /** 是否主键 */
@@ -266,12 +268,18 @@ export interface GenTableColumnUpdateSchema {
   usable_column?: boolean;
 }
 
+/** 删除代码生成业务表模型 */
+export interface GenTableDeleteSchema {
+  /** 需要删除的代码生成业务表ID列表 */
+  table_ids: number[];
+}
+
 /** 表详情查询结果 */
 export interface GenTableDetailResult {
   /** 表信息 */
   info: GenTableOutVO;
   /** 表列信息 */
-  rows: GenTableColumnUpdateSchema[];
+  rows: GenTableColumnOutSchema[];
   /** 所有表信息 */
   tables: GenTableOutVO[];
 }

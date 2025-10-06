@@ -205,19 +205,19 @@
     </el-card>
 
     <!-- 预览界面 -->
-    <el-dialog v-model="preview.open" :title="preview.title" width="80%" top="5vh" append-to-body class="scrollbar">
-      <el-tabs v-model="preview.activeName">
-        <el-tab-pane
-          v-for="(value, key) in preview.data"
-          :label="key.substring(key.lastIndexOf('/')+1,key.indexOf('.jinja2'))"
-          :name="key.substring(key.lastIndexOf('/')+1,key.indexOf('.jinja2'))"
-          :key="value"
-        >
-          <el-link :underline="false" icon="DocumentCopy" @click="() => navigator.clipboard.writeText(value).then(() => copyTextSuccess())" style="float:right">&nbsp;复制</el-link>
-          <pre>{{ value }}</pre>
-        </el-tab-pane>
-      </el-tabs>
-    </el-dialog>
+  <el-dialog v-model="preview.open" :title="preview.title" width="80%" top="5vh" append-to-body class="scrollbar">
+    <el-tabs v-model="preview.activeName">
+      <el-tab-pane
+        v-for="(value, key) in preview.data"
+        :label="String(key).substring(String(key).lastIndexOf('/')+1,String(key).indexOf('.jinja2'))"
+        :name="String(key).substring(String(key).lastIndexOf('/')+1,String(key).indexOf('.jinja2'))"
+        :key="value"
+      >
+        <el-link :underline="false" icon="DocumentCopy" @click="() => handleCopyText(value)" style="float:right">&nbsp;复制</el-link>
+        <pre>{{ value }}</pre>
+      </el-tab-pane>
+    </el-tabs>
+  </el-dialog>
     <import-table ref="importRef" @ok="handleQuery" />
     <create-table ref="createRef" @ok="handleQuery" />
   </div>
@@ -240,14 +240,14 @@ const route = useRoute();
 const importRef = ref();
 const createRef = ref();
 
-const tableList = ref([]);
+const tableList = ref<Array<any>>([]);
 const loading = ref(true);
-const ids = ref([]);
+const ids = ref<Array<number>>([]);
 const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
-const tableNames = ref([]);
-const dateRange = ref([]);
+const tableNames = ref<Array<string>>([]);
+const dateRange = ref<Array<string>>([]);
 const uniqueId = ref("");
 
 
@@ -256,9 +256,7 @@ const data = reactive({
     page_no: 1,
     page_size: 10,
     table_name: undefined,
-    table_comment: undefined,
-    start_time: undefined,
-    end_time: undefined
+    table_comment: undefined
   },
   preview: {
     open: false,
@@ -286,8 +284,8 @@ const { queryFormData, preview } = toRefs(data);
 
 onActivated(() => {
   const time = route.query.t;
-  if (time != null && time != uniqueId.value) {
-    uniqueId.value = time;
+  if (time != null && String(time) != uniqueId.value) {
+    uniqueId.value = String(time);
     queryFormData.value.page_no = Number(route.query.page_no || 1);
     dateRange.value = [];
     loadingData();
@@ -301,12 +299,6 @@ function loadingData() {
   const queryParams = {
     ...queryFormData.value
   };
-  
-  // 如果有日期范围，添加到查询参数中
-  if (dateRange.value && dateRange.value.length === 2) {
-    queryParams.start_time = dateRange.value[0];
-    queryParams.end_time = dateRange.value[1];
-  }
   
   GencodeAPI.listTable(queryParams).then(response => {
     tableList.value = response.data.data.items;
@@ -322,32 +314,32 @@ function handleQuery() {
 }
 
 /** 生成代码操作 */
-function handleGenTable(row) {
+function handleGenTable(row: any) {
   const tbNames = row?.table_name || tableNames.value;
   if (!tbNames || (Array.isArray(tbNames) && tbNames.length === 0)) {
     ElMessage.error("请选择要生成的数据");
     return;
   }
   
-  if (row?.genType === "1") {
-    GencodeAPI.genCodeToPath(row.tableName).then(() => {
-      ElMessage.success("成功生成到自定义路径：" + row.genPath);
+  if (row?.gen_type === "1") {
+    GencodeAPI.genCodeToPath(row.table_name).then(() => {
+      ElMessage.success("成功生成到自定义路径：" + row.gen_path);
     });
   } else {
-    GencodeAPI.batchGenCode(tbNames).then(response => {
-      const blob = new Blob([response], { type: 'application/zip' });
-      const url = window.URL.createObjectURL(blob);
+    GencodeAPI.batchGenCode(tbNames).then((response: any) => {
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = 'code.zip';
       link.click();
-      window.URL.revokeObjectURL(url);
+      URL.revokeObjectURL(url);
     });
   }
 }
 
 /** 同步数据库操作 */
-function handleSynchDb(row) {
+function handleSynchDb(row: any) {
   const tableName = row.table_name;
   ElMessageBox.confirm(
     '确认要强制同步"' + tableName + '"表结构吗？',
@@ -386,16 +378,14 @@ function handleRefresh() {
     page_no: 1,
     page_size: 10,
     table_name: undefined,
-    table_comment: undefined,
-    start_time: undefined,
-    end_time: undefined
+    table_comment: undefined
   };
   handleQuery();
 }
 
 /** 预览按钮 */
-function handlePreview(row) {
-  GencodeAPI.previewTable(row.tableId).then(response => {
+function handlePreview(row: any) {
+  GencodeAPI.previewTable(row.id).then(response => {
     preview.value.data = response.data;
     preview.value.open = true;
     preview.value.activeName = "do.py";
@@ -407,38 +397,49 @@ function copyTextSuccess() {
   ElMessage.success("复制成功");
 }
 
+/** 处理文本复制 */
+function handleCopyText(value: string) {
+  if (window && window.navigator && window.navigator.clipboard) {
+    window.navigator.clipboard.writeText(value).then(() => {
+      copyTextSuccess();
+    }).catch(() => {
+      ElMessage.error("复制失败");
+    });
+  }
+}
+
 // 多选框选中数据
-function handleSelectionChange(selection) {
-  ids.value = selection.map(item => item.tableId);
-  tableNames.value = selection.map(item => item.table_name);
-  single.value = selection.length != 1;
-  multiple.value = !selection.length;
-}
+  function handleSelectionChange(selection: Array<any>) {
+    ids.value = selection.map((item: any) => item.id);
+    tableNames.value = selection.map((item: any) => item.table_name);
+    single.value = selection.length != 1;
+    multiple.value = !selection.length;
+  }
 
-/** 修改按钮操作 */
-function handleEditTable(row) {
-  const tableId = row.tableId || ids.value[0];
-  router.push({ path: "/tool/gen-edit/index/" + tableId, query: { page_no: queryFormData.value.page_no } });
-}
+  /** 修改按钮操作 */
+  function handleEditTable(row: any) {
+    const tableId = row.id || ids.value[0];
+    router.push({ path: "/tool/gen-edit/index/" + tableId, query: { page_no: queryFormData.value.page_no } });
+  }
 
-/** 删除按钮操作 */
-function handleDelete(row) {
-  const tableIds = row?.tableId ? [row.tableId] : ids.value;
-  ElMessageBox.confirm(
-    '是否确认删除表编号为"' + tableIds + '"的数据项？',
-    '删除确认',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    return GencodeAPI.deleteTable(tableIds);
-  }).then(() => {
-    loadingData();
-    ElMessage.success("删除成功");
-  }).catch(() => {});
-}
+  /** 删除按钮操作 */
+  function handleDelete(row: any) {
+    const tableIds = row?.id ? [row.id] : ids.value;
+    ElMessageBox.confirm(
+      '是否确认删除表编号为"' + tableIds + '"的数据项？',
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(() => {
+      return GencodeAPI.deleteTable({ table_ids: tableIds });
+    }).then(() => {
+      loadingData();
+      ElMessage.success("删除成功");
+    }).catch(() => {});
+  }
 
 loadingData();
 </script>
