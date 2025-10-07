@@ -49,6 +49,10 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
 
       Components({
         resolvers: [WotResolver()],
+        // 指定自定义组件位置(默认:src/components)
+        dirs: ["src/components", "src/**/components"],
+        // 导入组件类型声明文件路径 (false:关闭自动生成)
+        dts: "src/types/components.d.ts",
       }),
 
       AutoImport({

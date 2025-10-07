@@ -113,10 +113,11 @@ import { useUserStore } from "@/store";
 import { useToast } from "wot-design-uni";
 import AuthAPI, { type LoginFormData, type CaptchaInfo } from "@/api/auth";
 import { useThemeStore } from "@/store/modules/theme.store";
+import { computed, ref, reactive } from "vue";
 
 // 主题相关
 const themeStore = useThemeStore();
-const themeVars = themeStore.themeVars;
+const themeVars = computed(() => themeStore.themeVars || { darkColor3: '#a0a0a0', colorTheme: '#4D7FFF' });
 
 const loginFormRef = ref();
 const toast = useToast();
