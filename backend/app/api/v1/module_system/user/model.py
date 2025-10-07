@@ -7,7 +7,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import Boolean, String, Integer, DateTime, ForeignKey
+from sqlalchemy import Boolean, String, Integer, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.api.v1.module_system.dept.model import DeptModel
@@ -62,13 +62,15 @@ class UserPositionsModel(MappedBase):
     )
 
 
-class UserModel(CreatorMixin):
+class UserModel(MappedBase):
     """
     用户模型
     """
     __tablename__ = "system_users"
     __table_args__ = ({'comment': '用户表'})
 
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
+    
     username: Mapped[str] = mapped_column(String(32),nullable=False,unique=True,comment="用户名/登录账号")
     password: Mapped[str] = mapped_column(String(255),nullable=False,comment="密码哈希")
     name: Mapped[str] = mapped_column(String(32),nullable=False,comment="昵称")
@@ -84,3 +86,10 @@ class UserModel(CreatorMixin):
     dept: Mapped[Optional["DeptModel"]] = relationship(back_populates="users",foreign_keys=[dept_id],lazy="selectin")
     roles: Mapped[List["RoleModel"]] = relationship(secondary="system_user_roles",back_populates="users",lazy="selectin")
     positions: Mapped[List["PositionModel"]] = relationship(secondary="system_user_positions",back_populates="users",lazy="selectin")
+
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None, comment="备注/描述")
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now, comment='创建时间')
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now, onupdate=datetime.now, comment='更新时间')
+
+    creator_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('system_users.id', ondelete="SET NULL", onupdate="CASCADE"), nullable=True, index=True, comment="创建人ID")
+    creator: Mapped[Optional["UserModel"]] = relationship(foreign_keys=[creator_id],lazy="selectin",remote_side=[id])

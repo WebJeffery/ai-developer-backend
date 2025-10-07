@@ -391,6 +391,6 @@ http://localhost:8000/mcp
 
 在系统配置中设置以下参数：
 
-- `QWEN_API_KEY`: Qwen API密钥
-- `QWEN_BASE_URL`: Qwen API基础URL
-- `QWEN_MODEL`: Qwen模型名称
+- `OPENAI_API_KEY`: OpenAI API密钥
+- `OPENAI_BASE_URL`: OpenAI API基础URL
+- `OPENAI_MODEL`: OpenAI模型名称

@@ -11,7 +11,7 @@ from app.core.logger import logger
 class AIClient:
 
     def __init__(self):
-        self.model = settings.QWEN_MODEL
+        self.model = settings.OPENAI_MODEL
         # 创建一个不带冲突参数的httpx客户端
         self.http_client = httpx.AsyncClient(
             timeout=30.0,
@@ -20,8 +20,8 @@ class AIClient:
         
         # 使用自定义的http客户端
         self.client = AsyncOpenAI(
-            api_key=settings.QWEN_API_KEY,
-            base_url=settings.QWEN_BASE_URL,
+            api_key=settings.OPENAI_API_KEY,
+            base_url=settings.OPENAI_BASE_URL,
             http_client=self.http_client
         )
 

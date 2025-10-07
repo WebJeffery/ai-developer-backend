@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pydantic import BaseModel
-from typing import TypeVar, Sequence, Generic, Dict, Any, List, Optional, Type
+from typing import TypeVar, Sequence, Generic, Dict, Any, List, Optional, Type, Union
 from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.orm import selectinload
 from sqlalchemy.engine import Result
@@ -58,7 +58,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if hasattr(self.model, "creator_id"):
                 sql = sql.options(selectinload(self.model.creator))
             
-            # sql = await self.__filter_permissions(sql)
+            sql = await self.__filter_permissions(sql)
 
             result: Result = await self.db.execute(sql)
             obj = result.scalars().first()
@@ -173,7 +173,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             raise CustomException(msg=f"分页查询失败: {str(e)}")
     
-    async def create(self, data: CreateSchemaType) -> ModelType:
+    async def create(self, data: Union[CreateSchemaType, Dict]) -> ModelType:
         """
         创建新对象
         
@@ -194,8 +194,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if hasattr(self.model, "creator_id") and self.current_user:
                 # 设置创建人ID
                 obj.creator_id = self.current_user.id
-                # 设置创建人对象
-                obj.creator = self.current_user
                 
             self.db.add(obj)
             await self.db.flush()
@@ -204,7 +202,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             raise CustomException(msg=f"创建失败: {str(e)}")
 
-    async def update(self, id: int, data: UpdateSchemaType) -> ModelType:
+    async def update(self, id: int, data: Union[UpdateSchemaType, Dict]) -> ModelType:
         """
         更新对象
         

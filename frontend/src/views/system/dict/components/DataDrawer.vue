@@ -405,14 +405,14 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
   if (id) {
     const response = await DictAPI.getDictDataDetail(id);
     if (type === 'detail') {
-      dialogVisible.title = "公告通知详情";
+      dialogVisible.title = "字典数据详情";
       Object.assign(detailFormData.value, response.data.data);
     } else if (type === 'update') {
-      dialogVisible.title = "修改公告通知";
+      dialogVisible.title = "修改字典数据";
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增公告通知";
+    dialogVisible.title = "新增字典数据";
     formData.id = undefined;
     formData.dict_type = props.dictType;
   }

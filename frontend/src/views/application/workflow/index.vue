@@ -363,7 +363,7 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
             Object.assign(formData, response.data.data);
         }
     } else {
-        dialogVisible.title = "新增公告通知";
+        dialogVisible.title = "新增工作流";
         formData.id = undefined;
     }
     dialogVisible.visible = true;

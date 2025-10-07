@@ -83,9 +83,8 @@ class UserService:
         # 创建用户
         if data.password:
             data.password = PwdUtil.set_password_hash(password=data.password)
-        # user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
-        # new_user = await UserCRUD(auth).create(data=user_dict)
-        new_user = await UserCRUD(auth).create(data=data)
+        user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
+        new_user = await UserCRUD(auth).create(data=user_dict)
 
         # 设置角色和岗位
         if data.role_ids and len(data.role_ids) > 0:
@@ -175,7 +174,7 @@ class UserService:
     async def get_current_user_info_service(cls, auth: AuthSchema) -> Dict:
         """获取当前用户信息"""
         # 获取用户基本信息
-        if not auth.user:
+        if not auth.user or not auth.user.id:
             raise CustomException(msg="用户不存在")
         user = await UserCRUD(auth).get_by_id_crud(id=auth.user.id)
         # 获取部门名称
@@ -210,7 +209,7 @@ class UserService:
     @classmethod
     async def update_current_user_info_service(cls, auth: AuthSchema, data: CurrentUserUpdateSchema) -> Dict:
         """更新当前用户信息"""
-        if not auth.user:
+        if not auth.user or not auth.user.id:
             raise CustomException(msg="用户不存在")
         user = await UserCRUD(auth).get_by_id_crud(id=auth.user.id)
         if not user:
@@ -247,7 +246,7 @@ class UserService:
     @classmethod
     async def change_user_password_service(cls, auth: AuthSchema, data: UserChangePasswordSchema) -> Dict:
         """修改用户密码"""
-        if not auth.user:
+        if not auth.user or not auth.user.id:
             raise CustomException(msg="用户不存在")
         if not data.old_password or not data.new_password:
             raise CustomException(msg='密码不能为空')
