@@ -21,7 +21,7 @@ class OnlineService:
         """
 
         keys = await RedisCURD(redis).get_keys(f"{RedisInitKeyConfig.ACCESS_TOKEN.key}:*")
-        tokens = await RedisCURD(redis).mget(*keys)
+        tokens = await RedisCURD(redis).mget(keys)
 
         online_users = []
         for token in tokens:

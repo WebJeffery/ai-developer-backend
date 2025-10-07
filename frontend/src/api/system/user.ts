@@ -226,6 +226,7 @@ export interface InfoFormState {
   email: string;
   username: string;
   dept_name: string;
+  dept: deptTreeType;
   positions: positionSelectorType[];
   roles: roleSelectorType[];
   avatar: string;

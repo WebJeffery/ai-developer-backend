@@ -63,12 +63,66 @@
     "creator_id": 1
   },
   {
+    "config_name": "帮助文档",
+    "config_key": "sys_help_doc",
+    "config_value": "https://service.fastapiadmin.com",
+    "config_type": true,
+    "status": true,
+    "description": "帮助文档",
+    "creator_id": 1
+  },
+  {
+    "config_name": "隐私政策",
+    "config_key": "sys_web_privacy",
+    "config_value": "https://github.com/1014TaoTao/fastapi_vue3_admin/blob/master/LICENSE",
+    "config_type": true,
+    "status": true,
+    "description": "隐私政策",
+    "creator_id": 1
+  },
+  {
+    "config_name": "用户协议",
+    "config_key": "sys_web_clause",
+    "config_value": "https://github.com/1014TaoTao/fastapi_vue3_admin/blob/master/LICENSE",
+    "config_type": true,
+    "status": true,
+    "description": "用户协议",
+    "creator_id": 1
+  },
+  {
+    "config_name": "源码代码",
+    "config_key": "sys_git_code",
+    "config_value": "https://github.com/1014TaoTao/fastapi_vue3_admin.git",
+    "config_type": true,
+    "status": true,
+    "description": "源码代码",
+    "creator_id": 1
+  },
+  {
+    "config_name": "项目版本",
+    "config_key": "sys_web_version",
+    "config_value": "2.0.0",
+    "config_type": true,
+    "status": true,
+    "description": "项目版本",
+    "creator_id": 1
+  },
+  {
     "config_name": "演示模式启用",
     "config_key": "demo_enable",
     "config_value": "false",
     "config_type": true,
     "status": true,
     "description": "是否开启演示模式",
+    "creator_id": 1
+  },
+  {
+    "config_name": "演示访问IP白名单",
+    "config_key": "ip_white_list",
+    "config_value": "[\"127.0.0.1\"]",
+    "config_type": true,
+    "status": true,
+    "description": "演示模式IP白名单列表",
     "creator_id": 1
   },
   {
@@ -81,66 +135,12 @@
     "creator_id": 1
   },
   {
-    "config_name": "访问IP白名单",
-    "config_key": "ip_white_list",
-    "config_value": "[\"127.0.0.1\"]",
-    "config_type": true,
-    "status": true,
-    "description": "演示模式IP白名单列表",
-    "creator_id": 1
-  },
-  {
     "config_name": "访问IP黑名单",
     "config_key": "ip_black_list",
     "config_value": "[]",
     "config_type": true,
     "status": true,
     "description": "访问IP黑名单",
-    "creator_id": 1
-  },
-  {
-    "config_name": "允许上传文件类型",
-    "config_key": "allowed_extensions",
-    "config_value": "[\".bmp\", \".gif\", \".jpg\", \".jpeg\", \".png\", \".ico\", \".svg\", \".csv\", \".doc\", \".docx\", \".xls\", \".xlsx\", \".ppt\", \".pptx\", \".html\", \".htm\", \".txt\", \".pdf\", \".rar\", \".zip\", \".gz\", \".bz2\", \".mp4\", \".avi\", \".rmvb\"]",
-    "config_type": true,
-    "status": true,
-    "description": "允许上传的文件类型列表",
-    "creator_id": 1
-  },
-  {
-    "config_name": "最大文件上传大小",
-    "config_key": "max_file_size",
-    "config_value": "10485760",
-    "config_type": true,
-    "status": true,
-    "description": "最大文件上传大小(字节)，默认10MB",
-    "creator_id": 1
-  },
-  {
-    "config_name": "操作日志记录开关",
-    "config_key": "operation_log_record",
-    "config_value": "True",
-    "config_type": true,
-    "status": true,
-    "description": "是否记录操作日志",
-    "creator_id": 1
-  },
-  {
-    "config_name": "操作日志记录方法",
-    "config_key": "operation_record_method",
-    "config_value": "[\"POST\", \"PUT\", \"PATCH\", \"DELETE\", \"HEAD\", \"OPTIONS\"]",
-    "config_type": true,
-    "status": true,
-    "description": "操作日志记录方法",
-    "creator_id": 1
-  },
-  {
-    "config_name": "忽略操作日志函数",
-    "config_key": "ignore_operation_function",
-    "config_value": "[\"get_captcha_for_login\"]",
-    "config_type": true,
-    "status": true,
-    "description": "忽略操作日志函数",
     "creator_id": 1
   }
 ]

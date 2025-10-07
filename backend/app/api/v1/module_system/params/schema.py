@@ -24,18 +24,3 @@ class ParamsUpdateSchema(ParamsCreateSchema):
 class ParamsOutSchema(ParamsCreateSchema, BaseSchema):
     """配置响应模型"""
     model_config = ConfigDict(from_attributes=True)
-
-
-class UpdateSystemParamsSchema(BaseModel):
-    """更新系统配置"""
-    sys_web_title: str = Field(description="网站标题") 
-    sys_web_description: str = Field(description="网站描述")
-    sys_web_favicon: str = Field(description="网站图标")
-    sys_web_logo: str = Field(description="网站logo")
-    sys_login_background: str = Field(description="登录背景")
-    sys_web_copyright: str = Field(description="版权信息")
-    sys_keep_record: str = Field(description="备案号")
-    sys_help_doc: str = Field(description="帮助文档")
-    sys_web_privacy: str = Field(description="隐私条款")
-    sys_web_clause: str = Field(description="用户协议")
-    sys_git_code: str = Field(description="源码地址")
