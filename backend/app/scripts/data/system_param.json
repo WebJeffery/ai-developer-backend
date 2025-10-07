@@ -63,84 +63,39 @@
     "creator_id": 1
   },
   {
-    "config_name": "帮助文档",
-    "config_key": "sys_help_doc",
-    "config_value": "https://service.fastapiadmin.com",
+    "config_name": "演示模式启用",
+    "config_key": "demo_enable",
+    "config_value": "false",
     "config_type": true,
     "status": true,
-    "description": "帮助文档",
+    "description": "是否开启演示模式",
     "creator_id": 1
   },
   {
-    "config_name": "隐私政策",
-    "config_key": "sys_web_privacy",
-    "config_value": "https://github.com/1014TaoTao/fastapi_vue3_admin/blob/master/LICENSE",
-    "config_type": true,
-    "status": true,
-    "description": "隐私政策",
-    "creator_id": 1
-  },
-  {
-    "config_name": "用户协议",
-    "config_key": "sys_web_clause",
-    "config_value": "https://github.com/1014TaoTao/fastapi_vue3_admin/blob/master/LICENSE",
-    "config_type": true,
-    "status": true,
-    "description": "用户协议",
-    "creator_id": 1
-  },
-  {
-    "config_name": "源码代码",
-    "config_key": "sys_git_code",
-    "config_value": "https://github.com/1014TaoTao/fastapi_vue3_admin.git",
-    "config_type": true,
-    "status": true,
-    "description": "源码代码",
-    "creator_id": 1
-  },
-  {
-    "config_name": "项目版本",
-    "config_key": "sys_web_version",
-    "config_value": "2.0.0",
-    "config_type": true,
-    "status": true,
-    "description": "项目版本",
-    "creator_id": 1
-  },
-  {
-    "config_name": "白名单接口",
+    "config_name": "接口白名单",
     "config_key": "white_api_list_path",
     "config_value": "[\"/api/v1/system/auth/login\", \"/api/v1/system/auth/token/refresh\", \"/api/v1/system/auth/captcha/get\", \"/api/v1/system/auth/logout\", \"/api/v1/system/config/info\", \"/api/v1/system/user/current/info\", \"/api/v1/system/notice/available\"]",
     "config_type": true,
     "status": true,
-    "description": "演示模式白名单路径列表",
-    "creator_id": 1
-  },
-  {
-    "config_name": "黑名单接口",
-    "config_key": "black_api_list_path",
-    "config_value": "[\"/auth/login\"]",
-    "config_type": true,
-    "status": true,
-    "description": "演示模式黑名单路径列表",
+    "description": "接口白名单",
     "creator_id": 1
   },
   {
     "config_name": "访问IP白名单",
     "config_key": "ip_white_list",
-    "config_value": "[\"127.0.0.1\", \"117.10.167.220\", \"223.104.208.30\", \"42.80.102.171\"]",
+    "config_value": "[\"127.0.0.1\"]",
     "config_type": true,
     "status": true,
     "description": "演示模式IP白名单列表",
     "creator_id": 1
   },
   {
-    "config_name": "权限认证白名单接口",
-    "config_key": "token_request_path_exclude",
-    "config_value": "[\"api/v1/auth/login\"]",
+    "config_name": "访问IP黑名单",
+    "config_key": "ip_black_list",
+    "config_value": "[]",
     "config_type": true,
     "status": true,
-    "description": "无需JWT认证的路径白名单",
+    "description": "访问IP黑名单",
     "creator_id": 1
   },
   {
@@ -176,7 +131,7 @@
     "config_value": "[\"POST\", \"PUT\", \"PATCH\", \"DELETE\", \"HEAD\", \"OPTIONS\"]",
     "config_type": true,
     "status": true,
-    "description": "需要记录操作日志的HTTP方法列表",
+    "description": "操作日志记录方法",
     "creator_id": 1
   },
   {
@@ -185,16 +140,7 @@
     "config_value": "[\"get_captcha_for_login\"]",
     "config_type": true,
     "status": true,
-    "description": "忽略记录操作日志的函数列表",
-    "creator_id": 1
-  },
-  {
-    "config_name": "演示模式启用",
-    "config_key": "demo_enable",
-    "config_value": "False",
-    "config_type": true,
-    "status": true,
-    "description": "是否开启演示模式",
+    "description": "忽略操作日志函数",
     "creator_id": 1
   }
 ]

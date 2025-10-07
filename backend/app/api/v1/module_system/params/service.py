@@ -217,3 +217,69 @@ class ParamsService:
                 continue
         
         return configs
+    
+    @classmethod
+    async def get_system_config_for_middleware(cls, redis: Redis) -> Dict[str, Any]:
+        """获取中间件所需的系统配置
+        
+        返回：
+            Dict: 包含演示模式、IP白名单、API白名单和IP黑名单的配置字典
+        """
+        # 定义需要获取的配置键
+        config_keys = [
+            f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:demo_enable",
+            f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:ip_white_list",
+            f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:white_api_list_path",
+            f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:ip_black_list"
+        ]
+        
+        # 批量获取配置
+        config_values = await RedisCURD(redis).mget(config_keys)
+        
+        # 初始化默认配置
+        config_result = {
+            "is_demo_mode": False,
+            "demo_ip_white_list": [],
+            "api_white_list": [],
+            "ip_black_list": []
+        }
+        
+        # 解析演示模式配置
+        if config_values[0]:
+            try:
+                demo_config = json.loads(config_values[0])
+                config_result["is_demo_mode"] = demo_config.get("config_value", False) if isinstance(demo_config, dict) else False
+            except json.JSONDecodeError:
+                logger.error(f"解析演示模式配置失败")
+        
+        # 解析IP白名单配置
+        if config_values[1]:
+            try:
+                ip_white_config = json.loads(config_values[1])
+                demo_ip_white_list = ip_white_config.get("config_value", []) if isinstance(ip_white_config, dict) else []
+                # 确保是列表类型
+                config_result["demo_ip_white_list"] = demo_ip_white_list if isinstance(demo_ip_white_list, list) else []
+            except json.JSONDecodeError:
+                logger.error(f"解析IP白名单配置失败")
+        
+        # 解析API路径白名单
+        if config_values[2]:
+            try:
+                white_api_config = json.loads(config_values[2])
+                api_white_list = white_api_config.get("config_value", []) if isinstance(white_api_config, dict) else []
+                # 确保是列表类型
+                config_result["api_white_list"] = api_white_list if isinstance(api_white_list, list) else []
+            except json.JSONDecodeError:
+                logger.error(f"解析API白名单配置失败")
+        
+        # 解析IP黑名单
+        if config_values[3]:
+            try:
+                black_ip_config = json.loads(config_values[3])
+                ip_black_list = black_ip_config.get("config_value", []) if isinstance(black_ip_config, dict) else []
+                # 确保是列表类型
+                config_result["ip_black_list"] = ip_black_list if isinstance(ip_black_list, list) else []
+            except json.JSONDecodeError:
+                logger.error(f"解析IP黑名单配置失败")
+        
+        return config_result

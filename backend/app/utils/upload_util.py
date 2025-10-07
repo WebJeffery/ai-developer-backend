@@ -164,24 +164,4 @@ class UploadUtil:
         # 解析文件路径
         filename = cls.generate_file(Path(file_path))
         return str(filename)
-
-    @classmethod
-    async def upload_file_oss(cls, file: UploadFile, oss_folder):
-        end_point = settings.ALI_OSS_END_POINT
-        access_key_id = settings.ALI_OSS_KEY
-        access_key_secret = settings.ALI_OSS_SECRET
-        access_pre = settings.ALI_OSS_PRE
-        auth = oss2.Auth(access_key_id, access_key_secret)
-        bucket = oss2.Bucket(auth, end_point, settings.ALI_OSS_BUCKET)
-        pic_data = file.file.read()
-        if not file.filename:
-            raise CustomException(msg='文件名为空')
-        file_name = oss_folder + str(time.time()) + file.filename.rsplit(".", 1)[-1]
-        target_file_name = oss_folder + str(time.time()) + Path(file_name).suffix
-        bucket.put_object(target_file_name, pic_data)
-
-        # 后期优化
-        file_url = f'{access_pre}/{target_file_name}'
-        filepath = file_url
-        # 返回相对路径
-        return file.filename, filepath, file_url
+    

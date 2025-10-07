@@ -5,7 +5,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional, Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic_validation_decorator import Pattern
 from uvicorn.config import LifespanType
 from urllib.parse import quote_plus
 
@@ -163,28 +162,28 @@ class Settings(BaseSettings):
     GZIP_MIN_SIZE: int = 1000       # 最小压缩大小(字节)
     GZIP_COMPRESS_LEVEL: int = 9    # 压缩级别(1-9)
 
-    # ================================================= #
-    # ***************** 演示模型配置 ***************** #
-    # ================================================= #
-    DEMO_ENABLE: bool                    # 是否开启演示模式
-    DEMO_WHITE_LIST_PATH: List[str] = [  # 演示白名单
-        "/api/v1/system/auth/login",
-        "/api/v1/system/auth/token/refresh",
-        "/api/v1/system/auth/captcha/get",
-        "/api/v1/system/auth/logout",
-        "/api/v1/system/config/info",
-        "/api/v1/system/user/current/info",
-        "/api/v1/system/notice/available",
-    ]
-    DEMO_BLACK_LIST_PATH: List[str] = [  # 演示黑名单
-        "/auth/login"
-    ]
-    DEMO_IP_WHITE_LIST: List[str] = [   # 演示白名单IP
-        "127.0.0.1",
-        "117.10.167.220",
-        "223.104.208.30",
-        "42.80.102.171"
-    ]
+    # # ================================================= #
+    # # ***************** 演示模型配置 ***************** #
+    # # ================================================= #
+    # DEMO_ENABLE: bool                    # 是否开启演示模式
+    # DEMO_WHITE_LIST_PATH: List[str] = [  # 演示白名单
+    #     "/api/v1/system/auth/login",
+    #     "/api/v1/system/auth/token/refresh",
+    #     "/api/v1/system/auth/captcha/get",
+    #     "/api/v1/system/auth/logout",
+    #     "/api/v1/system/config/info",
+    #     "/api/v1/system/user/current/info",
+    #     "/api/v1/system/notice/available",
+    # ]
+    # DEMO_BLACK_LIST_PATH: List[str] = [  # 演示黑名单
+    #     "/auth/login"
+    # ]
+    # DEMO_IP_WHITE_LIST: List[str] = [   # 演示白名单IP
+    #     "127.0.0.1",
+    #     "117.10.167.220",
+    #     "223.104.208.30",
+    #     "42.80.102.171"
+    # ]
 
     # ================================================= #
     # ***************** 静态文件配置 ***************** #
@@ -218,16 +217,6 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 最大文件大小(10MB)
 
     # ================================================= #
-    # ***************** 对象存储配置 ***************** #
-    # ================================================= #
-    UPLOAD_METHOD: Literal['local','oss'] = "local" # 上传方式, local或者oss
-    ALI_OSS_KEY: str = 'xxxx'
-    ALI_OSS_SECRET: str = 'xxxx'
-    ALI_OSS_END_POINT: str = 'xxxx'
-    ALI_OSS_PRE: str = 'xxxx'
-    ALI_OSS_BUCKET: str = 'xxxx'
-
-    # ================================================= #
     # ***************** Swagger配置 ***************** #
     # ================================================= #
     SWAGGER_CSS_URL: str = "static/swagger/swagger-ui/swagger-ui.css"
@@ -256,9 +245,9 @@ class Settings(BaseSettings):
     # ******************* AI大模型配置 ****************** #
     # ================================================= #
     # https://bailian.console.aliyun.com/?spm=5176.29619931.J_AHgvE-XDhTWrtotIBlDQQ.13.74cd521clrmQ7o&tab=api#/api/?type=model&url=https%3A%2F%2Fhelp.aliyun.com%2Fdocument_detail%2F2712576.html&renderType=iframe
-    QWEN_BASE_URL: str
-    QWEN_API_KEY: str
-    QWEN_MODEL: str
+    OPENAI_BASE_URL: str
+    OPENAI_API_KEY: str
+    OPENAI_MODEL: str
 
     # ================================================= #
     # ******************* 其他配置 ******************* #

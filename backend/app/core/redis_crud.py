@@ -14,11 +14,11 @@ class RedisCURD:
         """初始化"""
         self.redis = redis
         
-    async def mget(self, *keys: tuple)-> list:
+    async def mget(self, keys: list) -> list:
         """批量获取缓存
         
         Args:
-            *keys: 可变参数,接收多个键名
+            keys: 键名列表
             
         Returns:
             list: 返回缓存值列表

@@ -12,9 +12,9 @@ from app.core.redis_crud import RedisCURD
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.api.v1.module_system.auth.schema import AuthSchema
-from app.api.v1.module_system.dict.schema import DictDataCreateSchema,DictDataOutSchema,DictDataUpdateSchema,DictTypeCreateSchema,DictTypeOutSchema,DictTypeUpdateSchema
-from app.api.v1.module_system.dict.param import DictDataQueryParam, DictTypeQueryParam
-from app.api.v1.module_system.dict.crud import DictDataCRUD, DictTypeCRUD
+from .schema import DictDataCreateSchema,DictDataOutSchema,DictDataUpdateSchema,DictTypeCreateSchema,DictTypeOutSchema,DictTypeUpdateSchema
+from .param import DictDataQueryParam, DictTypeQueryParam
+from .crud import DictDataCRUD, DictTypeCRUD
 
 
 class DictTypeService:
