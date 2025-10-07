@@ -9,7 +9,7 @@
         </view>
         <view class="user-details">
           <block v-if="isLogin">
-            <view class="nickname theme-text-primary">{{ userInfo!.name || "匿名用户" }}</view>
+            <view class="nickname theme-text-primary">{{ userInfo?.name || "匿名用户" }}</view>
             <view class="user-id theme-text-secondary">ID: {{ userInfo?.username || "0000000" }}</view>
           </block>
           <block v-else>
@@ -152,7 +152,8 @@ const toast = useToast();
 const userStore = useUserStore();
 const themeStore = useThemeStore();
 const themeVars = computed(() => themeStore.themeVars);
-const currentThemeColor = computed(() => themeStore.currentThemeColor);
+// 修复: 直接返回主题色对象，确保可以访问primary属性
+const currentThemeColor = computed(() => themeStore.currentThemeColor || { primary: '#4D7FFF' });
 
 // 强制重新渲染的key
 const renderKey = ref(0);
@@ -164,8 +165,8 @@ const isLoading = ref(false);
 
 const router = useRouter();
 
-// 监听主题色变化
-const handleThemeColorChange = (color: string) => {
+// 监听主题色变化 - 使用下划线前缀标记未使用的参数
+const handleThemeColorChange = (_color: string) => {
   renderKey.value++;
 };
 
