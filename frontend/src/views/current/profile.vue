@@ -68,7 +68,7 @@
                 </el-icon>
                 <span style="vertical-align: middle;">部门</span>
               </template>
-              <span style="vertical-align: middle;">{{ infoFormState.dept_name }}</span>
+              <span style="vertical-align: middle;">{{ infoFormState.dept.name }}</span>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -233,6 +233,7 @@ const infoFormState = reactive<InfoFormState>({
   email: '',
   username: '',
   dept_name: '',
+  dept: {},
   positions: [],
   roles: [],
   avatar: '',

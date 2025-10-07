@@ -17,7 +17,7 @@ from app.core.exceptions import CustomException
 from app.core.logger import logger
 from ..auth.schema import AuthSchema
 from .param import ParamsQueryParam
-from .schema import ParamsOutSchema, ParamsUpdateSchema, ParamsCreateSchema, UpdateSystemParamsSchema
+from .schema import ParamsOutSchema, ParamsUpdateSchema, ParamsCreateSchema
 from .crud import ParamsCRUD
 
 
@@ -204,7 +204,7 @@ class ParamsService:
     async def get_init_config_service(cls, redis: Redis) -> List[Dict]:
         """获取系统配置"""
         redis_keys = await RedisCURD(redis).get_keys(f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:*")
-        redis_configs = await RedisCURD(redis).mget(*redis_keys)
+        redis_configs = await RedisCURD(redis).mget(redis_keys)
         configs = []
         for config in redis_configs:
             if not config:
