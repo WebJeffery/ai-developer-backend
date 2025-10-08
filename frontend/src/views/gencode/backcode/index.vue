@@ -175,19 +175,19 @@
         <el-table-column label="操作" align="center" width="330" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="预览" placement="top">
-              <el-button v-hasPerm="['generator:gencode:query']" link type="primary" icon="View" @click="handlePreview(scope.row)"></el-button>
+              <el-button v-hasPerm="['generator:gencode:query']" link type="info" icon="View" @click="handlePreview(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="编辑" placement="top">
               <el-button v-hasPerm="['generator:gencode:update']" link type="primary" icon="Edit" @click="handleEditTable(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button v-hasPerm="['generator:gencode:delete']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+              <el-button v-hasPerm="['generator:gencode:delete']" link type="danger" icon="Delete" @click="handleDelete(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="同步" placement="top">
-              <el-button v-hasPerm="['generator:gencode:edit']" link type="primary" icon="Refresh" @click="handleSynchDb(scope.row)"></el-button>
+              <el-button v-hasPerm="['generator:gencode:edit']" link type="success" icon="Refresh" @click="handleSynchDb(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="生成代码" placement="top">
-              <el-button v-hasPerm="['generator:gencode:code']" link type="primary" icon="Download" @click="handleGenTable(scope.row)"></el-button>
+              <el-button v-hasPerm="['generator:gencode:code']" link type="warning" icon="Download" @click="handleGenTable(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -205,19 +205,19 @@
     </el-card>
 
     <!-- 预览界面 -->
-  <el-dialog v-model="preview.open" :title="preview.title" width="80%" top="5vh" append-to-body class="scrollbar">
-    <el-tabs v-model="preview.activeName">
-      <el-tab-pane
-        v-for="(value, key) in preview.data"
-        :label="String(key).substring(String(key).lastIndexOf('/')+1,String(key).indexOf('.jinja2'))"
-        :name="String(key).substring(String(key).lastIndexOf('/')+1,String(key).indexOf('.jinja2'))"
-        :key="value"
-      >
-        <el-link :underline="false" icon="DocumentCopy" @click="() => handleCopyText(value)" style="float:right">&nbsp;复制</el-link>
-        <pre>{{ value }}</pre>
-      </el-tab-pane>
-    </el-tabs>
-  </el-dialog>
+    <el-dialog v-model="preview.open" :title="preview.title" width="80%" height="70%" top="5vh" append-to-body class="scrollbar">
+      <el-tabs v-model="preview.active_name">
+        <el-tab-pane
+          v-for="(value, key) in preview.data"
+          :key="value"
+          :label="String(key).substring(String(key).lastIndexOf('/')+1,String(key).indexOf('.j2'))"
+          :name="String(key).substring(String(key).lastIndexOf('/')+1,String(key).indexOf('.j2'))"
+        >
+          <el-link :underline="false" icon="DocumentCopy" style="float:right" @click="() => handleCopyText(value)">&nbsp;复制</el-link>
+          <pre>{{ value }}</pre>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
     <import-table ref="importRef" @ok="handleQuery" />
     <create-table ref="createRef" @ok="handleQuery" />
   </div>
@@ -263,7 +263,6 @@ const data = reactive({
     title: "代码预览",
     data: {},
     active_name: "model.py",
-    activeName: "model.py" // 添加正确的 activeName 属性
   }
 });
 
@@ -386,9 +385,9 @@ function handleRefresh() {
 /** 预览按钮 */
 function handlePreview(row: any) {
   GencodeAPI.previewTable(row.id).then(response => {
-    preview.value.data = response.data;
+    preview.value.data = response.data.data;
     preview.value.open = true;
-    preview.value.activeName = "do.py";
+    preview.value.active_name = "model.py";
   });
 }
 
@@ -419,7 +418,7 @@ function handleCopyText(value: string) {
   /** 修改按钮操作 */
   function handleEditTable(row: any) {
     const tableId = row.id || ids.value[0];
-    router.push({ path: "/tool/gen-edit/index/" + tableId, query: { page_no: queryFormData.value.page_no } });
+    router.push({ path: "/gencode/gen-edit/index/" + tableId, query: { page_no: queryFormData.value.page_no } });
   }
 
   /** 删除按钮操作 */

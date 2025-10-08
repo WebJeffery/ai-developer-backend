@@ -33,11 +33,25 @@ import "@wangeditor-next/editor/dist/css/style.css";
 import { Toolbar, Editor } from "@wangeditor-next/editor-for-vue";
 import { IToolbarConfig, IEditorConfig } from "@wangeditor-next/editor";
 
-// 文件上传 API
-import FileAPI from "@/api/file.api";
-
 // 上传图片回调函数类型
 type InsertFnType = (_url: string, _alt: string, _href: string) => void;
+
+// 模拟文件上传API，根据实际项目结构调整
+interface UploadResult {
+  url: string;
+  name: string;
+}
+
+const FileAPI = {
+  uploadFile: async (file: File): Promise<UploadResult> => {
+    // 这里应该是实际的文件上传逻辑
+    // 暂时返回一个mock数据
+    return Promise.resolve({
+      url: 'https://example.com/image.jpg',
+      name: file.name
+    });
+  }
+};
 
 defineProps({
   height: {

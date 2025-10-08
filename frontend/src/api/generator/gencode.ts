@@ -21,12 +21,17 @@ const GencodeAPI = {
     })
   },
 
-  // 导入表
+  // 导入表 - 将数组转换为适合FastAPI解析的格式
   importTable(table_names: string[]) {
+    // 构建符合FastAPI期望的查询字符串
+    let queryString = '';
+    table_names.forEach((name, index) => {
+      queryString += `${index === 0 ? '?' : '&'}table_names=${encodeURIComponent(name)}`;
+    });
+    
     return request<ApiResponse>({
-      url: `${API_PATH}/import`,
-      method: 'post',
-      params: { table_names }
+      url: `${API_PATH}/import${queryString}`,
+      method: 'post'
     })
   },
 
@@ -61,7 +66,7 @@ const GencodeAPI = {
     return request<ApiResponse>({
       url: `${API_PATH}/delete`,
       method: 'delete',
-      data: data
+      data
     })
   },
 
