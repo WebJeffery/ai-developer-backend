@@ -240,6 +240,13 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 | Theme      | ![Theme](./fastdocs/src/public/theme.png) |
 | Document   | ![Document](./fastdocs/src/public/help.png) |
 | Lock       | ![Lock](./fastdocs/src/public/lock.png) |
+| Form       | ![Form](./fastdocs/src/public/form.png) |
+| Generator  | ![Generator](./fastdocs/src/public/gencode.png) |
+| Workflow   | ![Workflow](./fastdocs/src/public/workflow.png) |
+| File       | ![File](./fastdocs/src/public/file.png) |
+| MyApps    | ![MyApps](./fastdocs/src/public/myapp.png) |
+| Setting  | ![Setting](./fastdocs/src/public/setting.png) |
+| AI       | ![AI](./fastdocs/src/public/ai.png) |
 
 ### Mobile
 

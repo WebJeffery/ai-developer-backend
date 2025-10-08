@@ -163,6 +163,13 @@ fastapi_vue3_admin/devops/devops/nginx/nginx.conf
 | 系统主题  | ![系统主题](/theme.png) |
 | 在线文档  | ![在线文档](/help.png) |
 | 系统锁屏  | ![系统锁屏](/lock.png) |
+| 表单构建  | ![表单构建](/form.png) |
+| 代码生成  | ![代码生成](/gencode.png) |
+| 流程管理  | ![流程管理](/workflow.png) |
+| 文件管理  | ![文件管理](/file.png) |
+| 我的应用  | ![我的应用](/myapp.png) |
+| 配置中心  | ![配置中心](/setting.png) |
+| 智能助手  | ![智能助手](/ai.png) |
 
 ### 移动端
 
