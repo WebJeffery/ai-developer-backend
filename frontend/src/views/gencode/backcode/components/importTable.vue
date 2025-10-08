@@ -123,8 +123,8 @@ function handleImportTable() {
     ElMessage.error("请选择要导入的表");
     return;
   }
-  // 因为tables.value已经是string[]类型了，直接传入
-  GencodeAPI.importTable(tables.value).then((res: any) => {
+  // 传递逗号分隔的字符串格式
+  GencodeAPI.importTable(tableNames.split(",")).then((res: any) => {
     ElMessage.success(res.data.message);
     if (res.data.code === 200) {
       visible.value = false;

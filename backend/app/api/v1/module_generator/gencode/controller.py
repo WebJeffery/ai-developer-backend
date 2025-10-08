@@ -47,7 +47,7 @@ async def get_gen_db_table_list_controller(
 
 @GenRouter.post("/import", summary="导入表结构", description="导入表结构")
 async def import_gen_table_controller(
-    table_names: List[str] = Query(..., description="表名列表", embed=True),
+    table_names: List[str] = Query(..., description="表名列表"),
     auth: AuthSchema = Depends(AuthPermission(["generator:gencode:import"])),
 ) -> JSONResponse:
     add_gen_table_list = await GenTableService.get_gen_db_table_list_by_name_service(auth, table_names)

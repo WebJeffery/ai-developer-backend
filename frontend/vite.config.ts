@@ -191,6 +191,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         "element-plus/es/components/header/style/index",
         "element-plus/es/components/slider/style/index",
         "element-plus/es/components/button-group/style/index",
+        "element-plus/es/components/result/style/index"
       ],
     },
     // 构建配置
