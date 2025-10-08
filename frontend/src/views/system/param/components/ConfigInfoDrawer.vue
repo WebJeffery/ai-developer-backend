@@ -173,13 +173,17 @@
             <el-form-item :label="item.config_name">
               <!-- 演示模式开关 -->
               <template v-if="key === 'demo_enable'">
-                <el-switch
-                  v-model="item.config_value"
-                  inline-prompt
-                  active-text="启用"
-                  inactive-text="禁用"
-                  @change="markModified(key)"
-                />
+                  <el-switch
+                    inline-prompt
+                    active-text="启用"
+                    inactive-text="禁用"
+                    :model-value="item.config_value === 'true'"
+                    @update:model-value="(value) => {
+                      item.config_value = value ? 'true' : 'false';
+                      markModified(key);
+                    }"
+                    
+                  />
                 <div class="text-xs text-gray-500 mt-1">
                   配置说明：启用后系统将进入演示模式，部分功能可能受限。
                 </div>

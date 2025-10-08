@@ -238,9 +238,9 @@ class ParamsService:
         
         # 初始化默认配置
         config_result = {
-            "is_demo_mode": False,
-            "demo_ip_white_list": [],
-            "api_white_list": [],
+            "demo_enable": False,
+            "ip_white_list": [],
+            "white_api_list_path": [],
             "ip_black_list": []
         }
         
@@ -248,27 +248,26 @@ class ParamsService:
         if config_values[0]:
             try:
                 demo_config = json.loads(config_values[0])
-                config_result["is_demo_mode"] = demo_config.get("config_value", False) if isinstance(demo_config, dict) else False
+                config_result["demo_enable"] = demo_config.get("config_value", False) if isinstance(demo_config, dict) else False
             except json.JSONDecodeError:
                 logger.error(f"解析演示模式配置失败")
         
         # 解析IP白名单配置
         if config_values[1]:
+            
             try:
                 ip_white_config = json.loads(config_values[1])
-                demo_ip_white_list = ip_white_config.get("config_value", []) if isinstance(ip_white_config, dict) else []
                 # 确保是列表类型
-                config_result["demo_ip_white_list"] = demo_ip_white_list if isinstance(demo_ip_white_list, list) else []
+                config_result["ip_white_list"] = json.loads(ip_white_config.get("config_value", [])) 
             except json.JSONDecodeError:
                 logger.error(f"解析IP白名单配置失败")
-        
+        # 解析IP黑名单
         # 解析API路径白名单
         if config_values[2]:
             try:
                 white_api_config = json.loads(config_values[2])
-                api_white_list = white_api_config.get("config_value", []) if isinstance(white_api_config, dict) else []
                 # 确保是列表类型
-                config_result["api_white_list"] = api_white_list if isinstance(api_white_list, list) else []
+                config_result["white_api_list_path"] = json.loads(white_api_config.get("config_value", []))
             except json.JSONDecodeError:
                 logger.error(f"解析API白名单配置失败")
         
@@ -276,10 +275,8 @@ class ParamsService:
         if config_values[3]:
             try:
                 black_ip_config = json.loads(config_values[3])
-                ip_black_list = black_ip_config.get("config_value", []) if isinstance(black_ip_config, dict) else []
                 # 确保是列表类型
-                config_result["ip_black_list"] = ip_black_list if isinstance(ip_black_list, list) else []
+                config_result["ip_black_list"] = json.loads(black_ip_config.get("config_value", []))
             except json.JSONDecodeError:
                 logger.error(f"解析IP黑名单配置失败")
-        
         return config_result

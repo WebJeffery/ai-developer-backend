@@ -65,9 +65,9 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 request_ip = request.client.host if request.client else None
             
             # 检查是否启用演示模式
-            is_demo_mode = False
-            demo_ip_white_list = []
-            api_white_list = []
+            demo_enable = False
+            ip_white_list = []
+            white_api_list_path = []
             ip_black_list = []
             
             try:
@@ -78,11 +78,10 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 
                 # 使用ParamsService获取系统配置
                 system_config = await ParamsService.get_system_config_for_middleware(redis)
-                
                 # 提取配置值
-                is_demo_mode = system_config["is_demo_mode"]
-                demo_ip_white_list = system_config["demo_ip_white_list"]
-                api_white_list = system_config["api_white_list"]
+                demo_enable = system_config["demo_enable"]
+                ip_white_list = system_config["ip_white_list"]
+                white_api_list_path = system_config["white_api_list_path"]
                 ip_black_list = system_config["ip_black_list"]
                 
             except Exception as e:
@@ -94,13 +93,12 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
             # 1. 首先检查IP是否在黑名单中
             if request_ip and request_ip in ip_black_list:
                 should_block = True
-                logger.warning(f"黑名单IP访问被拒绝: {request_ip}, 路径: {path}")
             
             # 2. 如果不在黑名单中，检查是否在演示模式下需要拦截
-            elif is_demo_mode in ["true", "True"] and request.method != "GET":
+            elif demo_enable in ["true", "True"] and request.method != "GET":
                 # 在演示模式下，非GET请求需要检查白名单
-                is_ip_whitelisted = request_ip in demo_ip_white_list
-                is_path_whitelisted = path in api_white_list
+                is_ip_whitelisted = request_ip in ip_white_list
+                is_path_whitelisted = path in white_api_list_path
                 
                 if not is_ip_whitelisted and not is_path_whitelisted:
                     should_block = True
