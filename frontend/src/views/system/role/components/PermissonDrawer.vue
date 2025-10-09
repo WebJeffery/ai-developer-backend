@@ -1,4 +1,4 @@
-  <!-- 角色授权 -->
+<!-- 角色授权 -->
 <template>
   <!-- 分配权限弹窗 -->
   <el-drawer v-model="drawerVisible" :title="'【' + props.roleName + '】权限分配'" :size="drawerSize">
@@ -152,6 +152,7 @@ import MenuAPI from "@/api/system/menu";
 import type { TreeInstance } from 'element-plus'
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
+import { useUserStore } from "@/store";
 
 const appStore = useAppStore();
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "800px" : "90%"));
@@ -233,7 +234,7 @@ function handleCancel() {
   drawerVisible.value = false;
 }
 
-// 保存权限设置
+// 保存权限分配
 async function handleDrawerSave () {
   try {
     loading.value = true;
@@ -247,8 +248,14 @@ async function handleDrawerSave () {
     };
 
     await RoleAPI.setPermission(submitData)
-    drawerVisible.value = false;
     
+    ElMessage.success('权限分配成功');
+    
+    // 更新全局用户状态，刷新权限信息
+    const userStore = useUserStore();
+    await userStore.getUserInfo();
+    
+    drawerVisible.value = false;
   } catch (error: any) {
     console.error(error);
   } finally {

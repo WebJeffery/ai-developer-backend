@@ -64,8 +64,8 @@
                 <div class="data-table__toolbar--actions">
                     <el-button v-hasPerm="['workflow:operator:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
                     <el-button v-hasPerm="['workflow:operator:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
-                    <el-dropdown trigger="click">
-                        <el-button v-hasPerm="['workflow:operator:status']" type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
+                    <el-dropdown v-hasPerm="['application:myapp:update']" trigger="click">
+                        <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">更多</el-button>
                         <template #dropdown>
                             <el-dropdown-menu>
                                 <el-dropdown-item icon="Check" @click="handleMoreClick(true)">批量启用</el-dropdown-item>

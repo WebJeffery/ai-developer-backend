@@ -1763,7 +1763,7 @@
     "title": "代码管理",
     "params": null,
     "affix": false,
-    "redirect": "/ai/mcp",
+    "redirect": "/gencode/backcode",
     "description": "代码管理",
     "children": [
       {

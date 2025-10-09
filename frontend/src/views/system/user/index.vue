@@ -362,6 +362,7 @@ import DeptAPI from "@/api/system/dept";
 import RoleAPI from "@/api/system/role";
 
 import DeptTree from "./components/DeptTree.vue";
+import { useUserStore } from "@/store";
 
 const appStore = useAppStore();
 
@@ -617,33 +618,24 @@ async function handleSubmit() {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
       const id = formData.id;
-      if (id) {
-          try {
-            // 编辑用户时，不传递密码字段
-            const updateData = { id, ...formData };
-            delete updateData.password;
-            await UserAPI.updateUser(id, updateData)
-          dialogVisible.visible = false;
-          resetForm();
-          handleCloseDialog();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
-        }
-      } else {
-        try {
+      try {
+        if (id) {
+          await UserAPI.updateUser(id, { id, ...formData })
+        } else {
           await UserAPI.createUser(formData)
-          dialogVisible.visible = false;
-          resetForm();
-          handleCloseDialog();
-          handleResetQuery();
-        } catch (error: any) {
-          console.log(error.message);
-        } finally {
-          loading.value = false;
         }
+        dialogVisible.visible = false;
+        resetForm();
+        handleResetQuery();
+        // 如果当前编辑的是登录用户，更新全局用户状态
+        const userStore = useUserStore();
+        if (id === userStore.basicInfo.id) {
+          await userStore.getUserInfo();
+        }
+      } catch (error: any) {
+        console.error(error);
+      } finally {
+        loading.value = false;
       }
     }
   });

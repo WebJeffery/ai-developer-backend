@@ -65,6 +65,7 @@
                   </div>
                 </div>
                 <el-dropdown 
+                  v-hasPerm="['application:myapp:update']"
                   trigger="click" 
                   @command="(command) => handleAppAction(command, app)"
                 >
@@ -76,8 +77,8 @@
                   />
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item v-hasPerm="['application:myapp:update']" command="edit" icon="Edit">编辑</el-dropdown-item>
-                      <el-dropdown-item v-hasPerm="['application:myapp:delete']" command="delete" icon="Delete" divided>删除</el-dropdown-item>
+                      <el-dropdown-item command="edit" icon="Edit">编辑</el-dropdown-item>
+                      <el-dropdown-item command="delete" icon="Delete" divided>删除</el-dropdown-item>
                     </el-dropdown-menu>
                   </template>
                 </el-dropdown>

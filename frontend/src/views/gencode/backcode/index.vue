@@ -114,8 +114,8 @@
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="列表筛选">
-                <el-dropdown trigger="click">
-                  <el-button v-hasPerm="['demo:example:filter']" type="default" icon="operation" circle/>
+                <el-dropdown v-hasPerm="['demo:example:filter']" trigger="click">
+                  <el-button type="default" icon="operation" circle/>
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">

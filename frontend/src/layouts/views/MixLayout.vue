@@ -108,10 +108,11 @@ function resolvePath(routePath: string) {
     return routePath;
   }
 
-  if (routePath.startsWith("/")) {
-    return activeTopMenuPath.value + routePath;
-  }
-  return `${activeTopMenuPath.value}/${routePath}`;
+  // if (routePath.startsWith("/")) {
+  //   return activeTopMenuPath.value + routePath;
+  // }
+  // return `${activeTopMenuPath.value}/${routePath}`;
+  return routePath;
 }
 
 watch(
