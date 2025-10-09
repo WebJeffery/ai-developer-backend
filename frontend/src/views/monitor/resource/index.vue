@@ -18,11 +18,26 @@
       <template #header>
         <div class="card-header">
           <span>
-            <el-tooltip content="资源文件管理系统">
+            <el-tooltip content="资源文件管理系统: 点击路径可以快速返回上级目录">
               <QuestionFilled class="w-4 h-4 mx-1" />
             </el-tooltip>
-            文件列表
+            文件列表(当前路径)：
           </span>
+          <!-- 资源路径 -->
+          <div class="breadcrumb-container">
+              
+            <span class="breadcrumb-label"></span>
+            <el-breadcrumb separator="/">
+              <el-breadcrumb-item
+                v-for="(item, index) in breadcrumbList"
+                :key="index"
+                :class="{ 'is-link': index < breadcrumbList.length - 1 }"
+                @click="handleBreadcrumbClick(item)"
+              >
+                {{ item.name }}
+              </el-breadcrumb-item>
+            </el-breadcrumb>
+          </div>
         </div>
       </template>
 
@@ -75,28 +90,6 @@
         </div>
       </div>
 
-      <!-- 资源路径 -->
-      <div class="breadcrumb-section">
-        <div class="breadcrumb-container">
-          <div class="breadcrumb-header">
-            <el-tooltip content="点击路径可以快速返回上级目录">
-              <el-icon class="breadcrumb-icon"><QuestionFilled /></el-icon>
-            </el-tooltip>
-            <span class="breadcrumb-label">当前路径：</span>
-          </div>
-          <el-breadcrumb separator="/">
-            <el-breadcrumb-item
-              v-for="(item, index) in breadcrumbList"
-              :key="index"
-              :class="{ 'is-link': index < breadcrumbList.length - 1 }"
-              @click="handleBreadcrumbClick(item)"
-            >
-              {{ item.name }}
-            </el-breadcrumb-item>
-          </el-breadcrumb>
-      </div>
-    </div>
-
       <!-- 表格区域 -->
       <el-table
         v-if="viewMode === 'list'"
@@ -105,7 +98,7 @@
         :data="fileList"
         row-key="file_url"
         class="data-table__content"
-        height="540"
+        height="450"
         border
         stripe
         @selection-change="handleSelectionChange"
@@ -135,11 +128,6 @@
         <el-table-column label="大小" prop="size" min-width="120" align="center">
           <template #default="{ row }">
             <span v-if="!row.is_dir">{{ formatFileSize(row.size) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="类型" prop="file_type" min-width="100" align="center">
-          <template #default="{ row }">
-            <el-tag v-if="row.file_type" size="small">{{ row.file_type }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="修改时间" prop="modified_time" min-width="180" sortable />
@@ -314,14 +302,14 @@ const currentPath = ref('/') // 当前路径的响应式变量
 // 分页查询参数
 const pagination = reactive({
   page_no: 1,
-  page_size: 20
+  page_size: 10
 })
 
 // 搜索表单数据
 const queryFormData = reactive<ResourcePageQuery>({
   name: undefined,
   page_no: 1,
-  page_size: 20
+  page_size: 10
 })
 
 // 对话框状态
@@ -377,10 +365,7 @@ async function loadFileList() {
     const pageResult = response.data?.data
     
     if (pageResult && Array.isArray(pageResult.items)) {
-      fileList.value = pageResult.items.map(item => ({
-        ...item,
-        is_hidden: item.name.startsWith('.')
-      }))
+      fileList.value = pageResult.items
       total.value = pageResult.total
       if (pageResult.page_no !== undefined) {
         pagination.page_no = pageResult.page_no
@@ -393,7 +378,6 @@ async function loadFileList() {
       total.value = 0
     }
   } catch (error) {
-    ElMessage.error('加载文件列表失败')
     console.error('Load file list error:', error)
     fileList.value = []
     total.value = 0
@@ -515,11 +499,9 @@ async function handleUploadConfirm() {
     formData.append('target_path', targetPath)
 
     await ResourceAPI.uploadFile(formData)
-    ElMessage.success('上传成功')
     uploadDialogVisible.value = false
     loadFileList()
   } catch (error) {
-    ElMessage.error('上传失败')
     console.error('Upload error:', error)
   } finally {
     uploading.value = false
@@ -552,11 +534,9 @@ async function handleCreateDirConfirm() {
       parent_path: parentPath,
       dir_name: createDirForm.dir_name.trim()
     })
-    ElMessage.success('创建成功')
     createDirDialogVisible.value = false
     loadFileList()
   } catch (error) {
-    ElMessage.error('创建失败')
     console.error('Create directory error:', error)
   }
 }
@@ -600,7 +580,6 @@ async function handleDownload(item: ResourceItem) {
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
   } catch (error) {
-    ElMessage.error('下载失败')
     console.error('Download error:', error)
   }
 }
@@ -625,11 +604,9 @@ async function handleRenameConfirm() {
       old_path: renameForm.old_path,
       new_name: renameForm.new_name.trim()
     })
-    ElMessage.success('重命名成功')
     renameDialogVisible.value = false
     loadFileList()
   } catch (error) {
-    ElMessage.error('重命名失败')
     console.error('Rename error:', error)
   }
 }
@@ -649,11 +626,9 @@ async function handleDelete(item: ResourceItem) {
 
     // 使用file_url字段
     await ResourceAPI.deleteResource([item.file_url])
-    ElMessage.success('删除成功')
       loadFileList()
     } catch (error) {
       if (error !== 'cancel') {
-        ElMessage.error('删除失败')
         console.error('Delete error:', error)
       }
   }
@@ -688,11 +663,9 @@ async function handleBatchDelete() {
     const paths = selectedItems.value.map(item => item.file_url)
     
     await ResourceAPI.deleteResource(paths)
-    ElMessage.success('删除成功')
     loadFileList()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
       console.error('Batch delete error:', error)
     }
   }
@@ -720,122 +693,50 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.app-container {
-  .search-container {
-    margin-bottom: 16px;
-    padding: 20px;
-    border-radius: 8px;
-    // 使用系统主题颜色
+.card-header {
+  display: flex;
+  align-items: center;
+}
 
-    .search-buttons {
-      margin-left: 16px;
-    }
-  }
-
-  .data-table {
-    .card-header {
-      display: flex;
-      align-items: center;
-    }
-
-    .breadcrumb-section {
-      margin: 16px 0;
-      padding: 12px 0;
-      // 使用系统主题颜色
-
-      .breadcrumb-container {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .breadcrumb-header {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          flex-shrink: 0;
-
-          .breadcrumb-icon {
-            font-size: 14px;
-          }
-
-          .breadcrumb-label {
-            font-size: 14px;
-            font-weight: 500;
-          }
-        }
-      }
-    }
-
-    .data-table__toolbar {
+.data-table__content {
+  .file-name {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-      margin-bottom: 16px;
+    gap: 8px;
 
-      .data-table__toolbar--actions {
-        display: flex;
-        gap: 8px;
-      }
-
-      .data-table__toolbar--tools {
-      display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-    }
-
-     .data-table__content {
-     .file-name {
-       display: flex;
-       align-items: center;
-       gap: 8px;
-
-       .file-name-clickable {
-         cursor: pointer;
-         color: var(--el-color-primary);
-         
-         &:hover {
-           color: var(--el-color-primary-light-3);
-           text-decoration: underline;
-         }
-       }
-     }
-   }
-
-    .grid-view {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 20px;
-      padding: 20px;
-
-      .grid-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 15px;
-        // 使用系统主题颜色
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s;
-
-        .item-icon {
-          margin-bottom: 10px;
-        }
-
-        .item-name {
-          font-size: 14px;
-          text-align: center;
-          word-break: break-all;
-          margin-bottom: 5px;
-        }
-
-        .item-size {
-          font-size: 12px;
-        }
+    .file-name-clickable {
+      cursor: pointer;
+      color: var(--el-color-primary);
+      
+      &:hover {
+        color: var(--el-color-primary-light-3);
+        text-decoration: underline;
       }
     }
   }
+}
 
+.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
+  
+  .grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    // 使用系统主题颜色
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    .item-name {
+      font-size: 14px;
+      text-align: center;
+      word-break: break-all;
+      margin-bottom: 5px;
+    }
+  }
 }
 
 :deep(.el-breadcrumb__item) {

@@ -97,10 +97,10 @@
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="列表筛选">
-                <el-dropdown trigger="click">
-                    <el-button type="default" icon="operation" circle />
-                    <template #dropdown>
-                      <el-dropdown-menu v-hasPerm="['system:role:filter']">
+                <el-dropdown v-hasPerm="['system:role:filter']" trigger="click">
+                  <el-button type="default" icon="operation" circle />
+                  <template #dropdown>
+                    <el-dropdown-menu>
                       <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
                         <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
                       </el-dropdown-item>
@@ -276,6 +276,7 @@ defineOptions({
 
 import { ElMessage, ElMessageBox } from "element-plus";
 import RoleAPI, { RoleTable, RoleForm, TablePageQuery } from "@/api/system/role";
+import { useUserStore } from "@/store";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -454,28 +455,22 @@ async function handleSubmit() {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
       const id = formData.id;
-      if (id) {
-        try {
+      try {
+        if (id) {
           await RoleAPI.updateRole(id, { id, ...formData })
-          dialogVisible.visible = false;
-          resetForm();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
-        }
-      } else {
-        try {
+        } else {
           await RoleAPI.createRole(formData)
-          dialogVisible.visible = false;
-          resetForm();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
         }
+        dialogVisible.visible = false;
+        resetForm();
+        handleResetQuery();
+        // 更新全局用户状态，刷新权限信息
+        const userStore = useUserStore();
+        await userStore.getUserInfo();
+      } catch (error: any) {
+        console.error(error);
+      } finally {
+        loading.value = false;
       }
     }
   });

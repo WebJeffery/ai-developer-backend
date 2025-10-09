@@ -212,6 +212,7 @@ defineOptions({
 });
 
 import PositionAPI, { PositionTable, PositionForm, PositionPageQuery } from "@/api/system/position";
+import { useUserStore } from "@/store";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -383,28 +384,22 @@ async function handleSubmit() {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
       const id = formData.id;
-      if (id) {
-        try {
+      try {
+        if (id) {
           await PositionAPI.updatePosition(id, { id, ...formData })
-          dialogVisible.visible = false;
-          resetForm();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
-        }
-      } else {
-        try {
+        } else {
           await PositionAPI.createPosition(formData)
-          dialogVisible.visible = false;
-          resetForm();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
         }
+        dialogVisible.visible = false;
+        resetForm();
+        handleResetQuery();
+        // 更新全局用户状态，刷新岗位信息
+        const userStore = useUserStore();
+        await userStore.getUserInfo();
+      } catch (error: any) {
+        console.error(error);
+      } finally {
+        loading.value = false;
       }
     }
   });

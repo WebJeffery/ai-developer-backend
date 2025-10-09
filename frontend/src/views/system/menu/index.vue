@@ -271,7 +271,7 @@
             <el-input v-model="formData.route_path" placeholder="请输入外链完整路径" />
           </el-form-item>
 
-          <el-form-item  prop="routeName">
+          <el-form-item  prop="route_name">
             <template #label>
               <div class="flex-y-center">
                 路由名称
@@ -288,7 +288,7 @@
             <el-input v-model="formData.route_name" placeholder="请输入路由名称" />
           </el-form-item>
 
-          <el-form-item v-if="formData.type == MenuTypeEnum.CATALOG || formData.type == MenuTypeEnum.MENU" prop="routePath">
+          <el-form-item v-if="formData.type == MenuTypeEnum.CATALOG || formData.type == MenuTypeEnum.MENU" prop="route_path">
             <template #label>
               <div class="flex-y-center">
                 路由路径
@@ -303,8 +303,7 @@
                 </el-tooltip>
               </div>
             </template>
-            <el-input v-if="formData.type == MenuTypeEnum.CATALOG" v-model="formData.route_path" placeholder="system" />
-            <el-input v-else v-model="formData.route_path" placeholder="请输入路由路径" />
+            <el-input  v-model="formData.route_path" placeholder="请输入路由路径,如：/system" />
           </el-form-item>
 
           <el-form-item v-if="formData.type == MenuTypeEnum.MENU" prop="component">
@@ -516,14 +515,14 @@ const queryFormData = reactive<MenuPageQuery>({
 const formData = reactive<MenuForm>({
   id: undefined,
   name: undefined,
-  type: MenuTypeEnum.MENU,
+  type: MenuTypeEnum.CATALOG,
   icon: undefined,
-  order: 1,
+  order: 999,
   permission: '',
   route_name: '',
   route_path: '',
-  component_path: '',
-  redirect: '',
+  component_path: undefined,
+  redirect: undefined,
   parent_id: undefined,
   keep_alive: false,
   hidden: false,
@@ -555,7 +554,19 @@ const rules = reactive({
   order: [{ required: true, message: "请输入排序", trigger: "blur" }],
   permission: [{ required: true, message: "请输入权限标识", trigger: "blur" }],
   route_name: [{ required: true, message: "请输入路由名称", trigger: "blur" }],
-  route_path: [{ required: true, message: "请输入路由路径", trigger: "blur" }],
+  route_path: [
+    { required: true, message: "请输入路由路径", trigger: "blur" },
+    {
+      validator: (rule: any, value: string, callback: any) => {
+        if (value && !value.startsWith('/')) {
+          callback(new Error('目录和菜单路由必须以/开头'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
   component_path: [{ required: true, message: "请输入组件路径", trigger: "blur" }],
   title: [{ required: true, message: "请输入菜单标题", trigger: "blur" }],
   keep_alive: [{ required: true, message: "请选择是否缓存", trigger: "change" }],
@@ -724,30 +735,20 @@ async function handleSubmit() {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
       const id = formData.id;
-      if (id) {
-        try {
+      try {
+        if (id) {
           await MenuAPI.updateMenu(id, formData)
-          await userStore.getUserInfo();
-          dialogVisible.visible = false;
-          resetForm();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
-        }
-      } else {
-        try {
+        } else {
           await MenuAPI.createMenu(formData)
-          await userStore.getUserInfo();
-          dialogVisible.visible = false;
-          resetForm();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
         }
+        await userStore.getUserInfo();
+        dialogVisible.visible = false;
+        resetForm();
+        handleResetQuery();
+      } catch (error: any) {
+        console.error(error);
+      } finally {
+        loading.value = false;
       }
     }
   });

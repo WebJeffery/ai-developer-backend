@@ -202,6 +202,7 @@ defineOptions({
 });
 
 import DeptAPI, { DeptTable, DeptForm, DeptPageQuery } from "@/api/system/dept";
+import { useUserStore } from "@/store";
 import { formatTree } from "@/utils/common";
 
 const queryFormRef = ref();
@@ -386,28 +387,22 @@ async function handleSubmit() {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
       const id = formData.id;
-      if (id) {
-        try {
+      try {
+        if (id) {
           await DeptAPI.updateDept(id, { id, ...formData })
-          dialogVisible.visible = false;
-          resetForm();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
-        }
-      } else {
-        try {
+        } else {
           await DeptAPI.createDept(formData)
-          dialogVisible.visible = false;
-          resetForm();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
         }
+        dialogVisible.visible = false;
+        resetForm();
+        handleResetQuery();
+        // 更新全局用户状态，刷新部门信息
+        const userStore = useUserStore();
+        await userStore.getUserInfo();
+      } catch (error: any) {
+        console.error(error);
+      } finally {
+        loading.value = false;
       }
     }
   });
