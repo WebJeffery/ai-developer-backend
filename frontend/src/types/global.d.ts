@@ -96,6 +96,8 @@ declare global {
     sidebarColorScheme: "classic-blue" | "minimal-white";
     /** 项目引导 */
     guideVisible: boolean;
+    /** 是否启动引导 */
+    showGuide: boolean;
   }
 
   /**

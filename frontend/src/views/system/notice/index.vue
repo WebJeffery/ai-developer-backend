@@ -212,11 +212,14 @@
       </template>
       <!-- 新增、编辑表单 -->
       <template v-else>
-        <el-form ref="dataFormRef" :model="formData" :rules="rules" label-suffix=":" label-width="auto" label-position="right">
+        <el-form ref="dataFormRef" :model="formData" :rules="rules" label-suffix=":" label-width="auto" label-position="right" :inline="true">
           <el-form-item label="标题" prop="notice_title">
             <el-input v-model="formData.notice_title" placeholder="请输入标题" :maxlength="50" />
           </el-form-item>
-          <el-form-item label="类型" prop="notice_type">
+          <el-form-item label="描述" prop="description" >
+            <el-input v-model="formData.description" :rows="1" :maxlength="100" show-word-limit type="textarea" placeholder="请输入描述" />
+          </el-form-item>
+          <el-form-item label="类型" prop="notice_type" class="w-50">
             <el-select v-model="formData.notice_type" placeholder="请选择类型" clearable>
               <el-option
                 v-for="item in dictStore.getDictArray('sys_notice_type')"
@@ -227,7 +230,7 @@
 
             </el-select>
           </el-form-item>
-          <el-form-item label="状态" prop="status">
+          <el-form-item label="状态" prop="status" >
             <el-radio-group v-model="formData.status">
               <el-radio :value="true">
                 启用
@@ -238,11 +241,8 @@
             </el-radio-group>
           </el-form-item>
           <el-form-item label="内容" prop="notice_content">
-            <!-- <WangEditor v-model="formData.notice_content" height="300px" /> -->
-            <el-input v-model="formData.notice_content" :rows="4" :maxlength="100" show-word-limit type="textarea" placeholder="请输入内容" />
-          </el-form-item>
-          <el-form-item label="描述" prop="description">
-            <el-input v-model="formData.description" :rows="4" :maxlength="100" show-word-limit type="textarea" placeholder="请输入描述" />
+            <WangEditor v-model="formData.notice_content" height="300px" />
+            <!-- <el-input v-model="formData.notice_content" :rows="4" :maxlength="100" show-word-limit type="textarea" placeholder="请输入内容" /> -->
           </el-form-item>
         </el-form>
       </template>

@@ -42,6 +42,8 @@ export const defaultSettings: AppSettings = {
   sidebarColorScheme: SidebarColor.CLASSIC_BLUE,
   // 项目引导
   guideVisible: false,
+  /** 是否启动引导 */
+  showGuide: true,
 };
 
 // 主题色预设 - 现代化配色方案

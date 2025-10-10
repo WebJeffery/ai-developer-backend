@@ -12,6 +12,7 @@ interface SettingsState {
   showAppLogo: boolean;
   showWatermark: boolean;
   showSettings: boolean;
+  showGuide: boolean; // 引导功能开关
   
   // 桌面端工具显示设置
   showMenuSearch: boolean;
@@ -42,6 +43,7 @@ export const useSettingsStore = defineStore("setting", () => {
   const showAppLogo = useStorage<boolean>(SETTINGS_KEYS.SHOW_APP_LOGO, defaultSettings.showAppLogo);
   const showWatermark = useStorage<boolean>(SETTINGS_KEYS.SHOW_WATERMARK, defaultSettings.showWatermark);
   const showSettings = useStorage<boolean>(SETTINGS_KEYS.SHOW_SETTINGS, defaultSettings.showSettings);
+  const showGuide = useStorage<boolean>(SETTINGS_KEYS.SHOW_GUIDE, defaultSettings.showGuide); // 引导功能开关
 
   // 🎯 桌面端工具设置 - 持久化
   const showMenuSearch = useStorage<boolean>(SETTINGS_KEYS.SHOW_MENU_SEARCH, defaultSettings.showMenuSearch);
@@ -62,6 +64,7 @@ export const useSettingsStore = defineStore("setting", () => {
     showAppLogo,
     showWatermark,
     showSettings,
+    showGuide,
     showMenuSearch,
     showFullscreen,
     showSizeSelect,
@@ -136,6 +139,7 @@ export const useSettingsStore = defineStore("setting", () => {
     showAppLogo.value = defaultSettings.showAppLogo;
     showWatermark.value = defaultSettings.showWatermark;
     showSettings.value = defaultSettings.showSettings;
+    showGuide.value = defaultSettings.showGuide;
     
     // 桌面端工具设置
     showMenuSearch.value = defaultSettings.showMenuSearch;
@@ -160,6 +164,7 @@ export const useSettingsStore = defineStore("setting", () => {
     showAppLogo,
     showWatermark,
     showSettings,
+    showGuide,
     
     // 🎯 桌面端工具状态
     showMenuSearch,

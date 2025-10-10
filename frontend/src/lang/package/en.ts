@@ -203,6 +203,7 @@ export default {
       "Generate current settings code and copy to clipboard, then overwrite src/settings.ts file",
     resetConfigDescription: "Restore all settings to system default values",
     systemTheme: "System Theme",
+    showGuide: "Show Guide",
   },
   error: {
     noPermission: `Sorry, you don't have permission to access this page.`,

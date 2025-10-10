@@ -105,12 +105,13 @@ import { LocationQuery, RouteLocationRaw, useRoute, useRouter } from "vue-router
 import { useI18n } from "vue-i18n";
 import { onActivated, onMounted, watch } from "vue";
 import AuthAPI, {type LoginFormData, type CaptchaInfo } from "@/api/system/auth";
-import { useAppStore, useUserStore } from "@/store";
+import { useAppStore, useUserStore, useSettingsStore } from "@/store";
 import CommonWrapper from "@/components/CommonWrapper/index.vue";
 
 const { t } = useI18n();
 const userStore = useUserStore();
 const appStore = useAppStore();
+const settingsStore = useSettingsStore();
 
 const route = useRoute();
 const router = useRouter();
@@ -225,7 +226,9 @@ async function handleLoginSubmit() {
     // - 未选中"记住我": token存储在sessionStorage中，浏览器关闭后失效
     
     // 登录成功后自动开启项目引导
-    appStore.showGuide(true);
+    if (settingsStore.showGuide) {
+      appStore.showGuide(true);
+    }
 
   } catch (error: any) {
     if (error) {

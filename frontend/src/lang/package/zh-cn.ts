@@ -205,6 +205,7 @@ export default {
     copyConfigDescription: "生成当前设置的代码并复制到剪贴板，然后覆盖 src/settings.ts 文件",
     resetConfigDescription: "恢复所有设置为系统默认值",
     systemTheme: "系统主题",
+    showGuide: "启动引导",
   },
   error: {
     noPermission: `抱歉，您无权访问此页面。`,

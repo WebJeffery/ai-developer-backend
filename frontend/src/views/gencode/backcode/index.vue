@@ -31,7 +31,7 @@
             end-placeholder="结束日期"
           ></el-date-picker>
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="search-buttons">
           <el-button v-hasPerm="['generator:gencode:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
           <el-button v-hasPerm="['generator:gencode:query']" icon="refresh" @click="handleRefresh">重置</el-button>
         </el-form-item>
