@@ -80,7 +80,7 @@
             <div class="color-options">
               <!-- 预设颜色选项 -->
               <div
-                v-for="(color, index) in displayColorPresets"
+                v-for="(color) in displayColorPresets"
                 :key="color"
                 :class="[
                   'color-option',
@@ -172,6 +172,11 @@
           <el-switch v-model="settingsStore.showNotification" />
         </div>
         
+        <!-- 修改此部分为引导开关，关闭以后登录以后不再启动引导 -->
+        <div class="flex-x-between">
+          <span class="text-xs">{{ t("settings.showGuide") }}</span>
+          <el-switch v-model="settingsStore.showGuide" />
+        </div>
       </section>
     </div>
 
@@ -216,7 +221,7 @@
 </template>
 
 <script setup lang="ts">
-import { DocumentCopy, RefreshLeft, Check, Plus } from "@element-plus/icons-vue";
+import { DocumentCopy, RefreshLeft, Check } from "@element-plus/icons-vue";
 
 const { t } = useI18n();
 import { LayoutMode, SidebarColor, ThemeMode } from "@/enums";
@@ -250,17 +255,11 @@ const layoutOptions: LayoutOption[] = [
 ];
 
 // 使用统一的颜色预设配置
-const colorPresets = themeColorPresets;
 const settingsStore = useSettingsStore();
 
 // 主题颜色选择器相关
 const displayColorPresets = computed(() => themeColorPresets.slice(0, 7)); // 只显示前9个预设颜色
 const allColorPresets = themeColorPresets; // 所有颜色预设，用于自定义颜色选择器
-
-// 判断当前颜色是否为自定义颜色（不在前7个预设中）
-const isCustomColor = computed(() => {
-  return !displayColorPresets.value.includes(selectedThemeColor.value);
-});
 
 const isDark = ref<boolean>(settingsStore.theme === ThemeMode.DARK);
 const sidebarColor = ref(settingsStore.sidebarColorScheme);

@@ -131,7 +131,7 @@
           </template>
         </el-table-column>
         <el-table-column label="修改时间" prop="modified_time" min-width="180" sortable />
-        <el-table-column fixed="right" label="操作" align="center" min-width="200">
+        <el-table-column fixed="right" label="操作" align="center" min-width="200" class="search-buttons">
           <template #default="{ row }">
             <el-button
               v-if="!row.is_dir"
