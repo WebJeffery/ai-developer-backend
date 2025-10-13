@@ -162,29 +162,6 @@ class Settings(BaseSettings):
     GZIP_MIN_SIZE: int = 1000       # 最小压缩大小(字节)
     GZIP_COMPRESS_LEVEL: int = 9    # 压缩级别(1-9)
 
-    # # ================================================= #
-    # # ***************** 演示模型配置 ***************** #
-    # # ================================================= #
-    # DEMO_ENABLE: bool                    # 是否开启演示模式
-    # DEMO_WHITE_LIST_PATH: List[str] = [  # 演示白名单
-    #     "/api/v1/system/auth/login",
-    #     "/api/v1/system/auth/token/refresh",
-    #     "/api/v1/system/auth/captcha/get",
-    #     "/api/v1/system/auth/logout",
-    #     "/api/v1/system/config/info",
-    #     "/api/v1/system/user/current/info",
-    #     "/api/v1/system/notice/available",
-    # ]
-    # DEMO_BLACK_LIST_PATH: List[str] = [  # 演示黑名单
-    #     "/auth/login"
-    # ]
-    # DEMO_IP_WHITE_LIST: List[str] = [   # 演示白名单IP
-    #     "127.0.0.1",
-    #     "117.10.167.220",
-    #     "223.104.208.30",
-    #     "42.80.102.171"
-    # ]
-
     # ================================================= #
     # ***************** 静态文件配置 ***************** #
     # ================================================= #
@@ -202,7 +179,7 @@ class Settings(BaseSettings):
     # ================================================= #
     # ***************** 动态文件配置 ***************** #
     # ================================================= #
-    UPLOAD_FILE_PATH: Path = BASE_DIR.joinpath('static/upload')    # 上传目录
+    UPLOAD_FILE_PATH: Path = Path('static/upload')    # 上传目录
     UPLOAD_MACHINE: str = 'A'                                      # 上传机器标识
     ALLOWED_EXTENSIONS: list[str] = [                              # 允许的文件类型
         # 图片

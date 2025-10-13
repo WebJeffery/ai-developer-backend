@@ -4,7 +4,7 @@ const API_PATH = "/generator/gencode";
 
 const GencodeAPI = {
   // 查询生成表数据
-  listTable(query: TablePageQuery) {
+  listTable(query: GenTableQueryParam) {
     return request<ApiResponse<PageResult<GenTableOutVO[]>>>({
       url: `${API_PATH}/list`,
       method: 'get',
@@ -13,25 +13,20 @@ const GencodeAPI = {
   },
 
   // 查询db数据库列表
-  listDbTable(query: TablePageQuery) {
-    return request<ApiResponse<PageResult<TablePageVO[]>>>({
+  listDbTable(query: GenTableQueryParam) {
+    return request<ApiResponse<PageResult<DatabaseTable[]>>>({
       url: `${API_PATH}/db/list`,
       method: 'get',
       params: query
     })
   },
 
-  // 导入表 - 将数组转换为适合FastAPI解析的格式
+  // 导入表
   importTable(table_names: string[]) {
-    // 构建符合FastAPI期望的查询字符串
-    let queryString = '';
-    table_names.forEach((name, index) => {
-      queryString += `${index === 0 ? '?' : '&'}table_names=${encodeURIComponent(name)}`;
-    });
-    
     return request<ApiResponse>({
-      url: `${API_PATH}/import${queryString}`,
-      method: 'post'
+      url: `${API_PATH}/import`,
+      method: 'post',
+      data: table_names
     })
   },
 
@@ -48,25 +43,25 @@ const GencodeAPI = {
     return request<ApiResponse>({
       url: `${API_PATH}/create`,
       method: 'post',
-      params: { sql }
+      data: sql
     })
   },
 
-  // 修改代码生成信息
-  updateGenTable(table_id: number, body: GenTableSchema) {
+  // 更新表信息
+  updateTable(data: GenTableSchema, table_id: number) {
     return request<ApiResponse>({
       url: `${API_PATH}/update/${table_id}`,
       method: 'put',
-      data: body,
+      data
     })
   },
 
   // 删除表数据
-  deleteTable(data: GenTableDeleteSchema) {
+  deleteTable(table_ids: number[]) {
     return request<ApiResponse>({
       url: `${API_PATH}/delete`,
       method: 'delete',
-      data
+      data: table_ids
     })
   },
 
@@ -75,7 +70,7 @@ const GencodeAPI = {
     return request<Blob>({
       url: `${API_PATH}/batch/output`,
       method: 'patch',
-      params: { table_names },
+      data: table_names,
       responseType: 'blob'
     })
   },
@@ -89,9 +84,9 @@ const GencodeAPI = {
   },
 
   // 预览生成代码
-  previewTable(table_id: number) {
-    return request<ApiResponse<GeneratorPreviewVO[]>>({
-      url: `${API_PATH}/preview/${table_id}`,
+  previewTable(id: number) {
+    return request<ApiResponse<Record<string, string>>>({
+      url: `${API_PATH}/preview/${id}`,
       method: 'get'
     })
   },
@@ -118,6 +113,15 @@ export interface GeneratorPreviewVO {
 }
 
 /**  数据表分页查询参数 */
+export interface GenTableQueryParam {
+  page_no: number;
+  page_size: number;
+  table_name?: string;
+  table_comment?: string;
+  start_time?: string;
+  end_time?: string;
+}
+
 export interface TablePageQuery extends PageQuery {
   /** 表名称 */
   table_name?: string;
@@ -146,27 +150,27 @@ export interface GenTableOutVO {
   /** 主键 */
   id?: number;
   /** 表名称 */
-  table_name: string;
+  table_name?: string;
   /** 表描述 */
-  table_comment: string;
+  table_comment?: string;
   /** 关联子表的表名 */
   sub_table_name?: string;
   /** 子表关联的外键名 */
-  sub_table_fk_name: string;
+  sub_table_fk_name?: string;
   /** 实体类名称 */
-  class_name: string;
+  class_name?: string;
   /** 使用的模板（crud单表操作 tree树表操作） */
   tpl_category?: string;
   /** 前端模板类型（element-ui模版 element-plus模版） */
   tpl_web_type?: string;
   /** 生成包路径 */
-  package_name: string;
+  package_name?: string;
   /** 生成模块名 */
-  module_name: string;
+  module_name?: string;
   /** 生成业务名 */
-  business_name: string;
+  business_name?: string;
   /** 生成功能名 */
-  function_name: string;
+  function_name?: string;
   /** 生成功能作者 */
   function_author?: string;
   /** 生成代码方式（0zip压缩包 1自定义路径） */
@@ -191,6 +195,24 @@ export interface GenTableOutVO {
   tree?: boolean;
   /** 是否为单表 */
   crud?: boolean;
+  /** 表描述 */
+  description?: string;
+  /** 列列表 */
+  columns?: GenTableColumnOutSchema[];
+  /** 参数选项 */
+  params?: GenTableOptionModel;
+}
+
+/** 表选项模型 */
+export interface GenTableOptionModel {
+  /** 所属父级分类 */
+  parent_menu_id?: number;
+  /** 树编码 */
+  tree_code?: string;
+  /** 树名称 */
+  tree_name?: string;
+  /** 树父编码 */
+  tree_parent_code?: string;
 }
 
 /** 代码生成业务表模型 */
@@ -214,11 +236,11 @@ export interface GenTableColumnSchema {
   /** 列描述 */
   column_comment?: string;
   /** 列类型 */
-  column_type: string;
+  column_type?: string;
   /** PYTHON类型 */
   python_type?: string;
   /** PYTHON字段名 */
-  python_field: string;
+  python_field?: string;
   /** 是否主键（1是） */
   is_pk?: string;
   /** 是否自增（1是） */
@@ -238,9 +260,9 @@ export interface GenTableColumnSchema {
   /** 查询方式（等于、不等于、大于、小于、范围） */
   query_type?: string;
   /** 显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件） */
-  html_type: string;
+  html_type?: string;
   /** 字典类型 */
-  dict_type: string;
+  dict_type?: string;
   /** 排序 */
   sort?: number;
   /** 功能描述 */
@@ -273,12 +295,6 @@ export interface GenTableColumnOutSchema extends GenTableColumnSchema {
   usable_column?: boolean;
 }
 
-/** 删除代码生成业务表模型 */
-export interface GenTableDeleteSchema {
-  /** 需要删除的代码生成业务表ID列表 */
-  table_ids: number[];
-}
-
 /** 表详情查询结果 */
 export interface GenTableDetailResult {
   /** 表信息 */
@@ -287,4 +303,60 @@ export interface GenTableDetailResult {
   rows: GenTableColumnOutSchema[];
   /** 所有表信息 */
   tables: GenTableOutVO[];
+}
+
+/**
+ * 数据库表基本信息接口
+ */
+export interface DatabaseTable {
+  database_name?: string;
+  table_name?: string;
+  table_comment?: string;
+  table_type?: string;
+}
+
+/**
+ * 表列基本信息接口
+ */
+export interface TableColumn {
+  column_name: string;
+  column_comment: string;
+}
+
+/**
+ * 表基本信息接口
+ */
+export interface TableInfo {
+  table_name?: string;
+  table_comment?: string;
+  columns?: TableColumn[];
+}
+
+/**
+ * 字典选项接口
+ */
+export interface DictOption {
+  dict_type: string;
+  dict_name: string;
+}
+
+/**
+ * 导入表查询表单数据接口
+ */
+export interface ImportTableQueryForm {
+  page_no: number;
+  page_size: number;
+  table_name?: string;
+  table_comment?: string;
+}
+
+/**
+ * 基本信息表单数据接口
+ */
+export interface BasicInfoFormData {
+  table_name?: string;
+  table_comment?: string;
+  class_name?: string;
+  function_author?: string;
+  remark?: string;
 }

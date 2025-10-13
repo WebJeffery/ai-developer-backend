@@ -16,7 +16,7 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.utils.common_util import CamelCaseUtil
 from app.utils.gen_util import GenUtils
 from app.utils.jinja2_template_util import Jinja2TemplateInitializerUtil, Jinja2TemplateUtil
-from .schema import GenTableSchema, GenTableOutSchema, GenTableOutSchema, GenTableDeleteSchema, GenTableColumnSchema,  GenTableColumnOutSchema, GenTableColumnDeleteSchema
+from .schema import GenTableSchema, GenTableOutSchema, GenTableOutSchema, GenTableColumnSchema,  GenTableColumnOutSchema, GenTableColumnDeleteSchema
 from .param import GenTableQueryParam
 from .crud import GenTableColumnCRUD, GenTableCRUD
 
@@ -211,13 +211,13 @@ class GenTableService:
             raise CustomException(msg='业务表不存在')
 
     @classmethod
-    async def delete_gen_table_service(cls, auth: AuthSchema, data: GenTableDeleteSchema) -> None:
+    async def delete_gen_table_service(cls, auth: AuthSchema, ids: List[int]) -> None:
         """删除业务表信息"""
         try:
             # 先删除相关的字段信息
-            await GenTableColumnCRUD(auth=auth).delete_gen_table_column_by_table_id_dao(data)
+            await GenTableColumnCRUD(auth=auth).delete_gen_table_column_by_table_id_dao(ids)
             # 再删除表信息
-            await GenTableCRUD(auth=auth).delete_gen_table(data)
+            await GenTableCRUD(auth=auth).delete_gen_table(ids)
         except Exception as e:
             raise CustomException(msg=f'删除失败: {str(e)}')
 

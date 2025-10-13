@@ -6,7 +6,7 @@ from datetime import datetime
 
 from app.core.base_crud import CRUDBase
 from .model import UserModel
-from .schema import UserCreateSchema,UserForgetPasswordSchema,UserUpdateSchema
+from .schema import UserCreateSchema, UserForgetPasswordSchema, UserUpdateSchema
 from ..role.crud import RoleCRUD
 from ..position.crud import PositionCRUD
 

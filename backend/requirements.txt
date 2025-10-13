@@ -22,7 +22,7 @@ pydantic-settings==2.5.2    # 配置设置
 psutil==6.1.0               # 系统信息
 python-multipart==0.0.9     # request.form() 对表单进行「解析」时安装
 greenlet==3.1.1             # 协程框架
-bcrypt==4.0.1               # 密码加密解析
+bcrypt==4.3.0               # 密码加密解析
 itsdangerous==2.2.0         # 用于安全处理各种数据，如密码、密钥等
 aiofiles==24.1.0            # 文件操作
 redis==5.2.1                # redis 同步操作数据库(用户celery配套使用)redis 异步操作数据库 redis已经完全具备了aioredis的功能，无需重复安全,且aioredis已经不再维护也不兼容3.10+的版本

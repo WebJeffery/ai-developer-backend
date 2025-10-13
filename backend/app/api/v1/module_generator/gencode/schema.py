@@ -108,15 +108,6 @@ class GenTableOutSchema(GenTableSchema, BaseSchema):
         return values
 
 
-class GenTableDeleteSchema(BaseModel):
-    """
-    删除代码生成业务表模型
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    table_ids: List[int] = Field(..., description='需要删除的代码生成业务表ID列表')
-
-
 class GenTableColumnSchema(BaseModel):
     """
     代码生成业务表字段创建模型

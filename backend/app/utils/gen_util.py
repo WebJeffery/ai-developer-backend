@@ -12,7 +12,6 @@ from app.api.v1.module_generator.gencode.schema import (
     GenTableBaseSchema,
     GenTableSchema,
     GenTableOutSchema,
-    GenTableDeleteSchema,
     GenTableColumnSchema,
     GenTableColumnOutSchema,
     GenTableColumnDeleteSchema

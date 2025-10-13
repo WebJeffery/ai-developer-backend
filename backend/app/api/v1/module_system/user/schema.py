@@ -65,7 +65,7 @@ class UserCreateSchema(CurrentUserUpdateSchema):
     """新增"""
     model_config = ConfigDict(from_attributes=True)
     
-    username: str = Field(default=..., max_length=32, description="用户名")
+    username: Optional[str] = Field(default=None, max_length=32, description="用户名")
     password: Optional[str] = Field(default=None, max_length=128, description="密码哈希值")
     status: bool = Field(default=True, description="是否可用")
     is_superuser: bool = Field(default=False, description="是否超管")
@@ -81,6 +81,7 @@ class UserUpdateSchema(UserCreateSchema):
     model_config = ConfigDict(from_attributes=True)
 
     last_login: Optional[DateTimeStr] = Field(default=None, description="最后登录时间")
+
 
 class UserOutSchema(UserCreateSchema, BaseSchema):
     """响应"""
