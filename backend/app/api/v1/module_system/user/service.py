@@ -69,6 +69,8 @@ class UserService:
 
     @classmethod
     async def create_user_service(cls, data: UserCreateSchema, auth: AuthSchema) -> Dict:
+        if not data.username:
+            raise CustomException(msg="用户名不能为空")
         # 检查用户名是否存在
         user = await UserCRUD(auth).get_by_username_crud(username=data.username)
         if user:
@@ -97,6 +99,8 @@ class UserService:
 
     @classmethod
     async def update_user_service(cls, id: int, data: UserUpdateSchema, auth: AuthSchema) -> Dict:
+        if not data.username:
+            raise CustomException(msg="用户名不能为空")
         # 检查用户是否存在
         user = await UserCRUD(auth).get_by_id_crud(id=id)
         if not user:

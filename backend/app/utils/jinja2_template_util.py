@@ -224,7 +224,7 @@ class Jinja2TemplateUtil:
             # Vue相关模板
             f'{use_web_type}/api.ts.j2',
             # SQL脚本模板
-            'sql/sql.j2',
+            'sql/sql.sql.j2',
         ]
         if category == GenConstant.TPL_CRUD:
             templates.append(f'{use_web_type}/index.vue.j2')

@@ -220,17 +220,17 @@ export interface positionSelectorType {
 
 export interface InfoFormState {
   id?: number;
-  name: string;
-  gender: number;
-  mobile: string;
-  email: string;
-  username: string;
-  dept_name: string;
-  dept: deptTreeType;
-  positions: positionSelectorType[];
-  roles: roleSelectorType[];
-  avatar: string;
-  created_at: string;
+  name?: string;
+  gender?: number;
+  mobile?: string;
+  email?: string;
+  username?: string;
+  dept_name?: string;
+  dept?: deptTreeType;
+  positions?: positionSelectorType[];
+  roles?: roleSelectorType[];
+  avatar?: string;
+  created_at?: string;
 }
 
 export interface PasswordFormState {
@@ -261,4 +261,12 @@ export interface UserForm {
   is_superuser?: boolean;
   status?: boolean;
   description?: string;
+}
+
+export interface CurrentUserFormState {
+  name?: string;
+  gender?: number;
+  mobile?: string;
+  email?: string;
+  avatar?: string;
 }

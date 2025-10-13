@@ -15,7 +15,6 @@ from .model import GenTableModel, GenTableColumnModel
 from .schema import (
     GenTableSchema,
     GenTableOutSchema,
-    GenTableDeleteSchema,
     GenTableColumnSchema,
     GenTableColumnOutSchema,
     GenTableColumnDeleteSchema,
@@ -137,12 +136,12 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         await self.db.commit()
         return edit_model
 
-    async def delete_gen_table(self, data: GenTableDeleteSchema) -> None:
+    async def delete_gen_table(self, ids: List[int]) -> None:
         """
         删除
         """
         await self.db.execute(
-            delete(GenTableModel).where(GenTableModel.id.in_(data.table_ids))
+            delete(GenTableModel).where(GenTableModel.id.in_(ids))
         )
         await self.db.flush()
 
@@ -459,10 +458,10 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
         """更新业务表字段"""
         return await self.update(id=id, data=data)
 
-    async def delete_gen_table_column_by_table_id_dao(self, data: GenTableDeleteSchema) -> None:
+    async def delete_gen_table_column_by_table_id_dao(self, table_ids: List[int]) -> None:
         """根据业务表ID批量删除"""
         # 先查询出这些表ID对应的所有字段ID
-        query = select(GenTableColumnModel.id).where(GenTableColumnModel.table_id.in_(data.table_ids))
+        query = select(GenTableColumnModel.id).where(GenTableColumnModel.table_id.in_(table_ids))
         result = await self.db.execute(query)
         column_ids = [row[0] for row in result.fetchall()]
         

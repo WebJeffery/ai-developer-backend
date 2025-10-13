@@ -12,7 +12,7 @@ from app.common.request import PaginationService
 from app.api.v1.module_system.auth.schema import AuthSchema
 from app.common.constant import RET
 from .param import GenTableQueryParam
-from .schema import GenTableDeleteSchema, GenTableSchema, GenTableOutSchema
+from .schema import GenTableSchema, GenTableOutSchema
 from .service import GenTableColumnService, GenTableService
 from app.utils.common_util import bytes2file_response
 from app.core.logger import logger
@@ -47,7 +47,7 @@ async def get_gen_db_table_list_controller(
 
 @GenRouter.post("/import", summary="导入表结构", description="导入表结构")
 async def import_gen_table_controller(
-    table_names: List[str] = Query(..., description="表名列表"),
+    table_names: List[str] = Body(..., description="表名列表"),
     auth: AuthSchema = Depends(AuthPermission(["generator:gencode:import"])),
 ) -> JSONResponse:
     add_gen_table_list = await GenTableService.get_gen_db_table_list_by_name_service(auth, table_names)
@@ -70,7 +70,7 @@ async def gen_table_detail_controller(
 
 @GenRouter.post("/create", summary="创建表结构", description="创建表结构")
 async def create_table_controller(
-    sql: str = Query(..., description="SQL语句：CREATE TABLE user_demo (\n  id INTEGER NOT NULL PRIMARY KEY,\n  username VARCHAR(64) NOT NULL UNIQUE,\n);"),
+    sql: str = Body(..., description="SQL语句：CREATE TABLE user_demo (\n  id INTEGER NOT NULL PRIMARY KEY,\n  username VARCHAR(64) NOT NULL UNIQUE,\n);"),
     auth: AuthSchema = Depends(AuthPermission(["generator:gencode:create"])),
 ) -> JSONResponse:
     result = await GenTableService.create_table_service(auth, sql)
@@ -92,17 +92,17 @@ async def update_gen_table_controller(
 
 @GenRouter.delete("/delete", summary="删除业务表信息", description="删除业务表信息")
 async def delete_gen_table_controller(
-    data: GenTableDeleteSchema = Body(..., description="业务表ID列表"),
+    ids: List[int] = Body(..., description="业务表ID列表"),
     auth: AuthSchema = Depends(AuthPermission(["generator:gencode:delete"]))
 ) -> JSONResponse:
-    result = await GenTableService.delete_gen_table_service(auth, data)
+    result = await GenTableService.delete_gen_table_service(auth, ids)
     logger.info('删除业务表信息成功')
     return SuccessResponse(msg="删除业务表信息成功", data=result)
 
 
 @GenRouter.patch("/batch/output", summary="批量生成代码", description="批量生成代码")
 async def batch_gen_code_controller(
-    table_names: List[str] = Query(..., description="表名列表"),
+    table_names: List[str] = Body(..., description="表名列表"),
     auth: AuthSchema = Depends(AuthPermission(["generator:gencode:operate"]))
 ) -> StreamResponse:
     # 检查table_names是否为空

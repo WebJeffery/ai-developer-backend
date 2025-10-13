@@ -44,7 +44,7 @@
               {{ infoFormState.name }}
             </span>
 
-            <el-text>{{infoFormState.roles.map(item => item.name).join('、')}}</el-text>
+            <el-text>{{infoFormState.roles?.map(item => item.name).join('、')}}</el-text>
           </div>
 
           <el-divider />
@@ -68,7 +68,7 @@
                 </el-icon>
                 <span style="vertical-align: middle;">部门</span>
               </template>
-              <span style="vertical-align: middle;">{{ infoFormState.dept.name }}</span>
+              <span style="vertical-align: middle;">{{ infoFormState.dept?.name }}</span>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -77,7 +77,7 @@
                 </el-icon>
                 <span style="vertical-align: middle;">岗位</span>
               </template>
-              <span style="vertical-align: middle;">{{infoFormState.positions.map(item => item.name).join('、')}}</span>
+              <span style="vertical-align: middle;">{{infoFormState.positions?.map(item => item.name).join('、')}}</span>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -176,7 +176,7 @@
                     </el-input>
                   </el-form-item>
 
-                  <el-form-item label="确认新密码" name="confirm_password">
+                  <el-form-item label="确认密码" name="confirm_password">
                     <el-input v-model.trim="passwordFormState.confirm_password" type="password" :placeholder="t('login.message.password.confirm')" show-password clearable style="width: 240px;">
                       <template #prefix>
                         <Check />
@@ -227,17 +227,17 @@ const infoSubmitting = ref(false);
 
 // 用户基础信息表单
 const infoFormState = reactive<InfoFormState>({
-  name: '',
+  name: undefined,
   gender: 1,
-  mobile: '',
-  email: '',
-  username: '',
-  dept_name: '',
+  mobile: undefined,
+  email: undefined,
+  username: undefined,
+  dept_name: undefined,
   dept: {},
   positions: [],
   roles: [],
-  avatar: '',
-  created_at: ''
+  avatar: undefined,
+  created_at: undefined
 });
 
 // 修改密码表单
@@ -421,9 +421,6 @@ const handleSave = async () => {
     // 确保avatar字段被正确处理
     const response = await UserAPI.updateCurrentUserInfo({...infoFormState});
     await userStore.setUserInfo(response.data.data);
-  } catch (error) {
-    console.error(error);
-    ElMessage.error('保存失败，请重试');
   } finally {
     infoSubmitting.value = false;
   }
