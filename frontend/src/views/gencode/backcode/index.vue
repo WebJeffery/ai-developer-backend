@@ -682,7 +682,7 @@ import type { EditorConfiguration } from "codemirror";
 import type { CmComponentRef } from "codemirror-editor-vue3";
 import { ElMessage, ElMessageBox, type FormInstance, type TableInstance } from 'element-plus';
 import { QuestionFilled, CopyDocument, Close } from '@element-plus/icons-vue';
-import GencodeAPI, { type GenTableOutVO, type DatabaseTable, type GenTableQueryParam, type GenTableColumnOutSchema } from "@/api/generator/gencode";
+import GencodeAPI, { type GenTableOutVO, type DatabaseTable, type GenTableQueryParam, type GenTableColumnOutSchema, type GenTableSchema } from "@/api/generator/gencode";
 
 
 // 表格列配置接口
@@ -1416,8 +1416,12 @@ async function submitForm() {
       return;
     }
     
-    // 提交表单数据
-    const response = await GencodeAPI.updateTable(info, info.id || 0);
+    // 提交表单数据，确保columns是必需的
+    const tableData = {
+      ...info,
+      columns: info.columns || [] // 确保columns存在
+    };
+    const response = await GencodeAPI.updateTable(tableData as GenTableSchema, info.id || 0);
     
     if (response?.data?.code === 200) {
       ElMessage.success((response?.data as any)?.message || '保存成功');
