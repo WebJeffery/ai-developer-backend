@@ -15,8 +15,8 @@ class GenTableQueryParam:
         table_comment: Optional[str] = Query(None, description="表注释"),
     ) -> None:
         # 模糊查询字段
-        self.table_name = ("like", table_name)
-        self.table_comment = ("like", table_comment)
+        self.table_name = table_name
+        self.table_comment = table_comment
 
 
 class GenTableColumnQueryParam:

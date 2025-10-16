@@ -9,7 +9,6 @@ from typing import Dict, List, Any, Set
 from app.common.constant import GenConstant
 from app.config.setting import settings
 from app.core.exceptions import CustomException
-from app.utils.common_util import CamelCaseUtil, SnakeCaseUtil
 from app.api.v1.module_generator.gencode.schema import GenTableOutSchema, GenTableColumnOutSchema
 from app.utils.string_util import StringUtil
 
@@ -38,8 +37,6 @@ class Jinja2TemplateInitializerUtil:
             )
             env.filters.update(
                 {
-                    'camel_to_snake': SnakeCaseUtil.camel_to_snake,
-                    'snake_to_camel': CamelCaseUtil.snake_to_camel,
                     'get_sqlalchemy_type': Jinja2TemplateUtil.get_sqlalchemy_type,
                     'snake_to_pascal_case': StringUtil.convert_to_camel_case,
                 }
@@ -98,35 +95,28 @@ class Jinja2TemplateUtil:
         function_name = gen_table.function_name or ''
         
         context = {
-            'tplCategory': tpl_category,
-            'tableName': gen_table.table_name or '',
-            'functionName': function_name if StringUtil.is_not_empty(function_name) else '【请填写功能名称】',
-            'ClassName': class_name,
-            'className': class_name.lower() if class_name else '',
-            'moduleName': module_name,
-            'BusinessName': business_name.capitalize() if business_name else '',
-            'businessName': business_name,
-            'basePackage': cls.get_package_prefix(package_name) if package_name else '',
-            'packageName': package_name,
+            'tpl_category': tpl_category,
+            'table_name': gen_table.table_name or '',
+            'function_name': function_name if StringUtil.is_not_empty(function_name) else '【请填写功能名称】',
+            'class_name': class_name,
+            'className': class_name.capitalize() if class_name else '',
+            'module_name': module_name,
+            'business_name': business_name.capitalize() if business_name else '',
+            'base_package': cls.get_package_prefix(package_name) if package_name else '',
+            'package_name': package_name,
             'author': gen_table.function_author or '',
             'datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'pkColumn': gen_table.pk_column,
-            'doImportList': cls.get_do_import_list(gen_table),
-            'voImportList': cls.get_vo_import_list(gen_table),
-            'permissionPrefix': cls.get_permission_prefix(module_name, business_name),
+            'pk_column': gen_table.pk_column,
+            'do_import_list': cls.get_do_import_list(gen_table),
+            'vo_import_list': cls.get_vo_import_list(gen_table),
+            'permission_prefix': cls.get_permission_prefix(module_name, business_name),
             'columns': gen_table.columns or [],
             'table': gen_table,
             'dicts': cls.get_dicts(gen_table),
             'dbType': settings.DATABASE_TYPE,
             'column_not_add_show': GenConstant.COLUMNNAME_NOT_ADD_SHOW,
             'column_not_edit_show': GenConstant.COLUMNNAME_NOT_EDIT_SHOW,
-            # 添加下划线命名的变量以兼容模板文件中的引用
-            'tpl_category': tpl_category,
-            'table_name': gen_table.table_name or '',
-            'function_name': function_name if StringUtil.is_not_empty(function_name) else '【请填写功能名称】',
-            'module_name': module_name,
-            'business_name': business_name,
-            'primaryKey': gen_table.pk_column.python_field if gen_table.pk_column else ''
+            'primary_key': gen_table.pk_column.python_field if gen_table.pk_column else ''
         }
 
         # 设置菜单、树形结构、子表的上下文
@@ -153,7 +143,7 @@ class Jinja2TemplateUtil:
             params_obj = json.loads(options)
         except json.JSONDecodeError:
             params_obj = {}
-        context['parentMenuId'] = cls.get_parent_menu_id(params_obj)
+        context['parent_menu_id'] = cls.get_parent_menu_id(params_obj)
     
     @classmethod
     def set_tree_context(cls, context: Dict, gen_table: GenTableOutSchema):
@@ -170,10 +160,10 @@ class Jinja2TemplateUtil:
             params_obj = json.loads(options)
         except json.JSONDecodeError:
             params_obj = {}
-        context['treeCode'] = cls.get_tree_code(params_obj)
-        context['treeParentCode'] = cls.get_tree_parent_code(params_obj)
-        context['treeName'] = cls.get_tree_name(params_obj)
-        context['expandColumn'] = cls.get_expand_column(gen_table)
+        context['tree_code'] = cls.get_tree_code(params_obj)
+        context['tree_parent_code'] = cls.get_tree_parent_code(params_obj)
+        context['tree_name'] = cls.get_tree_name(params_obj)
+        context['expand_column'] = cls.get_expand_column(gen_table)
     
     @classmethod
     def set_sub_context(cls, context: Dict, gen_table: GenTableOutSchema):
@@ -190,13 +180,13 @@ class Jinja2TemplateUtil:
         # 处理sub_table为None的情况
         sub_class_name = sub_table.class_name if sub_table else '' if sub_table else ''
         sub_table_fk_class_name = StringUtil.convert_to_camel_case(sub_table_fk_name) if sub_table_fk_name else ''
-        context['subTable'] = sub_table
-        context['subTableName'] = sub_table_name
-        context['subTableFkName'] = sub_table_fk_name
-        context['subTableFkClassName'] = sub_table_fk_class_name
-        context['subTableFkclassName'] = sub_table_fk_class_name.lower() if sub_table_fk_class_name else ''
-        context['subClassName'] = sub_class_name
-        context['subclassName'] = sub_class_name.lower() if sub_class_name else ''
+        context['sub_table'] = sub_table
+        context['sub_table_name'] = sub_table_name
+        context['sub_table_fk_name'] = sub_table_fk_name
+        context['sub_table_fk_class_name'] = sub_table_fk_class_name
+        context['sub_table_fk_class_name_lower'] = sub_table_fk_class_name.lower() if sub_table_fk_class_name else ''
+        context['sub_class_name'] = sub_class_name
+        context['sub_class_name_lower'] = sub_class_name.lower() if sub_class_name else ''
 
     @classmethod
     def get_template_list(cls, tpl_category: str, tpl_web_type: str):

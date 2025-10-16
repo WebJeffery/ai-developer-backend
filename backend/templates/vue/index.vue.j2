@@ -9,18 +9,18 @@
           {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
 
           {% if column.html_type == "input" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.python_field  | snake_to_camel }}">
+            <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
               <el-input
-                v-model="queryParams.{{ column.python_field | snake_to_camel }}"
+                v-model="queryParams.{{ column.python_field }}"
                 placeholder="请输入{{ comment }}"
                 clearable
                 @keyup.enter="handleQuery"
               />
             </el-form-item>
           {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.python_field  | snake_to_camel  }}">
+            <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
               <el-select
-                  v-model="queryParams.{{ column.python_field | snake_to_camel  }}"
+                  v-model="queryParams.{{ column.python_field }}"
                   placeholder="请选择{{ comment }}"
                   style="width: 180px"
                   clearable>
@@ -33,15 +33,15 @@
               </el-select>
             </el-form-item>
           {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
-            <el-form-item label="{{ comment }}" prop="{{ column.python_field | snake_to_camel  }}">
-              <el-select v-model="queryParams.{{ column.python_field | snake_to_camel  }}" placeholder="请选择{{ comment }}" clearable>
+            <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+              <el-select v-model="queryParams.{{ column.python_field }}" placeholder="请选择{{ comment }}" clearable>
                 <el-option label="请选择字典生成" value="" />
               </el-select>
             </el-form-item>
           {% elif column.html_type == "datetime" and column.query_type != "BETWEEN" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.python_field  | snake_to_camel }}">
+            <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
               <el-date-picker clearable
-                v-model="queryParams.{{ column.python_field | snake_to_camel  }}"
+                v-model="queryParams.{{ column.python_field   }}"
                 type="date"
                 value-format="YYYY-MM-DD"
                 placeholder="请选择{{ comment }}">
@@ -131,7 +131,7 @@
                 @onSelectionChange="handleSelectionChange"
             >
               {% for column in columns %}
-                {% set python_field = column.python_field | snake_to_camel %}
+                {% set python_field = column.python_field %}
                 {% set column_comment = column.column_comment if column.column_comment else '' %}
                 {% set parentheseIndex = column_comment.find("（") %}
                 {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
@@ -306,7 +306,7 @@ const uploadFile = ref()
 const queryParams = ref({
   {% for column in columns %}
     {% if column.is_query == "1" and column.query_type != "BETWEEN" %}
-      {{ column.python_field | snake_to_camel }}: undefined,
+      {{ column.python_field  }}: undefined,
     {% endif %}
   {% endfor %}
 })
@@ -326,8 +326,8 @@ const getList = async () => {
     {% for column in columns %}
       {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
         ,
-        {{ column.python_field | snake_to_camel }}_start: daterange{{ column.python_field | snake_to_pascal_case }}.value && daterange{{ column.python_field | snake_to_pascal_case }}.value.length > 0 ? daterange{{ column.python_field | snake_to_pascal_case }}.value[0] : undefined,
-        {{ column.python_field | snake_to_camel }}_end: daterange{{ column.python_field | snake_to_pascal_case }}.value && daterange{{ column.python_field | snake_to_pascal_case }}.value.length > 0 ? daterange{{ column.python_field | snake_to_pascal_case }}.value[1] : undefined
+        {{ column.python_field  }}_start: daterange{{ column.python_field | snake_to_pascal_case }}.value && daterange{{ column.python_field | snake_to_pascal_case }}.value.length > 0 ? daterange{{ column.python_field | snake_to_pascal_case }}.value[0] : undefined,
+        {{ column.python_field  }}_end: daterange{{ column.python_field | snake_to_pascal_case }}.value && daterange{{ column.python_field | snake_to_pascal_case }}.value.length > 0 ? daterange{{ column.python_field | snake_to_pascal_case }}.value[1] : undefined
       {% endif %}
     {% endfor %}
   }
@@ -344,7 +344,7 @@ const getList = async () => {
 const getColumns = async () => {
   const list = []
   {% for column in columns %}
-    {% set python_field = column.python_field | snake_to_camel %}
+    {% set python_field = column.python_field  %}
     {% set column_comment = column.column_comment if column.column_comment else '' %}
     {% set parentheseIndex = column_comment.find("（") %}
     {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}

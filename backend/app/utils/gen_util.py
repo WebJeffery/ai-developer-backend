@@ -7,7 +7,7 @@ from app.common.constant import GenConstant
 from app.config.setting import settings
 from app.utils.string_util import StringUtil
 from app.api.v1.module_generator.gencode.schema import (
-    GenTableOptionModel,
+    GenTableOptionSchema,
     GenDBTableSchema,
     GenTableBaseSchema,
     GenTableSchema,
