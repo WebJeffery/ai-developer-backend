@@ -192,7 +192,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         "element-plus/es/components/slider/style/index",
         "element-plus/es/components/button-group/style/index",
         "element-plus/es/components/result/style/index",
-        "element-plus/es/components/checkbox-button/style/index"
+        "element-plus/es/components/checkbox-button/style/index",
+        "element-plus/es/components/space/style/index"
       ],
     },
     // 构建配置

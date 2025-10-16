@@ -93,20 +93,17 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         :param search: 查询参数对象
         :return: 代码生成业务表列表信息对象
         """
-        # 构建查询条件
-        query = select(GenTableModel).options(selectinload(GenTableModel.columns))
-        
-        if search:
-            # 手动构建查询条件
-            if search.table_name and search.table_name[1]:  # ('like', value)
-                query = query.where(GenTableModel.table_name.like(f"%{search.table_name[1]}%"))
-            if search.table_comment and search.table_comment[1]:  # ('like', value)
-                query = query.where(GenTableModel.table_comment.like(f"%{search.table_comment[1]}%"))
-
-        query = query.order_by(GenTableModel.created_at.desc()).distinct()
-
         # 获取所有数据
-        result = await self.db.execute(query)
+        result = await self.db.execute(
+            select(GenTableModel)
+            .options(selectinload(GenTableModel.columns))
+            .where(
+                GenTableModel.table_name.like(f"%{search.table_name}%") if search and search.table_name else GenTableModel.id.isnot(None),
+                GenTableModel.table_comment.like(f"%{search.table_comment}%") if search and search.table_comment else GenTableModel.id.isnot(None),
+            )
+            .order_by(GenTableModel.created_at.desc())
+            .distinct()
+        )
         gen_table_all = result.scalars().all()
 
         return gen_table_all
@@ -141,7 +138,8 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         删除
         """
         await self.db.execute(
-            delete(GenTableModel).where(GenTableModel.id.in_(ids))
+            delete(GenTableModel)
+            .where(GenTableModel.id.in_(ids))
         )
         await self.db.flush()
 
@@ -189,7 +187,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         else:
             query_sql = (
                 select(
-                    text("'' as database_name"),  # SQLite没有数据库名概念，设为空字符串
+                    text("'fastapiadmin' as database_name"),  # SQLite没有数据库名概念，设为空字符串
                     text("name as table_name"),
                     text("type as table_type"),
                     text("name as table_comment"),  # SQLite中使用name作为表名和注释
@@ -204,7 +202,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         
         # 动态条件构造
         params = {}
-        if search and search.table_name and search.table_name[1]:
+        if search and search.table_name:
             if settings.DATABASE_TYPE == "sqlite":
                 query_sql = query_sql.where(
                     text("lower(name) like lower(:table_name)")
@@ -213,8 +211,8 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
                 query_sql = query_sql.where(
                     text("lower(table_name) like lower(:table_name)")
                 )
-            params['table_name'] = f"%{search.table_name[1]}%"
-        if search and search.table_comment and search.table_comment[1]:
+            params['table_name'] = f"%{search.table_name}%"
+        if search and search.table_comment:
             if settings.DATABASE_TYPE == "sqlite":
                 query_sql = query_sql.where(
                     text("lower(name) like lower(:table_comment)")
@@ -223,7 +221,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
                 query_sql = query_sql.where(
                     text("lower(table_comment) like lower(:table_comment)")
                 )
-            params['table_comment'] = f"%{search.table_comment[1]}%"
+            params['table_comment'] = f"%{search.table_comment}%"
 
         # 执行查询并绑定参数
         all_data = (await self.db.execute(query_sql, params)).fetchall()
@@ -284,7 +282,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         else:
             query_sql = (
                 select(
-                    text("'' as database_name"),  # SQLite没有数据库名概念，设为空字符串
+                    text("'fastapiadmin' as database_name"),  # SQLite没有数据库名概念，设为空字符串
                     text("name as table_name"),
                     text("type as table_type"),
                     text("name as table_comment"),  # SQLite中使用name作为表名和注释
@@ -297,11 +295,11 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
                 )
             )
         
+        table_names_str = "','".join(table_names)
         # 修复SQL查询中的参数绑定问题
         if table_names:
             if settings.DATABASE_TYPE == "sqlite":
                 # 对于SQLite，我们直接在SQL中使用表名，因为参数绑定有问题
-                table_names_str = "','".join(table_names)
                 query_sql = query_sql.where(
                     text(f"name IN ('{table_names_str}')")
                 )
@@ -309,7 +307,7 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
             else:
                 # MySQL和PostgreSQL使用:table_names占位符
                 query_sql = query_sql.where(
-                    text("table_name IN :table_names")
+                    text(f"table_name IN ('{table_names_str}')")
                 )
                 # 使用params方法正确绑定参数
                 query_sql = query_sql.params(table_names=tuple(table_names))
@@ -330,25 +328,25 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
                 dict_data.append(dict_row)
         return dict_data
 
-    async def create_table_by_sql(self, sql_statements: List[Expression | None]) -> None:
+    async def create_table_by_sql(self, sql: str) -> bool:
         """
         根据sql语句创建表结构
 
         :param db: orm对象
-        :param sql_statements: sql语句的ast列表
+        :param sql: sql语句
         :return:
         """
         try:
-            for sql_statement in sql_statements:
-                # 检查sql_statement是否为空
-                if not sql_statement:
-                    continue
-                sql = sql_statement.sql(dialect=settings.DATABASE_TYPE)
-                await self.db.execute(text(sql))
+            await self.db.execute(text(sql))
+            # 提交事务
+            await self.db.commit()
+            await self.db.flush()
+            return True
         except Exception as e:
             # 如果发生异常，回滚事务
             await self.db.rollback()
             logger.error(f"创建表时发生错误: {e}")
+            return False
 
 
 class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, GenTableColumnSchema]):
@@ -358,10 +356,18 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
         """初始化CRUD"""
         super().__init__(model=GenTableColumnModel, auth=auth)
 
+    async def get_gen_table_column_by_id(self, id: int) -> Optional[GenTableColumnModel]:
+        """根据业务表字段ID获取业务表字段信息"""
+        return await self.get(id=id)
+    
     async def get_gen_table_column_list_by_table_id(self, table_id: int) -> Optional[GenTableColumnModel]:
         """根据业务表ID获取业务表字段列表信息"""
         return await self.get(table_id=table_id)
     
+    async def list_gen_table_column_crud_by_table_id(self, table_id: int, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[GenTableColumnModel]:
+        """根据业务表ID查询业务表字段列表"""
+        return await self.list(search={"table_id": table_id}, order_by=order_by)
+
     async def get_gen_db_table_columns_by_name(self, table_name: str | None) -> List[GenTableColumnOutSchema]:
         """
         根据业务表名称获取业务表字段列表信息
@@ -421,28 +427,23 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
                 FROM 
                     pragma_table_info(:table_name)
             """
-
+        
         query = text(query_sql).bindparams(table_name=table_name)
-        gen_db_table_columns_raw = (
+        rows = (
             await self.db.execute(query)
         ).fetchall()
-
-        result = []
-        for row in gen_db_table_columns_raw:
-            # 构造字段信息字典
-            column_dict = {
-                "column_name": row[0],
-                "is_required": row[1],
-                "is_pk": row[2],
-                "sort": row[3],
-                "column_comment": row[4],
-                "is_increment": row[5],
-                "column_type": row[6]
-            }
-            
-            # 创建GenTableColumnOutSchema对象
-            column_schema = GenTableColumnOutSchema(**column_dict)
-            result.append(column_schema)
+        result = [
+            GenTableColumnOutSchema(
+                column_name=row[0],
+                is_required=row[1],
+                is_pk=row[2],
+                sort=row[3],
+                column_comment=row[4],
+                is_increment=row[5],
+                column_type=row[6]
+            )
+            for row in rows
+        ]
         
         return result
 

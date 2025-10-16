@@ -2,13 +2,12 @@
 
 from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from pydantic.alias_generators import to_camel
 
 from app.common.constant import GenConstant
 from app.core.base_schema import BaseSchema
 
 
-class GenTableOptionModel(BaseModel):
+class GenTableOptionSchema(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -52,7 +51,7 @@ class GenTableBaseSchema(BaseModel):
     options: Optional[str] = Field(default=None, description='其它生成选项')
     description: Optional[str] = Field(default=None, description='功能描述')
 
-    params: Optional[GenTableOptionModel] = Field(default=None, description='前端传递过来的表附加信息，转换成json字符串后放到options')
+    params: Optional[GenTableOptionSchema] = Field(default=None, description='前端传递过来的表附加信息，转换成json字符串后放到options')
 
 
 class GenTableSchema(GenTableBaseSchema):
@@ -112,14 +111,14 @@ class GenTableColumnSchema(BaseModel):
     """
     代码生成业务表字段创建模型
     """
-    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
     table_id: Optional[int] = Field(default=None, description='归属表编号')
     column_name: Optional[str] = Field(default=None, description='列名称')
     column_comment: Optional[str] = Field(default=None, description='列描述')
     column_type: Optional[str] = Field(default=None, description='列类型')
-    python_type: Optional[str] = Field(default=None, description='PYTHON类型')
-    python_field: Optional[str] = Field(default=None, description='PYTHON字段名')
+    python_type: Optional[str] = Field(default=None, description='python类型')
+    python_field: Optional[str] = Field(default=None, description='python字段名')
     is_pk: Optional[str] = Field(default=None, description='是否主键（1是）')
     is_increment: Optional[str] = Field(default=None, description='是否自增（1是）')
     is_required: Optional[str] = Field(default=None, description='是否必填（1是）')

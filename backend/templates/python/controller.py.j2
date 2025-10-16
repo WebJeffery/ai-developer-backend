@@ -15,10 +15,10 @@ from {{ package_name }}.service.{{ table_name }}_service import {{ table_name|sn
 from {{ package_name }}.schema import {{ table_name|snake_to_pascal_case }}CreateSchema, {{ table_name|snake_to_pascal_case }}UpdateSchema
 from {{ package_name }}.param import {{ table_name|snake_to_pascal_case }}QueryParam
 
-{{ table_name|snake_to_camel }}Controller = APIRouter(route_class=OperationLogRoute, prefix='/{{ module_name }}/{{ business_name }}', tags=["{{ function_name }}模块"])
+{{ table_name }}Controller = APIRouter(route_class=OperationLogRoute, prefix='/{{ module_name }}/{{ business_name }}', tags=["{{ function_name }}模块"])
 
 
-@{{ table_name|snake_to_camel }}Controller.get('/list', summary="查询{{ function_name }}列表", description="查询{{ function_name }}列表")
+@{{ table_name }}Controller.get('/list', summary="查询{{ function_name }}列表", description="查询{{ function_name }}列表")
 async def get_{{ table_name }}_list(
         page: PaginationQueryParam = Depends(),
         search: {{ table_name|snake_to_pascal_case }}QueryParam = Depends(),
@@ -33,7 +33,7 @@ async def get_{{ table_name }}_list(
     return SuccessResponse(data={{ table_name }}_result)
 
 
-@{{ table_name|snake_to_camel }}Controller.get('/{id}', summary="获取{{ function_name }}详细信息", description="获取{{ function_name }}详细信息")
+@{{ table_name }}Controller.get('/{id}', summary="获取{{ function_name }}详细信息", description="获取{{ function_name }}详细信息")
 async def get_{{ table_name }}_by_id(
         id: int,
         auth: AuthSchema = Depends(AuthPermission(["{{ permission_prefix }}:query"]))
@@ -42,7 +42,7 @@ async def get_{{ table_name }}_by_id(
     return SuccessResponse(data={{ table_name }})
 
 
-@{{ table_name|snake_to_camel }}Controller.post('', summary="新增{{ function_name }}", description="新增{{ function_name }}")
+@{{ table_name }}Controller.post('', summary="新增{{ function_name }}", description="新增{{ function_name }}")
 async def add_{{ table_name }} (
     add_model: {{ table_name|snake_to_pascal_case }}CreateSchema,
     auth: AuthSchema = Depends(AuthPermission(["{{ permission_prefix }}:add"])),
@@ -52,7 +52,7 @@ async def add_{{ table_name }} (
     return SuccessResponse(msg="新增成功")
 
 
-@{{ table_name|snake_to_camel }}Controller.put('/{id}', summary="修改{{ function_name }}", description="修改{{ function_name }}")
+@{{ table_name }}Controller.put('/{id}', summary="修改{{ function_name }}", description="修改{{ function_name }}")
 async def update_{{ table_name }}(
     id: int,
     edit_model: {{ table_name|snake_to_pascal_case }}UpdateSchema,
@@ -63,7 +63,7 @@ async def update_{{ table_name }}(
     return SuccessResponse(msg="修改成功")
 
 
-@{{ table_name|snake_to_camel }}Controller.delete('/{ids}', summary="删除{{ function_name }}", description="删除{{ function_name }}")
+@{{ table_name }}Controller.delete('/{ids}', summary="删除{{ function_name }}", description="删除{{ function_name }}")
 async def del_{{ table_name }}(
     ids: str,
     auth: AuthSchema = Depends(AuthPermission(["{{ permission_prefix }}:remove"]))
@@ -73,7 +73,7 @@ async def del_{{ table_name }}(
     return SuccessResponse(msg="删除成功")
 
 
-@{{ table_name|snake_to_camel }}Controller.post('/export', summary="导出{{ function_name }}", description="导出{{ function_name }}")
+@{{ table_name }}Controller.post('/export', summary="导出{{ function_name }}", description="导出{{ function_name }}")
 async def export_{{ table_name }}(
     search: {{ table_name|snake_to_pascal_case }}QueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["{{ permission_prefix }}:export"]))
@@ -90,7 +90,7 @@ async def export_{{ table_name }}(
     )
 
 
-@{{ table_name|snake_to_camel }}Controller.post('/import', summary="导入{{ function_name }}", description="导入{{ function_name }}")
+@{{ table_name }}Controller.post('/import', summary="导入{{ function_name }}", description="导入{{ function_name }}")
 async def import_{{ table_name }}(
     file: UploadFile,
     auth: AuthSchema = Depends(AuthPermission(["{{ permission_prefix }}:import"]))
@@ -99,7 +99,7 @@ async def import_{{ table_name }}(
     return SuccessResponse(data=batch_import_result, msg="导入成功")
 
 
-@{{ tableName|snake_to_camel }}Controller.post('/download/template', summary="获取{{ functionName }}导入模板", description="获取{{ functionName }}导入模板")
+@{{ tableName }}Controller.post('/download/template', summary="获取{{ functionName }}导入模板", description="获取{{ functionName }}导入模板")
 async def export_{{ tableName }}_template(
     auth: AuthSchema = Depends(AuthPermission(["{{ permissionPrefix }}:import"]))
 ) -> StreamingResponse:

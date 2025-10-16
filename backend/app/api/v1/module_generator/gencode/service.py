@@ -8,15 +8,15 @@ from typing import Any, List, Dict, Literal, Optional
 from sqlglot.expressions import Add, Alter, Create, Delete, Drop, Expression, Insert, Table, TruncateTable, Update
 from sqlglot import parse as sqlglot_parse
 
+from app.api.v1.module_generator.gencode.model import GenTableModel
 from app.config.setting import settings
 from app.core.exceptions import CustomException
 from app.common.constant import GenConstant
 from app.common.response import SuccessResponse
 from app.api.v1.module_system.auth.schema import AuthSchema
-from app.utils.common_util import CamelCaseUtil
 from app.utils.gen_util import GenUtils
 from app.utils.jinja2_template_util import Jinja2TemplateInitializerUtil, Jinja2TemplateUtil
-from .schema import GenTableSchema, GenTableOutSchema, GenTableOutSchema, GenTableColumnSchema,  GenTableColumnOutSchema, GenTableColumnDeleteSchema
+from .schema import GenTableOptionSchema, GenTableSchema, GenTableOutSchema, GenTableOutSchema, GenTableColumnSchema,  GenTableColumnOutSchema, GenTableColumnDeleteSchema
 from .param import GenTableQueryParam
 from .crud import GenTableColumnCRUD, GenTableCRUD
 
@@ -34,6 +34,10 @@ class GenTableService:
         gen_table = await cls.get_gen_table_by_id_service(auth, table_id)
         gen_tables = await cls.get_gen_table_all_service(auth)
         gen_columns = await GenTableColumnService.get_gen_table_column_list_by_table_id_service(auth, table_id)
+        if gen_table.options:
+            table_options = GenTableOptionSchema(**json.loads(gen_table.options))
+            gen_table.parent_menu_id = table_options.parent_menu_id
+        gen_table.columns = gen_columns
         return dict(info=gen_table, rows=gen_columns, tables=gen_tables)
 
     @classmethod
@@ -55,23 +59,17 @@ class GenTableService:
     async def get_gen_db_table_list_by_name_service(cls, auth: AuthSchema, table_names: List[str]) -> List[GenTableOutSchema]:
         """根据表名称组获取数据库列表信息"""
         gen_db_table_list_result = await GenTableCRUD(auth=auth).get_db_table_list_by_names(table_names)
-        # 修复：将GenDBTableSchema对象转换为字典后再传递给GenTableOutSchema
-        result = []
-        for gen_table in CamelCaseUtil.transform_result(gen_db_table_list_result):
-            # 确保gen_table是字典类型
-            if hasattr(gen_table, 'model_dump'):
-                gen_table_dict = gen_table.model_dump()
-            elif isinstance(gen_table, dict):
-                gen_table_dict = gen_table
-            else:
-                gen_table_dict = gen_table.__dict__
-            result.append(GenTableOutSchema(**gen_table_dict))
         
         # 检查是否有未找到的表
-        found_table_names = [table.table_name for table in result]
+        found_table_names = [table.table_name for table in gen_db_table_list_result]
         missing_tables = [name for name in table_names if name not in found_table_names]
         if missing_tables:
             raise CustomException(msg=f"以下数据表不存在: {', '.join(missing_tables)}")
+
+        # 修复：将GenDBTableSchema对象转换为字典后再传递给GenTableOutSchema
+        result = []
+        for gen_table in gen_db_table_list_result:
+            result.append(GenTableOutSchema(**gen_table.model_dump()))
         
         return result
 
@@ -141,7 +139,7 @@ class GenTableService:
                 raise CustomException(msg='sql语句不是合法的建表语句')
             table_names = cls.__get_table_names(sql_statements)
             # 执行SQL语句创建表
-            await GenTableCRUD(auth=auth).create_table_by_sql(sql_statements)
+            await GenTableCRUD(auth=auth).create_table_by_sql(sql)
             gen_table_list = await cls.get_gen_db_table_list_by_name_service(auth, table_names)
             import_result = await cls.import_gen_table_service(auth, gen_table_list)
             return import_result
@@ -261,7 +259,8 @@ class GenTableService:
     async def get_gen_table_all_service(cls, auth: AuthSchema) -> List[GenTableOutSchema]:
         """获取所有业务表信息"""
         gen_table_all = await GenTableCRUD(auth=auth).get_gen_table_all()
-        result = [GenTableOutSchema(**gen_table) for gen_table in CamelCaseUtil.transform_result(gen_table_all)]
+        gen_table_all_dict = [GenTableOutSchema.model_validate(gen_table).model_dump() for gen_table in gen_table_all]
+        result = [GenTableOutSchema(**gen_table) for gen_table in gen_table_all_dict]
         return result
 
     @classmethod
@@ -273,8 +272,8 @@ class GenTableService:
         :param table_id: 业务表id
         :return: 预览数据列表
         """
-        gen_table = GenTableOutSchema(
-            **CamelCaseUtil.transform_result(await GenTableCRUD(auth).get_gen_table_by_id(table_id))
+        gen_table = GenTableOutSchema.model_validate(
+            await GenTableCRUD(auth).get_gen_table_by_id(table_id)
         )
         await cls.set_sub_table(auth, gen_table)
         await cls.set_pk_column(gen_table)
@@ -335,7 +334,7 @@ class GenTableService:
     async def sync_db_service(cls, auth: AuthSchema, table_name: str) -> None:
         """同步数据库"""
         gen_table = await GenTableCRUD(auth).get_gen_table_by_name(table_name)
-        table = GenTableSchema(**CamelCaseUtil.transform_result(gen_table))
+        table = GenTableSchema.model_validate(gen_table)
         # 处理table.columns为None的情况
         table_columns = table.columns or []
         table_column_map = {column.column_name: column for column in table_columns}
@@ -388,7 +387,8 @@ class GenTableService:
             gen_table_dao = GenTableCRUD(auth=auth)
             sub_table = await gen_table_dao.get_gen_table_by_name(gen_table.sub_table_name)
             if sub_table:
-                gen_table.sub_table = GenTableOutSchema(**CamelCaseUtil.transform_result(sub_table))
+                gen_table.sub_table = GenTableOutSchema.model_validate(sub_table)
+
 
     @classmethod
     async def set_pk_column(cls, gen_table: GenTableOutSchema) -> None:
@@ -471,11 +471,11 @@ class GenTableService:
             raise CustomException(msg=f"业务表 {table_name} 不存在")
             
         # 确保CamelCaseUtil.transform_result返回的是字典
-        transformed_result = CamelCaseUtil.transform_result(gen_table)
+        transformed_result = gen_table
         if transformed_result is None:
             raise CustomException(msg=f"业务表 {table_name} 数据转换失败")
             
-        gen_table_schema = GenTableOutSchema(**transformed_result)
+        gen_table_schema = GenTableOutSchema.model_validate(transformed_result)
         await cls.set_sub_table(auth, gen_table_schema)
         await cls.set_pk_column(gen_table_schema)
         context = Jinja2TemplateUtil.prepare_context(gen_table_schema)
@@ -518,6 +518,6 @@ class GenTableColumnService:
         """获取业务表字段列表信息"""
         gen_table_column_list_result = await GenTableColumnCRUD(auth).list_gen_table_column_crud({"table_id": table_id})
         return [
-            GenTableColumnOutSchema(**gen_table_column)
-            for gen_table_column in CamelCaseUtil.transform_result(gen_table_column_list_result)
+            GenTableColumnOutSchema.model_validate(gen_table_column)
+            for gen_table_column in gen_table_column_list_result
         ]
