@@ -1078,7 +1078,6 @@ async function handleSynchDb(row: GenTableOutVO): Promise<void> {
     
     loading.value = true;
     await GencodeAPI.syncDb(tableName);
-    ElMessage.success('同步成功');
     loadingData(); // 同步成功后刷新列表
   } catch (error) {
     if (error !== 'cancel') {

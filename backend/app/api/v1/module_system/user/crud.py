@@ -17,18 +17,24 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
     """用户模块数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
-        """初始化用户CRUD"""
+        """
+        初始化用户CRUD
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        """
+        self.auth = auth
         super().__init__(model=UserModel, auth=auth)
 
     async def get_by_id_crud(self, id: int) -> Optional[UserModel]:
         """
         根据id获取用户信息
         
-        Args:
-            id: 用户ID
-            
-        Returns:
-            Optional[UserModel]: 用户信息
+        参数:
+        - id (int): 用户ID
+        
+        返回:
+        - Optional[UserModel]: 用户信息,如果不存在则为None
         """
         return await self.get(id=id)
 
@@ -36,11 +42,11 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         根据用户名获取用户信息
         
-        Args:
-            username: 用户名
-            
-        Returns:
-            Optional[UserModel]: 用户信息
+        参数:
+        - username (str): 用户名
+        
+        返回:
+        - Optional[UserModel]: 用户信息,如果不存在则为None
         """
         return await self.get(username=username)
     
@@ -48,11 +54,11 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         根据手机号获取用户信息
         
-        Args:
-            mobile: 手机号
-            
-        Returns:
-            Optional[UserModel]: 用户信息
+        参数:
+        - mobile (str): 手机号
+        
+        返回:
+        - Optional[UserModel]: 用户信息,如果不存在则为None
         """
         return await self.get(mobile=mobile)
 
@@ -60,11 +66,11 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         获取用户列表
         
-        Args:
-            search: 搜索条件
-            order_by: 排序字段
-            
-        Returns:
+        参数:
+        - search (Dict | None): 查询参数对象。
+        - order_by (List[Dict[str, str]] | None): 排序参数列表。
+        
+        返回:
             Sequence[UserModel]: 用户列表
         """
         return await self.list(search=search, order_by=order_by)
@@ -73,11 +79,11 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         更新用户最后登录时间
         
-        Args:
-            id: 用户ID
-            
-        Returns:
-            Optional[UserModel]: 更新后的用户信息
+        参数:
+        - id (int): 用户ID
+        
+        返回:
+        - Optional[UserModel]: 更新后的用户信息
         """
         return await self.update(id=id, data={"last_login": datetime.now()})
 
@@ -85,9 +91,12 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         批量设置用户可用状态
         
-        Args:
-            ids: 用户ID列表
-            status: 可用状态
+        参数:
+        - ids (List[int]): 用户ID列表
+        - status (bool): 可用状态
+        
+        返回:
+        - None:
         """
         await self.set(ids=ids, status=status)
 
@@ -95,9 +104,12 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         批量设置用户角色
         
-        Args:
-            user_ids: 用户ID列表
-            role_ids: 角色ID列表
+        参数:
+        - user_ids (List[int]): 用户ID列表
+        - role_ids (List[int]): 角色ID列表
+        
+        返回:
+        - None:
         """
         user_objs = await self.list(search={"id": ("in", user_ids)})
         if role_ids:
@@ -116,9 +128,12 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         批量设置用户岗位
         
-        Args:
-            user_ids: 用户ID列表
-            position_ids: 岗位ID列表
+        参数:
+        - user_ids (List[int]): 用户ID列表
+        - position_ids (List[int]): 岗位ID列表
+        
+        返回:
+        - None:
         """
         user_objs = await self.list(search={"id": ("in", user_ids)})
         if position_ids:
@@ -136,12 +151,12 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         修改用户密码
         
-        Args:
-            id: 用户ID
-            password_hash: 密码哈希值
-            
-        Returns:
-            Optional[UserModel]: 更新后的用户信息
+        参数:
+        - id (int): 用户ID
+        - password_hash (str): 密码哈希值
+        
+        返回:
+        - Optional[UserModel]: 更新后的用户信息
         """
         return await self.update(id=id, data=UserUpdateSchema(password=password_hash))
 
@@ -151,12 +166,12 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         重置密码
         
-        Args:
-            id: 用户ID
-            password_hash: 密码哈希值
-            
-        Returns:
-            Optional[UserModel]: 更新后的用户信息
+        参数:
+        - id (int): 用户ID
+        - password_hash (str): 密码哈希值
+        
+        返回:
+        - Optional[UserModel]: 更新后的用户信息
         """
         return await self.update(id=id, data=UserUpdateSchema(password=password_hash))
 
@@ -164,11 +179,11 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         用户注册
         
-        Args:
-            data: 用户注册信息
-            
-        Returns:
-            Optional[UserModel]: 注册成功的用户信息,如果用户名已存在则返回None
+        参数:
+        - data (UserForgetPasswordSchema): 用户注册信息
+        
+        返回:
+        - Optional[UserModel]: 注册成功的用户信息,如果用户名已存在则返回None
         """
         if await self.get_by_username_crud(username=data.username):
             return None

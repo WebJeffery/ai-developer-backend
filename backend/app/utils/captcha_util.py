@@ -17,8 +17,10 @@ class CaptchaUtil:
     @classmethod 
     def generate_captcha(cls) -> Tuple[str, str]:
         """
-        生成带有噪声和干扰的验证码图片：4位随机字符
-        :return: [base64编码的图片字符串, 验证码值]
+        生成带有噪声和干扰的验证码图片（4位随机字符）。
+        
+        返回:
+        - Tuple[str, str]: [base64图片字符串, 验证码值]。
         """
         # 生成4位随机验证码
         chars = string.digits + string.ascii_letters
@@ -81,8 +83,10 @@ class CaptchaUtil:
     @classmethod
     def captcha_arithmetic(cls) -> Tuple[str, int]:
         """
-        创建验证码图片: 加减乘运算
-        :return: [base64编码的图片字符串, 计算结果]
+        创建验证码图片（加减乘运算）。
+        
+        返回:
+        - Tuple[str, int]: [base64图片字符串, 计算结果]。
         """
         # 创建空白图像,使用随机浅色背景
         background_color = tuple(random.randint(230, 255) for _ in range(3))

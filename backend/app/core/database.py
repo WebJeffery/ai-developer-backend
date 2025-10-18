@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import (
 from app.core.logger import logger
 from app.config.setting import settings
 from app.core.exceptions import CustomException
-from app.core.base_model import MappedBase
+
 
 # 同步数据库引擎
 engine: Engine = create_engine(
@@ -52,7 +52,12 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 def session_connect() -> AsyncSession:
-    """获取数据库会话"""
+    """
+    获取异步数据库会话连接。
+    
+    返回:
+    - AsyncSession: 异步数据库会话连接。
+    """
     try:
         if not settings.SQL_DB_ENABLE:
             raise CustomException(msg="请先开启数据库连接", data="请启用 app/config/setting.py: SQL_DB_ENABLE")
@@ -61,7 +66,16 @@ def session_connect() -> AsyncSession:
         raise CustomException(msg=f"数据库连接失败: {e}")
 
 async def redis_connect(app: FastAPI, status: bool) -> Redis | None:
-    """创建或关闭Redis连接"""
+    """
+    创建或关闭Redis连接。
+    
+    参数:
+    - app (FastAPI): FastAPI应用实例。
+    - status (bool): 连接状态,True为创建连接,False为关闭连接。
+    
+    返回:
+    - Redis | None: Redis连接实例,如果连接失败则返回None。
+    """
     if not settings.REDIS_ENABLE:
         raise CustomException(msg="请先开启Redis连接", data="请启用 app/core/config.py: REDIS_ENABLE")
 
@@ -91,7 +105,16 @@ async def redis_connect(app: FastAPI, status: bool) -> Redis | None:
         logger.info('Redis连接已关闭')
 
 async def mongodb_connect(app: FastAPI, status: bool) -> AsyncIOMotorClient | None:
-    """创建或关闭MongoDB连接"""
+    """
+    创建或关闭MongoDB连接。
+    
+    参数:
+    - app (FastAPI): FastAPI应用实例。
+    - status (bool): 连接状态,True为创建连接,False为关闭连接。
+    
+    返回:
+    - AsyncIOMotorClient | None: MongoDB异步客户端实例,如果连接失败则返回None。
+    """
     if not settings.MONGO_DB_ENABLE:
         raise CustomException(msg="请先开启MongoDB连接", data="请启用 app/core/config.py: MONGO_DB_ENABLE")
 

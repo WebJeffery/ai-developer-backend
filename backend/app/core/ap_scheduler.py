@@ -64,7 +64,16 @@ class SchedulerUtil:
     """
 
     @classmethod
-    def scheduler_event_listener(cls, event: JobEvent | JobExecutionEvent):
+    def scheduler_event_listener(cls, event: JobEvent | JobExecutionEvent) -> None:
+        """
+        监听任务执行事件。
+    
+        参数:
+        - event (JobEvent | JobExecutionEvent): 任务事件对象。
+    
+        返回:
+        - None
+        """
         # 延迟导入避免循环导入
         from app.api.v1.module_application.job.schema import JobLogCreateSchema
         
@@ -118,9 +127,10 @@ class SchedulerUtil:
     @classmethod
     async def init_system_scheduler(cls):
         """
-        应用启动时初始化定时任务
-
-        :return:
+        应用启动时初始化定时任务。
+    
+        返回:
+        - None
         """
         # 延迟导入避免循环导入
         from app.api.v1.module_application.job.crud import JobCRUD
@@ -139,9 +149,10 @@ class SchedulerUtil:
     @classmethod
     async def close_system_scheduler(cls):
         """
-        关闭
-
-        :return:
+        关闭系统定时任务。
+    
+        返回:
+        - None
         """
         scheduler.shutdown(wait=False)
         logger.info('关闭定时任务成功')
@@ -149,27 +160,36 @@ class SchedulerUtil:
     @classmethod
     def get_job(cls, job_id: Union[str, int]) -> Optional[Job]:
         """
-        获取
-
-        :param job_id: 任务id
-        :return: 任务对象
+        根据任务ID获取任务对象。
+    
+        参数:
+        - job_id (str | int): 任务ID。
+    
+        返回:
+        - Optional[Job]: 任务对象，未找到则为 None。
         """
         return scheduler.get_job(job_id=str(job_id))
 
     @classmethod
     def get_all_jobs(cls) -> List[Job]:
         """
-        获取任务列表
-        :return: 任务列表
+        获取全部调度任务列表。
+    
+        返回:
+        - List[Job]: 任务列表。
         """
         return scheduler.get_jobs()
 
     @classmethod
     def add_job(cls, job_info):
         """
-        创建
-        :param job_info: 任务对象信息
-        :return:
+        根据任务配置创建并添加调度任务。
+    
+        参数:
+        - job_info (Any): 任务对象信息（包含触发器、函数、参数等）。
+    
+        返回:
+        - Job: 新增的任务对象。
         """
         # 动态导入模块
         # 1. 解析调用目标
@@ -254,10 +274,13 @@ class SchedulerUtil:
     @classmethod
     def remove_job(cls, job_id: Union[str, int]) -> None:
         """
-        删除
-
-        :param job_id: 任务id
-        :return: None
+        根据任务ID删除调度任务。
+    
+        参数:
+        - job_id (str | int): 任务ID。
+    
+        返回:
+        - None
         """
         query_job = cls.get_job(job_id=str(job_id))
         if query_job:
@@ -266,18 +289,26 @@ class SchedulerUtil:
     @classmethod
     def clear_jobs(cls):
         """
-        删除
-        :param job_group: 任务组名
-        :return:
+        删除所有调度任务。
+    
+        返回:
+        - None
         """
         scheduler.remove_all_jobs()
 
     @classmethod
     def modify_job(cls, job_id: Union[str, int]) -> Job:
         """
-        更新（如果是运行中，则是下次次执行生效）
-        :param job_id: 任务id
-        :return: 更新后的任务对象
+        更新指定任务的配置（运行中的任务下次执行生效）。
+    
+        参数:
+        - job_id (str | int): 任务ID。
+    
+        返回:
+        - Job: 更新后的任务对象。
+    
+        异常:
+        - CustomException: 当任务不存在时抛出。
         """
         query_job = cls.get_job(job_id=str(job_id)) 
         if not query_job:
@@ -287,9 +318,16 @@ class SchedulerUtil:
     @classmethod
     def pause_job(cls, job_id: Union[str, int]):
         """
-        暂停（只有状态是运行中时才可以暂停， 已终止不可以）
-        :param job_id: 任务id
-        :return:
+        暂停指定任务（仅运行中可暂停，已终止不可）。
+    
+        参数:
+        - job_id (str | int): 任务ID。
+    
+        返回:
+        - None
+    
+        异常:
+        - ValueError: 当任务不存在时抛出。
         """
         logger.info(f"开始获取全部任务：{cls.get_all_jobs()}， 状态： {cls.get_job_status()}")
         query_job = cls.get_job(job_id=str(job_id))
@@ -301,9 +339,16 @@ class SchedulerUtil:
     @classmethod
     def resume_job(cls, job_id: Union[str, int]):
         """
-        恢复（只有状态是暂停中时才可以恢复， 已终止不可以）
-        :param job_id: 任务id
-        :return:
+        恢复指定任务（仅暂停中可恢复，已终止不可）。
+    
+        参数:
+        - job_id (str | int): 任务ID。
+    
+        返回:
+        - None
+    
+        异常:
+        - ValueError: 当任务不存在时抛出。
         """
         
         logger.info(f"开始获取全部任务：{cls.get_all_jobs()}， 状态： {cls.get_job_status()}")
@@ -316,9 +361,16 @@ class SchedulerUtil:
     @classmethod
     def reschedule_job(cls, job_id: Union[str, int]) -> Optional[Job]:
         """
-        重启
-        :param job_id: 任务id
-        :return: 重启后的任务对象
+        重启指定任务的触发器。
+    
+        参数:
+        - job_id (str | int): 任务ID。
+    
+        返回:
+        - None
+    
+        异常:
+        - CustomException: 当任务不存在时抛出。
         """
         logger.info(f"开始获取全部任务：{cls.get_all_jobs()}， 状态： {cls.get_job_status()}")
         query_job = cls.get_job(job_id=str(job_id))
@@ -338,17 +390,24 @@ class SchedulerUtil:
     @classmethod
     def print_jobs(cls,jobstore: Any | None = None, out: Any | None = None):
         """
-        打印
-        :return:
+        打印调度任务列表。
+    
+        参数:
+        - jobstore (Any | None): 任务存储别名。
+        - out (Any | None): 输出目标。
+    
+        返回:
+        - None
         """
         scheduler.print_jobs(jobstore=jobstore, out=out)
 
     @classmethod
     def get_job_status(cls) -> str:
         """
-        获取调度器的当前状态
-        
-        :return: 状态字符串 ('stopped', 'running', 'paused')
+        获取调度器当前状态。
+    
+        返回:
+        - str: 状态字符串（'stopped' | 'running' | 'paused' | 'unknown'）。
         """
         #: constant indicating a scheduler's stopped state
         STATE_STOPPED = 0

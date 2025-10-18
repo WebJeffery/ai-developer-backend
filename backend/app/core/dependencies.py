@@ -20,17 +20,35 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 
 
 async def db_getter() -> AsyncGenerator[AsyncSession, None]:
-    """获取数据库会话连接"""
+    """获取数据库会话连接
+    
+    返回:
+    - AsyncSession: 数据库会话连接
+    """
     async with session_connect() as session:
         async with session.begin():
             yield session
 
 async def redis_getter(request: Request) -> Redis:
-    """获取Redis连接"""
+    """获取Redis连接
+    
+    参数:
+    - request (Request): 请求对象
+    
+    返回:
+    - Redis: Redis连接
+    """
     return request.app.state.redis
 
 async def mongo_getter(request: Request) -> AsyncIOMotorDatabase:
-    """获取MongoDB连接"""
+    """获取MongoDB连接
+    
+    参数:
+    - request (Request): 请求对象
+    
+    返回:
+    - AsyncIOMotorDatabase: MongoDB连接
+    """ 
     return request.app.state.mongo
 
 async def get_current_user(
@@ -39,19 +57,19 @@ async def get_current_user(
     redis: Redis = Depends(redis_getter), 
     db: AsyncSession = Depends(db_getter)
 ) -> AuthSchema:
-    """
-    获取并验证当前用户信息
+    """获取并验证当前用户信息
     
-    Args:
-        request: 请求对象
-        token: 认证token
-        db: 数据库会话
+    参数:
+    - request (Request): 请求对象。
+    - token (str): 认证token。
+    - redis (Redis): Redis连接。
+    - db (AsyncSession): 数据库会话连接。
+    
+    返回:
+    - AuthSchema: 包含用户信息的认证对象。
         
-    Returns:
-        AuthSchema: 包含用户信息的认证对象
-        
-    Raises:
-        CustomException: 认证失败时抛出异常
+    异常:
+    - CustomException: 认证失败时抛出异常。
     """
     # 处理Bearer token
     if token.startswith('Bearer'):
@@ -107,29 +125,26 @@ class AuthPermission:
         """
         初始化权限验证
         
-        Args:
-            permissions: 权限标识列表
-            check_data_scope: 是否启用严格模式校验
+        参数:
+        - permissions (Optional[list[str]]): 权限标识列表。
+        - check_data_scope (bool): 是否启用严格模式校验。
         """
         self.permissions = set(permissions) if permissions else None
         self.check_data_scope = check_data_scope
 
-    async def __call__(
-            self,
-            auth: AuthSchema = Depends(get_current_user),
-    ) -> AuthSchema:
+    async def __call__(self, auth: AuthSchema = Depends(get_current_user)) -> AuthSchema:
         """
         执行权限验证
         
-        Args:
-            request: 请求对象
-            auth: 认证信息
+        参数:
+        - request (Request): 请求对象。
+        - auth (AuthSchema): 认证信息。
             
-        Returns:
-            AuthSchema: 认证对象
+        返回:
+        - AuthSchema: 认证对象
             
-        Raises:
-            CustomException: 权限验证失败时抛出异常
+        异常:
+        - CustomException: 权限验证失败时抛出异常。
         """
         auth.check_data_scope = self.check_data_scope
 

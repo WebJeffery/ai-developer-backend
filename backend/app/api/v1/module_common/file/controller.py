@@ -18,6 +18,16 @@ async def upload_controller(
     file: UploadFile,
     request: Request,
 ) -> JSONResponse:
+    """
+    上传文件
+    
+    参数:
+    - file (UploadFile): 上传的文件
+    - request (Request): 请求对象
+    
+    返回:
+    - JSONResponse: 包含上传文件详情的JSON响应
+    """
     result_dict = await FileService.upload_service(base_url=str(request.base_url), file=file)
     logger.info(f"上传文件成功 {result_dict}")
     return SuccessResponse(data=result_dict, msg="上传文件成功")
@@ -28,7 +38,17 @@ async def download_controller(
     file_path: str = Body(..., description="文件路径"), 
     delete: bool = Body(False, description="是否删除文件"),
 ) -> FileResponse:
+    """
+    下载文件
     
+    参数:
+    - background_tasks (BackgroundTasks): 后台任务对象
+    - file_path (str): 文件路径
+    - delete (bool): 是否删除文件
+    
+    返回:
+    - FileResponse: 包含下载文件的响应
+    """
     result = await FileService.download_service(file_path=file_path)
     if delete:
         background_tasks.add_task(UploadUtil.delete_file, Path(file_path))

@@ -20,19 +20,47 @@ class PositionService:
 
     @classmethod
     async def get_position_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
-        """获取岗位详情"""
+        """
+        获取岗位详情
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): 岗位ID
+        
+        返回:
+        - Dict: 岗位详情对象
+        """
         position = await PositionCRUD(auth).get_by_id_crud(id=id)
         return PositionOutSchema.model_validate(position).model_dump()
 
     @classmethod
     async def get_position_list_service(cls, auth: AuthSchema, search: Optional[PositionQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
-        """获取岗位列表"""
+        """
+        获取岗位列表
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - search (PositionQueryParam | None): 查询参数对象
+        - order_by (List[Dict[str, str]] | None): 排序参数列表
+        
+        返回:
+        - List[Dict]: 岗位列表对象
+        """
         position_list = await PositionCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         return [PositionOutSchema.model_validate(position).model_dump() for position in position_list]
 
     @classmethod
     async def create_position_service(cls, auth: AuthSchema, data: PositionCreateSchema) -> Dict:
-        """创建岗位"""
+        """
+        创建岗位
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (PositionCreateSchema): 岗位创建模型
+        
+        返回:
+        - Dict: 创建的岗位对象
+        """
         position = await PositionCRUD(auth).get(name=data.name)
         if position:
             raise CustomException(msg='创建失败，该岗位已存在')
@@ -41,7 +69,17 @@ class PositionService:
 
     @classmethod
     async def update_position_service(cls, auth: AuthSchema, id:int, data: PositionUpdateSchema) -> Dict:
-        """更新岗位"""
+        """
+        更新岗位
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): 岗位ID
+        - data (PositionUpdateSchema): 岗位更新模型
+        
+        返回:
+        - Dict: 更新的岗位对象
+        """
         position = await PositionCRUD(auth).get_by_id_crud(id=id)
         if not position:
             raise CustomException(msg='更新失败，该岗位不存在')
@@ -53,7 +91,16 @@ class PositionService:
 
     @classmethod
     async def delete_position_service(cls, auth: AuthSchema, ids: list[int]) -> None:
-        """删除岗位"""
+        """
+        删除岗位
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - ids (list[int]): 岗位ID列表
+        
+        返回:
+        - None
+        """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
@@ -64,12 +111,29 @@ class PositionService:
 
     @classmethod
     async def set_position_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
-        """设置岗位状态"""
+        """
+        设置岗位状态
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (BatchSetAvailable): 批量设置状态模型
+        
+        返回:
+        - None
+        """
         await PositionCRUD(auth).set_available_crud(ids=data.ids, status=data.status)
 
     @classmethod
     async def export_position_list_service(cls, position_list: List[Dict[str, Any]]) -> bytes:
-        """导出岗位列表"""
+        """
+        导出岗位列表
+        
+        参数:
+        - position_list (List[Dict[str, Any]]): 岗位列表对象
+        
+        返回:
+        - bytes: 导出的Excel文件字节流
+        """
         mapping_dict = {
             'id': '编号',
             'name': '岗位名称', 

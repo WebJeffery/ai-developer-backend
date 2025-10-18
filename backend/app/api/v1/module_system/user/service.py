@@ -37,7 +37,16 @@ class UserService:
 
     @classmethod
     async def get_detail_by_id_service(cls, auth: AuthSchema, id: int) -> Dict:
-        """获取用户详情"""
+        """
+        根据ID获取用户详情
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): 用户ID
+        
+        返回:
+        - Dict: 用户详情字典
+        """
         user = await UserCRUD(auth).get_by_id_crud(id=id)
         if not user:
             raise CustomException(msg="用户不存在")
@@ -54,6 +63,17 @@ class UserService:
 
     @classmethod
     async def get_user_list_service(cls, auth: AuthSchema, search: Optional[UserQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
+        """
+        获取用户列表
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - search (UserQueryParam | None): 查询参数对象。
+        - order_by (List[Dict[str, str]] | None): 排序参数列表。
+        
+        返回:
+        - List[Dict]: 用户详情字典列表
+        """
         user_list = await UserCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         user_dict_list = []
         for user in user_list:
@@ -69,6 +89,16 @@ class UserService:
 
     @classmethod
     async def create_user_service(cls, data: UserCreateSchema, auth: AuthSchema) -> Dict:
+        """
+        创建用户
+        
+        参数:
+        - data (UserCreateSchema): 用户创建信息
+        - auth (AuthSchema): 认证信息模型
+        
+        返回:
+        - Dict: 创建后的用户详情字典
+        """
         if not data.username:
             raise CustomException(msg="用户名不能为空")
         # 检查用户名是否存在
@@ -99,6 +129,17 @@ class UserService:
 
     @classmethod
     async def update_user_service(cls, id: int, data: UserUpdateSchema, auth: AuthSchema) -> Dict:
+        """
+        更新用户
+        
+        参数:
+        - id (int): 用户ID
+        - data (UserUpdateSchema): 用户更新信息
+        - auth (AuthSchema): 认证信息模型
+        
+        返回:
+        - Dict: 更新后的用户详情字典
+        """
         if not data.username:
             raise CustomException(msg="用户名不能为空")
         # 检查用户是否存在
@@ -152,7 +193,16 @@ class UserService:
 
     @classmethod
     async def delete_user_service(cls, auth: AuthSchema, ids: list[int]) -> None:
-        """删除用户"""
+        """
+        删除用户
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - ids (list[int]): 用户ID列表
+        
+        返回:
+        - None
+        """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
@@ -176,7 +226,15 @@ class UserService:
 
     @classmethod
     async def get_current_user_info_service(cls, auth: AuthSchema) -> Dict:
-        """获取当前用户信息"""
+        """
+        获取当前用户信息
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        
+        返回:
+        - Dict: 当前用户详情字典
+        """
         # 获取用户基本信息
         if not auth.user or not auth.user.id:
             raise CustomException(msg="用户不存在")
@@ -212,7 +270,16 @@ class UserService:
 
     @classmethod
     async def update_current_user_info_service(cls, auth: AuthSchema, data: CurrentUserUpdateSchema) -> Dict:
-        """更新当前用户信息"""
+        """
+        更新当前用户信息
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (CurrentUserUpdateSchema): 当前用户更新信息
+        
+        返回:
+        - Dict: 更新后的当前用户详情字典
+        """
         if not auth.user or not auth.user.id:
             raise CustomException(msg="用户不存在")
         user = await UserCRUD(auth).get_by_id_crud(id=auth.user.id)
@@ -224,7 +291,16 @@ class UserService:
 
     @classmethod
     async def set_user_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
-        """设置用户状态"""
+        """
+        设置用户状态
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (BatchSetAvailable): 批量设置用户状态数据
+        
+        返回:
+        - None
+        """
         for id in data.ids:
             user = await UserCRUD(auth).get_by_id_crud(id=id)
             if not user:
@@ -235,7 +311,16 @@ class UserService:
 
     @classmethod
     async def upload_avatar_service(cls, base_url: str, file: UploadFile) -> Dict:
-        """上传头像"""
+        """
+        上传用户头像
+        
+        参数:
+        - base_url (str): 基础URL
+        - file (UploadFile): 上传的文件
+        
+        返回:
+        - Dict: 上传头像响应字典
+        """
         if not file:
             raise CustomException(msg="请选择要上传的文件")
         filename, filepath, file_url = await UploadUtil.upload_file(file=file, base_url=base_url)
@@ -249,7 +334,16 @@ class UserService:
 
     @classmethod
     async def change_user_password_service(cls, auth: AuthSchema, data: UserChangePasswordSchema) -> Dict:
-        """修改用户密码"""
+        """
+        修改用户密码
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (UserChangePasswordSchema): 用户密码修改数据
+        
+        返回:
+        - Dict: 更新后的当前用户详情字典
+        """
         if not auth.user or not auth.user.id:
             raise CustomException(msg="用户不存在")
         if not data.old_password or not data.new_password:
@@ -269,7 +363,16 @@ class UserService:
     
     @classmethod
     async def reset_user_password_service(cls, auth: AuthSchema, data: ResetPasswordSchema) -> Dict:
-        """修改用户密码"""
+        """
+        重置用户密码
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (ResetPasswordSchema): 用户密码重置数据
+        
+        返回:
+        - Dict: 更新后的当前用户详情字典
+        """
         if not data.password:
             raise CustomException(msg='密码不能为空')
 
@@ -285,7 +388,16 @@ class UserService:
 
     @classmethod
     async def register_user_service(cls, auth: AuthSchema, data: UserRegisterSchema) -> Dict:
-        """用户注册"""
+        """
+        用户注册
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (UserRegisterSchema): 用户注册数据
+        
+        返回:
+        - Dict: 注册后的用户详情字典
+        """
         # 检查用户名是否存在
         username_ok = await UserCRUD(auth).get_by_username_crud(username=data.username)
         if username_ok:
@@ -305,7 +417,16 @@ class UserService:
 
     @classmethod
     async def forget_password_service(cls, auth: AuthSchema, data: UserForgetPasswordSchema) -> Dict:
-        """用户忘记密码"""
+        """
+        用户忘记密码
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (UserForgetPasswordSchema): 用户忘记密码数据
+        
+        返回:
+        - Dict: 更新后的当前用户详情字典
+        """
         user = await UserCRUD(auth).get_by_username_crud(username=data.username)
         if not user:
             raise CustomException(msg="用户不存在")
@@ -317,7 +438,17 @@ class UserService:
 
     @classmethod
     async def batch_import_user_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:
-        """批量导入用户"""
+        """
+        批量导入用户
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - file (UploadFile): 上传的Excel文件
+        - update_support (bool, optional): 是否支持更新已存在用户. 默认值为False.
+        
+        返回:
+        - str: 导入结果消息
+        """
         
         header_dict = {
             '部门编号': 'dept_id',
@@ -349,29 +480,17 @@ class UserService:
             # 验证必填字段
             required_fields = ['username', 'name', 'dept_id']
             for field in required_fields:
-                if df[field].isnull().any():
-                    missing_rows = df[df[field].isnull()].index.tolist()
-                    raise CustomException(msg=f"{[k for k,v in header_dict.items() if v == field][0]}不能为空，第{[i+1 for i in missing_rows]}行")
+                missing_rows = df[df[field].isnull()].index.tolist()
+                raise CustomException(msg=f"{[k for k,v in header_dict.items() if v == field][0]}不能为空，第{[i+1 for i in missing_rows]}行")
             
             error_msgs = []
             success_count = 0
+            count = 0
             
             # 处理每一行数据
             for index, row in df.iterrows():
                 try:
-                    # 数据转换前的类型检查
-                    try:
-                        dept_id = int(row['dept_id'])
-                    except ValueError:
-                        error_msgs.append(f"第{index+1}行: 部门编号必须是数字")
-                        continue
-                    
-                    # 检查部门是否存在
-                    dept = await DeptCRUD(auth).get_by_id_crud(id=dept_id)
-                    if not dept:
-                        error_msgs.append(f"第{index+1}行: 部门ID {dept_id} 不存在")
-                        continue
-                    
+                    count = count + 1
                     # 数据转换
                     gender = 1 if row['gender'] == '男' else (2 if row['gender'] == '女' else 1)
                     status = True if row['status'] == '正常' else False
@@ -384,7 +503,7 @@ class UserService:
                         "mobile": str(row['mobile']).strip(),
                         "gender": gender,
                         "status": status,
-                        "dept_id": dept_id,
+                        "dept_id": int(row['dept_id']),
                         "password": PwdUtil.set_password_hash(password="123456")  # 设置默认密码
                     }
 
@@ -396,14 +515,14 @@ class UserService:
                             await UserCRUD(auth).update(id=exists_user.id, data=user_update_data)
                             success_count += 1
                         else:
-                            error_msgs.append(f"第{index+1}行: 用户 {user_data['username']} 已存在")
+                            error_msgs.append(f"第{count}行: 用户 {user_data['username']} 已存在")
                     else:
                         user_create_data = UserCreateSchema(**user_data)
                         await UserCRUD(auth).create(data=user_create_data)
                         success_count += 1
                         
                 except Exception as e:
-                    error_msgs.append(f"第{index+1}行: {str(e)}")
+                    error_msgs.append(f"第{count}行: 异常{str(e)}")
                     continue
 
             # 返回详细的导入结果
@@ -418,7 +537,12 @@ class UserService:
 
     @classmethod
     async def get_import_template_user_service(cls) -> bytes:
-        """获取用户导入模板"""
+        """
+        获取用户导入模板
+        
+        返回:
+        - bytes: Excel文件字节流
+        """
         header_list = ['部门编号', '用户名', '名称', '邮箱', '手机号', '性别', '状态']
         selector_header_list = ['性别', '状态'] 
         option_list = [{'性别': ['男', '女', '未知']}, {'状态': ['正常', '停用']}]
@@ -430,7 +554,15 @@ class UserService:
 
     @classmethod
     async def export_user_list_service(cls, user_list: List[Dict[str, Any]]) -> bytes:
-        """导出用户列表"""
+        """
+        导出用户列表为Excel文件
+        
+        参数:
+        - user_list (List[Dict[str, Any]]): 用户列表
+        
+        返回:
+        - bytes: Excel文件字节流
+        """
         if not user_list:
             raise CustomException(msg="没有数据可导出")
             

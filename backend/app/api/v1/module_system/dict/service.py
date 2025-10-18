@@ -24,16 +24,48 @@ class DictTypeService:
     
     @classmethod
     async def get_obj_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
+        """
+        获取数据字典类型详情
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): 数据字典类型ID
+        
+        返回:
+        - Dict: 数据字典类型详情字典
+        """
         obj = await DictTypeCRUD(auth).get_obj_by_id_crud(id=id)
         return DictTypeOutSchema.model_validate(obj).model_dump()
     
     @classmethod
     async def get_obj_list_service(cls, auth: AuthSchema, search: Optional[DictTypeQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
+        """
+        获取数据字典类型列表
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - search (DictTypeQueryParam | None): 搜索条件模型
+        - order_by (List[Dict[str, str]] | None): 排序字段列表
+        
+        返回:
+        - List[Dict]: 数据字典类型详情字典列表
+        """
         obj_list = await DictTypeCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
         return [DictTypeOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
     @classmethod
     async def create_obj_service(cls, auth: AuthSchema, redis: Redis, data: DictTypeCreateSchema) -> Dict:
+        """
+        创建数据字典类型
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis客户端
+        - data (DictTypeCreateSchema): 数据字典类型创建模型
+        
+        返回:
+        - Dict: 数据字典类型详情字典
+        """
         exist_obj = await DictTypeCRUD(auth).get(dict_name=data.dict_name)
         if exist_obj:
             raise CustomException(msg='创建失败，该数据字典类型已存在')
@@ -57,6 +89,18 @@ class DictTypeService:
     
     @classmethod
     async def update_obj_service(cls, auth: AuthSchema, redis: Redis, id:int, data: DictTypeUpdateSchema) -> Dict:
+        """
+        更新数据字典类型
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis客户端
+        - id (int): 数据字典类型ID
+        - data (DictTypeUpdateSchema): 数据字典类型更新模型
+        
+        返回:
+        - Dict: 数据字典类型详情字典
+        """
         exist_obj = await DictTypeCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该数据字典类型不存在')
@@ -110,6 +154,17 @@ class DictTypeService:
     
     @classmethod
     async def delete_obj_service(cls, auth: AuthSchema, redis: Redis, ids: list[int]) -> None:
+        """
+        删除数据字典类型
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis客户端
+        - ids (list[int]): 数据字典类型ID列表
+        
+        返回:
+        - None
+        """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
@@ -133,11 +188,29 @@ class DictTypeService:
     
     @classmethod
     async def set_obj_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
+        """
+        设置数据字典类型状态
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (BatchSetAvailable): 批量设置状态模型
+        
+        返回:
+        - None
+        """
         await DictTypeCRUD(auth).set_obj_available_crud(ids=data.ids, status=data.status)
 
     @classmethod
     async def export_obj_service(cls, data_list: List[Dict[str, Any]]) -> bytes:
-        """导出字典类型列表"""
+        """
+        导出数据字典类型列表
+        
+        参数:
+        - data_list (List[Dict[str, Any]]): 数据字典类型列表
+        
+        返回:
+        - bytes: Excel文件字节流
+        """
         mapping_dict = {
             'id': '编号',
             'dict_name': '字典名称', 
@@ -167,17 +240,46 @@ class DictDataService:
     
     @classmethod
     async def get_obj_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
+        """
+        获取数据字典数据详情
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): 数据字典数据ID
+        
+        返回:
+        - Dict: 数据字典数据详情字典
+        """
         obj = await DictDataCRUD(auth).get_obj_by_id_crud(id=id)
         return DictDataOutSchema.model_validate(obj).model_dump()
     
     @classmethod
     async def get_obj_list_service(cls, auth: AuthSchema, search: Optional[DictDataQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
+        """
+        获取数据字典数据列表
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - search (DictDataQueryParam | None): 搜索条件模型
+        - order_by (List[Dict[str, str]] | None): 排序字段列表
+        
+        返回:
+        - List[Dict]: 数据字典数据详情字典列表
+        """
         obj_list = await DictDataCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
         return [DictDataOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
     async def init_dict_service(cls, redis: Redis):
-        """应用初始化: 获取所有字典类型对应的字典数据信息并缓存service"""
+        """
+        应用初始化: 获取所有字典类型对应的字典数据信息并缓存service
+        
+        参数:
+        - redis (Redis): Redis客户端
+        
+        返回:
+        - None
+        """
         async with AsyncSessionLocal() as session:
             async with session.begin():
                 auth = AuthSchema(db=session)
@@ -209,7 +311,16 @@ class DictDataService:
     
     @classmethod
     async def get_init_dict_service(cls, redis: Redis, dict_type: str)->List[Dict]:
-        """从缓存获取字典数据列表信息service"""
+        """
+        从缓存获取字典数据列表信息service
+        
+        参数:
+        - redis (Redis): Redis客户端
+        - dict_type (str): 字典类型
+        
+        返回:
+        - List[Dict]: 字典数据列表
+        """
         redis_key = f"{RedisInitKeyConfig.SYSTEM_DICT.key}:{dict_type}"
         obj_list_dict = await RedisCURD(redis).get(redis_key)
         if not obj_list_dict:
@@ -218,6 +329,17 @@ class DictDataService:
 
     @classmethod
     async def create_obj_service(cls, auth: AuthSchema, redis: Redis, data: DictDataCreateSchema) -> Dict:
+        """
+        创建数据字典数据
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis客户端
+        - data (DictDataCreateSchema): 数据字典数据创建模型
+        
+        返回:
+        - Dict: 数据字典数据详情字典
+        """
         exist_obj = await DictDataCRUD(auth).get(dict_label=data.dict_label)
         if exist_obj:
             raise CustomException(msg='创建失败，该字典数据已存在')
@@ -243,6 +365,18 @@ class DictDataService:
     
     @classmethod
     async def update_obj_service(cls, auth: AuthSchema, redis: Redis, id:int, data: DictDataUpdateSchema) -> Dict:
+        """
+        更新数据字典数据
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis客户端
+        - id (int): 数据字典数据ID
+        - data (DictDataUpdateSchema): 数据字典数据更新模型
+        
+        返回:
+        - Dict: 数据字典数据详情字典
+        """
         exist_obj = await DictDataCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该字典数据不存在')
@@ -298,6 +432,17 @@ class DictDataService:
     
     @classmethod
     async def delete_obj_service(cls, auth: AuthSchema, redis: Redis, ids: list[int]) -> None:
+        """
+        删除数据字典数据
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis客户端
+        - ids (list[int]): 数据字典数据ID列表
+        
+        返回:
+        - None
+        """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         
@@ -319,11 +464,29 @@ class DictDataService:
 
     @classmethod
     async def set_obj_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
+        """
+        批量修改数据字典数据状态
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (BatchSetAvailable): 批量修改数据字典数据状态负载模型
+        
+        返回:
+        - None
+        """
         await DictDataCRUD(auth).set_obj_available_crud(ids=data.ids, status=data.status)
 
     @classmethod
     async def export_obj_service(cls, data_list: List[Dict[str, Any]]) -> bytes:
-        """导出字典数据列表"""
+        """
+        导出数据字典数据列表
+        
+        参数:
+        - data_list (List[Dict[str, Any]]): 数据字典数据列表
+        
+        返回:
+        - bytes: Excel文件字节流
+        """
         mapping_dict = {
             'id': '编号',
             'dict_sort': '字典排序', 

@@ -15,7 +15,16 @@ class McpService:
 
     @classmethod
     async def detail_service(cls, auth: AuthSchema, id: int) -> Dict[str, Any]:
-        """详情"""
+        """
+        获取MCP服务器详情
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): MCP服务器ID
+        
+        返回:
+        - Dict[str, Any]: MCP服务器详情字典
+        """
         obj = await McpCRUD(auth).get_by_id_crud(id=id)
         if not obj:
             raise CustomException(msg='MCP 服务器不存在')
@@ -23,7 +32,17 @@ class McpService:
     
     @classmethod
     async def list_service(cls, auth: AuthSchema, search: Optional[McpQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, Any]]:
-        """列表查询"""
+        """
+        列表查询MCP服务器
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - search (Optional[McpQueryParam]): 查询参数模型
+        - order_by (Optional[List[Dict[str, str]]]): 排序参数列表
+        
+        返回:
+        - List[Dict[str, Any]]: MCP服务器详情字典列表
+        """
         if order_by:
             order_by = eval(str(order_by))
         obj_list = await McpCRUD(auth).get_list_crud(search=search.__dict__ if search else {}, order_by=order_by)
@@ -31,7 +50,16 @@ class McpService:
     
     @classmethod
     async def create_service(cls, auth: AuthSchema, data: McpCreateSchema) -> Dict[str, Any]:
-        """创建"""
+        """
+        创建MCP服务器
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (McpCreateSchema): 创建MCP服务器模型
+        
+        返回:
+        - Dict[str, Any]: 创建的MCP服务器详情字典
+        """
         obj = await McpCRUD(auth).get_by_name_crud(name=data.name)
         if obj:
             raise CustomException(msg='创建失败，MCP 服务器已存在')
@@ -40,7 +68,17 @@ class McpService:
     
     @classmethod
     async def update_service(cls, auth: AuthSchema, id: int, data: McpUpdateSchema) -> Dict[str, Any]:
-        """更新"""
+        """
+        更新MCP服务器
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): MCP服务器ID
+        - data (McpUpdateSchema): 更新MCP服务器模型
+        
+        返回:
+        - Dict[str, Any]: 更新的MCP服务器详情字典
+        """
         obj = await McpCRUD(auth).get_by_id_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
@@ -52,7 +90,16 @@ class McpService:
     
     @classmethod
     async def delete_service(cls, auth: AuthSchema, ids: List[int]) -> None:
-        """删除"""
+        """
+        批量删除MCP服务器
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - ids (List[int]): MCP服务器ID列表
+        
+        返回:
+        - None
+        """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
@@ -63,7 +110,15 @@ class McpService:
     
     @classmethod
     async def chat_query(cls, query: ChatQuerySchema):
-        """处理聊天查询"""
+        """
+        处理聊天查询
+        
+        参数:
+        - query (ChatQuerySchema): 聊天查询模型
+        
+        返回:
+        - AsyncGenerator[str, None]: 异步生成器,每次返回一个聊天响应
+        """
         # 创建MCP客户端实例
         mcp_client = AIClient()
         try:

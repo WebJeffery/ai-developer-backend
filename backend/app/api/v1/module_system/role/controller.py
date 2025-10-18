@@ -30,6 +30,17 @@ async def get_obj_list_controller(
     search: RoleQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["system:role:query"])),
 ) -> JSONResponse:
+    """
+    查询角色
+    
+    参数:
+    - page (PaginationQueryParam): 分页查询参数模型
+    - search (RoleQueryParam): 查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 分页查询结果JSON响应
+    """
     order_by = [{"order": "asc"}]
     if page.order_by:
         order_by = page.order_by
@@ -44,6 +55,16 @@ async def get_obj_detail_controller(
     id: int = Path(..., description="角色ID"),
     auth: AuthSchema = Depends(AuthPermission(["system:role:query"])),
 ) -> JSONResponse:
+    """
+    查询角色详情
+    
+    参数:
+    - id (int): 角色ID
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 角色详情JSON响应
+    """
     result_dict = await RoleService.get_role_detail_service(id=id, auth=auth)
     logger.info(f"获取角色详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取角色详情成功")
@@ -54,6 +75,16 @@ async def create_obj_controller(
     data: RoleCreateSchema,
     auth: AuthSchema = Depends(AuthPermission(["system:role:create"])),
 ) -> JSONResponse:
+    """
+    创建角色
+    
+    参数:
+    - data (RoleCreateSchema): 创建角色模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 创建角色JSON响应
+    """
     result_dict = await RoleService.create_role_service(data=data, auth=auth)
     logger.info(f"创建角色成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="创建角色成功")
@@ -65,6 +96,17 @@ async def update_obj_controller(
     id: int = Path(..., description="角色ID"),
     auth: AuthSchema = Depends(AuthPermission(["system:role:update"])),
 ) -> JSONResponse:
+    """
+    修改角色
+    
+    参数:
+    - data (RoleUpdateSchema): 修改角色模型
+    - id (int): 角色ID
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 修改角色JSON响应
+    """
     result_dict = await RoleService.update_role_service(id=id, data=data, auth=auth)
     logger.info(f"修改角色成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改角色成功")
@@ -75,6 +117,16 @@ async def delete_obj_controller(
     ids: list[int] = Body(..., description="ID列表"),
     auth: AuthSchema = Depends(AuthPermission(["system:role:delete"])),
 ) -> JSONResponse:
+    """
+    删除角色
+    
+    参数:
+    - ids (list[int]): ID列表
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 删除角色JSON响应
+    """
     await RoleService.delete_role_service(ids=ids, auth=auth)
     logger.info(f"删除角色成功: {ids}")
     return SuccessResponse(msg="删除角色成功")
@@ -85,6 +137,16 @@ async def batch_set_available_obj_controller(
     data: BatchSetAvailable,
     auth: AuthSchema = Depends(AuthPermission(["system:role:patch"])),
 ) -> JSONResponse:
+    """
+    批量修改角色状态
+    
+    参数:
+    - data (BatchSetAvailable): 批量修改角色状态模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 批量修改角色状态JSON响应
+    """
     await RoleService.set_role_available_service(data=data, auth=auth)
     logger.info(f"批量修改角色状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改角色状态成功")
@@ -95,6 +157,16 @@ async def set_role_permission_controller(
     data: RolePermissionSettingSchema,
     auth: AuthSchema = Depends(AuthPermission(["system:role:permission"])),
 ) -> JSONResponse:
+    """
+    角色授权
+    
+    参数:
+    - data (RolePermissionSettingSchema): 角色授权模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 角色授权JSON响应
+    """
     await RoleService.set_role_permission_service(data=data, auth=auth)
     logger.info(f"设置角色权限成功: {data}")
     return SuccessResponse(msg="授权角色成功")
@@ -105,7 +177,16 @@ async def export_obj_list_controller(
     search: RoleQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["system:role:export"])),
 ) -> StreamingResponse:
-    # 获取全量数据
+    """
+    导出角色
+    
+    参数:
+    - search (RoleQueryParam): 查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - StreamingResponse: 导出角色流响应
+    """
     role_query_result = await RoleService.get_role_list_service(search=search, auth=auth)
     role_export_result = await RoleService.export_role_list_service(role_list=role_query_result)
     logger.info('导出角色成功')

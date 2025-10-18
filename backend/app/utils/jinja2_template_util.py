@@ -8,7 +8,6 @@ from typing import Dict, List, Any, Set
 
 from app.common.constant import GenConstant
 from app.config.setting import settings
-from app.core.exceptions import CustomException
 from app.api.v1.module_generator.gencode.schema import GenTableOutSchema, GenTableColumnOutSchema
 from app.utils.string_util import StringUtil
 
@@ -21,19 +20,27 @@ class Jinja2TemplateInitializerUtil:
     @classmethod
     def init_jinja2(cls):
         """
-        初始化 Jinja2 模板引擎
-
-        :return: Jinja2 环境对象
+        初始化 Jinja2 模板引擎。
+        
+        参数:
+        - 无
+        
+        返回:
+        - Environment: Jinja2 环境对象。
+        
+        异常:
+        - RuntimeError: 初始化失败时抛出。
         """
         try:
             # 修复模板路径，使用正确的相对路径
 
             env = Environment(
                 loader=FileSystemLoader(settings.TEMPLATE_DIR),
-                autoescape=select_autoescape(['html', 'xml']),
-                keep_trailing_newline=True,
-                trim_blocks=True,
-                lstrip_blocks=True,
+                autoescape=select_autoescape(['html', 'xml', 'jinja']), # 自动转义HTML
+                trim_blocks=True,   # 删除多余的空行
+                lstrip_blocks=True,  # 删除行首空格
+                keep_trailing_newline=True,  # 保留行尾换行符
+                enable_async=True,  # 开启异步支持  
             )
             env.filters.update(
                 {
@@ -62,23 +69,48 @@ class Jinja2TemplateUtil:
     
     @classmethod
     def get_env(cls) -> Environment:
-        """获取模板环境对象"""
+        """
+        获取模板环境对象。
+        
+        参数:
+        - 无
+        
+        返回:
+        - Environment: Jinja2 环境对象。
+        
+        异常:
+        - RuntimeError: 初始化失败时抛出。
+        """
         if cls._env is None:
             cls._env = Jinja2TemplateInitializerUtil.init_jinja2()
         return cls._env
     
     @classmethod
     def get_template(cls, template_path: str) -> Template:
-        """获取模板"""
+        """
+        获取模板。
+        
+        参数:
+        - template_path (str): 模板路径。
+        
+        返回:
+        - Template: Jinja2 模板对象。
+        
+        异常:
+        - TemplateNotFound: 模板未找到时抛出。
+        """
         return cls.get_env().get_template(template_path)
     
     @classmethod
     def prepare_context(cls, gen_table: GenTableOutSchema)  -> dict[str, Any]:
         """
-        准备模板变量
-
-        :param gen_table: 生成表的配置信息
-        :return: 模板上下文字典
+        准备模板变量。
+        
+        参数:
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - Dict[str, Any]: 模板上下文字典。
         """
         # 处理options为None的情况
         options = gen_table.options or '{}'
@@ -113,7 +145,7 @@ class Jinja2TemplateUtil:
             'columns': gen_table.columns or [],
             'table': gen_table,
             'dicts': cls.get_dicts(gen_table),
-            'dbType': settings.DATABASE_TYPE,
+            'db_type': settings.DATABASE_TYPE,
             'column_not_add_show': GenConstant.COLUMNNAME_NOT_ADD_SHOW,
             'column_not_edit_show': GenConstant.COLUMNNAME_NOT_EDIT_SHOW,
             'primary_key': gen_table.pk_column.python_field if gen_table.pk_column else ''
@@ -131,11 +163,14 @@ class Jinja2TemplateUtil:
     @classmethod
     def set_menu_context(cls, context: Dict, gen_table: GenTableOutSchema):
         """
-        设置菜单上下文
-
-        :param context: 模板上下文字典
-        :param gen_table: 生成表的配置信息
-        :return: 新的模板上下文字典
+        设置菜单上下文。
+        
+        参数:
+        - context (Dict): 模板上下文字典。
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - Dict: 更新后的模板上下文字典。
         """
         # 处理options为None的情况
         options = gen_table.options or '{}'
@@ -148,11 +183,14 @@ class Jinja2TemplateUtil:
     @classmethod
     def set_tree_context(cls, context: Dict, gen_table: GenTableOutSchema):
         """
-        设置树形结构上下文
-
-        :param context: 模板上下文字典
-        :param gen_table: 生成表的配置信息
-        :return: 新的模板上下文字典
+        设置树形结构上下文。
+        
+        参数:
+        - context (Dict): 模板上下文字典。
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - Dict: 更新后的模板上下文字典。
         """
         # 处理options为None的情况
         options = gen_table.options or '{}'
@@ -168,11 +206,14 @@ class Jinja2TemplateUtil:
     @classmethod
     def set_sub_context(cls, context: Dict, gen_table: GenTableOutSchema):
         """
-        设置子表上下文
-
-        :param context: 模板上下文字典
-        :param gen_table: 生成表的配置信息
-        :return: 新的模板上下文字典
+        设置子表上下文。
+        
+        参数:
+        - context (Dict): 模板上下文字典。
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - Dict: 更新后的模板上下文字典。
         """
         sub_table = gen_table.sub_table
         sub_table_name = gen_table.sub_table_name or ''
@@ -191,11 +232,14 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_template_list(cls, tpl_category: str, tpl_web_type: str):
         """
-        获取模板列表
-
-        :param tpl_category: 生成模板类型
-        :param tpl_web_type: 前端类型
-        :return: 模板列表
+        获取模板列表。
+        
+        参数:
+        - tpl_category (str): 生成模板类型。
+        - tpl_web_type (str): 前端类型。
+        
+        返回:
+        - List[str]: 模板路径列表。
         """
         use_web_type = 'vue'
         # 处理空值情况
@@ -222,17 +266,19 @@ class Jinja2TemplateUtil:
             templates.append(f'{use_web_type}/index-tree.vue.j2')
         elif category == GenConstant.TPL_SUB:
             templates.append(f'{use_web_type}/index.vue.j2')
-            # templates.append('python/sub-domain.python.jinja2')
         return templates
     
     @classmethod
     def get_file_name(cls, template: List[str], gen_table: GenTableOutSchema):
         """
-        根据模板生成文件名
+        根据模板生成文件名。
 
-        :param template: 模板列表
-        :param gen_table: 生成表的配置信息
-        :return: 模板生成文件名
+        参数:
+        - template (List[str]): 模板列表。
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - str: 模板生成的文件名。
         """
         package_name = gen_table.package_name or ''
         module_name = gen_table.module_name or ''
@@ -242,40 +288,48 @@ class Jinja2TemplateUtil:
         python_path = f'{cls.BACKEND_PROJECT_PATH}/{package_name.replace(".", "/")}' if package_name else cls.BACKEND_PROJECT_PATH
 
         if 'controller.py.j2' in template:
-            return f'{python_path}/controller/{business_name}_controller.py'
+            return f'{python_path}/app/api/v1/{module_name}/{business_name}/controller.py'
         elif 'crud.py.j2' in template:
-            return f'{python_path}/crud/{business_name}_crud.py'
+            return f'{python_path}/app/api/v1/{module_name}/{business_name}/crud.py'
         elif 'model.py.j2' in template:
-            return f'{python_path}/entity/model/{business_name}_model.py'
+            return f'{python_path}/app/api/v1/{module_name}/{business_name}/model.py'
         elif 'service.py.j2' in template:
-            return f'{python_path}/service/{business_name}_service.py'
+            return f'{python_path}/app/api/v1/{module_name}/{business_name}/service.py'
+        elif 'param.py.j2' in template:
+            return f'{python_path}/app/api/v1/{module_name}/{business_name}/param.py'
         elif 'schema.py.j2' in template:
-            return f'{python_path}/entity/schema/{business_name}_schema.py'
+            return f'{python_path}/app/api/v1/{module_name}/{business_name}/schema.py'
         elif 'sql.j2' in template:
-            return f'{cls.BACKEND_PROJECT_PATH}/sql/{business_name}_menu.sql'
+            return f'{cls.BACKEND_PROJECT_PATH}/sql/{module_name}/{business_name}_menu.sql'
         elif 'api.ts.j2' in template:
-            return f'{vue_path}/api/{module_name}/{business_name}.ts'
+            return f'{vue_path}/src/api/{module_name}/{business_name}.ts'
         elif 'index.vue.j2' in template or 'index-tree.vue.j2' in template:
-            return f'{vue_path}/views/{module_name}/{business_name}/index.vue'
+            return f'{vue_path}/src/views/{module_name}/{business_name}/index.vue'
         return ''
 
     @classmethod
     def get_package_prefix(cls, package_name: str) -> str:
         """
-        获取包前缀
+        获取包前缀。
 
-        :param package_name: 包名
-        :return: 包前缀
+        参数:
+        - package_name (str): 包名。
+        
+        返回:
+        - str: 包前缀。
         """
         return package_name[: package_name.rfind('.')]
 
     @classmethod
     def get_vo_import_list(cls, gen_table: GenTableOutSchema):
         """
-        获取vo模板导入包列表
+        获取 VO 模板导入包列表。
 
-        :param gen_table: 生成表的配置信息
-        :return: 导入包列表
+        参数:
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - List[str]: 导入包列表。
         """
         columns = gen_table.columns or []
         import_list = set()
@@ -301,10 +355,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_do_import_list(cls, gen_table: GenTableOutSchema) -> List[str]:
         """
-        获取do模板导入包列表
+        获取 DO 模板导入包列表。
 
-        :param gen_table: 生成表的配置信息
-        :return: 导入包列表
+        参数:
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - List[str]: 导入包列表。
         """
         columns = gen_table.columns or []
         import_list = set()
@@ -334,10 +391,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_db_type(cls, column_type: str) -> str:
         """
-        获取数据库类型字段
+        获取数据库字段类型。
 
-        param column_type: 字段类型
-        :return: 数据库类型
+        参数:
+        - column_type (str): 字段类型字符串。
+        
+        返回:
+        - str: 数据库类型（去除长度等修饰）。
         """
         if '(' in column_type:
             return column_type.split('(')[0]
@@ -346,11 +406,14 @@ class Jinja2TemplateUtil:
     @classmethod
     def merge_same_imports(cls, imports: List[str], import_start: str) -> List[str]:
         """
-        合并相同的导入语句
+        合并相同的导入语句。
 
-        :param imports: 导入语句列表
-        :param import_start: 导入语句的起始字符串
-        :return: 合并后的导入语句列表
+        参数:
+        - imports (List[str]): 导入语句列表。
+        - import_start (str): 导入语句的起始字符串。
+        
+        返回:
+        - List[str]: 合并后的导入语句列表。
         """
         merged_imports = []
         _imports = []
@@ -370,10 +433,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_dicts(cls, gen_table: GenTableOutSchema):
         """
-        获取字典列表
+        获取字典列表。
 
-        :param gen_table: 生成表的配置信息
-        :return: 字典列表
+        参数:
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - str: 以逗号分隔的字典类型字符串。
         """
         columns = gen_table.columns or []
         dicts = set()
@@ -388,11 +454,14 @@ class Jinja2TemplateUtil:
     @classmethod
     def add_dicts(cls, dicts: Set[str], columns: List[GenTableColumnOutSchema]):
         """
-        添加字典列表
+        添加字典类型到集合。
 
-        :param dicts: 字典列表
-        :param columns: 字段列表
-        :return: 新的字典列表
+        参数:
+        - dicts (Set[str]): 字典类型集合。
+        - columns (List[GenTableColumnOutSchema]): 字段列表。
+        
+        返回:
+        - Set[str]: 更新后的字典类型集合。
         """
         for column in columns:
             # 处理column.super_column, column.dict_type, column.html_type为None的情况
@@ -412,21 +481,27 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_permission_prefix(cls, module_name: str | None, business_name: str | None) -> str:
         """
-        获取权限前缀
+        获取权限前缀。
 
-        :param module_name: 模块名
-        :param business_name: 业务名
-        :return: 权限前缀
+        参数:
+        - module_name (str | None): 模块名。
+        - business_name (str | None): 业务名。
+        
+        返回:
+        - str: 权限前缀字符串。
         """
         return f'{module_name}:{business_name}'
     
     @classmethod
     def get_parent_menu_id(cls, params_obj: Dict):
         """
-        获取上级菜单ID
+        获取上级菜单ID。
 
-        :param params_obj: 菜单参数字典
-        :return: 上级菜单ID
+        参数:
+        - params_obj (Dict): 菜单参数字典。
+        
+        返回:
+        - str: 上级菜单ID。
         """
         if params_obj and params_obj.get(GenConstant.PARENT_MENU_ID):
             return params_obj.get(GenConstant.PARENT_MENU_ID)
@@ -435,10 +510,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_tree_code(cls, params_obj: Dict):
         """
-        获取树编码
+        获取树编码。
 
-        :param params_obj: 菜单参数字典
-        :return: 树编码
+        参数:
+        - params_obj (Dict): 菜单参数字典。
+        
+        返回:
+        - str: 树编码（驼峰格式）。
         """
         if GenConstant.TREE_CODE in params_obj:
             tree_code = params_obj.get(GenConstant.TREE_CODE)
@@ -450,10 +528,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_tree_parent_code(cls, params_obj: Dict):
         """
-        获取树父编码
+        获取树父编码。
 
-        :param params_obj: 菜单参数字典
-        :return: 树父编码
+        参数:
+        - params_obj (Dict): 菜单参数字典。
+        
+        返回:
+        - str: 树父编码（驼峰格式）。
         """
         if GenConstant.TREE_PARENT_CODE in params_obj:
             tree_parent_code = params_obj.get(GenConstant.TREE_PARENT_CODE)
@@ -465,10 +546,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_tree_name(cls, params_obj: Dict):
         """
-        获取树名称
+        获取树名称。
 
-        :param params_obj: 菜单参数字典
-        :return: 树名称
+        参数:
+        - params_obj (Dict): 菜单参数字典。
+        
+        返回:
+        - str: 树名称（驼峰格式）。
         """
         if GenConstant.TREE_NAME in params_obj:
             tree_name = params_obj.get(GenConstant.TREE_NAME)
@@ -480,10 +564,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_expand_column(cls, gen_table: GenTableOutSchema):
         """
-        获取展开列
+        获取展开列位置序号。
 
-        :param gen_table: 生成表的配置信息
-        :return: 展开列
+        参数:
+        - gen_table (GenTableOutSchema): 生成表的配置信息。
+        
+        返回:
+        - int: 展开列在列表中的序号（从 1 开始）。
         """
         # 处理options为None的情况
         options = gen_table.options or '{}'
@@ -505,10 +592,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def to_camel_case(cls, text: str) -> str:
         """
-        将字符串转换为驼峰命名
+        将字符串转换为驼峰命名。
 
-        :param text: 待转换的字符串
-        :return: 转换后的驼峰命名字符串
+        参数:
+        - text (str): 待转换的字符串。
+        
+        返回:
+        - str: 转换后的驼峰命名字符串。
         """
         parts = text.split('_')
         return parts[0] + ''.join(word.capitalize() for word in parts[1:])
@@ -516,10 +606,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_sqlalchemy_type(cls, column_type):
         """
-        获取SQLAlchemy类型
+        获取 SQLAlchemy 类型。
 
-        :param column_type: 列类型
-        :return: SQLAlchemy类型
+        参数:
+        - column_type (Any): 列类型或包含 `column_type` 属性的对象。
+        
+        返回:
+        - str: SQLAlchemy 类型字符串。
         """
         # 适配可能传入的是对象而非字符串的情况
         if hasattr(column_type, 'column_type'):

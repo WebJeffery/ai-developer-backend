@@ -23,7 +23,12 @@ class ServerService:
 
     @classmethod
     async def get_server_monitor_info_service(cls) -> Dict:
-        """获取服务器监控信息"""
+        """
+        获取服务器监控信息
+        
+        返回:
+        - Dict: 包含服务器监控信息的字典。
+        """
         return ServerMonitorSchema(
             cpu=cls._get_cpu_info(),
             mem=cls._get_memory_info(),
@@ -34,7 +39,12 @@ class ServerService:
 
     @classmethod
     def _get_cpu_info(cls) -> CpuInfoSchema:
-        """获取CPU信息"""
+        """
+        获取CPU信息
+        
+        返回:
+        - CpuInfoSchema: CPU信息模型。
+        """
         cpu_times = psutil.cpu_times_percent()
         cpu_num=psutil.cpu_count(logical=True)
         if not cpu_num:
@@ -48,7 +58,12 @@ class ServerService:
 
     @classmethod
     def _get_memory_info(cls) -> MemoryInfoSchema:
-        """获取内存信息"""
+        """
+        获取内存信息
+        
+        返回:
+        - MemoryInfoSchema: 内存信息模型。
+        """
         memory = psutil.virtual_memory()
         return MemoryInfoSchema(
             total=bytes2human(memory.total),
@@ -59,7 +74,12 @@ class ServerService:
 
     @classmethod
     def _get_system_info(cls) -> SysInfoSchema:
-        """获取系统信息"""
+        """
+        获取系统信息
+        
+        返回:
+        - SysInfoSchema: 系统信息模型。
+        """
         hostname = socket.gethostname()
         return SysInfoSchema(
             computer_ip=socket.gethostbyname(hostname),
@@ -71,7 +91,12 @@ class ServerService:
 
     @classmethod
     def _get_python_info(cls) -> PyInfoSchema:
-        """获取Python解释器信息"""
+        """
+        获取Python解释器信息
+        
+        返回:
+        - PyInfoSchema: Python解释器信息模型。
+        """
         current_process = psutil.Process()
         memory = psutil.virtual_memory()
         process_memory = current_process.memory_info()
@@ -93,7 +118,12 @@ class ServerService:
 
     @classmethod
     def _get_disk_info(cls) -> List[DiskInfoSchema]:
-        """获取磁盘信息"""
+        """
+        获取磁盘信息
+        
+        返回:
+        - List[DiskInfoSchema]: 磁盘信息模型列表。
+        """
         disk_info = []
         for partition in psutil.disk_partitions():
             try:
@@ -118,7 +148,15 @@ class ServerService:
 
     @classmethod
     def _calculate_run_time(cls,start_time: float) -> str:
-        """计算运行时间"""
+        """
+        计算运行时间
+        
+        参数:
+        - start_time (float): 进程启动时间（时间戳）
+        
+        返回:
+        - str: 格式化后的运行时间字符串（例如："1天2小时3分钟"）
+        """
         difference = time.time() - start_time
         days = int(difference // (24 * 60 * 60))
         hours = int((difference % (24 * 60 * 60)) // (60 * 60))

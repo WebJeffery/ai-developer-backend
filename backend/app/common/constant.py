@@ -178,10 +178,14 @@ class RET(Enum):
 
     def __init__(self, code: int, msg: str):
         """
-        初始化返回码
+        初始化返回码。
         
-        :param code: 错误码
-        :param msg: 错误信息
+        参数:
+        - code (int): 错误码。
+        - msg (str): 错误信息。
+        
+        返回:
+        - None
         """
         self._code = code
         self._msg = msg

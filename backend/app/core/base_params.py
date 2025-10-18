@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Optional, List, Dict
+from typing import Optional
 from fastapi import Query
 
 
@@ -14,11 +14,15 @@ class PaginationQueryParam:
         order_by: Optional[str] = Query(default=None, description="排序字段,格式:field1,asc;field2,desc"),
     ) -> None:
         """
-        初始化分页查询参数
+        初始化分页查询参数。
         
-        :param page_no: 当前页码,默认None
-        :param page_size: 每页数量,默认None,最大100
-        :param order_by: 排序字段
+        参数:
+        - page_no (int | None): 当前页码，默认 None。
+        - page_size (int | None): 每页数量，默认 None，最大 100。
+        - order_by (str | None): 排序字段，格式 'field,asc;field2,desc'。
+        
+        返回:
+        - None
         """
         self.page_no = page_no
         self.page_size = page_size

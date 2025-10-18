@@ -20,7 +20,12 @@ ServerRouter = APIRouter(route_class=OperationLogRoute, prefix="/server", tags=[
     dependencies=[Depends(AuthPermission(["monitor:server:query"]))]
 )
 async def get_monitor_server_info_controller() -> JSONResponse:
-    # 获取全量数据
+    """
+    查询服务器监控信息
+    
+    返回:
+    - JSONResponse: 包含服务器监控信息的JSON响应。
+    """
     result_dict = await ServerService.get_server_monitor_info_service()
     logger.info(f'获取服务器监控信息成功: {result_dict}')
 

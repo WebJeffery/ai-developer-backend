@@ -18,10 +18,13 @@ class DeptCRUD(CRUDBase[DeptModel, DeptCreateSchema, DeptUpdateSchema]):
 
     async def get_by_id_crud(self, id: int) -> Optional[DeptModel]:
         """
-        根据id获取部门信息
+        根据 id 获取部门信息。
         
-        :param id: 部门ID
-        :return: 部门信息
+        参数:
+        - id (int): 部门 ID。
+        
+        返回:
+        - DeptModel | None: 部门信息，未找到返回 None。
         """
         obj = await self.get(id=id)
         if not obj:
@@ -30,36 +33,52 @@ class DeptCRUD(CRUDBase[DeptModel, DeptCreateSchema, DeptUpdateSchema]):
 
     async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DeptModel]:
         """
-        获取部门列表
+        获取部门列表。
         
-        :param search: 搜索条件
-        :param order_by: 排序字段
-        :return: 部门列表
+        参数:
+        - search (Dict | None): 搜索条件。
+        - order_by (List[Dict[str, str]] | None): 排序字段列表。
+        
+        返回:
+        - Sequence[DeptModel]: 部门列表。
         """
         return await self.list(search=search, order_by=order_by)
 
     async def get_tree_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DeptModel]:
         """
-        获取部门树形列表
+        获取部门树形列表。
         
-        :param search: 搜索条件
-        :param order_by: 排序字段
-        :return: 部门树形列表
+        参数:
+        - search (Dict | None): 搜索条件。
+        - order_by (List[Dict[str, str]] | None): 排序字段列表。
+        
+        返回:
+        - Sequence[DeptModel]: 部门树形列表。
         """
         return await self.tree_list(search=search, order_by=order_by, children_attr='children')
 
     async def set_available_crud(self, ids: List[int], status: bool) -> None:
         """
-        批量设置部门可用状态
+        批量设置部门可用状态。
         
-        :param ids: 部门ID列表
-        :param status: 可用状态
+        参数:
+        - ids (List[int]): 部门 ID 列表。
+        - status (bool): 可用状态。
+        
+        返回:
+        - None
         """
         await self.set(ids=ids, status=status)
 
     async def get_name_crud(self, id: int) -> Optional[str]:
         """
-        根据id获取部门名称
+        根据 id 获取部门名称。
+        
+        参数:
+        - id (int): 部门 ID。
+        
+        返回:
+        - str | None: 部门名称，未找到返回 None。
         """
         obj = await self.get(id=id)
         return obj.name if obj else None

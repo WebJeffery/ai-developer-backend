@@ -35,14 +35,27 @@ class ResourceService:
     
     @classmethod
     def _get_resource_root(cls) -> str:
-        """获取资源管理根目录"""
+        """
+        获取资源管理根目录
+        
+        返回:
+        - str: 资源管理根目录路径。
+        """
         if not settings.STATIC_ENABLE:
             raise CustomException(msg='静态文件服务未启用')
         return str(settings.STATIC_ROOT)
     
     @classmethod
     def _get_safe_path(cls, path: Optional[str] = None) -> str:
-        """获取安全的文件路径"""
+        """
+        获取安全的文件路径
+        
+        参数:
+        - path (Optional[str]): 原始文件路径。
+        
+        返回:
+        - str: 安全的文件路径。
+        """
         resource_root = cls._get_resource_root()
         
         if not path:
@@ -72,7 +85,15 @@ class ResourceService:
     
     @classmethod
     def _path_exists(cls, path: str) -> bool:
-        """检查路径是否存在"""
+        """
+        检查路径是否存在
+        
+        参数:
+        - path (str): 要检查的路径。
+        
+        返回:
+        - bool: 如果路径存在则返回True，否则返回False。
+        """
         try:
             safe_path = cls._get_safe_path(path)
             return os.path.exists(safe_path)
@@ -81,7 +102,16 @@ class ResourceService:
     
     @classmethod
     def _generate_http_url(cls, file_path: str, base_url: Optional[str] = None) -> str:
-        """生成文件的HTTP URL"""
+        """
+        生成文件的HTTP URL
+        
+        参数:
+        - file_path (str): 文件的绝对路径。
+        - base_url (Optional[str]): 基础URL，用于生成完整URL。
+        
+        返回:
+        - str: 文件的HTTP URL。
+        """
         resource_root = cls._get_resource_root()
         try:
             relative_path = os.path.relpath(file_path, resource_root)
@@ -108,7 +138,16 @@ class ResourceService:
     
     @classmethod
     def _get_file_info(cls, file_path: str, base_url: Optional[str] = None) -> Dict[str, Any]:
-        """获取文件信息"""
+        """
+        获取文件或目录的详细信息，如名称、大小、创建时间、修改时间、路径、深度、HTTP URL、是否隐藏、是否为目录等。
+        
+        参数:
+        - file_path (str): 文件或目录的路径。
+        - base_url (Optional[str]): 基础URL，用于生成完整URL。
+        
+        返回:
+        - Dict[str, Any]: 文件或目录的详细信息字典。
+        """
         try:
             safe_path = cls._get_safe_path(file_path)
             if not os.path.exists(safe_path):
@@ -160,7 +199,17 @@ class ResourceService:
     
     @classmethod
     async def get_directory_list_service(cls, path: Optional[str] = None, include_hidden: bool = False, base_url: Optional[str] = None) -> Dict:
-        """获取目录列表"""
+        """
+        获取目录列表
+        
+        参数:
+        - path (Optional[str]): 目录路径。如果未指定，将使用静态文件根目录。
+        - include_hidden (bool): 是否包含隐藏文件。
+        - base_url (Optional[str]): 基础URL，用于生成完整URL。
+        
+        返回:
+        - Dict: 包含目录列表和统计信息的字典。
+        """
         try:
             # 如果没有指定路径，使用静态文件根目录
             if path is None:
@@ -219,7 +268,17 @@ class ResourceService:
 
     @classmethod
     async def get_resources_list_service(cls, search: Optional[ResourceSearchQueryParam] = None, order_by: Optional[str] = None, base_url: Optional[str] = None) -> List[Dict]:
-        """搜索资源列表（用于分页和导出）"""
+        """
+        搜索资源列表（用于分页和导出）
+        
+        参数:
+        - search (Optional[ResourceSearchQueryParam]): 查询参数模型。
+        - order_by (Optional[str]): 排序参数。
+        - base_url (Optional[str]): 基础URL，用于生成完整URL。
+        
+        返回:
+        - List[Dict]: 资源详情字典列表。
+        """
         try:
             # 确定搜索路径
             if search and hasattr(search, 'path') and search.path:
@@ -273,7 +332,15 @@ class ResourceService:
 
     @classmethod
     async def export_resource_service(cls, data_list: List[Dict[str, Any]]) -> bytes:
-        """导出资源列表"""
+        """
+        导出资源列表
+        
+        参数:
+        - data_list (List[Dict[str, Any]]): 资源详情字典列表。
+        
+        返回:
+        - bytes: Excel文件的二进制数据。
+        """
         mapping_dict = {
             'name': '文件名',
             'path': '文件路径',
@@ -295,7 +362,16 @@ class ResourceService:
 
     @classmethod
     async def _get_directory_stats(cls, path: str, include_hidden: bool = False) -> Dict[str, int]:
-        """递归获取目录统计信息"""
+        """
+        递归获取目录统计信息
+        
+        参数:
+        - path (str): 目录路径。
+        - include_hidden (bool): 是否包含隐藏文件。
+        
+        返回:
+        - Dict[str, int]: 包含文件数、目录数和总大小的字典。
+        """
         stats = {'files': 0, 'dirs': 0, 'size': 0}
         
         try:
@@ -322,7 +398,16 @@ class ResourceService:
     
     @classmethod
     def _sort_results(cls, results: List[Dict], order_by: Optional[str] = None) -> List[Dict]:
-        """排序搜索结果"""
+        """
+        排序搜索结果
+        
+        参数:
+        - results (List[Dict]): 资源详情字典列表。
+        - order_by (Optional[str]): 排序参数。
+        
+        返回:
+        - List[Dict]: 排序后的资源详情字典列表。
+        """
         try:
             # 默认按名称升序排序
             if not order_by:
@@ -363,7 +448,17 @@ class ResourceService:
 
     @classmethod
     async def upload_file_service(cls,  file: UploadFile, target_path: Optional[str] = None, base_url: Optional[str] = None) -> Dict:
-        """上传文件到指定目录"""
+        """
+        上传文件到指定目录
+        
+        参数:
+        - file (UploadFile): 上传的文件对象。
+        - target_path (Optional[str]): 目标目录路径。
+        - base_url (Optional[str]): 基础URL，用于生成完整URL。
+        
+        返回:
+        - Dict: 包含文件信息的字典。
+        """
         if not file or not file.filename:
             raise CustomException(msg="请选择要上传的文件")
         
@@ -426,7 +521,16 @@ class ResourceService:
 
     @classmethod
     async def download_file_service(cls, file_path: str, base_url: Optional[str] = None) -> str:
-        """下载文件（返回文件路径）"""
+        """
+        下载文件（返回文件路径）
+        
+        参数:
+        - file_path (str): 文件路径。
+        - base_url (Optional[str]): 基础URL，用于生成完整URL。
+        
+        返回:
+        - str: 文件访问URL。
+        """
         try:
             safe_path = cls._get_safe_path(file_path)
             
@@ -449,7 +553,15 @@ class ResourceService:
 
     @classmethod
     async def delete_file_service(cls, paths: List[str]) -> None:
-        """删除文件或目录"""
+        """
+        删除文件或目录
+        
+        参数:
+        - paths (List[str]): 文件或目录路径列表。
+        
+        返回:
+        - None
+        """
         if not paths:
             raise CustomException(msg='删除失败，删除路径不能为空')
         
@@ -474,7 +586,15 @@ class ResourceService:
 
     @classmethod
     async def batch_delete_service(cls, paths: List[str]) -> Dict[str, List[str]]:
-        """批量删除文件或目录"""
+        """
+        批量删除文件或目录
+        
+        参数:
+        - paths (List[str]): 文件或目录路径列表。
+        
+        返回:
+        - Dict[str, List[str]]: 包含成功删除路径和失败删除路径的字典。
+        """
         if not paths:
             raise CustomException(msg='删除失败，删除路径不能为空')
         
@@ -509,7 +629,15 @@ class ResourceService:
 
     @classmethod
     async def move_file_service(cls, data: ResourceMoveSchema) -> None:
-        """移动文件或目录"""
+        """
+        移动文件或目录
+        
+        参数:
+        - data (ResourceMoveSchema): 包含源路径和目标路径的模型。
+        
+        返回:
+        - None
+        """
         try:
             source_path = cls._get_safe_path(data.source_path)
             target_path = cls._get_safe_path(data.target_path)
@@ -544,7 +672,15 @@ class ResourceService:
 
     @classmethod
     async def copy_file_service(cls, data: ResourceCopySchema) -> None:
-        """复制文件或目录"""
+        """
+        复制文件或目录
+        
+        参数:
+        - data (ResourceCopySchema): 包含源路径和目标路径的模型。
+        
+        返回:
+        - None
+        """
         try:
             source_path = cls._get_safe_path(data.source_path)
             target_path = cls._get_safe_path(data.target_path)
@@ -576,7 +712,15 @@ class ResourceService:
 
     @classmethod
     async def rename_file_service(cls, data: ResourceRenameSchema) -> None:
-        """重命名文件或目录"""
+        """
+        重命名文件或目录
+        
+        参数:
+        - data (ResourceRenameSchema): 包含旧路径和新名称的模型。
+        
+        返回:
+        - None
+        """
         try:
             old_path = cls._get_safe_path(data.old_path)
             
@@ -602,7 +746,15 @@ class ResourceService:
 
     @classmethod
     async def create_directory_service(cls, data: ResourceCreateDirSchema) -> None:
-        """创建目录"""
+        """
+        创建目录
+        
+        参数:
+        - data (ResourceCreateDirSchema): 包含父目录路径和目录名称的模型。
+        
+        返回:
+        - None
+        """
         try:
             parent_path = cls._get_safe_path(data.parent_path)
             
@@ -634,7 +786,15 @@ class ResourceService:
 
     @classmethod
     def _format_file_size(cls, size_bytes: int) -> str:
-        """格式化文件大小"""
+        """
+        格式化文件大小
+        
+        参数:
+        - size_bytes (int): 文件大小（字节）
+        
+        返回:
+        - str: 格式化后的文件大小字符串（例如："123.45MB"）
+        """
         if size_bytes == 0:
             return "0B"
         

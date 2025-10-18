@@ -25,14 +25,20 @@ class PaginationService:
     @staticmethod
     async def paginate(data_list: List[Any], page_no: Optional[int] = None, page_size: Optional[int] = None) -> Dict[str, Any]:
         """
-        输入数据列表data_list和分页信息，返回分页或非分页数据列表结果。
-        如果未传入page_no和page_size，则返回全部数据。
+        分页数据处理。
+        输入数据列表和分页信息，返回分页或非分页数据列表结果。
+        未传入 page_no 和 page_size 时，返回全部数据。
 
-        :param data_list: 原始数据列表
-        :param page_no: 当前页码,默认为None
-        :param page_size: 当前页面数据量,默认为None
-        :return: 分页或非分页数据对象
-        :raises: CustomException 当分页参数不合法时抛出
+        参数:
+        - data_list (List[Any]): 原始数据列表。
+        - page_no (int | None): 当前页码，默认 None。
+        - page_size (int | None): 每页数据量，默认 None。
+
+        返回:
+        - Dict[str, Any]: 分页或非分页数据对象。
+
+        异常:
+        - CustomException: 当分页参数不合法时抛出。
         """
         total = len(data_list)
 

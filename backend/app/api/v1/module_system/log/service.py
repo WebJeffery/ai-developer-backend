@@ -20,28 +20,65 @@ class OperationLogService:
 
     @classmethod
     async def get_log_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
-        """获取日志详情"""
+        """
+        获取日志详情
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): 日志 ID
+        
+        返回:
+        - Dict: 日志详情字典
+        """
         log = await OperationLogCRUD(auth).get_by_id_crud(id=id)
         log_dict = OperationLogOutSchema.model_validate(log).model_dump()
         return log_dict
 
     @classmethod
     async def get_log_list_service(cls, auth: AuthSchema, search: Optional[OperationLogQueryParam], order_by: Optional[List[Dict]] = None) -> List[Dict]:
-        """获取日志列表"""            
+        """
+        获取日志列表
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - search (Optional[OperationLogQueryParam]): 日志查询参数模型
+        - order_by (Optional[List[Dict]]): 排序字段列表
+        
+        返回:
+        - List[Dict]: 日志详情字典列表
+        """            
         log_list = await OperationLogCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         log_dict_list = [OperationLogOutSchema.model_validate(log).model_dump() for log in log_list]
         return log_dict_list
 
     @classmethod
     async def create_log_service(cls, auth: AuthSchema, data: OperationLogCreateSchema) -> Dict:
-        """创建日志"""
+        """
+        创建日志
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - data (OperationLogCreateSchema): 日志创建模型
+        
+        返回:
+        - Dict: 日志详情字典
+        """
         new_log = await OperationLogCRUD(auth).create(data=data)
         new_log_dict = OperationLogOutSchema.model_validate(new_log).model_dump()
         return new_log_dict
     
     @classmethod
     async def delete_log_service(cls, auth: AuthSchema, ids: list[int]) -> None:
-        """删除日志"""
+        """
+        删除日志
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - ids (list[int]): 日志 ID 列表
+        
+        返回:
+        - None
+        """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         await OperationLogCRUD(auth).delete(ids=ids)
@@ -51,11 +88,11 @@ class OperationLogService:
         """
         导出日志信息
 
-        Args:
-            operation_log_list: 操作日志信息列表
+        参数:
+        - operation_log_list (List[Dict[str, Any]]): 操作日志信息列表
         
-        Returns:
-            bytes: 操作日志信息excel的二进制数据
+        返回:
+        - bytes: 操作日志信息excel的二进制数据
         """
         # 操作日志字段映射
         mapping_dict = {

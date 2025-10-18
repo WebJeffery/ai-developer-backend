@@ -10,7 +10,7 @@ from app.core.base_model import CreatorMixin
 
 class {{ table_name|snake_to_pascal_case }}Model(CreatorMixin):
     """
-    {{ function_name }}
+    {{ function_name }}表
     """
     
     __tablename__ = '{{ table_name }}'
@@ -20,8 +20,6 @@ class {{ table_name|snake_to_pascal_case }}Model(CreatorMixin):
     {{ column.column_name }}: Mapped[Optional[{{ column.python_type }}]] = mapped_column({{ column.column_type|get_sqlalchemy_type }}, nullable=True, comment='{{ column.column_comment }}')
     {% endfor %}
     
-    def __repr__(self):
-        return f"<{{ table_name|snake_to_pascal_case }}Model(id={self.id})>"
         
 {% if sub_table %}
 

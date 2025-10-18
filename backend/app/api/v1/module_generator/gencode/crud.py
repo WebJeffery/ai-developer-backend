@@ -26,15 +26,23 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
     """代码生成业务表模块数据库操作层"""
 
     def __init__(self, auth: AuthSchema) -> None:
-        """初始化CRUD"""
+        """
+        初始化CRUD操作层
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        """
         super().__init__(model=GenTableModel, auth=auth)
 
     async def get_gen_table_by_id(self, table_id: int) -> Optional[GenTableModel]:
         """
-        根据业务表id获取需要生成的业务表信息
+        根据业务表ID获取需要生成的业务表信息。
 
-        :param table_id: 业务表id
-        :return: 需要生成的业务表信息对象
+        参数:
+        - table_id (int): 业务表ID。
+
+        返回:
+        - GenTableModel | None: 业务表信息对象。
         """
         gen_table = (
             (
@@ -52,10 +60,13 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
     async def get_gen_table_by_name(self, table_name: str) -> Optional[GenTableModel]:
         """
-        根据业务表名称获取需要生成的业务表信息
+        根据业务表名称获取需要生成的业务表信息。
 
-        :param table_name: 业务表名称
-        :return: 需要生成的业务表信息对象
+        参数:
+        - table_name (str): 业务表名称。
+
+        返回:
+        - GenTableModel | None: 业务表信息对象。
         """
         gen_table = (
             (
@@ -73,9 +84,10 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
     
     async def get_gen_table_all(self) -> Sequence[GenTableModel]:
         """
-        获取所有业务表信息
+        获取所有业务表信息。
 
-        :return: 所有业务表信息列表
+        返回:
+        - Sequence[GenTableModel]: 所有业务表信息列表。
         """
         gen_table_all = (
             await self.db.execute(
@@ -88,10 +100,13 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
     async def get_gen_table_list(self, search: Optional[GenTableQueryParam] = None) -> Sequence[GenTableModel]:
         """
-        根据查询参数获取代码生成业务表列表信息
+        根据查询参数获取代码生成业务表列表信息。
 
-        :param search: 查询参数对象
-        :return: 代码生成业务表列表信息对象
+        参数:
+        - search (GenTableQueryParam | None): 查询参数对象。
+
+        返回:
+        - Sequence[GenTableModel]: 业务表列表信息。
         """
         # 获取所有数据
         result = await self.db.execute(
@@ -110,7 +125,13 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
     async def add_gen_table(self, add_model: GenTableSchema) -> GenTableModel:
         """
-        增加
+        新增业务表信息。
+
+        参数:
+        - add_model (GenTableSchema): 新增业务表信息模型。
+
+        返回:
+        - GenTableModel: 新增的业务表信息对象。
         """
         gen_table = GenTableModel(
             **add_model.model_dump(exclude_unset=True, exclude={"sub", "tree", "crud"})
@@ -121,7 +142,14 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
     
     async def edit_gen_table(self, table_id: int, edit_model: GenTableSchema) -> GenTableSchema:
         """
-        修改
+        修改业务表信息。
+
+        参数:
+        - table_id (int): 业务表ID。
+        - edit_model (GenTableSchema): 修改业务表信息模型。
+
+        返回:
+        - GenTableSchema: 修改后的业务表信息模型。
         """
         edit_dict_data = edit_model.model_dump(exclude_unset=True)
         await self.db.execute(
@@ -135,7 +163,10 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
     async def delete_gen_table(self, ids: List[int]) -> None:
         """
-        删除
+        删除业务表信息。除了系统表。
+
+        参数:
+        - ids (List[int]): 业务表ID列表。
         """
         await self.db.execute(
             delete(GenTableModel)
@@ -145,10 +176,13 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
     async def get_db_table_list(self, search: Optional[GenTableQueryParam] = None) -> list[Dict]:
         """
-        根据查询参数获取数据库列表信息
+        根据查询参数获取数据库表列表信息。
 
-        :param search: 查询参数对象
-        :return: 数据库列表信息对象
+        参数:
+        - search (GenTableQueryParam | None): 查询参数对象。
+
+        返回:
+        - list[Dict]: 数据库表列表信息（已转为可序列化字典）。
         """
 
         # 使用更健壮的方式检测数据库方言
@@ -241,10 +275,13 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
     async def get_db_table_list_by_names(self, table_names: List[str]) -> list[GenDBTableSchema]:
         """
-        根据业务表名称组获取数据库列表信息
+        根据业务表名称列表获取数据库表信息。
 
-        :param table_names: 业务表名称组
-        :return: 数据库列表信息对象
+        参数:
+        - table_names (List[str]): 业务表名称列表。
+
+        返回:
+        - list[GenDBTableSchema]: 数据库表信息对象列表。
         """
         # 使用更健壮的方式检测数据库方言
         if settings.DATABASE_TYPE == "postgresql":
@@ -330,11 +367,13 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
     async def create_table_by_sql(self, sql: str) -> bool:
         """
-        根据sql语句创建表结构
+        根据SQL语句创建表结构。
 
-        :param db: orm对象
-        :param sql: sql语句
-        :return:
+        参数:
+        - sql (str): 创建表的SQL语句。
+
+        返回:
+        - bool: 是否创建成功。
         """
         try:
             await self.db.execute(text(sql))
@@ -353,27 +392,57 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
     """代码生成业务表字段模块数据库操作层"""
 
     def __init__(self, auth: AuthSchema) -> None:
-        """初始化CRUD"""
+        """
+        初始化CRUD操作层
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        """
         super().__init__(model=GenTableColumnModel, auth=auth)
 
     async def get_gen_table_column_by_id(self, id: int) -> Optional[GenTableColumnModel]:
-        """根据业务表字段ID获取业务表字段信息"""
+        """根据业务表字段ID获取业务表字段信息。
+
+        参数:
+        - id (int): 业务表字段ID。
+
+        返回:
+        - Optional[GenTableColumnModel]: 业务表字段信息对象。
+        """
         return await self.get(id=id)
     
     async def get_gen_table_column_list_by_table_id(self, table_id: int) -> Optional[GenTableColumnModel]:
-        """根据业务表ID获取业务表字段列表信息"""
+        """根据业务表ID获取业务表字段列表信息。
+
+        参数:
+        - table_id (int): 业务表ID。
+
+        返回:
+        - Optional[GenTableColumnModel]: 业务表字段列表信息对象。
+        """
         return await self.get(table_id=table_id)
     
     async def list_gen_table_column_crud_by_table_id(self, table_id: int, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[GenTableColumnModel]:
-        """根据业务表ID查询业务表字段列表"""
+        """根据业务表ID查询业务表字段列表。
+
+        参数:
+        - table_id (int): 业务表ID。
+        - order_by (Optional[List[Dict[str, str]]]): 排序字段列表，每个元素为{"field": "字段名", "order": "asc" | "desc"}。
+
+        返回:
+        - Sequence[GenTableColumnModel]: 业务表字段列表信息对象序列。
+        """
         return await self.list(search={"table_id": table_id}, order_by=order_by)
 
     async def get_gen_db_table_columns_by_name(self, table_name: str | None) -> List[GenTableColumnOutSchema]:
         """
-        根据业务表名称获取业务表字段列表信息
+        根据业务表名称获取业务表字段列表信息。
 
-        :param table_name: 业务表名称
-        :return: 业务表字段列表信息对象
+        参数:
+        - table_name (str | None): 业务表名称。
+
+        返回:
+        - List[GenTableColumnOutSchema]: 业务表字段列表信息对象。
         """
         # 检查表名是否为空
         if not table_name:
@@ -448,19 +517,49 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
         return result
 
     async def list_gen_table_column_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[GenTableColumnModel]:
-        """根据业务表ID查询业务表字段列表"""
+        """根据业务表字段查询业务表字段列表。
+
+        参数:
+        - search (Optional[Dict]): 查询参数，例如{"table_id": 1}。
+        - order_by (Optional[List[Dict[str, str]]]): 排序字段列表，每个元素为{"field": "字段名", "order": "asc" | "desc"}。
+
+        返回:
+        - Sequence[GenTableColumnModel]: 业务表字段列表信息对象序列。
+        """
         return await self.list(search=search, order_by=order_by)
 
     async def create_gen_table_column_crud(self, data: GenTableColumnSchema) -> Optional[GenTableColumnModel]:
-        """创建业务表字段"""
+        """创建业务表字段。
+
+        参数:
+        - data (GenTableColumnSchema): 业务表字段模型。
+
+        返回:
+        - Optional[GenTableColumnModel]: 业务表字段列表信息对象。
+        """
         return await self.create(data=data)
 
     async def update_gen_table_column_crud(self, id: int, data: GenTableColumnSchema) -> Optional[GenTableColumnModel]:
-        """更新业务表字段"""
+        """更新业务表字段。
+
+        参数:
+        - id (int): 业务表字段ID。
+        - data (GenTableColumnSchema): 业务表字段模型。
+
+        返回:
+        - Optional[GenTableColumnModel]: 业务表字段列表信息对象。
+        """
         return await self.update(id=id, data=data)
 
     async def delete_gen_table_column_by_table_id_dao(self, table_ids: List[int]) -> None:
-        """根据业务表ID批量删除"""
+        """根据业务表ID批量删除业务表字段。
+
+        参数:
+        - table_ids (List[int]): 业务表ID列表。
+
+        返回:
+        - None
+        """
         # 先查询出这些表ID对应的所有字段ID
         query = select(GenTableColumnModel.id).where(GenTableColumnModel.table_id.in_(table_ids))
         result = await self.db.execute(query)
@@ -471,5 +570,12 @@ class GenTableColumnCRUD(CRUDBase[GenTableColumnModel, GenTableColumnSchema, Gen
             await self.delete(ids=column_ids)
 
     async def delete_gen_table_column_by_column_id_dao(self, data: GenTableColumnDeleteSchema) -> None:
-        """根据业务表字段ID批量删除"""
+        """根据业务表字段ID批量删除业务表字段。
+
+        参数:
+        - data (GenTableColumnDeleteSchema): 业务表字段删除模型。
+
+        返回:
+        - None
+        """
         return await self.delete(ids=data.column_ids)

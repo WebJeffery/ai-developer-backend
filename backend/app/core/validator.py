@@ -35,11 +35,16 @@ Email = Annotated[
 
 def datetime_validator(value: Union[str, datetime]) -> datetime:
     """
-    日期格式验证器
+    日期格式验证器。
     
-    :param value: 日期值
-    :return: 格式化后的日期
-    :raises: CustomException 日期格式无效时抛出
+    参数:
+    - value (str | datetime): 日期值。
+    
+    返回:
+    - datetime: 格式化后的日期。
+    
+    异常:
+    - CustomException: 日期格式无效时抛出。
     """
     pattern = "%Y-%m-%d %H:%M:%S"
     try:
@@ -53,13 +58,19 @@ def datetime_validator(value: Union[str, datetime]) -> datetime:
     # 如果 value 是 None 或其他类型，抛出异常
     raise CustomException(code=RET.ERROR.code, msg="无效的日期格式")
 
+
 def email_validator(value: str) -> str:
     """
-    邮箱地址验证器
+    邮箱地址验证器。
     
-    :param value: 邮箱地址
-    :return: 验证后的邮箱地址
-    :raises: CustomException 邮箱格式无效时抛出
+    参数:
+    - value (str): 邮箱地址。
+    
+    返回:
+    - str: 验证后的邮箱地址。
+    
+    异常:
+    - CustomException: 邮箱格式无效时抛出。
     """
     if not value:
         raise CustomException(code=RET.ERROR.code, msg="邮箱地址不能为空")
@@ -71,13 +82,19 @@ def email_validator(value: str) -> str:
 
     return value
 
+
 def mobile_validator(value: Optional[str]) -> Optional[str]:
     """
-    手机号验证器
+    手机号验证器。
     
-    :param value: 手机号
-    :return: 验证后的手机号
-    :raises: CustomException 手机号格式无效时抛出
+    参数:
+    - value (str | None): 手机号。
+    
+    返回:
+    - str | None: 验证后的手机号。
+    
+    异常:
+    - CustomException: 手机号格式无效时抛出。
     """
     if not value:
         return value
@@ -92,13 +109,19 @@ def mobile_validator(value: Optional[str]) -> Optional[str]:
 
     return value
 
+
 def menu_request_validator(data):
     """
-    菜单请求数据验证器
+    菜单请求数据验证器。
     
-    :param data: 请求数据
-    :return: 验证后的请求数据
-    :raises: CustomException 请求数据无效时抛出
+    参数:
+    - data (Any): 请求数据。
+    
+    返回:
+    - Any: 验证后的请求数据。
+    
+    异常:
+    - CustomException: 请求数据无效时抛出。
     """
     menu_types = {1: "目录", 2: "功能", 3: "权限", 4: "外链"}
 
@@ -116,13 +139,19 @@ def menu_request_validator(data):
         
     return data
 
+
 def role_permission_request_validator(data):
     """
-    角色权限设置数据验证器
+    角色权限设置数据验证器。
     
-    :param data: 请求数据
-    :return: 验证后的请求数据
-    :raises: CustomException 请求数据无效时抛出
+    参数:
+    - data (Any): 请求数据。
+    
+    返回:
+    - Any: 验证后的请求数据。
+    
+    异常:
+    - CustomException: 请求数据无效时抛出。
     """
     data_scopes = {
         1: "仅本人数据权限",

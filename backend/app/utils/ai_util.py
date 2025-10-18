@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*- 
 
+from typing import Any, AsyncGenerator
 from openai import AsyncOpenAI, OpenAI
 from openai.types.chat.chat_completion import ChatCompletion
 import httpx
@@ -9,6 +10,9 @@ from app.core.logger import logger
 
 
 class AIClient:
+    """
+    AI客户端类，用于与OpenAI API交互。
+    """
 
     def __init__(self):
         self.model = settings.OPENAI_MODEL
@@ -25,8 +29,16 @@ class AIClient:
             http_client=self.http_client
         )
 
-    async def process(self, query: str):
-        """处理查询并返回流式响应"""
+    async def process(self, query: str)  -> AsyncGenerator[str, None]:
+        """
+        处理查询并返回流式响应
+
+        参数:
+        - query (str): 用户查询。
+
+        返回:
+        - AsyncGenerator[str, None]: 流式响应内容。
+        """
         system_prompt = """你是一个有用的AI助手，可以帮助用户回答问题和提供帮助。请用中文回答用户的问题。"""
 
         try:
@@ -49,8 +61,10 @@ class AIClient:
             logger.error(f"AI处理查询失败: {str(e)}")
             yield f"抱歉，处理您的请求时出现了错误: {str(e)}"
 
-    async def close(self):
-        """关闭客户端连接"""
+    async def close(self) -> None:
+        """
+        关闭客户端连接
+        """
         if hasattr(self, 'client'):
             await self.client.close()
         if hasattr(self, 'http_client'):

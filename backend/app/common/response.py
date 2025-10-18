@@ -30,10 +30,15 @@ class SuccessResponse(JSONResponse):
         """
         初始化成功响应类
         
-        :param data: 响应数据
-        :param msg: 响应消息
-        :param code: 业务状态码
-        :param status_code: HTTP状态码
+        参数:
+        - data (Any | None): 响应数据。
+        - msg (str): 响应消息。
+        - code (int): 业务状态码。
+        - status_code (int): HTTP 状态码。
+        - success (bool): 操作是否成功。
+        
+        返回:
+        - None
         """
         content = ResponseSchema(
             code=code,
@@ -59,10 +64,15 @@ class ErrorResponse(JSONResponse):
         """
         初始化错误响应类
         
-        :param data: 响应数据
-        :param msg: 响应消息
-        :param code: 业务状态码
-        :param status_code: HTTP状态码
+        参数:
+        - data (Any | None): 响应数据。
+        - msg (str): 响应消息。
+        - code (int): 业务状态码。
+        - status_code (int): HTTP 状态码。
+        - success (bool): 操作是否成功。
+        
+        返回:
+        - None
         """
         content = ResponseSchema(
             code=code,
@@ -88,10 +98,15 @@ class StreamResponse(StreamingResponse):
         """
         初始化流式响应类
         
-        :param data: 响应数据
-        :param msg: 响应消息
-        :param code: 业务状态码
-        :param status_code: HTTP状态码
+        参数:
+        - data (Any): 响应数据。
+        - status_code (int): HTTP 状态码。
+        - headers (Mapping[str, str] | None): 响应头。
+        - media_type (str | None): 媒体类型。
+        - background (BackgroundTask | None): 后台任务。
+        
+        返回:
+        - None
         """
         super().__init__(
             content=data, 
@@ -117,11 +132,17 @@ class UploadFileResponse(FileResponse):
     ):
         """
         初始化文件响应类
-        :param file_path: 文件路径
-        :param media_type: 文件类型
-        :param headers: 响应头
-        :param background: 后台任务
-        :param status_code: HTTP状态码
+        
+        参数:
+        - file_path (str): 文件路径。
+        - filename (str): 文件名。
+        - media_type (str): 文件类型。
+        - headers (Mapping[str, str] | None): 响应头。
+        - background (BackgroundTask | None): 后台任务。
+        - status_code (int): HTTP 状态码。
+        
+        返回:
+        - None
         """
         super().__init__(
             path=file_path,

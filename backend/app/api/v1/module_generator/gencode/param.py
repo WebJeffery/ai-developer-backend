@@ -3,8 +3,6 @@
 from typing import Optional
 from fastapi import Query
 
-from app.core.validator import DateTimeStr
-
 
 class GenTableQueryParam:
     """代码生成业务表查询参数"""
