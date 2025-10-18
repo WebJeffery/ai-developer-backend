@@ -24,10 +24,14 @@ class MongoCURD:
     ):
         """
         初始化 MongoDB CURD 类。
-
-        :param db: 数据库连接
-        :param collection: 集合名称
-        :param schema: 序列化对象
+        
+        参数:
+        - db (AsyncIOMotorDatabase): 数据库连接。
+        - collection (str): 集合名称。
+        - schema (Any | None): 序列化对象，传入模型以进行编码，默认 None。
+        
+        返回:
+        - None
         """
         self.db = db
         self.collection = db[collection]
@@ -36,10 +40,16 @@ class MongoCURD:
     async def get(self, _id: Optional[str] = None, **kwargs) -> Optional[Dict]:
         """
         获取单个数据，默认使用 ID 查询，否则使用关键词查询。
-
-        :param _id: 数据 ID
-        :param kwargs: 查询条件
-        :return: 数据字典
+        
+        参数:
+        - _id (str | None): 数据 ID，若提供则按 ID 查询。
+        - kwargs (Dict[str, Any]): 查询条件键值对。
+        
+        返回:
+        - Dict | None: 查询到的数据字典，未找到返回 None。
+        
+        异常:
+        - CustomException: 当 ID 无效或查询发生错误时抛出。
         """
         try:
             if _id:
@@ -57,9 +67,15 @@ class MongoCURD:
     async def create(self, data: Union[Dict, Any]) -> InsertOneResult:
         """
         创建数据。
-
-        :param data: 要创建的数据
-        :return: 插入结果
+        
+        参数:
+        - data (Dict | Any): 要创建的数据，可为字典或可编码对象。
+        
+        返回:
+        - InsertOneResult: 插入操作结果。
+        
+        异常:
+        - CustomException: 创建失败时抛出。
         """
         try:
             if not isinstance(data, dict):
@@ -82,11 +98,17 @@ class MongoCURD:
     async def update(self, _id: str, data: Union[Dict, Any], upsert: bool = False) -> UpdateResult:
         """
         更新数据。
-
-        :param _id: 数据 ID
-        :param data: 要更新的数据
-        :param upsert: 不存在是否插入
-        :return: 更新结果
+        
+        参数:
+        - _id (str): 数据 ID。
+        - data (Dict | Any): 要更新的数据，可为字典或可编码对象。
+        - upsert (bool): 不存在是否插入，默认 False。
+        
+        返回:
+        - UpdateResult: 更新操作结果。
+        
+        异常:
+        - CustomException: ID 无效或更新失败时抛出。
         """
         try:
             if not isinstance(data, dict):
@@ -111,9 +133,15 @@ class MongoCURD:
     async def delete(self, _id: Union[str, List[str]]) -> DeleteResult:
         """
         删除数据，支持批量删除。
-
-        :param _id: 单个ID或ID列表
-        :return: 删除结果
+        
+        参数:
+        - _id (str | List[str]): 单个 ID 或 ID 列表。
+        
+        返回:
+        - DeleteResult: 删除操作结果。
+        
+        异常:
+        - CustomException: ID 无效或未删除任何数据时抛出。
         """
         try:
             if isinstance(_id, list):
@@ -138,12 +166,18 @@ class MongoCURD:
     ) -> List[Dict]:
         """
         查询数据列表。
-
-        :param page_no: 页码
-        :param page_size: 每页数量
-        :param order_by: 排序条件 [{'field': 'field_name', 'direction': 1}]
-        :param kwargs: 查询条件
-        :return: 数据列表
+        
+        参数:
+        - page_no (int | None): 页码，默认 1。
+        - page_size (int | None): 每页数量，默认 10。
+        - order_by (List[Dict] | None): 排序条件，形如 [{'field': '字段名', 'direction': 1}]。
+        - kwargs (Dict[str, Any]): 查询条件键值对。
+        
+        返回:
+        - List[Dict]: 数据列表。
+        
+        异常:
+        - CustomException: 查询失败时抛出。
         """
         try:
             params = self.filter_condition(**kwargs)
@@ -166,9 +200,15 @@ class MongoCURD:
     async def count(self, **kwargs) -> int:
         """
         获取数据总数。
-
-        :param kwargs: 查询条件
-        :return: 数据总数
+        
+        参数:
+        - kwargs (Dict[str, Any]): 查询条件键值对。
+        
+        返回:
+        - int: 数据总数。
+        
+        异常:
+        - CustomException: 统计失败时抛出。
         """
         try:
             params = self.filter_condition(**kwargs)
@@ -180,9 +220,15 @@ class MongoCURD:
     def filter_condition(**kwargs) -> Dict:
         """
         构建过滤条件。
-
-        :param kwargs: 查询参数
-        :return: 过滤条件字典
+        
+        参数:
+        - kwargs (Dict[str, Any]): 查询参数，支持 ('like'|'between'|'ObjectId'|'in'|'gt'|'gte'|'lt'|'lte') 等操作。
+        
+        返回:
+        - Dict: 过滤条件字典。
+        
+        异常:
+        - CustomException: 当 ObjectId 格式无效时抛出。
         """
         params = {}
         for k, v in kwargs.items():

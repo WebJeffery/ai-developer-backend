@@ -39,6 +39,20 @@ async def login_for_access_token_controller(
     login_form: CustomOAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(db_getter),
 ) -> Union[JSONResponse, Dict]:
+    """
+    用户登录
+
+    参数:
+    - request (Request): FastAPI请求对象
+    - login_form (CustomOAuth2PasswordRequestForm): 登录表单数据
+    - db (AsyncSession): 数据库会话对象
+        
+    返回:
+    - JWTOutSchema: 包含访问令牌和刷新令牌的响应模型
+        
+    异常:
+    - CustomException: 认证失败时抛出异常。
+    """
     login_token = await LoginService.authenticate_user_service(request=request, redis=redis, login_form=login_form, db=db)
 
     logger.info(f"用户{login_form.username}登录成功")
@@ -56,6 +70,19 @@ async def get_new_token_controller(
     db: AsyncSession = Depends(db_getter),
     redis: Redis = Depends(redis_getter) 
 ) -> JSONResponse:
+    """
+    刷新token
+
+    参数:
+    - request (Request): FastAPI请求对象
+    - payload (RefreshTokenPayloadSchema): 刷新令牌负载模型
+        
+    返回:
+    - JWTOutSchema: 包含新的访问令牌和刷新令牌的响应模型
+        
+    异常:
+    - CustomException: 刷新令牌失败时抛出异常。
+    """
     # 解析当前的访问Token以获取用户名
     new_token = await LoginService.refresh_token_service(db=db, request=request, redis=redis, refresh_token=payload)
     token_dict = new_token.model_dump()
@@ -67,6 +94,18 @@ async def get_new_token_controller(
 async def get_captcha_for_login_controller(
     redis: Redis = Depends(redis_getter)
 ) -> JSONResponse:
+    """
+    获取登录验证码
+
+    参数:
+    - redis (Redis): Redis客户端对象
+        
+    返回:
+    - CaptchaOutSchema: 包含验证码图片和key的响应模型
+        
+    异常:
+    - CustomException: 获取验证码失败时抛出异常。
+    """
     # 获取验证码
     captcha = await CaptchaService.get_captcha_service(redis=redis)
     logger.info(f"获取验证码成功")
@@ -78,6 +117,19 @@ async def logout_controller(
     payload: LogoutPayloadSchema,
     redis: Redis = Depends(redis_getter)
 ) -> JSONResponse:
+    """
+    退出登录
+
+    参数:
+    - payload (LogoutPayloadSchema): 退出登录负载模型
+    - redis (Redis): Redis客户端对象
+        
+    返回:
+    - JSONResponse: 包含退出登录结果的响应模型
+        
+    异常:
+    - CustomException: 退出登录失败时抛出异常。
+    """
     if await LoginService.logout_service(redis=redis, token=payload):
         logger.info('退出成功')
         return SuccessResponse(msg='退出成功')

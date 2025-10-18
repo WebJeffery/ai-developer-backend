@@ -27,12 +27,31 @@ class ParamsService:
     """
     @classmethod
     async def get_obj_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
+        """
+        获取配置详情
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - id (int): 配置管理型ID
+        
+        返回:
+        - Dict: 配置管理型模型实例字典表示
+        """
         obj = await ParamsCRUD(auth).get_obj_by_id_crud(id=id)
         return ParamsOutSchema.model_validate(obj).model_dump()
     
     @classmethod
     async def get_obj_by_key_service(cls, auth: AuthSchema, config_key: str) -> Dict:
-        """根据配置键获取配置详情"""
+        """
+        根据配置键获取配置详情
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - config_key (str): 配置管理型key
+        
+        返回:
+        - Dict: 配置管理型模型实例字典表示
+        """
         obj = await ParamsCRUD(auth).get_obj_by_key_crud(key=config_key)
         if not obj:
             raise CustomException(msg=f'配置键 {config_key} 不存在')
@@ -40,7 +59,16 @@ class ParamsService:
     
     @classmethod
     async def get_config_value_by_key_service(cls, auth: AuthSchema, config_key: str) -> str | None:
-        """根据配置键获取配置值"""
+        """
+        根据配置键获取配置值
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - config_key (str): 配置管理型key
+        
+        返回:
+        - str | None: 配置值字符串或None
+        """
         obj = await ParamsCRUD(auth).get_obj_by_key_crud(key=config_key)
         if not obj:
             raise CustomException(msg=f'配置键 {config_key} 不存在')
@@ -48,6 +76,17 @@ class ParamsService:
 
     @classmethod
     async def get_obj_list_service(cls, auth: AuthSchema, search: Optional[ParamsQueryParam] = None, order_by: Optional[List[Dict[str, str]]]= None) -> List[Dict]:
+        """
+        获取配置管理型列表
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - search (ParamsQueryParam | None): 查询参数对象
+        - order_by (List[Dict[str, str]] | None): 排序参数列表
+        
+        返回:
+        - List[Dict]: 配置管理型模型实例字典列表表示
+        """
         obj_list = None
         if search:
             obj_list = await ParamsCRUD(auth).get_obj_list_crud(search=search.__dict__, order_by=order_by)
@@ -57,6 +96,17 @@ class ParamsService:
     
     @classmethod
     async def create_obj_service(cls, auth: AuthSchema, redis: Redis, data: ParamsCreateSchema) -> Dict:
+        """
+        创建配置管理型
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis 客户端实例
+        - data (ParamsCreateSchema): 配置管理型创建模型
+        
+        返回:
+        - Dict: 新创建的配置管理型模型实例字典表示
+        """
         exist_obj = await ParamsCRUD(auth).get(config_key=data.config_key)
         if exist_obj:
             raise CustomException(msg='创建失败，该配置key已存在')
@@ -82,6 +132,18 @@ class ParamsService:
     
     @classmethod
     async def update_obj_service(cls, auth: AuthSchema, redis: Redis, id:int, data: ParamsUpdateSchema) -> Dict:
+        """
+        更新配置管理型
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis 客户端实例
+        - id (int): 配置管理型ID
+        - data (ParamsUpdateSchema): 配置管理型更新模型
+        
+        返回:
+        - Dict: 更新后的配置管理型模型实例字典表示
+        """
         exist_obj = await ParamsCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该数系统配置不存在')
@@ -112,6 +174,17 @@ class ParamsService:
 
     @classmethod
     async def delete_obj_service(cls, auth: AuthSchema, redis: Redis, ids: list[int]) -> None:
+        """
+        删除配置管理型
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - redis (Redis): Redis 客户端实例
+        - ids (list[int]): 配置管理型ID列表
+        
+        返回:
+        - None
+        """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
@@ -140,7 +213,15 @@ class ParamsService:
     
     @classmethod
     async def export_obj_service(cls, data_list: List[Dict[str, Any]]) -> bytes:
-        """导出系统配置列表"""
+        """
+        导出系统配置列表
+        
+        参数:
+        - data_list (List[Dict[str, Any]]): 系统配置模型实例字典列表表示
+        
+        返回:
+        - bytes: Excel文件二进制数据
+        """
         mapping_dict = {
             'id': '编号',
             'config_name': '参数名称', 
@@ -165,7 +246,16 @@ class ParamsService:
     
     @classmethod
     async def upload_service(cls, base_url: str, file: UploadFile) -> Dict:
-        """上传文件"""
+        """
+        上传文件
+        
+        参数:
+        - base_url (str): 基础URL
+        - file (UploadFile): 上传的文件对象
+        
+        返回:
+        - Dict: 上传文件的响应模型实例字典表示
+        """
         filename, filepath, file_url = await UploadUtil.upload_file(file=file, base_url=base_url)
         
         return UploadResponseSchema(
@@ -177,6 +267,15 @@ class ParamsService:
 
     @classmethod
     async def init_config_service(cls, redis: Redis) -> None:
+        """
+        初始化系统配置
+        
+        参数:
+        - redis (Redis): Redis 客户端实例
+        
+        返回:
+        - None
+        """
         async with AsyncSessionLocal() as session:
             async with session.begin():
                 auth = AuthSchema(db=session)
@@ -202,7 +301,15 @@ class ParamsService:
 
     @classmethod
     async def get_init_config_service(cls, redis: Redis) -> List[Dict]:
-        """获取系统配置"""
+        """
+        获取系统配置
+        
+        参数:
+        - redis (Redis): Redis 客户端实例
+        
+        返回:
+        - List[Dict]: 系统配置模型实例字典列表表示
+        """
         redis_keys = await RedisCURD(redis).get_keys(f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:*")
         redis_configs = await RedisCURD(redis).mget(redis_keys)
         configs = []
@@ -220,10 +327,14 @@ class ParamsService:
     
     @classmethod
     async def get_system_config_for_middleware(cls, redis: Redis) -> Dict[str, Any]:
-        """获取中间件所需的系统配置
+        """
+        获取中间件所需的系统配置
         
-        返回：
-            Dict: 包含演示模式、IP白名单、API白名单和IP黑名单的配置字典
+        参数:
+        - redis (Redis): Redis 客户端实例
+        
+        返回:
+        - Dict[str, Any]: 包含演示模式、IP白名单、API白名单和IP黑名单的配置字典
         """
         # 定义需要获取的配置键
         config_keys = [

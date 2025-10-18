@@ -27,6 +27,16 @@ async def get_obj_detail_controller(
     id: int = Path(..., description="定时任务ID"),
     auth: AuthSchema = Depends(AuthPermission(["app:job:query"]))
 ) -> JSONResponse:
+    """
+    获取定时任务详情
+    
+    参数:
+    - id (int): 定时任务ID
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含定时任务详情的JSON响应
+    """
     result_dict = await JobService.get_job_detail_service(id=id, auth=auth)
     logger.info(f"获取定时任务详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取定时任务详情成功")
@@ -37,6 +47,17 @@ async def get_obj_list_controller(
     search: JobQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["app:job:query"]))
 ) -> JSONResponse:
+    """
+    查询定时任务
+    
+    参数:
+    - page (PaginationQueryParam): 分页查询参数模型
+    - search (JobQueryParam): 查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含分页后的定时任务列表的JSON响应
+    """
     result_dict_list = await JobService.get_job_list_service(auth=auth, search=search, order_by=page.order_by)
     result_dict = await PaginationService.paginate(data_list= result_dict_list, page_no= page.page_no, page_size = page.page_size)
     logger.info(f"查询定时任务列表成功")
@@ -47,6 +68,16 @@ async def create_obj_controller(
     data: JobCreateSchema,
     auth: AuthSchema = Depends(AuthPermission(["app:job:create"]))
 ) -> JSONResponse:
+    """
+    创建定时任务
+    
+    参数:
+    - data (JobCreateSchema): 创建参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含创建定时任务结果的JSON响应
+    """
     result_dict = await JobService.create_job_service(auth=auth, data=data)
     logger.info(f"创建定时任务成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="创建定时任务成功")
@@ -57,6 +88,17 @@ async def update_obj_controller(
     id: int = Path(..., description="定时任务ID"),
     auth: AuthSchema = Depends(AuthPermission(["app:job:update"]))
 ) -> JSONResponse:
+    """
+    修改定时任务
+    
+    参数:
+    - data (JobUpdateSchema): 更新参数模型
+    - id (int): 定时任务ID
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含修改定时任务结果的JSON响应
+    """
     result_dict = await JobService.update_job_service(auth=auth, id=id, data=data)
     logger.info(f"修改定时任务成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改定时任务成功")
@@ -66,6 +108,16 @@ async def delete_obj_controller(
     ids: list[int] = Body(..., description="ID列表"),
     auth: AuthSchema = Depends(AuthPermission(["app:job:delete"]))
 ) -> JSONResponse:
+    """
+    删除定时任务
+    
+    参数:
+    - ids (list[int]): ID列表
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含删除定时任务结果的JSON响应
+    """
     await JobService.delete_job_service(auth=auth, ids=ids)
     logger.info(f"删除定时任务成功: {ids}")
     return SuccessResponse(msg="删除定时任务成功")
@@ -75,7 +127,16 @@ async def export_obj_list_controller(
     search: JobQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["app:job:export"]))
 ) -> StreamingResponse:
-    # 获取全量数据
+    """
+    导出定时任务
+    
+    参数:
+    - search (JobQueryParam): 查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - StreamingResponse: 包含导出定时任务结果的流式响应
+    """
     result_dict_list = await JobService.get_job_list_service(search=search, auth=auth)
     export_result = await JobService.export_job_service(data_list=result_dict_list)
     logger.info('导出定时任务成功')
@@ -92,6 +153,15 @@ async def export_obj_list_controller(
 async def clear_obj_log_controller(
     auth: AuthSchema = Depends(AuthPermission(["app:job:delete"]))
 ) -> JSONResponse:
+    """
+    清空定时任务日志
+    
+    参数:
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含清空定时任务结果的JSON响应
+    """
     await JobService.clear_job_service(auth=auth)
     logger.info(f"清空定时任务成功")
     return SuccessResponse(msg="清空定时任务成功")
@@ -102,12 +172,29 @@ async def option_obj_controller(
     option: int = Body(..., description="操作类型 1: 暂停 2: 恢复 3: 重启"),
     auth: AuthSchema = Depends(AuthPermission(["app:job:update"]))
 ) -> JSONResponse:
+    """
+    暂停/恢复/重启定时任务
+    
+    参数:
+    - id (int): 定时任务ID
+    - option (int): 操作类型 1: 暂停 2: 恢复 3: 重启
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含操作定时任务结果的JSON响应
+    """
     await JobService.option_job_service(auth=auth, id=id, option=option)
     logger.info(f"操作定时任务成功: {id}")
     return SuccessResponse(msg="操作定时任务成功")
 
 @JobRouter.get("/log", summary="获取定时任务日志", description="获取定时任务日志", dependencies=[Depends(AuthPermission(["app:job:query"]))])
 async def get_job_log_controller():
+    """
+    获取定时任务日志
+    
+    返回:
+    - JSONResponse: 获取定时任务日志的JSON响应
+    """
     data = [
         {
             "id": i.id,
@@ -136,6 +223,16 @@ async def get_job_log_detail_controller(
     id: int = Path(..., description="定时任务日志ID"),
     auth: AuthSchema = Depends(AuthPermission(["app:job:query"]))
 ) -> JSONResponse:
+    """
+    获取定时任务日志详情
+    
+    参数:
+    - id (int): 定时任务日志ID
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 获取定时任务日志详情的JSON响应
+    """
     result_dict = await JobLogService.get_job_log_detail_service(id=id, auth=auth)
     logger.info(f"获取定时任务日志详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取定时任务日志详情成功")
@@ -147,6 +244,17 @@ async def get_job_log_list_controller(
     search: JobLogQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["app:job:query"]))
 ) -> JSONResponse:
+    """
+    查询定时任务日志
+    
+    参数:
+    - page (PaginationQueryParam): 分页查询参数模型
+    - search (JobLogQueryParam): 查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 查询定时任务日志列表的JSON响应
+    """
     order_by = [{"create_time": "desc"}]
     result_dict_list = await JobLogService.get_job_log_list_service(auth=auth, search=search, order_by=order_by)
     result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
@@ -159,6 +267,16 @@ async def delete_job_log_controller(
     ids: list[int] = Body(..., description="ID列表"),
     auth: AuthSchema = Depends(AuthPermission(["app:job:delete"]))
 ) -> JSONResponse:
+    """
+    删除定时任务日志
+    
+    参数:
+    - ids (list[int]): ID列表
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含删除定时任务日志结果的JSON响应
+    """
     await JobLogService.delete_job_log_service(auth=auth, ids=ids)
     logger.info(f"删除定时任务日志成功: {ids}")
     return SuccessResponse(msg="删除定时任务日志成功")
@@ -168,6 +286,15 @@ async def delete_job_log_controller(
 async def clear_job_log_controller(
     auth: AuthSchema = Depends(AuthPermission(["app:job:delete"]))
 ) -> JSONResponse:
+    """
+    清空定时任务日志
+    
+    参数:
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含清空定时任务日志结果的JSON响应
+    """
     await JobLogService.clear_job_log_service(auth=auth)
     logger.info(f"清空定时任务日志成功")
     return SuccessResponse(msg="清空定时任务日志成功")
@@ -178,7 +305,16 @@ async def export_job_log_list_controller(
     search: JobLogQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["app:job:export"]))
 ) -> StreamingResponse:
-    # 获取全量数据
+    """
+    导出定时任务日志
+    
+    参数:
+    - search (JobLogQueryParam): 查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - StreamingResponse: 包含导出定时任务日志结果的流式响应
+    """
     result_dict_list = await JobLogService.get_job_log_list_service(search=search, auth=auth)
     export_result = await JobLogService.export_job_log_service(data_list=result_dict_list)
     logger.info('导出定时任务日志成功')

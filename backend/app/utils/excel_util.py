@@ -15,11 +15,14 @@ class ExcelUtil:
     @classmethod
     def __mapping_list(cls, list_data: List[Dict[str, Any]], mapping_dict: Dict) -> List:
         """
-        工具方法：将list数据中的字段名映射为对应的中文字段名
+        工具方法：将列表数据中的字段名映射为对应的中文字段名。
 
-        :param list_data: 数据列表
-        :param mapping_dict: 映射字典
-        :return: 映射后的数据列表
+        参数:
+        - list_data (List[Dict[str, Any]]): 数据列表。
+        - mapping_dict (Dict): 字段名映射字典。
+
+        返回:
+        - List: 映射后的数据列表。
         """
         mapping_data = [{mapping_dict.get(key): item.get(key) for key in mapping_dict} for item in list_data]
 
@@ -28,31 +31,32 @@ class ExcelUtil:
     @classmethod
     def get_excel_template(cls, header_list: List[str], selector_header_list: List[str], option_list: List[Dict[str, List[str]]]) -> bytes:
         """
-        生成Excel模板文件
+        生成 Excel 模板文件。
 
-        Args:
-            header_list: 表头列表
-            selector_header_list: 需要设置下拉选择的表头列表 
-            option_list: 下拉选项配置列表
+        参数:
+        - header_list (List[str]): 表头列表。
+        - selector_header_list (List[str]): 需要设置下拉选择的表头列表。
+        - option_list (List[Dict[str, List[str]]]): 下拉选项配置列表。
 
-        Returns:
-            bytes: Excel文件的二进制数据
+        返回:
+        - bytes: Excel 文件的二进制数据。
         """
         wb = Workbook()
         ws = wb.active
         if not ws:
-            raise ValueError("Worksheet is None")
+            raise ValueError("不存在活动工作表")
 
         # 设置表头样式
         header_fill = PatternFill(start_color='ababab', end_color='ababab', fill_type='solid')
-        center_align = Alignment(horizontal='center')
 
         # 写入表头
         for col_num, header in enumerate(header_list, 1):
             cell = ws.cell(row=1, column=col_num)
             cell.value = header
             cell.fill = header_fill
-            cell.alignment = center_align
+            # 设置水平居中对齐
+            cell.alignment = Alignment(horizontal='center')
+            # 设置列宽度为16
             ws.column_dimensions[get_column_letter(col_num)].width = 12
 
         # 设置下拉选择
@@ -71,18 +75,21 @@ class ExcelUtil:
         buffer = io.BytesIO()
         wb.save(buffer)
         buffer.seek(0)
-        return buffer.getvalue()
+        # 读取字节数据
+        excel_data = buffer.getvalue()
+        return excel_data
     
     @classmethod
     def export_list2excel(cls, list_data: List[Dict[str, Any]], mapping_dict: Dict) -> bytes:
         """
-        将列表数据导出为Excel
+        将列表数据导出为 Excel 文件。
 
-        Args:
-            list_data: 要导出的数据列表
+        参数:
+        - list_data (List[Dict[str, Any]]): 要导出的数据列表。
+        - mapping_dict (Dict): 字段名映射字典。
 
-        Returns:
-            bytes: Excel文件的二进制数据
+        返回:
+        - bytes: Excel 文件的二进制数据。
         """
         mapping_data = cls.__mapping_list(list_data, mapping_dict)
         df = pd.DataFrame(mapping_data)

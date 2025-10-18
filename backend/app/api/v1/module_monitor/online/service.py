@@ -18,6 +18,13 @@ class OnlineService:
     async def get_online_list_service(cls, redis: Redis, search: Optional[OnlineQueryParam] = None) ->  List[Dict]:
         """
         获取在线用户列表信息（支持分页和搜索）
+        
+        参数:
+        - redis (Redis): Redis异步客户端实例。
+        - search (Optional[OnlineQueryParam]): 查询参数模型。
+        
+        返回:
+        - List[Dict]: 在线用户详情字典列表。
         """
 
         keys = await RedisCURD(redis).get_keys(f"{RedisInitKeyConfig.ACCESS_TOKEN.key}:*")
@@ -43,7 +50,16 @@ class OnlineService:
 
     @classmethod
     async def delete_online_service(cls, redis: Redis, session_id: str) -> bool:
-        """强制下线在线用户"""
+        """
+        强制下线指定在线用户
+        
+        参数:
+        - redis (Redis): Redis异步客户端实例。
+        - session_id (str): 在线用户会话ID。
+        
+        返回:
+        - bool: 如果操作成功则返回True，否则返回False。
+        """
         # 删除 token
         await RedisCURD(redis).delete(f"{RedisInitKeyConfig.ACCESS_TOKEN.key}:{session_id}")
         await RedisCURD(redis).delete(f"{RedisInitKeyConfig.REFRESH_TOKEN.key}:{session_id}")
@@ -54,7 +70,15 @@ class OnlineService:
     
     @classmethod
     async def clear_online_service(cls, redis: Redis) -> bool:
-        """强制下线在线用户"""
+        """
+        强制下线所有在线用户
+        
+        参数:
+        - redis (Redis): Redis异步客户端实例。
+        
+        返回:
+        - bool: 如果操作成功则返回True，否则返回False。
+        """
         # 删除 token
         await RedisCURD(redis).clear(f"{RedisInitKeyConfig.ACCESS_TOKEN.key}:*")
         await RedisCURD(redis).clear(f"{RedisInitKeyConfig.REFRESH_TOKEN.key}:*")
@@ -65,7 +89,16 @@ class OnlineService:
     
     @staticmethod
     def _match_search_conditions(online_info: Dict, search: Optional[OnlineQueryParam]) -> bool:
-        """检查是否匹配搜索条件"""
+        """
+        检查是否匹配搜索条件
+        
+        参数:
+        - online_info (Dict): 在线用户信息字典。
+        - search (Optional[OnlineQueryParam]): 查询参数模型。
+        
+        返回:
+        - bool: 如果匹配则返回True，否则返回False。
+        """
         if not search:
             return True
 

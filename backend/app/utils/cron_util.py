@@ -10,7 +10,18 @@ class CronUtil:
     """
 
     @classmethod
-    def __valid_range(cls, search_str: str, start_range: int, end_range: int):
+    def __valid_range(cls, search_str: str, start_range: int, end_range: int) -> bool:
+        """
+        校验范围表达式的合法性。
+
+        参数:
+        - search_str (str): 范围表达式。
+        - start_range (int): 开始范围。
+        - end_range (int): 结束范围。
+
+        返回:
+        - bool: 校验是否通过。
+        """
         match = re.match(r'^(\d+)-(\d+)$', search_str)
         if match:
             start, end = int(match.group(1)), int(match.group(2))
@@ -18,9 +29,21 @@ class CronUtil:
         return False
 
     @classmethod
-    def __valid_sum(
-        cls, search_str: str, start_range_a: int, start_range_b: int, end_range_a: int, end_range_b: int, sum_range: int
-    ):
+    def __valid_sum(cls, search_str: str, start_range_a: int, start_range_b: int, end_range_a: int, end_range_b: int, sum_range: int) -> bool:
+        """
+        校验和表达式的合法性。
+
+        参数:
+        - search_str (str): 和表达式。
+        - start_range_a (int): 开始范围A。
+        - start_range_b (int): 开始范围B。
+        - end_range_a (int): 结束范围A。
+        - end_range_b (int): 结束范围B。
+        - sum_range (int): 总和范围。
+
+        返回:
+        - bool: 校验是否通过。
+        """
         match = re.match(r'^(\d+)/(\d+)$', search_str)
         if match:
             start, end = int(match.group(1)), int(match.group(2))
@@ -32,12 +55,15 @@ class CronUtil:
         return False
 
     @classmethod
-    def validate_second_or_minute(cls, second_or_minute: str):
+    def validate_second_or_minute(cls, second_or_minute: str) -> bool:
         """
-        校验秒或分钟值是否正确
+        校验秒或分钟字段的合法性。
 
-        :param second_or_minute: 秒或分钟值
-        :return: 校验结果
+        参数:
+        - second_or_minute (str): 秒或分钟值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             second_or_minute == '*'
@@ -49,12 +75,15 @@ class CronUtil:
         return False
 
     @classmethod
-    def validate_hour(cls, hour: str):
+    def validate_hour(cls, hour: str) -> bool:
         """
-        校验小时值是否正确
+        校验小时字段的合法性。
 
-        :param hour: 小时值
-        :return: 校验结果
+        参数:
+        - hour (str): 小时值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             hour == '*'
@@ -66,12 +95,15 @@ class CronUtil:
         return False
 
     @classmethod
-    def validate_day(cls, day: str):
+    def validate_day(cls, day: str) -> bool:
         """
-        校验日值是否正确
+        校验日期字段的合法性。
 
-        :param day: 日值
-        :return: 校验结果
+        参数:
+        - day (str): 日值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             day in ['*', '?', 'L']
@@ -84,12 +116,15 @@ class CronUtil:
         return False
 
     @classmethod
-    def validate_month(cls, month: str):
+    def validate_month(cls, month: str) -> bool:
         """
-        校验月值是否正确
+        校验月份字段的合法性。
 
-        :param month: 月值
-        :return: 校验结果
+        参数:
+        - month (str): 月值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             month == '*'
@@ -101,12 +136,15 @@ class CronUtil:
         return False
 
     @classmethod
-    def validate_week(cls, week: str):
+    def validate_week(cls, week: str) -> bool:
         """
-        校验周值是否正确
+        校验星期字段的合法性。
 
-        :param week: 周值
-        :return: 校验结果
+        参数:
+        - week (str): 周值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             week in ['*', '?']
@@ -119,12 +157,15 @@ class CronUtil:
         return False
 
     @classmethod
-    def validate_year(cls, year: str):
+    def validate_year(cls, year: str) -> bool:
         """
-        校验年值是否正确
+        校验年份字段的合法性。
 
-        :param year: 年值
-        :return: 校验结果
+        参数:
+        - year (str): 年值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         current_year = int(datetime.now().year)
         future_years = [current_year + i for i in range(9)]
@@ -143,12 +184,15 @@ class CronUtil:
         return False
 
     @classmethod
-    def validate_cron_expression(cls, cron_expression: str):
+    def validate_cron_expression(cls, cron_expression: str) -> bool | None:
         """
-        校验Cron表达式是否正确
+        校验 Cron 表达式是否正确。
 
-        :param cron_expression: Cron表达式
-        :return: 校验结果
+        参数:
+        - cron_expression (str): Cron 表达式。
+
+        返回:
+        - bool | None: 校验是否通过。
         """
         values = cron_expression.split()
         if len(values) != 6 and len(values) != 7:

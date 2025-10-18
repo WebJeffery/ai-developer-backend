@@ -29,11 +29,14 @@ class DeptService:
     @classmethod
     async def get_dept_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
         """
-        获取部门详情service
+        获取部门详情。
         
-        :param auth: 认证对象
-        :param id: 部门ID
-        :return: 部门详情对象
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - id (int): 部门 ID。
+        
+        返回:
+        - Dict: 部门详情对象。
         """
         dept = await DeptCRUD(auth).get_by_id_crud(id=id)
         if dept and dept.parent_id:
@@ -45,12 +48,15 @@ class DeptService:
     @classmethod
     async def get_dept_tree_service(cls, auth: AuthSchema, search: Optional[DeptQueryParam]= None, order_by: Optional[List[Dict]] = None) -> List[Dict]:
         """
-        获取部门树形列表service
+        获取部门树形列表。
         
-        :param auth: 认证对象
-        :param search: 查询参数对象
-        :param order_by: 排序参数
-        :return: 部门树形列表对象
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - search (DeptQueryParam | None): 查询参数对象。
+        - order_by (List[Dict] | None): 排序参数。
+        
+        返回:
+        - List[Dict]: 部门树形列表对象。
         """
         # 使用树形结构查询，预加载children关系
         dept_list = await DeptCRUD(auth).get_tree_list_crud(search=search.__dict__, order_by=order_by)
@@ -62,11 +68,17 @@ class DeptService:
     @classmethod
     async def create_dept_service(cls, auth: AuthSchema, data: DeptCreateSchema) -> Dict:
         """
-        创建部门service
+        创建部门。
         
-        :param auth: 认证对象
-        :param data: 部门创建对象
-        :return: 新创建的部门对象
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - data (DeptCreateSchema): 部门创建对象。
+        
+        返回:
+        - Dict: 新创建的部门对象。
+        
+        异常:
+        - CustomException: 当部门已存在时抛出。
         """
         dept = await DeptCRUD(auth).get(name=data.name)
         if dept:
@@ -77,11 +89,18 @@ class DeptService:
     @classmethod
     async def update_dept_service(cls, auth: AuthSchema, id:int, data: DeptUpdateSchema) -> Dict:
         """
-        更新部门service
+        更新部门。
         
-        :param auth: 认证对象
-        :param data: 部门更新对象
-        :return: 更新后的部门对象
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - id (int): 部门 ID。
+        - data (DeptUpdateSchema): 部门更新对象。
+        
+        返回:
+        - Dict: 更新后的部门对象。
+        
+        异常:
+        - CustomException: 当部门不存在或名称重复时抛出。
         """
         dept = await DeptCRUD(auth).get_by_id_crud(id=id)
         if not dept:
@@ -99,10 +118,17 @@ class DeptService:
     @classmethod
     async def delete_dept_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
-        删除部门service
+        删除部门。
         
-        :param auth: 认证对象
-        :param id: 部门ID
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - ids (List[int]): 部门 ID 列表。
+        
+        返回:
+        - None
+        
+        异常:
+        - CustomException: 当删除对象为空或部门不存在时抛出。
         """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
@@ -115,10 +141,14 @@ class DeptService:
     @classmethod
     async def batch_set_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
-        批量设置部门可用状态service
+        批量设置部门可用状态。
         
-        :param auth: 认证对象
-        :param data: 批量设置可用状态对象
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - data (BatchSetAvailable): 批量设置可用状态对象。
+        
+        返回:
+        - None
         """
         dept_list = await DeptCRUD(auth).get_list_crud()
         total_ids = []

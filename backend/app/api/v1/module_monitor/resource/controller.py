@@ -35,7 +35,17 @@ async def get_directory_list_controller(
     page: PaginationQueryParam = Depends(),
     search: ResourceSearchQueryParam = Depends(),
 ) -> JSONResponse:
-    """获取目录列表"""
+    """
+    获取目录列表
+    
+    参数:
+    - request (Request): FastAPI请求对象，用于获取基础URL。
+    - page (PaginationQueryParam): 分页查询参数模型。
+    - search (ResourceSearchQueryParam): 资源查询参数模型。
+    
+    返回:
+    - JSONResponse: 包含目录列表的JSON响应。
+    """
     # 获取资源列表（与案例模块保持一致的分页实现）
     result_dict_list = await ResourceService.get_resources_list_service(
         search=search, 
@@ -62,7 +72,17 @@ async def upload_file_controller(
     request: Request,
     target_path: Optional[str] = Form(None, description="目标目录路径")
 ) -> JSONResponse:
-    """上传文件"""
+    """
+    上传文件
+    
+    参数:
+    - file (UploadFile): 要上传的文件对象。
+    - request (Request): FastAPI请求对象，用于获取基础URL。
+    - target_path (Optional[str]): 目标目录路径，默认为None。
+    
+    返回:
+    - JSONResponse: 包含上传文件信息的JSON响应。
+    """
     result_dict = await ResourceService.upload_file_service(
         file=file,
         target_path=target_path,
@@ -82,7 +102,16 @@ async def download_file_controller(
     request: Request,
     path: str = Query(..., description="文件路径")
 ) -> FileResponse:
-    """下载文件"""
+    """
+    下载文件
+    
+    参数:
+    - request (Request): FastAPI请求对象，用于获取基础URL。
+    - path (str): 文件路径。
+    
+    返回:
+    - FileResponse: 包含文件内容的文件响应。
+    """
     file_path = await ResourceService.download_file_service(
         file_path=path,
         base_url=str(request.base_url)
@@ -109,7 +138,15 @@ async def download_file_controller(
 async def delete_files_controller(
     paths: List[str] = Body(..., description="文件路径列表")
 ) -> JSONResponse:
-    """删除文件"""
+    """
+    删除文件
+    
+    参数:
+    - paths (List[str]): 文件路径列表。
+    
+    返回:
+    - JSONResponse: 包含删除结果的JSON响应。
+    """
     await ResourceService.delete_file_service(paths=paths)
     logger.info(f"删除文件成功: {paths}")
     return SuccessResponse(msg="删除文件成功")
@@ -124,7 +161,15 @@ async def delete_files_controller(
 async def move_file_controller(
     data: ResourceMoveSchema
 ) -> JSONResponse:
-    """移动文件"""
+    """
+    移动文件
+    
+    参数:
+    - data (ResourceMoveSchema): 移动文件参数模型。
+    
+    返回:
+    - JSONResponse: 包含移动结果的JSON响应。
+    """
     await ResourceService.move_file_service(data=data)
     logger.info(f"移动文件成功: {data.source_path} -> {data.target_path}")
     return SuccessResponse(msg="移动文件成功")
@@ -139,7 +184,15 @@ async def move_file_controller(
 async def copy_file_controller(
     data: ResourceCopySchema
 ) -> JSONResponse:
-    """复制文件"""
+    """
+    复制文件
+    
+    参数:
+    - data (ResourceCopySchema): 复制文件参数模型。
+    
+    返回:
+    - JSONResponse: 包含复制结果的JSON响应。
+    """
     await ResourceService.copy_file_service(data=data)
     logger.info(f"复制文件成功: {data.source_path} -> {data.target_path}")
     return SuccessResponse(msg="复制文件成功")
@@ -154,7 +207,15 @@ async def copy_file_controller(
 async def rename_file_controller(
     data: ResourceRenameSchema
 ) -> JSONResponse:
-    """重命名文件"""
+    """
+    重命名文件
+    
+    参数:
+    - data (ResourceRenameSchema): 重命名文件参数模型。
+    
+    返回:
+    - JSONResponse: 包含重命名结果的JSON响应。
+    """
     await ResourceService.rename_file_service(data=data)
     logger.info(f"重命名文件成功: {data.old_path} -> {data.new_name}")
     return SuccessResponse(msg="重命名文件成功")
@@ -169,7 +230,15 @@ async def rename_file_controller(
 async def create_directory_controller(
     data: ResourceCreateDirSchema
 ) -> JSONResponse:
-    """创建目录"""
+    """
+    创建目录
+    
+    参数:
+    - data (ResourceCreateDirSchema): 创建目录参数模型。
+    
+    返回:
+    - JSONResponse: 包含创建目录结果的JSON响应。
+    """
     await ResourceService.create_directory_service(data=data)
     logger.info(f"创建目录成功: {data.parent_path}/{data.dir_name}")
     return SuccessResponse(msg="创建目录成功")
@@ -185,7 +254,16 @@ async def export_resource_list_controller(
     request: Request,
     search: ResourceSearchQueryParam = Depends()
 ) -> StreamingResponse:
-    """导出资源列表"""
+    """
+    导出资源列表
+    
+    参数:
+    - request (Request): FastAPI请求对象，用于获取基础URL。
+    - search (ResourceSearchQueryParam): 资源查询参数模型。
+    
+    返回:
+    - StreamingResponse: 包含导出资源列表的流式响应。
+    """
     # 获取搜索结果
     result_dict_list = await ResourceService.get_resources_list_service(
         search=search,

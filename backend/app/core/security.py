@@ -31,7 +31,18 @@ class CustomOAuth2PasswordBearer(OAuth2PasswordBearer):
         )
 
     async def __call__(self, request: Request) -> Optional[str]:
-        """重写认证方法,校验token"""
+        """
+        重写认证方法,校验token
+
+        参数:
+        - request (Request): FastAPI请求对象。
+
+        返回:
+        - Optional[str]: 校验通过的token,如果校验失败则返回None。
+
+        异常:
+        - CustomException: 认证失败时抛出,状态码为401。
+        """
         authorization = request.headers.get("Authorization")
         scheme, token = get_authorization_scheme_param(authorization)
 
@@ -43,7 +54,20 @@ class CustomOAuth2PasswordBearer(OAuth2PasswordBearer):
 
 
 class CustomOAuth2PasswordRequestForm(OAuth2PasswordRequestForm):
-    """自定义登录表单,扩展验证码等字段"""
+    """
+    自定义登录表单,扩展验证码等字段
+
+    参数:
+    - grant_type (str | None): 授权类型,默认值为None,正则表达式为'password'。
+    - scope (str): 作用域,默认值为空字符串。
+    - client_id (Optional[str]): 客户端ID,默认值为None。
+    - client_secret (Optional[str]): 客户端密钥,默认值为None。
+    - username (str): 用户名。
+    - password (str): 密码。
+    - captcha_key (Optional[str]): 验证码键,默认值为空字符串。
+    - captcha (Optional[str]): 验证码值,默认值为空字符串。
+    - login_type (Optional[str]): 登录类型,默认值为"PC端",描述为"PC端 | 移动端"。
+    """
 
     def __init__(
             self,
@@ -78,7 +102,15 @@ OAuth2Schema = CustomOAuth2PasswordBearer(
 
 
 def create_access_token(payload: JWTPayloadSchema) -> str:
-    """生成JWT访问令牌"""
+    """
+    生成JWT访问令牌
+
+    参数:
+    - payload (JWTPayloadSchema): JWT有效载荷,包含用户信息等。
+
+    返回:
+    - str: 生成的JWT访问令牌。
+    """
     payload_dict = payload.model_dump()
     return jwt.encode(
         payload=payload_dict,
@@ -88,7 +120,18 @@ def create_access_token(payload: JWTPayloadSchema) -> str:
 
 
 def decode_access_token(token: str) -> JWTPayloadSchema:
-    """解析JWT访问令牌"""
+    """
+    解析JWT访问令牌
+
+    参数:
+    - token (str): JWT访问令牌字符串。
+
+    返回:
+    - JWTPayloadSchema: 解析后的JWT有效载荷,包含用户信息等。
+
+    异常:
+    - CustomException: 解析失败时抛出,状态码为401。
+    """
     if not token:
         raise CustomException(msg="认证不存在,请重新登录", code=10401, status_code=401)
 

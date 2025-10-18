@@ -20,12 +20,19 @@ from app.scripts.initialize import InitializeData
 from app.api.v1.module_system.params.service import ParamsService
 from app.api.v1.module_system.dict.service import DictDataService
 from app.api.v1 import router
+from app.utils.console import run as console_run
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     """
-    自定义生命周期
+    自定义 FastAPI 应用生命周期。
+
+    参数:
+    - app (FastAPI): FastAPI 应用实例。
+
+    返回:
+    - AsyncGenerator[Any, Any]: 生命周期上下文生成器。
     """
     logger.info(settings.BANNER + '\n' + f'{settings.TITLE} 服务开始启动...')
     
@@ -41,6 +48,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     logger.info('✅️ 初始化定时任务完成...')
 
     logger.info(f'✅️ {settings.TITLE} 服务成功启动...')
+    # 控制台输出优化：展示服务信息与文档地址
+    console_run(settings.SERVER_HOST, settings.SERVER_PORT, settings.RELOAD, settings.WORKERS)
 
     yield
 
@@ -50,7 +59,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
 
 def register_middlewares(app: FastAPI) -> None:
     """
-    注册中间件
+    注册全局中间件。
+
+    参数:
+    - app (FastAPI): FastAPI 应用实例。
+
+    返回:
+    - None
     """
     for middleware in settings.MIDDLEWARE_LIST[::-1]:
         if not middleware:
@@ -60,19 +75,37 @@ def register_middlewares(app: FastAPI) -> None:
 
 def register_exceptions(app: FastAPI) -> None:
     """
-    异常捕捉
+    统一注册异常处理器。
+
+    参数:
+    - app (FastAPI): FastAPI 应用实例。
+
+    返回:
+    - None
     """
     handle_exception(app)
 
 def register_routers(app: FastAPI) -> None:
     """
-    注册根路由
+    注册根路由。
+
+    参数:
+    - app (FastAPI): FastAPI 应用实例。
+
+    返回:
+    - None
     """
     app.include_router(router=router)
 
 def register_files(app: FastAPI) -> None:
     """
-    注册文件相关配置
+    注册静态资源挂载和文件相关配置。
+
+    参数:
+    - app (FastAPI): FastAPI 应用实例。
+
+    返回:
+    - None
     """
     # 挂载静态文件目录
     if settings.STATIC_ENABLE:
@@ -82,7 +115,13 @@ def register_files(app: FastAPI) -> None:
 
 def reset_api_docs(app: FastAPI) -> None:
     """
-    自定义配置接口本地静态文档
+    使用本地静态资源自定义 API 文档页面（Swagger UI 与 ReDoc）。
+
+    参数:
+    - app (FastAPI): FastAPI 应用实例。
+
+    返回:
+    - None
     """
 
     @app.get(settings.DOCS_URL, include_in_schema=False)

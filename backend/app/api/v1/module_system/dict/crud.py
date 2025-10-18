@@ -12,32 +12,88 @@ class DictTypeCRUD(CRUDBase[DictTypeModel, DictTypeCreateSchema, DictTypeUpdateS
     """数据字典类型数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
-        """初始化数据字典类型CRUD"""
+        """
+        初始化数据字典类型CRUD
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        """
         self.auth = auth
         super().__init__(model=DictTypeModel, auth=auth)
 
     async def get_obj_by_id_crud(self, id: int) -> Optional[DictTypeModel]:
-        """获取数据字典类型详情"""
+        """
+        获取数据字典类型详情
+        
+        参数:
+        - id (int): 数据字典类型ID
+        
+        返回:
+        - Optional[DictTypeModel]: 数据字典类型模型,如果不存在则为None
+        """
         return await self.get(id=id)
     
     async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DictTypeModel]:
-        """获取数据字典类型列表"""
+        """
+        获取数据字典类型列表
+        
+        参数:
+        - search (Optional[Dict]): 查询参数,默认值为None
+        - order_by (Optional[List[Dict[str, str]]]): 排序参数,默认值为None
+        
+        返回:
+        - Sequence[DictTypeModel]: 数据字典类型模型序列
+        """
         return await self.list(search=search, order_by=order_by)
     
     async def create_obj_crud(self, data: DictTypeCreateSchema) -> Optional[DictTypeModel]:
-        """创数据字典类型"""
+        """
+        创建数据字典类型
+        
+        参数:
+        - data (DictTypeCreateSchema): 数据字典类型创建模型
+        
+        返回:
+        - Optional[DictTypeModel]: 创建的数据字典类型模型,如果创建失败则为None
+        """
         return await self.create(data=data)
     
     async def update_obj_crud(self, id: int, data: DictTypeUpdateSchema) -> Optional[DictTypeModel]:
-        """更新数据字典类型"""
+        """
+        更新数据字典类型
+        
+        参数:
+        - id (int): 数据字典类型ID
+        - data (DictTypeUpdateSchema): 数据字典类型更新模型
+        
+        返回:
+        - Optional[DictTypeModel]: 更新的数据字典类型模型,如果更新失败则为None
+        """
         return await self.update(id=id, data=data)
     
     async def delete_obj_crud(self, ids: List[int]) -> None:
-        """删除数据字典类型"""
+        """
+        删除数据字典类型
+        
+        参数:
+        - ids (List[int]): 数据字典类型ID列表
+        
+        返回:
+        - None
+        """
         return await self.delete(ids=ids)
     
     async def set_obj_available_crud(self, ids: List[int], status: bool) -> None:
-        """设置数据字典类型的可用状态"""
+        """
+        设置数据字典类型的可用状态
+        
+        参数:
+        - ids (List[int]): 数据字典类型ID列表
+        - status (bool): 可用状态,True表示可用,False表示不可用
+        
+        返回:
+        - None
+        """
         return await self.set(ids=ids, status=status)
 
 
@@ -45,30 +101,86 @@ class DictDataCRUD(CRUDBase[DictDataModel, DictDataCreateSchema, DictDataUpdateS
     """数据字典数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
-        """初始化数据字典数据CRUD"""
+        """
+        初始化数据字典数据CRUD
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        """
         self.auth = auth
         super().__init__(model=DictDataModel, auth=auth)
 
     async def get_obj_by_id_crud(self, id: int) -> Optional[DictDataModel]:
-        """获取数据字典数据详情"""
+        """
+        获取数据字典数据详情
+        
+        参数:
+        - id (int): 数据字典数据ID
+        
+        返回:
+        - Optional[DictDataModel]: 数据字典数据模型,如果不存在则为None
+        """
         return await self.get(id=id)
     
     async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DictDataModel]:
-        """获取数据字典数据列表"""
+        """
+        获取数据字典数据列表
+        
+        参数:
+        - search (Optional[Dict]): 查询参数,默认值为None
+        - order_by (Optional[List[Dict[str, str]]]): 排序参数,默认值为None
+        
+        返回:
+        - Sequence[DictDataModel]: 数据字典数据模型序列
+        """
         return await self.list(search=search, order_by=order_by)
     
     async def create_obj_crud(self, data: DictDataCreateSchema) -> Optional[DictDataModel]:
-        """创建数据字典数据"""
+        """
+        创建数据字典数据
+        
+        参数:
+        - data (DictDataCreateSchema): 数据字典数据创建模型
+        
+        返回:
+        - Optional[DictDataModel]: 创建的数据字典数据模型,如果创建失败则为None
+        """
         return await self.create(data=data)
     
     async def update_obj_crud(self, id: int, data: DictDataUpdateSchema) -> Optional[DictDataModel]:
-        """更新数据字典数据"""
+        """
+        更新数据字典数据
+        
+        参数:
+        - id (int): 数据字典数据ID
+        - data (DictDataUpdateSchema): 数据字典数据更新模型
+        
+        返回:
+        - Optional[DictDataModel]: 更新的数据字典数据模型,如果更新失败则为None
+        """
         return await self.update(id=id, data=data)
     
     async def delete_obj_crud(self, ids: List[int]) -> None:
-        """删除数据字典数据"""
+        """
+        删除数据字典数据
+        
+        参数:
+        - ids (List[int]): 数据字典数据ID列表
+        
+        返回:
+        - None
+        """
         return await self.delete(ids=ids)
     
     async def set_obj_available_crud(self, ids: List[int], status: bool) -> None:
-        """设置数据字典数据的可用状态"""
+        """
+        设置数据字典数据的可用状态
+        
+        参数:
+        - ids (List[int]): 数据字典数据ID列表
+        - status (bool): 可用状态,True表示可用,False表示不可用
+        
+        返回:
+        - None
+        """
         return await self.set(ids=ids, status=status)

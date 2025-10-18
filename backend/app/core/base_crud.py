@@ -29,9 +29,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         初始化CRUDBase类
         
-        Args:
-            model: 数据模型类
-            auth: 认证信息
+        参数:
+        - model (Type[ModelType]): 数据模型类。
+        - auth (AuthSchema): 认证信息。
+
+        返回:
+        - None
         """
         self.model = model
         self.auth = auth
@@ -42,14 +45,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         根据条件获取单个对象
         
-        Args:
-            **kwargs: 查询条件
+        参数:
+        - **kwargs: 查询条件
             
-        Returns:
-            Optional[ModelType]: 对象实例
+        返回:
+        - Optional[ModelType]: 对象实例
             
-        Raises:
-            CustomException: 查询失败时抛出异常
+        返回:
+        - Optional[ModelType]: 对象实例
+            
+        异常:
+        - CustomException: 查询失败时抛出异常
         """
         try:
             conditions = await self.__build_conditions(**kwargs)
@@ -73,15 +79,15 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         根据条件获取对象列表和总数
         
-        Args:
-            search: 查询条件,格式为 {'id': value, 'name': value}
-            order_by: 排序字段,格式为 [{'id': 'asc'}, {'name': 'desc'}]
+        参数:
+        - search (Optional[Dict]): 查询条件,格式为 {'id': value, 'name': value}
+        - order_by (Optional[List[Dict[str, str]]]): 排序字段,格式为 [{'id': 'asc'}, {'name': 'desc'}]
             
-        Returns:
-            Sequence[ModelType]: 对象列表
+        返回:
+        - Sequence[ModelType]: 对象列表和总数
             
-        Raises:
-            CustomException: 查询失败时抛出异常
+        异常:
+        - CustomException: 查询失败时抛出异常
         """
         try:
             conditions = await self.__build_conditions(**search) if search else []
@@ -100,16 +106,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         获取树形结构数据列表
         
-        Args:
-            search: 查询条件
-            order_by: 排序字段
-            children_attr: 子节点属性名
+        参数:
+        - search (Optional[Dict]): 查询条件
+        - order_by (Optional[List[Dict[str, str]]]): 排序字段
+        - children_attr (str): 子节点属性名
             
-        Returns:
-            Sequence[ModelType]: 树形结构数据列表
+        返回:
+        - Sequence[ModelType]: 树形结构数据列表
             
-        Raises:
-            CustomException: 查询失败时抛出异常
+        异常:
+        - CustomException: 查询失败时抛出异常
         """
         try:
             from sqlalchemy.orm import selectinload
@@ -133,6 +139,22 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             raise CustomException(msg=f"树形列表查询失败: {str(e)}")
     
     async def page(self, offset: int, limit: int, order_by: List[Dict[str, str]], search: Dict, out_schema: Type[OutSchemaType]) -> Dict:
+        """
+        获取分页数据
+        
+        参数:
+        - offset (int): 偏移量
+        - limit (int): 每页数量
+        - order_by (List[Dict[str, str]]): 排序字段
+        - search (Dict): 查询条件
+        - out_schema (Type[OutSchemaType]): 输出数据模型
+            
+        返回:
+        - Dict: 分页数据
+            
+        异常:
+        - CustomException: 查询失败时抛出异常
+        """
         try:
             from sqlalchemy.orm import selectinload
 
@@ -177,14 +199,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         创建新对象
         
-        Args:
-            data: 对象属性
+        参数:
+        - data (Union[CreateSchemaType, Dict]): 对象属性
             
-        Returns:
-            ModelType: 新创建的对象实例
+        返回:
+        - ModelType: 新创建的对象实例
             
-        Raises:
-            CustomException: 创建失败时抛出异常
+        异常:
+        - CustomException: 创建失败时抛出异常
         """
         try:
             obj_dict = data if isinstance(data, dict) else data.model_dump()
@@ -206,15 +228,15 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         更新对象
         
-        Args:
-            id: 对象ID
-            data: 更新的属性及值
+        参数:
+        - id (int): 对象ID
+        - data (Union[UpdateSchemaType, Dict]): 更新的属性及值
             
-        Returns:
-            ModelType: 更新后的对象实例
+        返回:
+        - ModelType: 更新后的对象实例
             
-        Raises:
-            CustomException: 更新失败时抛出异常
+        异常:
+        - CustomException: 更新失败时抛出异常
         """
         try:
             obj_dict = data if isinstance(data, dict) else data.model_dump(exclude_unset=True, exclude={"id"})
@@ -236,11 +258,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         删除对象
         
-        Args:
-            ids: 对象ID列表
+        参数:
+        - ids (List[int]): 对象ID列表
             
-        Raises:
-            CustomException: 删除失败时抛出异常
+        异常:
+        - CustomException: 删除失败时抛出异常
         """
         try:
             sql = delete(self.model).where(self.model.id.in_(ids))
@@ -254,8 +276,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         清空对象表
         
-        Raises:
-            CustomException: 清空失败时抛出异常
+        异常:
+        - CustomException: 清空失败时抛出异常
         """
         try:
             sql = delete(self.model)
@@ -268,12 +290,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         批量更新对象
         
-        Args:
-            ids: 对象ID列表
-            **kwargs: 更新的属性及值
+        参数:
+        - ids (List[int]): 对象ID列表
+        - **kwargs: 更新的属性及值
             
-        Raises:
-            CustomException: 更新失败时抛出异常
+        异常:
+        - CustomException: 更新失败时抛出异常
         """
         try:
             sql = update(self.model).where(self.model.id.in_(ids)).values(**kwargs)
@@ -283,7 +305,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             raise CustomException(msg=f"批量更新失败: {str(e)}")
 
     async def __filter_permissions(self, sql: Select) -> Select:
-        """过滤数据权限"""
+        """
+        过滤数据权限
+        
+        参数:
+        - sql (Select): SQL查询对象
+            
+        返回:
+        - Select: 过滤后的数据查询对象
+            
+        异常:
+        - CustomException: 权限过滤失败时抛出异常
+        """
         # 如果不需要检查数据权限,则直接返回
         if not self.current_user or not self.auth.check_data_scope:
             return sql
@@ -357,11 +390,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         获取排序字段
         
-        Args:
-            order_by: 排序字段列表,格式为 [{'id': 'asc'}, {'name': 'desc'}]
+        参数:
+        - order_by (List[Dict[str, str]]): 排序字段列表,格式为 [{'id': 'asc'}, {'name': 'desc'}]
             
-        Returns:
-            List[ColumnElement]: 排序字段列表
+        返回:
+        - List[ColumnElement]: 排序字段列表
+            
+        异常:
+        - CustomException: 排序字段不存在时抛出异常
         """
         columns = []
         for order in order_by:
@@ -374,11 +410,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         构建查询条件
         
-        Args:
-            **kwargs: 查询参数
+        参数:
+        - **kwargs: 查询参数
             
-        Returns:
-            List[ColumnElement]: SQL条件表达式列表
+        返回:
+        - List[ColumnElement]: SQL条件表达式列表
+            
+        异常:
+        - CustomException: 查询参数不存在时抛出异常
         """
         conditions = []
         for key, value in kwargs.items():

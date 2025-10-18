@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-"""
 
-
-import os
 import time
 from datetime import datetime, timedelta
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from typing import Optional, Dict, Any
 from pathlib import Path
-import typing
 
 from app.config.setting import settings
 
@@ -26,7 +23,9 @@ class CustomTimedRotatingFileHandler(TimedRotatingFileHandler):
         super().__init__(filename, when, interval, backupCount, encoding, delay, utc)
     
     def doRollover(self) -> None:
-        """优化后的日志轮换，使用自定义命名格式"""
+        """
+        优化后的日志轮换，使用自定义命名格式
+        """
         # 使用流上下文管理确保资源正确释放
         if self.stream:
             self.stream.close()

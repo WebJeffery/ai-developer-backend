@@ -15,13 +15,24 @@ class FileService:
 
     @classmethod
     async def upload_service(cls, base_url: str, file: UploadFile, upload_type: str = 'local') -> Dict:
-        """ 上传文件"""
+        """
+        上传文件。
+        
+        参数:
+        - base_url (str): 基础访问 URL。
+        - file (UploadFile): 上传文件对象。
+        - upload_type (str): 上传类型，'local' 或 'oss'，默认 'local'。
+        
+        返回:
+        - Dict: 上传响应字典。
+        
+        异常:
+        - CustomException: 当未选择文件或上传类型错误时抛出。
+        """
         if not file:
             raise CustomException(msg="请选择要上传的文件")
         if upload_type == 'local':
             filename, filepath, file_url = await UploadUtil.upload_file(file=file, base_url=base_url)
-        elif upload_type == 'oss':
-            filename, filepath, file_url = await UploadUtil.upload_file_oss(file=file, oss_folder=file.filename)
         else:
             raise CustomException(msg="上传类型错误")
         
@@ -36,9 +47,16 @@ class FileService:
     @classmethod
     async def download_service(cls, file_path: str) -> DownloadFileSchema:
         """
-        下载文件
-        :param file_path: 文件路径
-        :return: 结果
+        下载文件。
+        
+        参数:
+        - file_path (str): 文件路径。
+        
+        返回:
+        - DownloadFileSchema: 下载文件响应对象。
+        
+        异常:
+        - CustomException: 当未选择文件或文件不存在时抛出。
         """
         if not file_path:
             raise CustomException(msg="请选择要下载的文件")

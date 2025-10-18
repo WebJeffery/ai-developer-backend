@@ -23,9 +23,28 @@ class OperationLogRoute(APIRoute):
     """操作日志路由装饰器"""
     
     def get_route_handler(self) -> Callable[[Request], Coroutine[Any, Any, Response]]:
-        original_route_handler = super().get_route_handler()
+        """
+        自定义路由处理程序,在每个路由处理之前或之后执行特定的操作。
 
+        参数:
+        - request (Request): FastAPI请求对象。
+
+        返回:
+        - Response: FastAPI响应对象。
+        """
+        original_route_handler = super().get_route_handler()
+        
         async def custom_route_handler(request: Request) -> Response:
+            """
+            自定义路由处理程序,在每个路由处理之前或之后执行特定的操作。
+
+            参数:
+            - request (Request): FastAPI请求对象。
+            描述:
+            - 该方法在每个路由处理之前被调用,用于记录操作日志。
+            返回:
+            - Response: FastAPI响应对象。
+            """
             start_time = time.time()
             # 请求前的处理
             response: Response = await original_route_handler(request)

@@ -1,597 +1,423 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      {% for column in columns %}
-        {% if column.is_query == "1" %}
-          {% set dict_type = column.dict_type %}
+    <!-- 搜索区域 -->
+    <div class="search-container">
+      <el-form :model="queryFormData" ref="queryFormRef" :inline="true" label-suffix=":">
+        {% for column in columns %}
+          {% if column.is_query == "1" %}
+            {% set dict_type = column.dict_type %}
+            {% set column_comment = column.column_comment if column.column_comment else '' %}
+            {% set parentheseIndex = column_comment.find("（") %}
+            {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
+
+            {% if column.html_type == "input" %}
+              <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+                <el-input v-model="queryFormData.{{ column.python_field }}" placeholder="请输入{{ comment }}" clearable @keyup.enter="handleQuery" />
+              </el-form-item>
+            {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
+              <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+                <el-select v-model="queryFormData.{{ column.python_field }}" placeholder="请选择{{ comment }}" style="width: 180px" clearable>
+                  <el-option v-for="dict in dictStore.getDictArray('{{ dict_type }}')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+                </el-select>
+              </el-form-item>
+            {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
+              <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+                <el-select v-model="queryFormData.{{ column.python_field }}" placeholder="请选择{{ comment }}" clearable>
+                  <el-option label="请选择字典生成" value="" />
+                </el-select>
+              </el-form-item>
+            {% elif column.html_type == "datetime" and column.query_type != "BETWEEN" %}
+              <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+                <el-date-picker v-model="queryFormData.{{ column.python_field }}" type="date" value-format="YYYY-MM-DD" clearable placeholder="请选择{{ comment }}" />
+              </el-form-item>
+            {% elif column.html_type == "datetime" and column.query_type == "BETWEEN" %}
+              <el-form-item label="{{ comment }}" style="width: 308px">
+                <el-date-picker v-model="dateRangeMap.{{ column.python_field }}" value-format="YYYY-MM-DD" type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" />
+              </el-form-item>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        <el-form-item class="search-buttons">
+          <el-button type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <!-- 内容区域 -->
+    <el-card shadow="hover" class="data-table">
+      <template #header>
+        <div class="card-header">
+          <span>
+            <el-tooltip content="{{ function_name }}列表">
+              <QuestionFilled class="w-4 h-4 mx-1" />
+            </el-tooltip>
+            {{ function_name }}列表
+          </span>
+        </div>
+      </template>
+
+      <!-- 功能区域 -->
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-button type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
+            </el-col>
+          </el-row>
+        </div>
+        <div class="data-table__toolbar--tools">
+          <el-row :gutter="10">
+            <el-col :span="1.5">
+              <el-tooltip content="刷新">
+                <el-button type="primary" icon="refresh" circle @click="handleRefresh" />
+              </el-tooltip>
+            </el-col>
+          </el-row>
+        </div>
+      </div>
+
+      <!-- 表格区域 -->
+      <el-table
+        ref="dataTableRef"
+        v-loading="loading"
+        :data="pageTableData"
+        highlight-current-row
+        class="data-table__content"
+        height="450"
+        border
+        stripe
+        @selection-change="handleSelectionChange"
+      >
+        <template #empty>
+          <el-empty :image-size="80" description="暂无数据" />
+        </template>
+        <el-table-column type="selection" min-width="55" align="center" />
+        <el-table-column fixed label="序号" min-width="60">
+          <template #default="scope">
+            {{ '{' }}{{ '{' }} (queryFormData.page_no - 1) * queryFormData.page_size + scope.$index + 1 {{ '}' }}{{ '}' }}
+          </template>
+        </el-table-column>
+        {% for column in columns %}
+          {% set python_field = column.python_field %}
           {% set column_comment = column.column_comment if column.column_comment else '' %}
           {% set parentheseIndex = column_comment.find("（") %}
           {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
-
-          {% if column.html_type == "input" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
-              <el-input
-                v-model="queryParams.{{ column.python_field }}"
-                placeholder="请输入{{ comment }}"
-                clearable
-                @keyup.enter="handleQuery"
-              />
-            </el-form-item>
-          {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
-              <el-select
-                  v-model="queryParams.{{ column.python_field }}"
-                  placeholder="请选择{{ comment }}"
-                  style="width: 180px"
-                  clearable>
-                <el-option
-                  v-for="dict in {{ dict_type }}"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                />
-              </el-select>
-            </el-form-item>
-          {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
-            <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
-              <el-select v-model="queryParams.{{ column.python_field }}" placeholder="请选择{{ comment }}" clearable>
-                <el-option label="请选择字典生成" value="" />
-              </el-select>
-            </el-form-item>
-          {% elif column.html_type == "datetime" and column.query_type != "BETWEEN" %}
-            <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
-              <el-date-picker clearable
-                v-model="queryParams.{{ column.python_field   }}"
-                type="date"
-                value-format="YYYY-MM-DD"
-                placeholder="请选择{{ comment }}">
-              </el-date-picker>
-            </el-form-item>
-          {% elif column.html_type == "datetime" and column.query_type == "BETWEEN" %}
-            <el-form-item label="{{ comment }}" style="width: 308px">
-              <el-date-picker
-                v-model="daterange{{ column.python_field | snake_to_pascal_case }}"
-                value-format="YYYY-MM-DD"
-                type="daterange"
-                range-separator="-"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-              ></el-date-picker>
-            </el-form-item>
+          {% if column.is_list == "1" %}
+            <el-table-column label="{{ comment }}" prop="{{ python_field }}" min-width="140">
+              {% if column.html_type == "datetime" %}
+                <template #default="scope">
+                  <span>{{ '{' }}{{ '{' }} scope.row.{{ python_field }} {{ '}' }}{{ '}' }}</span>
+                </template>
+              {% endif %}
+            </el-table-column>
           {% endif %}
-        {% endif %}
-      {% endfor %}
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
+        {% endfor %}
+        <el-table-column fixed="right" label="操作" align="center" min-width="200">
+          <template #default="scope">
+            <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
+            <el-button type="primary" size="small" link icon="edit" @click="handleOpenDialog('update', scope.row.id)">编辑</el-button>
+            <el-button type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <el-card class="base-table" ref="fullTable">
-            <TableSetup
-                ref="tSetup"
-                @onStripe="onStripe"
-                @onRefresh="onRefresh"
-                @onChange="onChange"
-                @onfullTable="onfullTable"
-                @onSearchChange="onSearchChange"
-                :columns="columns"
-                :isTable="isTable"
-            >
-                <template v-slot:operate>
-                    <el-button
-                      type="primary"
-                      plain
-                      icon="Plus"
-                      @click="handleAdd"
-                      v-hasPermi="['{{ module_name }}:{{ business_name }}:add']"
-                    >新增</el-button>
-                    <el-button
-                      type="success"
-                      plain
-                      icon="Edit"
-                      :disabled="single"
-                      @click="handleUpdate"
-                      v-hasPermi="['{{ module_name }}:{{ business_name }}:edit']"
-                    >修改</el-button>
-                    <el-button
-                      type="danger"
-                      plain
-                      icon="Delete"
-                      :disabled="multiple"
-                      @click="handleDelete"
-                      v-hasPermi="['{{ module_name }}:{{ business_name }}:remove']"
-                    >删除</el-button>
-                  <el-button
-                        type="primary"
-                        plain
-                        icon="Upload"
-                        @click="handleImport"
-                        v-hasPermi="['{{ module_name }}:{{ business_name }}:import']"
-                        >导入</el-button
-                    >
-                    <el-button
-                      type="warning"
-                      plain
-                      icon="Download"
-                      @click="handleExport"
-                      v-hasPermi="['{{ module_name }}:{{ business_name }}:export']"
-                    >导出</el-button>
-                </template>
-            </TableSetup>
-            <auto-table
-                ref="multipleTable"
-                class="mytable"
-                :tableData="{{ business_name }}List"
-                :columns="columns"
-                :loading="loading"
-                :stripe="stripe"
-                :tableHeight="tableHeight"
-                @onColumnWidthChange="onColumnWidthChange"
-                @onSelectionChange="handleSelectionChange"
-            >
-              {% for column in columns %}
-                {% set python_field = column.python_field %}
-                {% set column_comment = column.column_comment if column.column_comment else '' %}
-                {% set parentheseIndex = column_comment.find("（") %}
-                {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
+      <!-- 分页区域 -->
+      <template #footer>
+        <pagination v-model:total="total" v-model:page="queryFormData.page_no" v-model:limit="queryFormData.page_size" @pagination="loadingData" />
+      </template>
+    </el-card>
 
-                {% if column.is_list and column.html_type == "datetime" %}
-                    <template #{{ python_field }}="{ row }">
-                      <span>{% raw %}{{{% endraw %} parseTime(row.{{ python_field }}, '{y}-{m}-{d}') {% raw %}}}{% endraw %}</span>
-                    </template>
-                {% elif column.is_list == "1" and column.html_type == "imageUpload" %}
-                    <template #{{ python_field }}="{ row }">
-                      <image-preview :src="fullUrl(row.{{ python_field }})"  v-if="row.{{ python_field }}" :width="50" :height="50"/>
-                    </template>
-                {% elif column.is_list == "1" and column.dict_type != "" %}
-                    <template #{{ python_field }}="{ row }">
-                      {% if column.html_type == "checkbox" %}
-                        <dict-tag :options="{{ column.dict_type }}" :value="row.{{ python_field }} ? row.{{ python_field }}.split(',') : []"/>
-                      {% else %}
-                        <dict-tag :options="{{ column.dict_type }}" :value="row.{{ python_field }}"/>
-                      {% endif %}
-                    </template>
-                {% endif %}
-              {% endfor %}
-            </auto-table>
-        </el-card>
+    <!-- 弹窗区域 -->
+    <el-dialog v-model="dialogVisible.visible" :title="dialogVisible.title" @close="handleCloseDialog">
+      <!-- 详情 -->
+      <template v-if="dialogVisible.type === 'detail'">
+        <el-descriptions :column="4" border>
+          {% for column in columns %}
+            {% set python_field = column.python_field %}
+            {% set column_comment = column.column_comment if column.column_comment else '' %}
+            {% set parentheseIndex = column_comment.find("（") %}
+            {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
+            <el-descriptions-item label="{{ comment }}" :span="2">
+              {{ '{' }}{{ '{' }} detailFormData.{{ python_field }} {{ '}' }}{{ '}' }}
+            </el-descriptions-item>
+          {% endfor %}
+        </el-descriptions>
+      </template>
+      <!-- 新增、编辑表单 -->
+      <template v-else>
+        <el-form ref="dataFormRef" :model="formData" :rules="rules" label-suffix=":" label-width="auto" label-position="right">
+          {% for column in columns %}
+            {% if column.is_insert == "1" or column.is_edit == "1" %}
+              {% set dict_type = column.dict_type %}
+              {% set column_comment = column.column_comment if column.column_comment else '' %}
+              {% set parentheseIndex = column_comment.find("（") %}
+              {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
+              {% set required = 'true' if column.is_required == '1' else 'false' %}
 
-        <el-dialog v-model="open" title="{{ business_name }}" width="700px" append-to-body>
-            <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
-                {% for column in columns %}
-                  {% if column.is_insert == "1" or column.is_edit == "1" %}
-                    {% set dict_type = column.dict_type %}
-                    {% set column_comment = column.column_comment if column.column_comment else '' %}
-                    {% set parentheseIndex = column_comment.find("（") %}
-                    {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
-                    {% set required = 'true' if column.is_required == '1' else 'false' %}
+              {% if column.html_type == "input" %}
+                <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                  <el-input v-model="formData.{{ column.python_field }}" placeholder="请输入{{ comment }}" />
+                </el-form-item>
+              {% elif column.html_type == "textarea" %}
+                <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                  <el-input v-model="formData.{{ column.python_field }}" type="textarea" placeholder="请输入{{ comment }}" rows="4" />
+                </el-form-item>
+              {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
+                <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                  <el-select v-model="formData.{{ column.python_field }}" placeholder="请选择{{ comment }}">
+                    <el-option v-for="dict in dictStore.getDictArray('{{ dict_type }}')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+                  </el-select>
+                </el-form-item>
+              {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
+                <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                  <el-select v-model="formData.{{ column.python_field }}" placeholder="请选择{{ comment }}">
+                    <el-option label="请选择字典生成" value="" />
+                  </el-select>
+                </el-form-item>
+              {% elif column.html_type == "date" %}
+                <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                  <el-date-picker v-model="formData.{{ column.python_field }}" type="date" value-format="YYYY-MM-DD" placeholder="请选择{{ comment }}" />
+                </el-form-item>
+              {% elif column.html_type == "datetime" %}
+                <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
+                  <el-date-picker v-model="formData.{{ column.python_field }}" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" placeholder="请选择{{ comment }}" />
+                </el-form-item>
+              {% elif column.html_type == "checkbox" %}
+                <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+                  <el-checkbox v-model="formData.{{ column.python_field }}">{{ comment }}</el-checkbox>
+                </el-form-item>
+              {% elif column.html_type == "imageUpload" %}
+                <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+                  <SingleImageUpload v-model="formData.{{ column.python_field }}" />
+                </el-form-item>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </el-form>
+      </template>
 
-                    {% if column.html_type == "input" %}
-                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
-                            <el-input v-model="form.{{ column.python_field }}" placeholder="请输入{{ comment }}" />
-                        </el-form-item>
-                    {% elif column.html_type == "textarea" %}
-                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
-                            <el-input v-model="form.{{ column.python_field }}" type="textarea" placeholder="请输入{{ comment }}" rows="4" />
-                        </el-form-item>
-                    {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
-                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
-                            <el-select v-model="form.{{ column.python_field }}" placeholder="请选择{{ comment }}">
-                                <el-option v-for="dict in {{ dict_type }}" :key="dict.value" :label="dict.label" :value="dict.value" />
-                            </el-select>
-                        </el-form-item>
-                    {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
-                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
-                            <el-select v-model="form.{{ column.python_field }}" placeholder="请选择{{ comment }}">
-                                <el-option label="请选择字典生成" value="" />
-                            </el-select>
-                        </el-form-item>
-                    {% elif column.html_type == "date" %}
-                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
-                            <el-date-picker v-model="form.{{ column.python_field }}" type="date" value-format="YYYY-MM-DD" placeholder="请选择{{ comment }}" />
-                        </el-form-item>
-                    {% elif column.html_type == "datetime" %}
-                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}" :required="{{ required }}">
-                            <el-date-picker v-model="form.{{ column.python_field }}" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" placeholder="请选择{{ comment }}" />
-                        </el-form-item>
-                    {% elif column.html_type == "checkbox" %}
-                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
-                            <el-checkbox v-model="form.{{ column.python_field }}">{{ comment }}</el-checkbox>
-                        </el-form-item>
-                    {% elif column.html_type == "imageUpload" %}
-                        <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
-                            <image-upload v-model="form.{{ column.python_field }}" />
-                        </el-form-item>
-                    {% endif %}
-                  {% endif %}
-                {% endfor %}
-            </el-form>
-            <template #footer>
-                <span class="dialog-footer">
-                    <el-button @click="cancel">取消</el-button>
-                    <el-button type="primary" @click="confirm">确定</el-button>
-                </span>
-            </template>
-        </el-dialog>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="handleCloseDialog">取消</el-button>
+          <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-else type="primary" @click="handleCloseDialog">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+</template>
 
-        <el-dialog v-model="openImport" title="导入" width="400px" append-to-body>
-            <file-uploader
-                v-model="uploadFile"
-                accept=".xlsx"
-                :limit="1"
-                :headers="{Authorization: getToken()}"
-                :before-upload="beforeUpload"
-                @on-success="handleImportSuccess"
-                tip="<b>仅支持.xlsx格式文件导入</b>"
-            >
-                <template #trigger>
-                    <el-button type="primary" plain>点击上传</el-button>
-                </template>
-                <template #tip>
-                    <el-link type="primary" :underline="false" @click="handleTemplate">
-                        下载模板
-                    </el-link>
-                </template>
-            </file-uploader>
-        </el-dialog>
-    </div>
-  </template>
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {{ business_name|replace('_', ' ')|title|replace(' ', '') }}API from '@/api/{{ module_name }}/{{ business_name }}'
+import { useDictStore } from '@/store/index'
+import SingleImageUpload from '@/components/Upload/SingleImageUpload.vue'
 
-  <script setup>
-import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
-import { ElMessage, ElMessageBox, ElDialog } from 'element-plus'
-import { parseTime } from '@/utils/date-time'
-import { useI18n } from 'vue-i18n'
-import { useUserStore } from '@/store/modules/user'
-import FileUploader from '@/components/upload/FileUploader.vue'
-import { fullUrl } from '@/utils/index'
-import ImagePreview from '@/components/preview/ImagePreview.vue'
-import TableSetup from '@/components/table/TableSetup.vue'
-import AutoTable from '@/components/table/AutoTable.vue'
-import {
-  list{{ business_name|snake_to_pascal_case }},
-  get{{ business_name|snake_to_pascal_case }},
-  del{{ business_name|snake_to_pascal_case }},
-  add{{ business_name|snake_to_pascal_case }},
-  update{{ business_name|snake_to_pascal_case }},
-  export{{ business_name|snake_to_pascal_case }},
-  import{{ business_name|snake_to_pascal_case }},
-  getImportTemplate{{ business_name|snake_to_pascal_case }}
-} from '@/api/{{ module_name }}/{{ business_name }}'
+const queryFormRef = ref()
+const dataFormRef = ref()
+const total = ref(0)
+const selectIds = ref([])
+const loading = ref(false)
 
-const { t } = useI18n()
-const userStore = useUserStore()
-const getToken = () => {
-  return userStore.token
-}
+// 字典仓库与需要加载的字典类型
+const dictStore = useDictStore()
+const dictTypes = [
+  {% for column in columns %}
+    {% if column.dict_type %}
+      '{{ column.dict_type }}',
+    {% endif %}
+  {% endfor %}
+]
 
 // 表格数据
-const {{ business_name }}List = ref([])
-// 加载状态
-const loading = ref(false)
-// 弹出层标题
-const title = ref('')
-// 表单参数
-const form = reactive({})
-// 表单校验
-const rules = ref({})
-// 显示状态
-const open = ref(false)
-// 显示导入状态
-const openImport = ref(false)
-// 选中数组
-const ids = ref([])
-// 非单个禁用
-const single = ref(true)
-// 非多个禁用
-const multiple = ref(true)
-// 显示搜索条件
-const showSearch = ref(true)
-// 表格高度
-const tableHeight = ref('auto')
-// 表格条纹
-const stripe = ref(false)
-// 全屏
-const fullScreen = ref(false)
-// 上传的文件
-const uploadFile = ref()
-// 日期范围
-{% for column in columns %}
-  {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
-    const daterange{{ column.python_field | snake_to_pascal_case }} = ref([])
-  {% endif %}
-{% endfor %}
+const pageTableData = ref([])
+
+// 详情表单
+const detailFormData = ref({})
+
+// 日期范围映射（支持多个 BETWEEN 字段）
+const dateRangeMap = reactive({})
+
 // 查询参数
-const queryParams = ref({
+const queryFormData = reactive({
+  page_no: 1,
+  page_size: 10,
   {% for column in columns %}
     {% if column.is_query == "1" and column.query_type != "BETWEEN" %}
-      {{ column.python_field  }}: undefined,
+      {{ column.python_field }}: undefined,
     {% endif %}
   {% endfor %}
 })
 
-const proxy = getCurrentInstance()?.proxy
-
-// 列数据
-const columns = ref([])
-// 是否表格显示
-const isTable = ref(true)
-
-// 获取用户列表
-const getList = async () => {
+// 加载表格数据
+async function loadingData() {
   loading.value = true
-  const params = {
-    ...queryParams.value
-    {% for column in columns %}
-      {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
-        ,
-        {{ column.python_field  }}_start: daterange{{ column.python_field | snake_to_pascal_case }}.value && daterange{{ column.python_field | snake_to_pascal_case }}.value.length > 0 ? daterange{{ column.python_field | snake_to_pascal_case }}.value[0] : undefined,
-        {{ column.python_field  }}_end: daterange{{ column.python_field | snake_to_pascal_case }}.value && daterange{{ column.python_field | snake_to_pascal_case }}.value.length > 0 ? daterange{{ column.python_field | snake_to_pascal_case }}.value[1] : undefined
-      {% endif %}
-    {% endfor %}
-  }
   try {
-    const response = await list{{ business_name|snake_to_pascal_case }}(params)
-    {{ business_name }}List.value = response.rows
-    loading.value = false
+    const params = {
+      ...queryFormData,
+      {% for column in columns %}
+        {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
+          {{ column.python_field }}_start: dateRangeMap.{{ column.python_field }} && dateRangeMap.{{ column.python_field }}.length > 0 ? dateRangeMap.{{ column.python_field }}[0] : undefined,
+          {{ column.python_field }}_end: dateRangeMap.{{ column.python_field }} && dateRangeMap.{{ column.python_field }}.length > 0 ? dateRangeMap.{{ column.python_field }}[1] : undefined,
+        {% endif %}
+      {% endfor %}
+    }
+    const response = await {{ business_name|replace('_', ' ')|title|replace(' ', '') }}API.list(params)
+    // 参考 demo.ts 返回结构
+    pageTableData.value = response.data.data.items
+    total.value = response.data.data.total
   } catch (error) {
+    console.error(error)
+  } finally {
     loading.value = false
   }
 }
 
-// 获取列信息
-const getColumns = async () => {
-  const list = []
-  {% for column in columns %}
-    {% set python_field = column.python_field  %}
-    {% set column_comment = column.column_comment if column.column_comment else '' %}
-    {% set parentheseIndex = column_comment.find("（") %}
-    {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
-    {% if column.is_list == "1" %}
-      list.push({
-        prop: '{{ python_field }}',
-        label: '{{ comment }}',
-        width: 180,
-        sortable: true,
-        fixed: false,
-        visible: true,
-        formatter: undefined
-      })
-    {% endif %}
-  {% endfor %}
-  columns.value = list
-  isTable.value = true
+// 查询（重置页码后获取数据）
+async function handleQuery() {
+  queryFormData.page_no = 1
+  loadingData()
 }
 
-// 搜索按钮点击事件
-const handleQuery = () => {
-  getList()
-}
-
-// 重置按钮点击事件
-const resetQuery = () => {
-  // 重置日期范围
+// 重置查询
+async function handleResetQuery() {
+  queryFormRef.value.resetFields()
+  queryFormData.page_no = 1
+  // 重置所有日期范围选择器
   {% for column in columns %}
     {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
-      daterange{{ column.python_field | snake_to_pascal_case }}.value = []
+      dateRangeMap.{{ column.python_field }} = []
     {% endif %}
   {% endfor %}
-  // 重置表单
-  Object.keys(queryParams.value).forEach(key => {
-    queryParams.value[key] = undefined
-  })
-  getList()
+  loadingData()
 }
 
-// 多选框选中数据变化
-const handleSelectionChange = (selection) => {
-  ids.value = selection.map(item => item.{{ primaryKey }})
-  single.value = !(selection.length === 1)
-  multiple.value = !(selection.length > 0)
+// 行复选框选中项变化
+function handleSelectionChange(selection) {
+  selectIds.value = selection.map((item) => item.id)
 }
 
-// 新增按钮点击事件
-const handleAdd = () => {
-  title.value = '新增{{ function_name }}'
-  open.value = true
-  form = {}
+// 关闭弹窗
+function handleCloseDialog() {
+  dialogVisible.visible = false
 }
 
-// 修改按钮点击事件
-const handleUpdate = async () => {
-  if (ids.value.length === 1) {
-    title.value = '修改{{ function_name }}'
-    open.value = true
-    try {
-      const response = await get{{ business_name|snake_to_pascal_case }}({ id: ids.value[0] })
-      Object.assign(form, response)
-    } catch (error) {
-      ElMessage.error(error.msg || '获取详情失败')
+// 打开弹窗
+async function handleOpenDialog(type, id) {
+  dialogVisible.type = type
+  if (id) {
+    const response = await {{ business_name|replace('_', ' ')|title|replace(' ', '') }}API.detail(id)
+    if (type === 'detail') {
+      dialogVisible.title = '详情'
+      Object.assign(detailFormData.value, response.data.data)
+    } else if (type === 'update') {
+      dialogVisible.title = '修改'
+      Object.assign(formData, response.data.data)
     }
+  } else {
+    dialogVisible.title = '新增{{ function_name }}'
+    formData.id = undefined
   }
+  dialogVisible.visible = true
 }
 
-// 取消按钮点击事件
-const cancel = () => {
-  open.value = false
-  openImport.value = false
-  form = {}
-  uploadFile.value = undefined
-}
-
-// 表单校验
-const validateForm = () => {
-  return new Promise((resolve, reject) => {
-    proxy.$refs.formRef.validate(valid => {
-      if (valid) {
-        resolve(true)
-      } else {
-        reject(new Error('表单校验失败'))
-      }
-    })
-  })
-}
-
-// 确认按钮点击事件
-const confirm = async () => {
-  try {
-    await validateForm()
-    const method = form.id ? update{{ business_name|snake_to_pascal_case }} : add{{ business_name|snake_to_pascal_case }}
-    await method(form)
-    ElMessage.success(form.id ? '修改成功' : '新增成功')
-    open.value = false
-    getList()
-  } catch (error) {
-    ElMessage.error(error.msg || '操作失败')
-  }
-}
-
-// 删除按钮点击事件
-const handleDelete = async () => {
-  if (ids.value.length > 0) {
-    try {
-      await ElMessageBox.confirm('是否确认删除所选数据?', '警告', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-      await del{{ business_name|snake_to_pascal_case }}({ ids: ids.value })
-      ElMessage.success('删除成功')
-      getList()
-    } catch (error) {
-      if (error === 'cancel') {
-        return
-      }
-      ElMessage.error(error.msg || '删除失败')
-    }
-  }
-}
-
-// 导出按钮点击事件
-const handleExport = async () => {
-  try {
-    const response = await export{{ business_name|snake_to_pascal_case }}(queryParams.value)
-    proxy.$downloadFile({
-      fileName: `{{ business_name }}_${new Date().getTime()}.xlsx`,
-      url: response.url
-    })
-  } catch (error) {
-    ElMessage.error(error.msg || '导出失败')
-  }
-}
-
-// 导入按钮点击事件
-const handleImport = () => {
-  openImport.value = true
-}
-
-// 下载模板按钮点击事件
-const handleTemplate = async () => {
-  try {
-    const response = await getImportTemplate{{ business_name|snake_to_pascal_case }}()
-    proxy.$downloadFile({
-      fileName: `{{ business_name }}_导入模板.xlsx`,
-      url: response.url
-    })
-  } catch (error) {
-    ElMessage.error(error.msg || '下载模板失败')
-  }
-}
-
-// 上传前
-const beforeUpload = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      const file = uploadFile.value[0]
-      if (!file) {
-        throw new Error('请选择文件')
-      }
-      const fileType = file.name.substring(file.name.lastIndexOf('.'))
-      if (fileType !== '.xlsx') {
-        throw new Error('文件类型错误，请上传.xlsx文件')
-      }
-      resolve(true)
-    } catch (error) {
-      ElMessage.error(error.message)
-      reject(false)
-    }
-  })
-}
-
-// 导入成功
-const handleImportSuccess = (sheetName, filedInfo, fileName) => {
-  let data = {
-    table_name: '{{ table_name }}',
-    filed_info: filedInfo,
-    file_name: fileName,
-    sheet_name: sheetName
-  }
-  import{{ business_name|snake_to_pascal_case }}(data).then(() => {
-    proxy.$modal.msgSuccess('导入成功')
-    openImport.value = false
-    getList()
-  })
-  getList()
-}
-
-//表格全屏
-function onfullTable() {
-    proxy.$refs.tSetup.onFull(proxy.$refs.fullTable.$el)
-    fullScreen.value = !fullScreen.value
-    updateTableHeight()
-}
-//表格刷新
-function onRefresh() {
-    getList()
-}
-//搜索框显示隐藏
-function onSearchChange() {
-    showSearch.value = !showSearch.value
-}
-
-function onStripe(val) {
-    stripe.value = val
-}
-//改变表头数据
-function onChange(val) {
-    columns.value = val
-}
-
-//改变表格宽度
-function onColumnWidthChange(column) {
-    proxy.$refs.tSetup.tableWidth(column)
-}
-
-//更新表格高度
-function updateTableHeight() {
-    if (
-        proxy.$refs.tSetup &&
-        proxy.$refs.queryRef &&
-        document.querySelector('.table-pagination')
-    ) {
-        if (fullScreen.value) {
-            tableHeight.value = window.innerHeight - 145
+// 提交表单
+async function handleSubmit() {
+  dataFormRef.value.validate(async (valid) => {
+    if (valid) {
+      loading.value = true
+      try {
+        const id = formData.id
+        if (id) {
+          await {{ business_name|replace('_', ' ')|title|replace(' ', '') }}API.update(id, { id, ...formData })
+          ElMessage.success('修改成功')
         } else {
-            tableHeight.value = 
-                window.innerHeight -
-                proxy.$refs.tSetup.$el.clientHeight -
-                proxy.$refs.queryRef.$el.clientHeight -
-                document.querySelector('.table-pagination').clientHeight -
-                220
+          await {{ business_name|replace('_', ' ')|title|replace(' ', '') }}API.create(formData)
+          ElMessage.success('新增成功')
         }
+        dialogVisible.visible = false
+        handleResetQuery()
+      } catch (error) {
+        console.error(error)
+        ElMessage.error('操作失败')
+      } finally {
+        loading.value = false
+      }
     }
+  })
 }
 
-onMounted(() => {
-    updateTableHeight() // 初始化计算高度
-    window.addEventListener('resize', updateTableHeight) // 监听窗口大小变化
+// 删除、批量删除
+async function handleDelete(ids) {
+  ElMessageBox.confirm('确认删除该项数据?', '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+    .then(async () => {
+      try {
+        loading.value = true
+        await {{ business_name|replace('_', ' ')|title|replace(' ', '') }}API.delete(ids)
+        ElMessage.success('删除成功')
+        handleResetQuery()
+      } catch (error) {
+        console.error(error)
+        ElMessage.error('删除失败')
+      } finally {
+        loading.value = false
+      }
+    })
+    .catch(() => {
+      ElMessageBox.close()
+    })
+}
+
+// 弹窗状态
+const dialogVisible = reactive({
+  title: '',
+  visible: false,
+  type: 'create', // 'create' | 'update' | 'detail'
 })
 
-onUnmounted(() => {
-    window.removeEventListener('resize', updateTableHeight) // 销毁监听
+// 编辑表单
+const formData = reactive({
+  id: undefined,
+  {% for column in columns %}
+    {% if column.is_insert == "1" or column.is_edit == "1" %}
+      {{ column.python_field }}: undefined,
+    {% endif %}
+  {% endfor %}
 })
 
-getColumns()
+// 表单验证规则（必填项按 is_required 生成）
+const rules = reactive({
+  {% for column in columns %}
+    {% if column.is_insert == "1" or column.is_edit == "1" %}
+      {% set required = 'true' if column.is_required == '1' else 'false' %}
+      {{ column.python_field }}: [
+        { required: {{ required }}, message: '请输入{{ column.column_comment or column.python_field }}', trigger: 'blur' },
+      ],
+    {% endif %}
+  {% endfor %}
+})
 
+// 列表刷新
+async function handleRefresh() {
+  await loadingData()
+}
+
+onMounted(async () => {
+  // 预加载字典数据
+  if (dictTypes.length > 0) {
+    await dictStore.getDict(dictTypes)
+  }
+  loadingData()
+})
 </script>
+
+<style lang="scss" scoped></style>

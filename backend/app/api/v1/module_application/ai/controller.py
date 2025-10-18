@@ -23,7 +23,15 @@ async def chat_controller(
     query: ChatQuerySchema,
     auth: AuthSchema = Depends(AuthPermission(["app:ai:chat"]))
 ) -> StreamingResponse:
-    """智能对话接口"""
+    """
+    智能对话接口
+    
+    参数:
+    - query (ChatQuerySchema): 聊天查询模型
+    
+    返回:
+    - StreamingResponse: 流式响应,每次返回一个聊天响应
+    """
     user_name = auth.user.name if auth.user else "未知用户"
     logger.info(f"用户 {user_name} 发起智能对话: {query.message[:50]}...")
     
@@ -45,6 +53,15 @@ async def detail_controller(
     id: int = Path(..., description="MCP ID"),
     auth: AuthSchema = Depends(AuthPermission(["app:ai:query"]))
 ) -> JSONResponse:
+    """
+    获取 MCP 服务器详情接口
+    
+    参数:
+    - id (int): MCP 服务器ID
+    
+    返回:
+    - JSONResponse: 包含 MCP 服务器详情的 JSON 响应
+    """
     result_dict = await McpService.detail_service(auth=auth, id=id)
     logger.info(f"获取 MCP 服务器详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取 MCP 服务器详情成功")
@@ -56,6 +73,17 @@ async def list_controller(
     search: McpQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["app:ai:query"]))
 ) -> JSONResponse:
+    """
+    查询 MCP 服务器列表接口
+    
+    参数:
+    - page (PaginationQueryParam): 分页查询参数模型
+    - search (McpQueryParam): 查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含 MCP 服务器列表的 JSON 响应
+    """
     result_dict_list = await McpService.list_service(auth=auth, search=search, order_by=page.order_by)
     result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
     logger.info(f"查询 MCP 服务器列表成功")
@@ -67,6 +95,16 @@ async def create_controller(
     data: McpCreateSchema,
     auth: AuthSchema = Depends(AuthPermission(["app:ai:create"]))
 ) -> JSONResponse:
+    """
+    创建 MCP 服务器接口
+    
+    参数:
+    - data (McpCreateSchema): 创建 MCP 服务器模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含创建 MCP 服务器结果的 JSON 响应
+    """
     result_dict = await McpService.create_service(auth=auth, data=data)
     logger.info(f"创建 MCP 服务器成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="创建 MCP 服务器成功")
@@ -78,6 +116,17 @@ async def update_controller(
     id: int = Path(..., description="MCP ID"),
     auth: AuthSchema = Depends(AuthPermission(["app:ai:update"]))
 ) -> JSONResponse:
+    """
+    修改 MCP 服务器接口
+    
+    参数:
+    - data (McpUpdateSchema): 修改 MCP 服务器模型
+    - id (int): MCP 服务器ID
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含修改 MCP 服务器结果的 JSON 响应
+    """
     result_dict = await McpService.update_service(auth=auth, id=id, data=data)
     logger.info(f"修改 MCP 服务器成功: {result_dict}")
     return SuccessResponse(data=result_dict, msg="修改 MCP 服务器成功")
@@ -88,6 +137,16 @@ async def delete_controller(
     ids: list[int] = Body(..., description="ID列表"),
     auth: AuthSchema = Depends(AuthPermission(["app:ai:delete"]))
 ) -> JSONResponse:
+    """
+    删除 MCP 服务器接口
+    
+    参数:
+    - ids (list[int]): MCP 服务器ID列表
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含删除 MCP 服务器结果的 JSON 响应
+    """
     await McpService.delete_service(auth=auth, ids=ids)
     logger.info(f"删除 MCP 服务器成功: {ids}")
     return SuccessResponse(msg="删除 MCP 服务器成功")
@@ -97,7 +156,8 @@ async def delete_controller(
 async def websocket_chat_controller(
     websocket: WebSocket,
 ):
-    """WebSocket聊天接口
+    """
+    WebSocket聊天接口
     
     ws://127.0.0.1:8001/api/v1/ai/mcp/ws/chat
     """

@@ -15,10 +15,13 @@ class CacheService:
     @classmethod
     async def get_cache_monitor_statistical_info_service(cls, redis: Redis)->dict:
         """
-        获取缓存监控信息service
-
-        :param redis: Redis对象
-        :return: 缓存监控信息
+        获取缓存监控信息。
+        
+        参数:
+        - redis (Redis): Redis 对象。
+        
+        返回:
+        - dict: 缓存监控信息字典。
         """
         info = await RedisCURD(redis).info()
         db_size = await RedisCURD(redis).db_size()
@@ -34,9 +37,10 @@ class CacheService:
     @classmethod
     async def get_cache_monitor_cache_name_service(cls)->list:
         """
-        获取缓存名称列表信息service
-
-        :return: 缓存名称列表信息
+        获取缓存名称列表信息。
+        
+        返回:
+        - list: 缓存名称列表信息。
         """
         name_list = []
         for key_config in RedisInitKeyConfig:
@@ -54,11 +58,14 @@ class CacheService:
     @classmethod
     async def get_cache_monitor_cache_key_service(cls, redis: Redis, cache_name: str)->list:
         """
-        获取缓存键名列表信息service
-
-        :param redis: Redis对象
-        :param cache_name: 缓存名称
-        :return: 缓存键名列表信息
+        获取缓存键名列表信息。
+        
+        参数:
+        - redis (Redis): Redis 对象。
+        - cache_name (str): 缓存名称。
+        
+        返回:
+        - list: 缓存键名列表信息。
         """
         cache_keys = await RedisCURD(redis).get_keys(f'{cache_name}*')
         cache_key_list = [key.split(':', 1)[1] for key in cache_keys if key.startswith(f'{cache_name}:')]
@@ -68,12 +75,15 @@ class CacheService:
     @classmethod
     async def get_cache_monitor_cache_value_service(cls, redis: Redis, cache_name: str, cache_key: str)->dict:
         """
-        获取缓存内容信息service
-
-        :param redis: Redis对象
-        :param cache_name: 缓存名称
-        :param cache_key: 缓存键名
-        :return: 缓存内容信息
+        获取缓存内容信息。
+        
+        参数:
+        - redis (Redis): Redis 对象。
+        - cache_name (str): 缓存名称。
+        - cache_key (str): 缓存键名。
+        
+        返回:
+        - dict: 缓存内容信息字典。
         """
         cache_value = await RedisCURD(redis).get(f'{cache_name}:{cache_key}')
 
@@ -82,11 +92,14 @@ class CacheService:
     @classmethod
     async def clear_cache_monitor_cache_name_service(cls, redis: Redis, cache_name: str)->bool:
         """
-        清除缓存名称对应所有键值service
-
-        :param redis: Redis对象
-        :param cache_name: 缓存名称
-        :return: 操作缓存响应信息
+        清除指定缓存名称对应的所有键值。
+        
+        参数:
+        - redis (Redis): Redis 对象。
+        - cache_name (str): 缓存名称。
+        
+        返回:
+        - bool: 是否清理成功。
         """
         cache_keys = await RedisCURD(redis).get_keys(f'{cache_name}*')
         if cache_keys:
@@ -97,11 +110,14 @@ class CacheService:
     @classmethod
     async def clear_cache_monitor_cache_key_service(cls, redis: Redis, cache_key: str)->bool:
         """
-        清除缓存名称对应所有键值service
-
-        :param redis: Redis对象
-        :param cache_key: 缓存键名
-        :return: 操作缓存响应信息
+        清除匹配指定键名的所有键值。
+        
+        参数:
+        - redis (Redis): Redis 对象。
+        - cache_key (str): 缓存键名。
+        
+        返回:
+        - bool: 是否清理成功。
         """
         cache_keys = await RedisCURD(redis).get_keys(f'*{cache_key}')
         if cache_keys:
@@ -112,10 +128,13 @@ class CacheService:
     @classmethod
     async def clear_cache_monitor_all_service(cls, redis: Redis)->bool:
         """
-        清除所有缓存service
-
-        :param redis: Redis对象
-        :return: 操作缓存响应信息
+        清除所有缓存。
+        
+        参数:
+        - redis (Redis): Redis 对象。
+        
+        返回:
+        - bool: 是否清理成功。
         """
         cache_keys = await RedisCURD(redis).get_keys()
         if cache_keys:

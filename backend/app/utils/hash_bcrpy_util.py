@@ -31,12 +31,12 @@ class PwdUtil:
         """
         校验密码是否匹配
 
-        Args:
-            plain_password: 明文密码
-            password_hash: 加密后的密码哈希值
+        参数:
+        - plain_password (str): 明文密码。
+        - password_hash (str): 加密后的密码哈希值。
 
-        Returns:
-            bool: 密码是否匹配
+        返回:
+        - bool: 密码是否匹配。
         """
         return PwdContext.verify(plain_password, password_hash)
 
@@ -45,11 +45,11 @@ class PwdUtil:
         """
         对密码进行加密
 
-        Args:
-            password: 明文密码
+        参数:
+        - password (str): 明文密码。
 
-        Returns:
-            str: 加密后的密码哈希值
+        返回:
+        - str: 加密后的密码哈希值。
         """
         return PwdContext.hash(password)
 
@@ -58,11 +58,11 @@ class PwdUtil:
         """
         检查密码强度
 
-        Args:
-            password: 明文密码
+        参数:
+        - password (str): 明文密码。
 
-        Returns:
-            str: 如果密码强度不够返回提示信息,否则返回None
+        返回:
+        - Optional[str]: 如果密码强度不够返回提示信息,否则返回None。
         """
         if len(password) < 6:
             return "密码长度至少6位"
@@ -80,19 +80,25 @@ class AESCipher:
 
     def __init__(self, key: bytes | str) -> None:
         """
-        初始化 AES 加密器
+        初始化 AES 加密器。
 
-        :param key: 密钥，16/24/32 bytes 或 16 进制字符串
-        :return:
+        参数:
+        - key (bytes | str): 密钥，16/24/32 bytes 或 16 进制字符串。
+
+        返回:
+        - None
         """
         self.key = key if isinstance(key, bytes) else bytes.fromhex(key)
 
     def encrypt(self, plaintext: bytes | str) -> bytes:
         """
-        AES 加密
+        AES 加密。
 
-        :param plaintext: 加密前的明文
-        :return:
+        参数:
+        - plaintext (bytes | str): 加密前的明文。
+
+        返回:
+        - bytes: 加密后的密文（前16字节为随机IV）。
         """
         if not isinstance(plaintext, bytes):
             plaintext = str(plaintext).encode('utf-8')
@@ -106,10 +112,13 @@ class AESCipher:
 
     def decrypt(self, ciphertext: bytes | str) -> str:
         """
-        AES 解密
+        AES 解密。
 
-        :param ciphertext: 解密前的密文，bytes 或 16 进制字符串
-        :return:
+        参数:
+        - ciphertext (bytes | str): 解密前的密文，bytes 或 16 进制字符串。
+
+        返回:
+        - str: 解密后的明文。
         """
         ciphertext = ciphertext if isinstance(ciphertext, bytes) else bytes.fromhex(ciphertext)
         iv = ciphertext[:16]
@@ -128,10 +137,13 @@ class Md5Cipher:
     @staticmethod
     def encrypt(plaintext: bytes | str) -> str:
         """
-        MD5 加密
+        MD5 加密。
 
-        :param plaintext: 加密前的明文
-        :return:
+        参数:
+        - plaintext (bytes | str): 加密前的明文。
+
+        返回:
+        - str: MD5 十六进制摘要。
         """
         md5 = hashlib.md5()
         if not isinstance(plaintext, bytes):
@@ -145,19 +157,28 @@ class ItsDCipher:
 
     def __init__(self, key: bytes | str) -> None:
         """
-        初始化 ItsDangerous 加密器
+        初始化 ItsDangerous 加密器。
 
-        :param key: 密钥，16/24/32 bytes 或 16 进制字符串
-        :return:
+        参数:
+        - key (bytes | str): 密钥，16/24/32 bytes 或 16 进制字符串。
+
+        返回:
+        - None
         """
         self.key = key if isinstance(key, bytes) else bytes.fromhex(key)
 
     def encrypt(self, plaintext: Any) -> str:
         """
-        ItsDangerous 加密
+        ItsDangerous 加密。
 
-        :param plaintext: 加密前的明文
-        :return:
+        参数:
+        - plaintext (Any): 加密前的明文。
+
+        返回:
+        - str: 加密后的密文（URL安全）。
+        
+        异常:
+        - Exception: 加密失败时使用 MD5 作为降级，错误已记录。
         """
         serializer = URLSafeSerializer(self.key)
         try:
@@ -169,10 +190,16 @@ class ItsDCipher:
 
     def decrypt(self, ciphertext: str) -> Any:
         """
-        ItsDangerous 解密
+        ItsDangerous 解密。
 
-        :param ciphertext: 解密前的密文
-        :return:
+        参数:
+        - ciphertext (str): 解密前的密文。
+
+        返回:
+        - Any: 解密后的明文；失败时返回原密文。
+        
+        异常:
+        - Exception: 解密失败时记录错误并返回原密文。
         """
         serializer = URLSafeSerializer(self.key)
         try:

@@ -12,41 +12,62 @@ class PositionCRUD(CRUDBase[PositionModel, PositionCreateSchema, PositionUpdateS
     """岗位模块数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
-        """初始化岗位CRUD"""
+        """
+        初始化岗位CRUD
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        """
         self.auth = auth
         super().__init__(model=PositionModel, auth=auth)
 
     async def get_by_id_crud(self, id: int) -> Optional[PositionModel]:
         """
-        根据id获取岗位信息
+        根据 id 获取岗位信息。
         
-        :param id: 岗位ID
-        :return: 岗位信息
+        参数:
+        - id (int): 岗位 ID。
+        
+        返回:
+        - PositionModel | None: 岗位信息，未找到返回 None。
         """
         return await self.get(id=id)
 
     async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[PositionModel]:
         """
-        获取岗位列表
+        获取岗位列表。
         
-        :param search: 搜索条件
-        :param order_by: 排序字段
-        :return: 岗位列表
+        参数:
+        - search (Dict | None): 搜索条件。
+        - order_by (List[Dict[str, str]] | None): 排序字段列表。
+        
+        返回:
+        - Sequence[PositionModel]: 岗位列表。
         """
         return await self.list(search=search, order_by=order_by)
 
     async def set_available_crud(self, ids: List[int], status: bool) -> None:
         """
-        批量设置岗位可用状态
+        批量设置岗位可用状态。
         
-        :param ids: 岗位ID列表
-        :param status: 可用状态
+        参数:
+        - ids (List[int]): 岗位 ID 列表。
+        - status (bool): 可用状态。
+        
+        返回:
+        - None
         """
         await self.set(ids=ids, status=status)
 
     async def get_name_crud(self, ids: List[int]) -> List[str]:
         """
-        根据id列表获取岗位名称
+        根据 id 列表获取岗位名称。
+        
+        参数:
+        - ids (List[int]): 岗位 ID 列表。
+        
+        返回:
+        - List[str]: 岗位名称列表。
         """
         position_names = []
         for id in ids:

@@ -26,16 +26,6 @@ class MappedBase(AsyncAttrs, DeclarativeBase):
 
     __abstract__ = True
 
-    @declared_attr.directive
-    def __tablename__(cls) -> str:
-        """生成表名"""
-        return cls.__name__.lower()
-
-    @declared_attr.directive
-    def __table_args__(cls) -> dict:
-        """表配置"""
-        return {'comment': cls.__doc__ or ''}
-
 
 class ModelMixin(MappedBase):
     """

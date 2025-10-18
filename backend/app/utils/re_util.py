@@ -1,15 +1,17 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import re
 
+import re
 
 def search_string(pattern: str, text: str) -> re.Match[str] | None:
     """
     全字段正则匹配
 
-    :param pattern: 正则表达式模式
-    :param text: 待匹配的文本
-    :return:
+    参数:
+    - pattern (str): 正则表达式模式。
+    - text (str): 待匹配的文本。
+
+    返回:
+    - re.Match[str] | None: 匹配结果。
     """
     if not pattern or not text:
         return None
@@ -22,9 +24,12 @@ def match_string(pattern: str, text: str) -> re.Match[str] | None:
     """
     从字段开头正则匹配
 
-    :param pattern: 正则表达式模式
-    :param text: 待匹配的文本
-    :return:
+    参数:
+    - pattern (str): 正则表达式模式。
+    - text (str): 待匹配的文本。
+
+    返回:
+    - re.Match[str] | None: 匹配结果。
     """
     if not pattern or not text:
         return None
@@ -37,8 +42,11 @@ def is_phone(number: str) -> re.Match[str] | None:
     """
     检查手机号码格式
 
-    :param number: 待检查的手机号码
-    :return:
+    参数:
+    - number (str): 待检查的手机号码。
+
+    返回:
+    - re.Match[str] | None: 匹配结果。
     """
     if not number:
         return None
@@ -51,8 +59,11 @@ def is_git_url(url: str) -> re.Match[str] | None:
     """
     检查 git URL 格式
 
-    :param url: 待检查的 URL
-    :return:
+    参数:
+    - url (str): 待检查的 URL。
+
+    返回:
+    - re.Match[str] | None: 匹配结果。
     """
     if not url:
         return None

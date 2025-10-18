@@ -24,7 +24,17 @@ async def get_obj_list_controller(
     search: OperationLogQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["system:log:query"]))
 ) -> JSONResponse:
-    """ 查询日志 """
+    """ 
+    查询日志 
+    
+    参数:
+    - page (PaginationQueryParam): 分页查询参数模型
+    - search (OperationLogQueryParam): 日志查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含分页日志详情的 JSON 响应模型
+    """
     order_by = [{"created_at": "desc"}]
     if page.order_by:
         order_by = page.order_by
@@ -39,7 +49,16 @@ async def get_obj_detail_controller(
     id: int = Path(..., description="操作日志ID"),
     auth: AuthSchema = Depends(AuthPermission(["system:log:query"]))
 ) -> JSONResponse:
-    """ 详情日志 """
+    """ 
+    获取日志详情 
+    
+    参数:
+    - id (int): 操作日志ID
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含日志详情的 JSON 响应模型
+    """
     result_dict = await OperationLogService.get_log_detail_service(id=id, auth=auth)
     logger.info(f"查询日志成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取日志详情成功")
@@ -50,7 +69,16 @@ async def delete_obj_log_controller(
     ids: list[int] = Body(..., description="ID列表"),
     auth: AuthSchema = Depends(AuthPermission(["system:log:delete"]))
 ) -> JSONResponse:
-    """ 删除日志 """
+    """ 
+    删除日志 
+    
+    参数:
+    - ids (list[int]): 日志 ID 列表
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - JSONResponse: 包含删除结果的 JSON 响应模型
+    """
     await OperationLogService.delete_log_service(ids=ids, auth=auth)
     logger.info(f"删除日志成功 {ids}")
     return SuccessResponse(msg="删除日志成功")
@@ -61,7 +89,16 @@ async def export_obj_list_controller(
     search: OperationLogQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["system:log:export"]))
 ) -> StreamingResponse:
-    """ 导出日志 """
+    """ 
+    导出日志 
+    
+    参数:
+    - search (OperationLogQueryParam): 日志查询参数模型
+    - auth (AuthSchema): 认证信息模型
+    
+    返回:
+    - StreamingResponse: 包含导出日志的流式响应模型
+    """
     operation_log_list = await OperationLogService.get_log_list_service(search=search, auth=auth)
     operation_log_export_result = await OperationLogService.export_log_list_service(operation_log_list=operation_log_list)
     logger.info('导出日志成功')

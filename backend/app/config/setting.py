@@ -209,7 +209,7 @@ class Settings(BaseSettings):
     # ================================================= #
     # ******************* 代码生成配置 ****************** #
     # ================================================= #
-    author: str = 'insistence'                      # 作者
+    author: str = 'FastapiAdmin'                    # 作者
     package_name: str = 'module_generator.gencode'  # 默认生成包路径 system 需改成自己的模块名称 如 system monitor tool
     auto_remove_pre: bool = False                   # 自动去除表前缀，默认是True
     table_prefix: str = 'gen_'                      # 表前缀（生成类名不会包含表前缀，多个用逗号分隔）
@@ -365,7 +365,6 @@ def get_settings() -> Settings:
     if not env_file.exists():
         raise FileNotFoundError(f"环境配置文件不存在: {env_file}")
 
-    # return Settings(_env_file=env_file)
     return Settings(_env_file=env_file)
 
 settings = get_settings()

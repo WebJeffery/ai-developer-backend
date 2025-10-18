@@ -6,16 +6,7 @@ from typing import List
 from app.common.constant import GenConstant
 from app.config.setting import settings
 from app.utils.string_util import StringUtil
-from app.api.v1.module_generator.gencode.schema import (
-    GenTableOptionSchema,
-    GenDBTableSchema,
-    GenTableBaseSchema,
-    GenTableSchema,
-    GenTableOutSchema,
-    GenTableColumnSchema,
-    GenTableColumnOutSchema,
-    GenTableColumnDeleteSchema
-)
+from app.api.v1.module_generator.gencode.schema import GenTableSchema, GenTableColumnSchema
 
 
 class GenUtils:
@@ -26,9 +17,11 @@ class GenUtils:
         """
         初始化表信息
 
-        param gen_table: 业务表对象
-        param oper_name: 操作人
-        :return:
+        参数:
+        - gen_table (GenTableSchema): 业务表对象。
+
+        返回:
+        - None
         """
         # 只有当字段为None时才设置默认值
         if gen_table.class_name is None:
@@ -44,15 +37,17 @@ class GenUtils:
         if gen_table.function_author is None:
             gen_table.function_author = settings.author
 
-
     @classmethod
     def init_column_field(cls, column: GenTableColumnSchema, table: GenTableSchema) -> None:
         """
         初始化列属性字段
 
-        param column: 业务表字段对象
-        param table: 业务表对象
-        :return:
+        参数:
+        - column (GenTableColumnSchema): 业务表字段对象。
+        - table (GenTableSchema): 业务表对象。
+
+        返回:
+        - None
         """
         data_type = cls.get_db_type(column.column_type or "")
         column_name = column.column_name or ""
@@ -133,9 +128,12 @@ class GenUtils:
         """
         校验数组是否包含指定值
 
-        param arr: 数组
-        param target_value: 需要校验的值
-        :return: 校验结果
+        参数:
+        - arr (List[str]): 数组。
+        - target_value (str): 需要校验的值。
+
+        返回:
+        - bool: 校验结果。
         """
         return target_value in arr
 
@@ -144,14 +142,25 @@ class GenUtils:
         """
         获取模块名
 
-        param package_name: 包名
-        :return: 模块名
+        参数:
+        - package_name (str): 包名。
+
+        返回:
+        - str: 模块名。
         """
         return package_name.split('.')[-1]
 
     @classmethod
     def get_package_name(cls, table_name: str) -> str:
-        """获取包名"""
+        """
+        获取包名
+
+        参数:
+        - table_name (str): 业务表名。
+
+        返回:
+        - str: 包名。
+        """
         return settings.package_name  # 可配置的包名
         
     @classmethod
@@ -159,18 +168,24 @@ class GenUtils:
         """
         获取业务名
 
-        param table_name: 业务表名
-        :return: 业务名
+        参数:
+        - table_name (str): 业务表名。
+
+        返回:
+        - str: 业务名。
         """
         return table_name.split('_')[-1]
 
     @classmethod
     def convert_class_name(cls, table_name: str) -> str:
         """
-        表名转换成Python类名
+        表名转换成 Python 类名
 
-        param table_name: 业务表名
-        :return: Python类名
+        参数:
+        - table_name (str): 业务表名。
+
+        返回:
+        - str: Python 类名。
         """
         auto_remove_pre = settings.auto_remove_pre
         table_prefix = settings.table_prefix
@@ -184,9 +199,12 @@ class GenUtils:
         """
         批量替换前缀
 
-        param replacement: 需要被替换的字符串
-        param search_list: 可替换的字符串列表
-        :return: 替换后的字符串
+        参数:
+        - replacement (str): 需要被替换的字符串。
+        - search_list (List[str]): 可替换的字符串列表。
+
+        返回:
+        - str: 替换后的字符串。
         """
         for search_string in search_list:
             if replacement.startswith(search_string):
@@ -198,8 +216,11 @@ class GenUtils:
         """
         关键字替换
 
-        param text: 需要被替换的字符串
-        :return: 替换后的字符串
+        参数:
+        - text (str): 需要被替换的字符串。
+
+        返回:
+        - str: 替换后的字符串。
         """
         return re.sub(r'(?:表|测试)', '', text)
 
@@ -208,8 +229,11 @@ class GenUtils:
         """
         获取数据库类型字段
 
-        param column_type: 字段类型
-        :return: 数据库类型
+        参数:
+        - column_type (str): 字段类型。
+
+        返回:
+        - str: 数据库类型。
         """
         if '(' in column_type:
             return column_type.split('(')[0]
@@ -220,8 +244,11 @@ class GenUtils:
         """
         获取字段长度
 
-        param column_type: 字段类型
-        :return: 字段长度
+        参数:
+        - column_type (str): 字段类型。
+
+        返回:
+        - int: 字段长度。
         """
         if '(' in column_type:
             length = len(column_type.split('(')[1].split(')')[0])
@@ -233,8 +260,11 @@ class GenUtils:
         """
         拆分列类型
 
-        param column_type: 字段类型
-        :return: 拆分结果
+        参数:
+        - column_type (str): 字段类型。
+
+        返回:
+        - List[str]: 拆分结果。
         """
         if '(' in column_type and ')' in column_type:
             return column_type.split('(')[1].split(')')[0].split(',')
@@ -245,8 +275,11 @@ class GenUtils:
         """
         将字符串转换为驼峰命名
 
-        param text: 需要转换的字符串
-        :return: 驼峰命名
+        参数:
+        - text (str): 需要转换的字符串。
+
+        返回:
+        - str: 驼峰命名。
         """
         parts = text.split('_')
         return parts[0] + ''.join(word.capitalize() for word in parts[1:])

@@ -41,9 +41,7 @@ class BatchSetAvailable(BaseModel):
 
 
 class UploadResponseSchema(BaseModel):
-    """
-    上传响应模型
-    """
+    """上传响应模型"""
     model_config = ConfigDict(from_attributes=True)
 
     file_path: Optional[str] = Field(default=None, description='新文件映射路径')
@@ -52,8 +50,6 @@ class UploadResponseSchema(BaseModel):
     file_url: Optional[str] = Field(default=None, description='新文件访问地址')
 
 class DownloadFileSchema(BaseModel):
-    """
-    下载文件模型
-    """
+    """下载文件模型"""
     file_path: str = Field(..., description='新文件映射路径')
     file_name: str = Field(..., description='新文件名称')

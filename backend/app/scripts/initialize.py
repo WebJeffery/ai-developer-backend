@@ -27,6 +27,9 @@ class InitializeData:
     """
 
     def __init__(self) -> None:
+        """
+        初始化数据库和基础数据
+        """
         # 按照依赖关系排序：先创建基础表，再创建关联表
         self.prepare_init_models = [
             # 部门表（自引用，需要先创建）
@@ -53,7 +56,9 @@ class InitializeData:
         ]
     
     async def __init_create_table(self) -> None:
-        """初始化表结构（第一阶段）"""
+        """
+        初始化表结构（第一阶段）
+        """
         try:
             # 使用引擎创建所有表
             async with async_engine.begin() as conn:
@@ -64,7 +69,12 @@ class InitializeData:
             raise
 
     async def __init_data(self, db: AsyncSession) -> None:
-        """初始化基础数据"""
+        """
+        初始化基础数据
+
+        参数:
+        - db (AsyncSession): 异步数据库会话。
+        """
         for model in self.prepare_init_models:
             table_name = model.__tablename__
             
@@ -98,7 +108,16 @@ class InitializeData:
                 raise
 
     def __create_objects_with_children(self, data: List[Dict], model_class) -> List:
-        """通用递归创建对象函数，处理嵌套的 children 数据"""
+        """
+        通用递归创建对象函数，处理嵌套的 children 数据
+
+        参数:
+        - data (List[Dict]): 包含嵌套 children 数据的列表。
+        - model_class: 对应的 SQLAlchemy 模型类。
+
+        返回:
+        - List: 包含创建的对象的列表。
+        """
         objs = []
         
         def create_object(obj_data: Dict):
@@ -120,7 +139,15 @@ class InitializeData:
         return objs
 
     async def __get_data(self, filename: str) -> List[Dict]:
-        """读取初始化数据文件"""
+        """
+        读取初始化数据文件
+
+        参数:
+        - filename (str): 文件名（不包含扩展名）。
+
+        返回:
+        - List[Dict]: 解析后的 JSON 数据列表。
+        """
         json_path = Path.joinpath(settings.SCRIPT_DIR, f'{filename}.json')
         if not json_path.exists():
             return []

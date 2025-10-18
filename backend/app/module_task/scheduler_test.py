@@ -5,9 +5,13 @@ from datetime import datetime
 
 from app.core.logger import logger
 
-def job(*args, **kwargs):
+def job(*args, **kwargs) -> None:
     """
     定时任务执行同步函数示例
+
+    参数:
+    - args: 位置参数。
+    - kwargs: 关键字参数。
     """
     try:
         print(f"开始执行任务: {args}-{kwargs}")
@@ -17,9 +21,13 @@ def job(*args, **kwargs):
         logger.error(f"同步任务执行失败: {e}")
         raise
 
-async def async_job(*args, **kwargs):
+async def async_job(*args, **kwargs) -> None:
     """
     定时任务执行异步函数示例
+
+    参数:
+    - args: 位置参数。
+    - kwargs: 关键字参数。
     """
     try:
         print(f"开始执行任务: {args}-{kwargs}")

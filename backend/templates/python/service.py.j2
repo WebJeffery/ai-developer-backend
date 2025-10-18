@@ -1,204 +1,90 @@
 # -*- coding:utf-8 -*-
 
 import io
-from datetime import datetime
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, List, Dict, Optional
 from fastapi import UploadFile
 import pandas as pd
 
+from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
-from app.common.response import SuccessResponse
-from app.api.v1.module_system.user.schema import UserOutSchema
-from app.api.v1.module_system.auth.schema import AuthSchema
 from app.utils.excel_util import ExcelUtil
-from {{ package_name }}.crud.{{ table_name }}_crud import {{ table_name|snake_to_pascal_case }}Dao
-from {{ package_name }}.schema import {{ table_name|snake_to_pascal_case }}CreateSchema, {{ table_name|snake_to_pascal_case }}UpdateSchema
-from {{ package_name }}.param import {{ table_name|snake_to_pascal_case }}QueryParam
+from app.core.logger import logger
+from app.api.v1.module_system.auth.schema import AuthSchema
+from .schema import {{ table_name|snake_to_pascal_case }}CreateSchema, {{ table_name|snake_to_pascal_case }}UpdateSchema, {{ table_name|snake_to_pascal_case }}OutSchema
+from .param import {{ table_name|snake_to_pascal_case }}QueryParam
+from .crud import {{ table_name|snake_to_pascal_case }}CRUD
 
 
 class {{ table_name|snake_to_pascal_case }}Service:
     """
     {{ function_name }}服务层
     """
-
+    
     @classmethod
-    async def get_{{ table_name }}_list_service(
-        cls, auth: AuthSchema, search: {{ table_name|snake_to_pascal_case }}QueryParam = None, order_by: Optional[str] = None
-    ):
-        """
-        获取{{ function_name }}列表信息service
-
-        :param auth: 认证信息
-        :param search: 查询参数对象
-        :param order_by: 排序字段
-        :return: {{ function_name }}列表信息对象
-        """
-        # 确保db是AsyncSession类型
-        if not isinstance(auth.db, AsyncSession):
-            raise CustomException(msg='数据库会话类型不正确')
-            
-        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
-        {{ table_name }}_list_result = await {{ table_name }}_dao.get_{{ table_name }}_list(auth.db, search, order_by)
-
-        return {{ table_name }}_list_result
-
+    async def detail_service(cls, auth: AuthSchema, id: int) -> Dict:
+        """详情"""
+        obj = await {{ table_name|snake_to_pascal_case }}CRUD(auth).get_by_id_crud(id=id)
+        if not obj:
+            raise CustomException(msg="该数据不存在")
+        return {{ table_name|snake_to_pascal_case }}OutSchema.model_validate(obj).model_dump()
+    
     @classmethod
-    async def get_{{ table_name }}_by_id_service(cls, auth: AuthSchema, {{ table_name }}_id: int):
-        """
-        根据{{ table_name }}id获取{{ function_name }}信息service
-
-        :param auth: 认证信息
-        :param {{ table_name }}_id: {{ table_name }}id
-        :return: {{ function_name }}信息对象
-        """
-        # 确保db是AsyncSession类型
-        if not isinstance(auth.db, AsyncSession):
-            raise CustomException(msg='数据库会话类型不正确')
-            
-        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
-        {{ table_name }} = await {{ table_name }}_dao.get_{{ table_name }}_by_id(auth.db, {{ table_name }}_id)
-        if {{ table_name }}:
-            return {{ table_name }}
-        else:
-            raise CustomException(msg='{{ function_name }}不存在')
-
+    async def list_service(cls, auth: AuthSchema, search: Optional[{{ table_name|snake_to_pascal_case }}QueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> List[Dict]:
+        """列表查询"""
+        search_dict = search.__dict__ if search else None
+        obj_list = await {{ table_name|snake_to_pascal_case }}CRUD(auth).list_crud(search=search_dict, order_by=order_by)
+        return [{{ table_name|snake_to_pascal_case }}OutSchema.model_validate(obj).model_dump() for obj in obj_list]
+    
     @classmethod
-    async def add_{{ table_name }}_service(
-        cls, auth: AuthSchema, data: {{ table_name|snake_to_pascal_case }}CreateSchema
-    ) -> SuccessResponse:
-        """
-        新增{{ function_name }}service
-
-        :param auth: 认证信息
-        :param data: 新增{{ function_name }}对象
-        :return: 新增{{ function_name }}结果
-        """
-        # 确保db是AsyncSession类型
-        if not isinstance(auth.db, AsyncSession):
-            raise CustomException(msg='数据库会话类型不正确')
-            
-        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
-        
-        try:
-            data_dict = data.model_dump()
-            data_dict['create_time'] = datetime.now()
-            await {{ table_name }}_dao.create(data=data_dict)
-            if isinstance(auth.db, AsyncSession):
-                await auth.db.commit()
-            return SuccessResponse(msg='新增成功')
-        except Exception as e:
-            if isinstance(auth.db, AsyncSession):
-                try:
-                    await auth.db.rollback()
-                except:
-                    pass  # 忽略回滚错误
-            raise CustomException(msg=f'新增失败: {str(e)}')
-
+    async def create_service(cls, auth: AuthSchema, data: {{ table_name|snake_to_pascal_case }}CreateSchema) -> Dict:
+        """创建"""
+        obj = await {{ table_name|snake_to_pascal_case }}CRUD(auth).create_crud(data=data)
+        return {{ table_name|snake_to_pascal_case }}OutSchema.model_validate(obj).model_dump()
+    
     @classmethod
-    async def update_{{ table_name }}_service(cls, auth: AuthSchema, id: int, data: {{ table_name|snake_to_pascal_case }}UpdateSchema) -> SuccessResponse:
-        """
-        编辑{{ function_name }}service
-
-        :param auth: 认证信息
-        :param id: {{ function_name }}ID
-        :param data: 编辑{{ function_name }}对象
-        :return: 编辑{{ function_name }}结果
-        """
-        # 确保db是AsyncSession类型
-        if not isinstance(auth.db, AsyncSession):
-            raise CustomException(msg='数据库会话类型不正确')
-            
-        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
-        
-        # 检查记录是否存在
-        {{ table_name }}_info = await cls.get_{{ table_name }}_by_id_service(auth, id)
-        if {{ table_name }}_info:
-            try:
-                data_dict = data.model_dump(exclude_unset=True)
-                data_dict['update_time'] = datetime.now()
-                await {{ table_name }}_dao.update(id=id, data=data_dict)
-                if isinstance(auth.db, AsyncSession):
-                    await auth.db.commit()
-                return SuccessResponse(msg='更新成功')
-            except Exception as e:
-                if isinstance(auth.db, AsyncSession):
-                    try:
-                        await auth.db.rollback()
-                    except:
-                        pass  # 忽略回滚错误
-                raise CustomException(msg=f'更新失败: {str(e)}')
-        else:
-            raise CustomException(msg='{{ function_name }}不存在')
-
+    async def update_service(cls, auth: AuthSchema, id: int, data: {{ table_name|snake_to_pascal_case }}UpdateSchema) -> Dict:
+        """更新"""
+        obj = await {{ table_name|snake_to_pascal_case }}CRUD(auth).get_by_id_crud(id=id)
+        if not obj:
+            raise CustomException(msg='更新失败，该数据不存在')
+        obj = await {{ table_name|snake_to_pascal_case }}CRUD(auth).update_crud(id=id, data=data)
+        return {{ table_name|snake_to_pascal_case }}OutSchema.model_validate(obj).model_dump()
+    
     @classmethod
-    async def del_{{ table_name }}_service(cls, auth: AuthSchema, ids: List[int]) -> SuccessResponse:
-        """
-        删除{{ function_name }}service
-
-        :param auth: 认证信息
-        :param ids: {{ function_name }}id列表
-        :return: 删除{{ function_name }}结果
-        """
-        # 确保db是AsyncSession类型
-        if not isinstance(auth.db, AsyncSession):
-            raise CustomException(msg='数据库会话类型不正确')
-            
-        {{ table_name }}_dao = {{ table_name|snake_to_pascal_case }}Dao(auth=auth)
-        
-        try:
-            await {{ table_name }}_dao.delete(ids=ids)
-            if isinstance(auth.db, AsyncSession):
-                await auth.db.commit()
-            return SuccessResponse(msg='删除成功')
-        except Exception as e:
-            if isinstance(auth.db, AsyncSession):
-                try:
-                    await auth.db.rollback()
-                except:
-                    pass  # 忽略回滚错误
-            raise CustomException(msg=f'删除失败: {str(e)}')
-
+    async def delete_service(cls, auth: AuthSchema, ids: List[int]) -> None:
+        """删除"""
+        if len(ids) < 1:
+            raise CustomException(msg='删除失败，删除对象不能为空')
+        for id in ids:
+            obj = await {{ table_name|snake_to_pascal_case }}CRUD(auth).get_by_id_crud(id=id)
+            if not obj:
+                raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+        await {{ table_name|snake_to_pascal_case }}CRUD(auth).delete_crud(ids=ids)
+    
     @classmethod
-    async def export_{{ table_name }}_list_service(cls, {{ table_name }}_list: List[Dict[str, Any]]) -> bytes:
-        """
-        导出{{ function_name }}列表service
-
-        :param {{ table_name }}_list: {{ function_name }}列表数据
-        :return: 导出的Excel文件二进制数据
-        """
-        # 定义字段映射
+    async def set_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
+        """批量设置状态"""
+        await {{ table_name|snake_to_pascal_case }}CRUD(auth).set_available_crud(ids=data.ids, status=data.status)
+    
+    @classmethod
+    async def batch_export_service(cls, obj_list: List[Dict[str, Any]]) -> bytes:
+        """批量导出"""
         mapping_dict = {
             'id': '编号',
             {% for column in columns %}
             '{{ column.column_name }}': '{{ column.column_comment }}',
             {% endfor %}
-            'create_by': '创建者',
-            'create_time': '创建时间',
-            'update_by': '更新者',
-            'update_time': '更新时间',
-            'remark': '备注'
+            'created_at': '创建时间',
+            'updated_at': '更新时间',
+            'creator': '创建者',
         }
 
-        # 复制数据并进行必要的转换
-        data = {{ table_name }}_list.copy()
-        for item in data:
-            # 在这里可以添加特定字段的转换逻辑
-            pass
-
+        data = obj_list.copy()
         return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
 
     @classmethod
-    async def import_{{ table_name }}_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:
-        """
-        导入{{ function_name }}service
-
-        :param auth: 认证信息
-        :param file: 上传的Excel文件
-        :param update_support: 是否支持更新
-        :return: 导入结果信息
-        """
-        # 定义表头映射
+    async def batch_import_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:
+        """批量导入"""
         header_dict = {
             {% for column in columns %}
             '{{ column.column_comment }}': '{{ column.column_name }}',
@@ -206,7 +92,6 @@ class {{ table_name|snake_to_pascal_case }}Service:
         }
 
         try:
-            # 读取Excel文件
             contents = await file.read()
             df = pd.read_excel(io.BytesIO(contents))
             await file.close()
@@ -214,61 +99,49 @@ class {{ table_name|snake_to_pascal_case }}Service:
             if df.empty:
                 raise CustomException(msg="导入文件为空")
             
-            # 检查表头是否完整
             missing_headers = [header for header in header_dict.keys() if header not in df.columns]
             if missing_headers:
                 raise CustomException(msg=f"导入文件缺少必要的列: {', '.join(missing_headers)}")
             
-            # 重命名列名
             df.rename(columns=header_dict, inplace=True)
             
             error_msgs = []
             success_count = 0
+            count = 0
             
-            # 处理每一行数据
             for index, row in df.iterrows():
+                count += 1
                 try:
-                    # 构建数据对象
-                    data = {}
-                    {% for column in columns %}
-                    data['{{ column.column_name }}'] = row['{{ column.column_name }}']
-                    {% endfor %}
-
-                    # 处理导入逻辑
-                    # 这里需要根据实际情况调整，比如检查是否已存在相同记录
-                    await {{ table_name|snake_to_pascal_case }}Dao(auth).create(data=data)
+                    data = {
+                        {% for column in columns %}
+                        "{{ column.column_name }}": row['{{ column.column_name }}'],
+                        {% endfor %}
+                    }
+                    await {{ table_name|snake_to_pascal_case }}CRUD(auth).create(data=data)
                     success_count += 1
-                        
                 except Exception as e:
-                    error_msgs.append(f"第{index+1}行: {str(e)}")
+                    error_msgs.append(f"第{count}行: {str(e)}")
                     continue
 
-            # 返回详细的导入结果
             result = f"成功导入 {success_count} 条数据"
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
             
         except Exception as e:
+            logger.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
 
     @classmethod
-    async def get_import_template_{{ table_name }}_service(cls) -> bytes:
-        """
-        获取{{ function_name }}导入模板service
-
-        :return: Excel模板文件二进制数据
-        """
+    async def import_template_download_service(cls) -> bytes:
+        """下载导入模板"""
         header_list = [
             {% for column in columns %}
             '{{ column.column_comment }}',
             {% endfor %}
         ]
-        selector_header_list = []  # 需要下拉选择的列
-        option_list = []  # 下拉选项配置
-        
         return ExcelUtil.get_excel_template(
             header_list=header_list,
-            selector_header_list=selector_header_list,
-            option_list=option_list
+            selector_header_list=[],
+            option_list=[]
         )

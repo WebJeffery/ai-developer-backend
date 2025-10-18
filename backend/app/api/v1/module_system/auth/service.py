@@ -47,16 +47,16 @@ class LoginService:
         """
         用户认证
         
-        Args:
-            request: 请求对象
-            login_form: 登录表单
-            db: 数据库会话
+        参数:
+        - request (Request): FastAPI请求对象
+        - login_form (CustomOAuth2PasswordRequestForm): 登录表单数据
+        - db (AsyncSession): 数据库会话对象
             
-        Returns:
-            UserModel: 认证通过的用户对象
+        返回:
+        - JWTOutSchema: 包含访问令牌和刷新令牌的响应模型
             
-        Raises:
-            CustomException: 认证失败时抛出异常
+        异常:
+        - CustomException: 认证失败时抛出异常。
         """
         # 判断是否来自API文档
         referer = request.headers.get('referer', '')
@@ -98,12 +98,17 @@ class LoginService:
         """
         创建访问令牌和刷新令牌
         
-        Args:
-            username: 用户名
-            request: 请求对象
+        参数:
+        - request (Request): FastAPI请求对象
+        - redis (Redis): Redis客户端对象
+        - user (UserModel): 用户模型对象
+        - login_type (str): 登录类型
             
-        Returns:
-            JWTOutSchema: 包含访问令牌和刷新令牌的响应对象
+        返回:
+        - JWTOutSchema: 包含访问令牌和刷新令牌的响应模型
+            
+        异常:
+        - CustomException: 创建令牌失败时抛出异常。
         """
         # 生成会话编号
         session_id = str(uuid.uuid4())
@@ -181,14 +186,17 @@ class LoginService:
         """
         刷新访问令牌
         
-        Args:
-            refresh_token: 刷新令牌
+        参数:
+        - db (AsyncSession): 数据库会话对象
+        - redis (Redis): Redis客户端对象
+        - request (Request): FastAPI请求对象
+        - refresh_token (RefreshTokenPayloadSchema): 刷新令牌数据
             
-        Returns:
-            JWTOutSchema: 新的令牌对象
+        返回:
+        - JWTOutSchema: 新的令牌对象
             
-        Raises:
-            CustomException: 刷新令牌无效时抛出异常
+        异常:
+        - CustomException: 刷新令牌无效时抛出异常
         """
         token_payload: JWTPayloadSchema = decode_access_token(token = refresh_token.refresh_token)
         if not token_payload.is_refresh:
@@ -250,12 +258,15 @@ class LoginService:
         """
         退出登录
         
-        Args:
-            request: 请求对象
-            token: 令牌
+        参数:
+        - redis (Redis): Redis客户端对象
+        - token (LogoutPayloadSchema): 退出登录令牌数据
             
-        Returns:
-            bool: 退出成功返回True
+        返回:
+        - bool: 退出成功返回True
+            
+        异常:
+        - CustomException: 令牌无效时抛出异常
         """
         payload: JWTPayloadSchema = decode_access_token(token=token.token)
         session_info = json.loads(payload.sub)
@@ -281,14 +292,14 @@ class CaptchaService:
         """
         获取验证码
         
-        Args:
-            request: 请求对象
+        参数:
+        - redis (Redis): Redis客户端对象
             
-        Returns:
-            Dict: 包含验证码key和base64图片的字典
+        返回:
+        - Dict[str, Union[CaptchaKey, CaptchaBase64]]: 包含验证码key和base64图片的字典
             
-        Raises:
-            CustomException: 验证码服务未启用时抛出异常
+        异常:
+        - CustomException: 验证码服务未启用时抛出异常
         """
         if not settings.CAPTCHA_ENABLE:
             raise CustomException(msg="未开启验证码服务")
@@ -319,16 +330,16 @@ class CaptchaService:
         """
         校验验证码
         
-        Args:
-            request: 请求对象
-            key: 验证码key
-            captcha: 用户输入的验证码
+        参数:
+        - redis (Redis): Redis客户端对象
+        - key (str): 验证码key
+        - captcha (str): 用户输入的验证码
             
-        Returns:
-            bool: 验证通过返回True
+        返回:
+        - bool: 验证通过返回True
             
-        Raises:
-            CustomException: 验证码无效或错误时抛出异常
+        异常:
+        - CustomException: 验证码无效或错误时抛出异常
         """
         if not captcha:
             raise CustomException(msg="验证码不能为空")

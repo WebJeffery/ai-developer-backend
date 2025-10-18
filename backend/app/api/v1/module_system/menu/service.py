@@ -28,6 +28,16 @@ class MenuService:
 
     @classmethod
     async def get_menu_detail_service(cls, auth: AuthSchema, id: int) -> Dict:
+        """
+        获取菜单详情。
+        
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - id (int): 菜单ID。
+        
+        返回:
+        - Dict: 菜单详情对象。
+        """
         menu = await MenuCRUD(auth).get_by_id_crud(id=id)
         if menu and menu.parent_id:
             parent = await MenuCRUD(auth).get_by_id_crud(id=menu.parent_id)
@@ -40,12 +50,15 @@ class MenuService:
     @classmethod
     async def get_menu_tree_service(cls, auth: AuthSchema, search: Optional[MenuQueryParam] = None, order_by: Optional[List[Dict]] = None) -> List[Dict]:
         """
-        获取菜单树形列表service
+        获取菜单树形列表。
         
-        :param auth: 认证对象
-        :param search: 查询参数对象
-        :param order_by: 排序参数
-        :return: 菜单树形列表对象
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - search (MenuQueryParam | None): 查询参数对象。
+        - order_by (List[Dict] | None): 排序参数列表。
+        
+        返回:
+        - List[Dict]: 菜单树形列表对象。
         """
         # 使用树形结构查询，预加载children关系
         menu_list = await MenuCRUD(auth).get_tree_list_crud(search=search.__dict__, order_by=order_by)
@@ -56,6 +69,16 @@ class MenuService:
 
     @classmethod
     async def create_menu_service(cls, auth: AuthSchema, data: MenuCreateSchema) -> Dict:
+        """
+        创建菜单。
+        
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - data (MenuCreateSchema): 创建参数对象。
+        
+        返回:
+        - Dict: 创建的菜单对象。
+        """
         menu = await MenuCRUD(auth).get(name=data.name)
         if menu:
             raise CustomException(msg='创建失败，该菜单已存在')
@@ -66,6 +89,17 @@ class MenuService:
 
     @classmethod
     async def update_menu_service(cls, auth: AuthSchema,id:int, data: MenuUpdateSchema) -> Dict:
+        """
+        更新菜单。
+        
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - id (int): 菜单ID。
+        - data (MenuUpdateSchema): 更新参数对象。
+        
+        返回:
+        - Dict: 更新的菜单对象。
+        """
         menu = await MenuCRUD(auth).get_by_id_crud(id=id)
         if not menu:
             raise CustomException(msg='更新失败，该菜单不存在')
@@ -87,6 +121,16 @@ class MenuService:
     
     @classmethod
     async def delete_menu_service(cls, auth: AuthSchema, ids: list[int]) -> None:
+        """
+        删除菜单。
+        
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - ids (list[int]): 菜单ID列表。
+        
+        返回:
+        - None
+        """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
@@ -98,7 +142,14 @@ class MenuService:
     @classmethod
     async def set_menu_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
-        递归获取所有父、子级菜单，然后批量修改菜单可用状态
+        递归获取所有父、子级菜单，然后批量修改菜单可用状态。
+        
+        参数:
+        - auth (AuthSchema): 认证对象。
+        - data (BatchSetAvailable): 批量设置可用参数对象。
+        
+        返回:
+        - None
         """
         menu_list = await MenuCRUD(auth).get_list_crud()
         total_ids = []

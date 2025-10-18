@@ -14,10 +14,13 @@ class TimeUtil:
     @classmethod
     def object_format_datetime(cls, obj: Any) -> Any:
         """
-        格式化对象中的datetime类型属性
+        格式化对象中的 datetime 属性为默认字符串格式。
         
-        :param obj: 输入对象
-        :return: 格式化后的对象
+        参数:
+        - obj (Any): 输入对象。
+        
+        返回:
+        - Any: 格式化后的对象。
         """
         for attr in dir(obj):
             if not attr.startswith('_'):  # 跳过私有属性
@@ -29,20 +32,26 @@ class TimeUtil:
     @classmethod
     def list_format_datetime(cls, lst: List[Any]) -> List[Any]:
         """
-        格式化对象列表中所有对象的datetime类型属性
+        格式化列表内每个对象的 datetime 属性。
         
-        :param lst: 对象列表
-        :return: 格式化后的对象列表
+        参数:
+        - lst (List[Any]): 对象列表。
+        
+        返回:
+        - List[Any]: 格式化后的对象列表。
         """
         return [cls.object_format_datetime(obj) for obj in lst]
 
     @classmethod
     def format_datetime_dict_list(cls, dicts: List[Dict]) -> List[Dict]:
         """
-        递归格式化字典列表中的datetime值
+        递归格式化字典列表中的 datetime 值为默认字符串格式。
         
-        :param dicts: 字典列表
-        :return: 格式化后的字典列表
+        参数:
+        - dicts (List[Dict]): 字典列表。
+        
+        返回:
+        - List[Dict]: 格式化后的字典列表。
         """
         def _format_value(value: Any) -> Any:
             if isinstance(value, dict):
@@ -56,7 +65,18 @@ class TimeUtil:
         return [_format_value(item) for item in dicts]
 
     @classmethod
-    def __valid_range(cls, search_str: str, start_range: int, end_range: int):
+    def __valid_range(cls, search_str: str, start_range: int, end_range: int) -> bool:
+        """
+        校验范围字符串是否合法。
+        
+        参数:
+        - search_str (str): 范围字符串（例如："1-5"）。
+        - start_range (int): 允许的最小范围值。
+        - end_range (int): 允许的最大范围值。
+        
+        返回:
+        - bool: 校验是否通过。
+        """
         match = re.match(r'^(\d+)-(\d+)$', search_str)
         if match:
             start, end = int(match.group(1)), int(match.group(2))
@@ -64,9 +84,21 @@ class TimeUtil:
         return False
 
     @classmethod
-    def __valid_sum(
-        cls, search_str: str, start_range_a: int, start_range_b: int, end_range_a: int, end_range_b: int, sum_range: int
-    ):
+    def __valid_sum(cls, search_str: str, start_range_a: int, start_range_b: int, end_range_a: int, end_range_b: int, sum_range: int) -> bool:
+        """
+        校验和字符串是否合法。
+        
+        参数:
+        - search_str (str): 和字符串（例如："1/5"）。
+        - start_range_a (int): 允许的最小范围值A。
+        - start_range_b (int): 允许的最大范围值A。
+        - end_range_a (int): 允许的最小范围值B。
+        - end_range_b (int): 允许的最大范围值B。
+        - sum_range (int): 允许的最大和值。
+        
+        返回:
+        - bool: 校验是否通过。
+        """
         match = re.match(r'^(\d+)/(\d+)$', search_str)
         if match:
             start, end = int(match.group(1)), int(match.group(2))
@@ -80,10 +112,13 @@ class TimeUtil:
     @classmethod
     def validate_second_or_minute(cls, second_or_minute: str):
         """
-        校验秒或分钟值是否正确
+        校验秒或分钟字段的合法性。
 
-        :param second_or_minute: 秒或分钟值
-        :return: 校验结果
+        参数:
+        - second_or_minute (str): 秒或分钟值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             second_or_minute == '*'
@@ -97,10 +132,13 @@ class TimeUtil:
     @classmethod
     def validate_hour(cls, hour: str):
         """
-        校验小时值是否正确
+        校验小时字段的合法性。
 
-        :param hour: 小时值
-        :return: 校验结果
+        参数:
+        - hour (str): 小时值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             hour == '*'
@@ -114,10 +152,13 @@ class TimeUtil:
     @classmethod
     def validate_day(cls, day: str):
         """
-        校验日值是否正确
+        校验日期字段的合法性。
 
-        :param day: 日值
-        :return: 校验结果
+        参数:
+        - day (str): 日值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             day in ['*', '?', 'L']
@@ -132,10 +173,13 @@ class TimeUtil:
     @classmethod
     def validate_month(cls, month: str):
         """
-        校验月值是否正确
+        校验月份字段的合法性。
 
-        :param month: 月值
-        :return: 校验结果
+        参数:
+        - month (str): 月值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             month == '*'
@@ -149,10 +193,13 @@ class TimeUtil:
     @classmethod
     def validate_week(cls, week: str):
         """
-        校验周值是否正确
+        校验星期字段的合法性。
 
-        :param week: 周值
-        :return: 校验结果
+        参数:
+        - week (str): 周值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         if (
             week in ['*', '?']
@@ -167,10 +214,13 @@ class TimeUtil:
     @classmethod
     def validate_year(cls, year: str):
         """
-        校验年值是否正确
+        校验年份字段的合法性。
 
-        :param year: 年值
-        :return: 校验结果
+        参数:
+        - year (str): 年值。
+
+        返回:
+        - bool: 校验是否通过。
         """
         current_year = int(datetime.now().year)
         future_years = [current_year + i for i in range(9)]
@@ -191,7 +241,7 @@ class TimeUtil:
     @classmethod
     def validate_cron_expression(cls, cron_expression: str):
         """
-        校验Cron表达式是否正确
+        校验 Cron 表达式是否正确。
         * * * * * *
         | | | | | |
         | | | | | +--- 星期（0-7，0和7都表示星期日）
@@ -199,10 +249,13 @@ class TimeUtil:
         | | | +------- 日期（1-31）
         | | +--------- 小时（0-23）
         | +----------- 分钟（0-59）
-        +------------- 秒（0-59），**部分环境不支持秒字段**
+        +------------- 秒（0-59），部分环境不支持秒字段。
 
-        :param cron_expression: Cron表达式
-        :return: 校验结果
+        参数:
+        - cron_expression (str): Cron 表达式。
+
+        返回:
+        - bool: 校验是否通过。
         """
         values = cron_expression.split()
         if len(values) != 6 and len(values) != 7:
