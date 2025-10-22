@@ -664,7 +664,7 @@ class GenTableService:
         # 修复：确保get_file_name返回的文件名不为空
         output_files = []
         for template in template_list:
-            file_name = Jinja2TemplateUtil.get_file_name([template], gen_table_schema)
+            file_name = Jinja2TemplateUtil.get_file_name(template, gen_table_schema)
             if file_name:  # 只有当文件名不为空时才添加到列表中
                 output_files.append(file_name)
 
@@ -683,7 +683,7 @@ class GenTableService:
         """
         try:
             gen_path = gen_table.gen_path or ""
-            file_name = Jinja2TemplateUtil.get_file_name([template], gen_table)
+            file_name = Jinja2TemplateUtil.get_file_name(template, gen_table)
             # 修复：检查文件名是否为空
             if not file_name:
                 return None
