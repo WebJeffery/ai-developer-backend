@@ -83,7 +83,7 @@ class UserUpdateSchema(UserCreateSchema):
     last_login: Optional[DateTimeStr] = Field(default=None, description="最后登录时间")
 
 
-class UserOutSchema(UserCreateSchema, BaseSchema):
+class UserOutSchema(UserUpdateSchema, BaseSchema):
     """响应"""
     model_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True)
     

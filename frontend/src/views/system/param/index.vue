@@ -23,6 +23,13 @@
             @update:model-value="handleDateRangeChange"
           />
         </el-form-item>
+        <el-form-item v-if="isExpand" prop="creator" label="创建人">
+          <UserTableSelect
+              v-model="queryFormData.creator"
+              @confirm-click="handleConfirm"
+              @clear-click="handleQuery"
+          />
+        </el-form-item>
         <el-form-item class="search-buttons">
           <el-button v-hasPerm="['system:config:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
           <el-button v-hasPerm="['system:config:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
@@ -45,7 +52,7 @@
     </div>
 
     <!-- 内容区域 -->
-    <el-card shadow="hover" class="data-table">
+    <el-card class="data-table">
       <template #header>
         <div class="card-header">
           <span>
@@ -59,7 +66,7 @@
 
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+        <div class="data-table__toolbar--left">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button v-hasPerm="['system:config:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
@@ -69,11 +76,11 @@
             </el-col>
           </el-row>
         </div>
-        <div class="data-table__toolbar--tools">
+        <div class="data-table__toolbar--right">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="导出">
-                <el-button v-hasPerm="['system:config:export']" type="warning" icon="download" circle @click="handleExport"/>
+                <el-button v-hasPerm="['system:config:export']" type="warning" icon="download" circle @click="handleOpenExportsModal"/>
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
@@ -82,18 +89,16 @@
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
-              <el-tooltip content="列表筛选">
-                <el-dropdown v-hasPerm="['system:config:filter']" trigger="click">
-                  <el-button type="default" icon="operation" circle />
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
-                        <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
-                      </el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </el-tooltip>
+              <el-dropdown v-hasPerm="['system:config:filter']" trigger="click">
+                <el-button type="default" icon="operation" circle />
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
+                      <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </el-col>
           </el-row>
         </div>
@@ -194,6 +199,7 @@
       </template>
     </el-dialog>
 
+    <ExportModal v-model="exportsDialogVisible" :content-config="curdContentConfig" :selection-data="selectionRows" />
 
   </div>
 </template>
@@ -205,6 +211,9 @@ defineOptions({
 });
 
 import ParamsAPI, { ConfigTable, ConfigForm, ConfigPageQuery } from "@/api/system/params";
+import UserTableSelect from "@/views/system/user/components/UserTableSelect.vue";
+import ExportModal from "@/components/CURD/ExportModal.vue";
+import type { IContentConfig } from "@/components/CURD/types";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -217,6 +226,10 @@ const isExpandable = ref(true);
 
 // 分页表单
 const pageTableData = ref<ConfigTable[]>([]);
+
+// 导出弹窗显示状态 & 选中行
+const exportsDialogVisible = ref(false);
+const selectionRows = ref<ConfigTable[]>([]);
 
 
 // 表格列配置
@@ -246,6 +259,8 @@ const queryFormData = reactive<ConfigPageQuery>({
   config_type: undefined,
   start_time: undefined,
   end_time: undefined,
+  // 创建人
+  creator: undefined,
 });
 
 // 编辑表单
@@ -315,6 +330,11 @@ async function handleQuery() {
   loadingData();
 }
 
+// 选择创建人后触发查询
+function handleConfirm() {
+  handleQuery();
+}
+
 // 重置查询
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
@@ -345,6 +365,7 @@ async function resetForm() {
 // 行复选框选中项变化
 async function handleSelectionChange(selection: any) {
   selectIds.value = selection.map((item: any) => item.id);
+  selectionRows.value = selection;
 }
 
 // 关闭弹窗
@@ -428,47 +449,45 @@ async function handleDelete(ids: number[]) {
   });
 }
 
-
-// 导出
-async function handleExport() {
-  ElMessageBox.confirm('是否确认导出当前系统配置?', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    let downloadUrl = '';
-    try {
-      loading.value = true;
-
-      const response = await ParamsAPI.exportConfig(queryFormData);
-      const fileData = response.data;
-      const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
-      const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-      const blob = new Blob([fileData], { type: fileType });
-      downloadUrl = window.URL.createObjectURL(blob);
-
-      const downloadLink = document.createElement("a");
-      downloadLink.href = downloadUrl;
-      downloadLink.download = fileName;
-
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      
-      document.body.removeChild(downloadLink);
-    } catch (error: any) {
-      // 错误信息已经在响应拦截器中处理并显示
-      console.error('导出失败:', error);
-    } finally {
-      if (downloadUrl) {
-        window.URL.revokeObjectURL(downloadUrl);
-      }
-      loading.value = false;
-    }
-  }).catch(() => {
-    ElMessageBox.close();
-  });
+// 导出弹窗
+async function handleOpenExportsModal() {
+  exportsDialogVisible.value = true;
 }
+
+// 导出字段
+const exportColumns = [
+  { prop: 'config_name', label: '配置名称' },
+  { prop: 'config_key', label: '配置键' },
+  { prop: 'config_value', label: '配置值' },
+  { prop: 'config_type', label: '系统内置' },
+  { prop: 'description', label: '描述' },
+  { prop: 'created_at', label: '创建时间' },
+  { prop: 'updated_at', label: '更新时间' },
+];
+
+// 导入/导出配置（用于导出弹窗）
+const curdContentConfig = {
+  permPrefix: 'system:config',
+  cols: exportColumns as any,
+  exportsAction: async (params: any) => {
+    const query: any = { ...params };
+    if (typeof query.config_type === 'string') {
+      query.config_type = query.config_type === 'true';
+    }
+    query.page_no = 1;
+    query.page_size = 1000;
+    const all: any[] = [];
+    while (true) {
+      const res = await ParamsAPI.getConfigList(query);
+      const items = res.data?.data?.items || [];
+      const total = res.data?.data?.total || 0;
+      all.push(...items);
+      if (all.length >= total || items.length === 0) break;
+      query.page_no += 1;
+    }
+    return all;
+  },
+} as unknown as IContentConfig;
 
 onMounted(() => {
   loadingData();

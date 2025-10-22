@@ -24,7 +24,8 @@ class CustomCORSMiddleware(CORSMiddleware):
             "allow_origins": settings.ALLOW_ORIGINS,
             "allow_methods": settings.ALLOW_METHODS,
             "allow_headers": settings.ALLOW_HEADERS,
-            "allow_credentials": settings.ALLOW_CREDENTIALS
+            "allow_credentials": settings.ALLOW_CREDENTIALS,
+            "expose_headers": settings.CORS_EXPOSE_HEADERS,
         }
         super().__init__(app, **CORSMiddlewareConfig)
 

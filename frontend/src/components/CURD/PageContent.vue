@@ -471,8 +471,8 @@ const pagination = reactive(
 );
 // 分页相关的请求参数
 const request = props.contentConfig.request ?? {
-  pageName: "pageNum",
-  limitName: "pageSize",
+  page_no: 1,
+  page_size: 10,
 };
 
 const tableRef = ref<TableInstance>();
@@ -861,8 +861,8 @@ function fetchPageData(formData: IObject = {}, isRestart = false) {
     .indexAction(
       showPagination
         ? {
-            [request.pageName]: pagination.currentPage,
-            [request.limitName]: pagination.pageSize,
+            [request.page_no]: pagination.currentPage,
+            [request.page_size]: pagination.pageSize,
             ...formData,
           }
         : formData

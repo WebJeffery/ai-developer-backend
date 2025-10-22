@@ -159,6 +159,8 @@ export interface UserPageQuery extends PageQuery {
   start_time?: string;
   /** 结束时间 */
   end_time?: string;
+  // 创建人ID
+  creator?: number;
 }
 
 export interface searchSelectDataType {
@@ -181,10 +183,10 @@ export interface UserInfo {
   dept_id?: deptTreeType["id"];
   dept_name?: deptTreeType["name"];
   roles?: roleSelectorType[];
-  roleNames?: roleSelectorType["name"][];
+  role_names?: roleSelectorType["name"][];
   role_ids?: roleSelectorType["id"][];
   positions?: positionSelectorType[];
-  positionNames?: positionSelectorType["name"][];
+  position_names?: positionSelectorType["name"][];
   position_ids?: positionSelectorType["id"][];
   is_superuser?: boolean;
   status?: boolean;
@@ -251,9 +253,9 @@ export interface UserForm {
   dept_id?:  number;
   dept_name?: string;
   role_ids?: number[];
-  roleNames?: string[];
+  role_names?: string[];
   position_ids?: number[];
-  positionNames?: string[];
+  position_names?: string[];
   password?: string;
   gender?: number;
   email?: string;

@@ -31,6 +31,13 @@
                   @update:model-value="handleDateRangeChange"
               />
             </el-form-item>
+            <el-form-item v-if="isExpand" prop="creator" label="创建人">
+              <UserTableSelect
+                  v-model="queryFormData.creator"
+                  @confirm-click="handleConfirm"
+                  @clear-click="handleQuery"
+              />
+            </el-form-item>
             <!-- 查询、重置、展开/收起按钮 -->
             <el-form-item class="search-buttons">
               <el-button v-hasPerm="['system:user:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
@@ -53,7 +60,7 @@
           </el-form>
         </div>
 
-        <el-card shadow="hover" class="data-table">
+        <el-card class="data-table">
           <template #header>
             <div class="card-header">
               <span>
@@ -67,7 +74,7 @@
 
           <!-- 功能区域 -->
           <div class="data-table__toolbar">
-            <div class="data-table__toolbar--actions">
+            <div class="data-table__toolbar--left">
               <el-row :gutter="10">
                 <el-col :span="1.5">
                   <el-button v-hasPerm="['system:user:create']" type="success" icon="plus"  @click="handleOpenDialog('create')">新增</el-button>
@@ -91,7 +98,7 @@
               </el-row>
             </div>
 
-            <div class="data-table__toolbar--tools">
+            <div class="data-table__toolbar--right">
               <el-row :gutter="10">
                 <el-col :span="1.5">
                   <el-tooltip content="导入">
@@ -100,7 +107,7 @@
                 </el-col>
                 <el-col :span="1.5">
                   <el-tooltip content="导出">
-                    <el-button v-hasPerm="['system:user:export']" type="warning" icon="download" circle @click="handleExport" />
+                    <el-button v-hasPerm="['system:user:export']" type="warning" icon="download" circle @click="handleOpenExportsModal" />
                   </el-tooltip>
                 </el-col>
                 <el-col :span="1.5">
@@ -236,7 +243,7 @@
             <el-tag v-else-if="detailFormData.gender ==='1'" type="warning">女</el-tag>
             <el-tag v-else type="info">未知</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="部门" :span="2">{{ detailFormData.dept_name }}</el-descriptions-item>
+          <el-descriptions-item label="部门" :span="2">{{ detailFormData.dept ? detailFormData.dept.name : '' }}</el-descriptions-item>
           <el-descriptions-item label="角色" :span="2">{{ detailFormData.roles ? detailFormData.roles.map(item => item.name).join('、') : '' }}</el-descriptions-item>
           <el-descriptions-item label="岗位" :span="2">{{ detailFormData.positions ? detailFormData.positions.map(item => item.name).join('、') : '' }}</el-descriptions-item>  
           <el-descriptions-item label="邮箱" :span="2">{{ detailFormData.email }}</el-descriptions-item>
@@ -339,9 +346,22 @@
       </template>
     </el-drawer>
 
-    <!-- 用户导入 -->
-    <ImportModal v-model="importDialogVisible" title="导入用户" @import-success="handleQuery()" @download-template="handleDownloadTemplate" @upload="handleUpload" />
+    <!-- 导入弹窗 -->
+      <ImportModal 
+        v-model="importDialogVisible" 
+        :content-config="curdContentConfig"
+        @upload="handleUpload" 
+      />
 
+      <!-- 导出弹窗 -->
+      <ExportModal 
+        v-model="exportsDialogVisible"
+        :content-config="curdContentConfig"
+        :query-params="queryFormData"
+        :page-data="pageTableData"
+        :selection-data="selectionRows"
+      />
+    
   </div>
 </template>
 
@@ -362,7 +382,12 @@ import DeptAPI from "@/api/system/dept";
 import RoleAPI from "@/api/system/role";
 
 import DeptTree from "./components/DeptTree.vue";
+import UserTableSelect from "./components/UserTableSelect.vue";
 import { useUserStore } from "@/store";
+import ImportModal from "@/components/CURD/ImportModal.vue";
+import ExportModal from "@/components/CURD/ExportModal.vue";
+import type { IContentConfig } from "@/components/CURD/types";
+import { QuestionFilled, ArrowUp, ArrowDown } from "@element-plus/icons-vue";
 
 const appStore = useAppStore();
 
@@ -373,6 +398,7 @@ const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "450px" : "90%"));
+const selectionRows = ref<UserInfo[]>([]);
 // 选中的用户ID
 const selectIds = ref<number[]>([]);
 // 部门下拉数据源
@@ -383,6 +409,8 @@ const roleOptions = ref<OptionType[]>();
 const positionOptions = ref<OptionType[]>();
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
+// 导出弹窗显示状态
+const exportsDialogVisible = ref(false);
 // 分页表单
 const pageTableData = ref<UserInfo[]>([]);
 // 详情表单
@@ -398,6 +426,8 @@ const queryFormData = reactive<UserPageQuery>({
   dept_id: undefined,
   start_time: undefined,
   end_time: undefined,
+  // 创建人
+  creator: undefined,
 });
 
 // 表单
@@ -408,9 +438,9 @@ const formData = reactive<UserForm>({
   dept_id: undefined,
   dept_name: undefined,
   role_ids: undefined,
-  roleNames: undefined,
+  role_names: undefined,
   position_ids: undefined,
-  positionNames: undefined,
+  position_names: undefined,
   password: undefined,
   gender: undefined,
   email: undefined,
@@ -456,6 +486,51 @@ const rules = reactive({
 // 日期范围临时变量
 const dateRange = ref<[Date, Date] | []>([]);
 
+// 仅用于导出字段的列（排除非数据列及嵌套对象列）
+const exportColumns = [
+  { prop: 'username', label: '账号' },
+  { prop: 'name', label: '名称' },
+  { prop: 'status', label: '状态' },
+  { prop: 'gender', label: '性别' },
+  { prop: 'email', label: '邮箱' },
+  { prop: 'mobile', label: '手机号' },
+  { prop: 'is_superuser', label: '是否超管' },
+  { prop: 'description', label: '描述' },
+  { prop: 'created_at', label: '创建时间' },
+  { prop: 'updated_at', label: '更新时间' },
+];
+
+// 导入/导出配置
+const curdContentConfig = {
+  permPrefix: 'system:user',
+  cols: exportColumns as any,
+  importTemplate: () => UserAPI.downloadTemplate(),
+  exportsAction: async (params: any) => {
+    const query: any = { ...params };
+    if (typeof query.status === 'string') {
+      query.status = query.status === 'true';
+    }
+    query.page_no = 1;
+    query.page_size = 1000;
+    const all: any[] = [];
+    while (true) {
+      const res = await UserAPI.getUserList(query);
+      const items = res.data?.data?.items || [];
+      const total = res.data?.data?.total || 0;
+      all.push(...items);
+      if (all.length >= total || items.length === 0) break;
+      query.page_no += 1;
+    }
+    return all;
+  },
+} as unknown as IContentConfig;
+
+
+// 选择创建人后触发查询
+function handleConfirm() {
+  handleQuery();
+}
+
 // 处理日期范围变化
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
@@ -497,9 +572,18 @@ async function handleQuery() {
 
 // 重置查询
 async function handleResetQuery() {
+  // 重置表单字段
   queryFormRef.value.resetFields();
+  // 额外清空不在 model 内的扩展查询项（如日期范围）
+  dateRange.value = [];
+  queryFormData.start_time = undefined;
+  queryFormData.end_time = undefined;
+  // 清空部门并重置页码
   queryFormData.dept_id = undefined;
+  // 清空创建人
+  queryFormData.creator = undefined;
   queryFormData.page_no = 1;
+  // 重新加载数据
   loadingData();
 }
 
@@ -511,9 +595,9 @@ const initialFormData: UserForm = {
   dept_id: undefined,
   dept_name: undefined,
   role_ids: undefined,
-  roleNames: undefined,
+  role_names: undefined,
   position_ids: undefined,
-  positionNames: undefined,
+  position_names: undefined,
   password: undefined,
   gender: undefined,
   email: undefined,
@@ -536,6 +620,7 @@ async function resetForm() {
 // 选中项发生变化
 async function handleSelectionChange(selection: any) {
   selectIds.value = selection.map((item: any) => item.id);
+  selectionRows.value = selection;
 }
 
 // 重置密码
@@ -641,47 +726,7 @@ async function handleSubmit() {
   });
 }
 
-// 导出
-async function handleExport() {
-  ElMessageBox.confirm('是否确认导出当前查询结果用户数据?', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    let downloadUrl = '';
-    try {
-      loading.value = true;
-
-      const response = await UserAPI.exportUser(queryFormData);
-      const fileData = response.data;
-      const fileName = decodeURI(response.headers["content-disposition"].split("; ")[1].split("=")[1]);
-      const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-      const blob = new Blob([fileData], { type: fileType });
-      downloadUrl = window.URL.createObjectURL(blob);
-
-      const downloadLink = document.createElement("a");
-      downloadLink.href = downloadUrl;
-      downloadLink.download = fileName;
-
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      
-      document.body.removeChild(downloadLink);
-    } catch (error: any) {
-      // 错误信息已经在响应拦截器中处理并显示
-      console.error('导出失败:', error);
-    } finally {
-      if (downloadUrl) {
-        window.URL.revokeObjectURL(downloadUrl);
-      }
-      loading.value = false;
-    }
-
-  }).catch(() => {
-    ElMessageBox.close();
-  });
-}
+// 导出已改为通过导出弹窗 ExportModal 统一处理
 
 // 删除、批量删除
 async function handleDelete(ids: number[]) {
@@ -732,6 +777,11 @@ function handleOpenImportDialog() {
   importDialogVisible.value = true;
 }
 
+// 打开导出弹窗
+function handleOpenExportsModal() {
+  exportsDialogVisible.value = true;
+}
+
 const emit = defineEmits(['import-success']);
 
 // 上传文件
@@ -740,35 +790,14 @@ const handleUpload = async (formData: FormData) => {
     const response = await UserAPI.importUser(formData);
     if (response.data.code === ResultEnum.SUCCESS) {
       ElMessage.success(`${response.data.msg}，${response.data.data}`);
+      importDialogVisible.value = false;
+      await handleQuery();
       emit('import-success');
     }
   } catch (error: any) {
     console.error(error);
     ElMessage.error('上传失败：' + error);
   }
-};
-
-
-// 下载导入模板
-const handleDownloadTemplate = () => {
-  UserAPI.downloadTemplate().then((response: any) => {
-    const fileData = response.data;
-    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
-    const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-    const blob = new Blob([fileData], { type: fileType });
-    const downloadUrl = window.URL.createObjectURL(blob);
-
-    const downloadLink = document.createElement("a");
-    downloadLink.href = downloadUrl;
-    downloadLink.download = fileName;
-
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-
-    document.body.removeChild(downloadLink);
-    window.URL.revokeObjectURL(downloadUrl);
-  });
 };
 
 

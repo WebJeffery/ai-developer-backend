@@ -2,7 +2,7 @@
   <div ref="tableSelectRef" :style="'width:' + width">
     <el-popover
       :visible="popoverVisible"
-      :width="popoverWidth"
+      :width="selectConfig.popover?.width ?? popoverWidth"
       placement="bottom-end"
       v-bind="selectConfig.popover"
       @show="handleShow"
@@ -15,6 +15,8 @@
               :model-value="text"
               :readonly="true"
               :placeholder="placeholder"
+              :clearable="true"
+              @clear="handleClear"
             >
               <template #suffix>
                 <el-icon
@@ -123,10 +125,9 @@
         </el-table>
         <!-- 分页 -->
         <pagination
-          v-if="total > 0"
           v-model:total="total"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
+          v-model:page="queryParams.page_no"
+          v-model:limit="queryParams.page_size"
           @pagination="handlePagination"
         />
         <div class="feedback">
@@ -155,7 +156,7 @@ export interface ISelectConfig<T = any> {
   // 占位符
   placeholder?: string;
   // popover组件属性
-  popover?: Partial<Omit<PopoverProps, "visible" | "v-model:visible">>;
+  popover?: Partial<Omit<PopoverProps, "visible" | "v-model:visible">> & { width?: number | string };
   // 列表的网络请求函数(需返回promise)
   indexAction: (_queryParams: T) => Promise<any>;
   // 主键名(跨页选择必填,默认为id)
@@ -199,6 +200,7 @@ const props = withDefaults(
 // 自定义事件
 const emit = defineEmits<{
   confirmClick: [selection: any[]];
+  clearClick: [];
 }>();
 
 // 主键
@@ -218,15 +220,15 @@ const total = ref(0);
 // 列表数据
 const pageData = ref<IObject[]>([]);
 // 每页条数
-const pageSize = 10;
+const page_size = 10;
 // 搜索参数
 const queryParams = reactive<{
-  pageNum: number;
-  pageSize: number;
+  page_no: number;
+  page_size: number;
   [key: string]: any;
 }>({
-  pageNum: 1,
-  pageSize,
+  page_no: 1,
+  page_size,
 });
 
 // 计算popover的宽度
@@ -256,8 +258,8 @@ function handleQuery() {
 function fetchPageData(isRestart = false) {
   loading.value = true;
   if (isRestart) {
-    queryParams.pageNum = 1;
-    queryParams.pageSize = pageSize;
+    queryParams.page_no = 1;
+    queryParams.page_size = page_size;
   }
   props.selectConfig
     .indexAction(queryParams)
@@ -328,6 +330,7 @@ function handleConfirm() {
 function handleClear() {
   tableRef.value?.clearSelection();
   selectedItems.value = [];
+  emit("clearClick");
 }
 // 关闭
 function handleClose() {

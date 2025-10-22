@@ -16,6 +16,13 @@
             <el-option label="操作日志" value=2 />
           </el-select>
         </el-form-item>
+        <el-form-item v-if="isExpand" prop="creator" label="创建人">
+          <UserTableSelect
+              v-model="queryFormData.creator"
+              @confirm-click="handleConfirm"
+              @clear-click="handleQuery"
+          />
+        </el-form-item>
         <!-- 时间范围，收起状态下隐藏 -->
         <el-form-item v-if="isExpand" prop="start_time" label="创建时间">
           <DatePicker
@@ -46,7 +53,7 @@
     </div>
 
     <!-- 内容区域 -->
-    <el-card shadow="hover" class="data-table">
+    <el-card class="data-table">
       <template #header>
         <div class="card-header">
           <span>
@@ -60,18 +67,18 @@
 
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+        <div class="data-table__toolbar--left">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button v-hasPerm="['system:log:delete']" type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
             </el-col>
           </el-row>
         </div>
-        <div class="data-table__toolbar--tools">
+        <div class="data-table__toolbar--right">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="导出">
-                <el-button v-hasPerm="['system:log:export']" type="warning" icon="download" circle @click="handleExport"/>
+                <el-button v-hasPerm="['system:log:export']" type="warning" icon="download" circle @click="handleOpenExportsModal"/>
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
@@ -194,6 +201,15 @@
       </template>
     </el-dialog>
 
+    <!-- 导出弹窗 -->
+    <ExportModal
+      v-model="exportsDialogVisible"
+      :content-config="curdContentConfig"
+      :query-params="queryFormData"
+      :page-data="pageTableData"
+      :selection-data="selectionRows"
+    />
+
   </div>
 </template>
 
@@ -204,6 +220,9 @@ defineOptions({
 });
 
 import LogAPI, { LogTable, LogPageQuery } from "@/api/system/log";
+import UserTableSelect from "@/views/system/user/components/UserTableSelect.vue";
+import ExportModal from "@/components/CURD/ExportModal.vue";
+import type { IContentConfig } from "@/components/CURD/types";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -215,6 +234,10 @@ const isExpandable = ref(true);
 
 // 分页表单
 const pageTableData = ref<LogTable[]>([]);
+
+// 导出弹窗状态和选中行数据
+const exportsDialogVisible = ref(false);
+const selectionRows = ref<LogTable[]>([]);
 
 // 详情表单
 const formData = ref<LogTable>({});
@@ -228,6 +251,8 @@ const queryFormData = reactive<LogPageQuery>({
   creator_name: undefined,
   start_time: undefined,
   end_time: undefined,
+  // 创建人
+  creator: undefined,
 });
 
 // 弹窗状态
@@ -311,6 +336,11 @@ async function handleQuery() {
   loadingData();
 }
 
+// 选择创建人后触发查询
+function handleConfirm() {
+  handleQuery();
+}
+
 // 重置查询
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
@@ -330,6 +360,7 @@ async function resetForm() {
 // 行复选框选中项变化
 async function handleSelectionChange(selection: any) {
   selectIds.value = selection.map((item: any) => item.id);
+  selectionRows.value = selection;
 }
 
 // 关闭弹窗
@@ -373,46 +404,47 @@ async function handleDelete(ids: number[]) {
 }
 
 
-// 导出
-async function handleExport() {
-  ElMessageBox.confirm('是否确认导出当前系统配置?', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    let downloadUrl = '';
-    try {
-      loading.value = true;      
-
-      const response = await LogAPI.exportLog(queryFormData);
-      const fileData = response.data;
-      const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
-      const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-      const blob = new Blob([fileData], { type: fileType });
-      downloadUrl = window.URL.createObjectURL(blob);
-
-      const downloadLink = document.createElement("a");
-      downloadLink.href = downloadUrl;
-      downloadLink.download = fileName;
-
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      
-      document.body.removeChild(downloadLink);
-    } catch (error: any) {
-      // 错误信息已经在响应拦截器中处理并显示
-      console.error('导出失败:', error);
-    } finally {
-      if (downloadUrl) {
-        window.URL.revokeObjectURL(downloadUrl);
-      }
-      loading.value = false;
-    }
-  }).catch(() => {
-    ElMessageBox.close();
-  });
+// 打开导出弹窗
+function handleOpenExportsModal() {
+  exportsDialogVisible.value = true;
 }
+
+// 导出字段
+const exportColumns = [
+  { prop: 'type', label: '日志类型' },
+  { prop: 'request_path', label: '请求路径' },
+  { prop: 'request_method', label: '请求方法' },
+  { prop: 'response_code', label: '状态码' },
+  { prop: 'request_ip', label: '请求IP' },
+  { prop: 'login_location', label: '登录地点' },
+  { prop: 'process_time', label: '处理时间' },
+  { prop: 'request_browser', label: '浏览器' },
+  { prop: 'request_os', label: '系统' },
+  { prop: 'description', label: '描述' },
+  { prop: 'created_at', label: '创建时间' },
+  { prop: 'updated_at', label: '更新时间' },
+];
+
+// 导入/导出配置（用于导出弹窗）
+const curdContentConfig = {
+  permPrefix: 'system:log',
+  cols: exportColumns as any,
+  exportsAction: async (params: any) => {
+    const query: any = { ...params };
+    query.page_no = 1;
+    query.page_size = 1000;
+    const all: any[] = [];
+    while (true) {
+      const res = await LogAPI.getLogList(query);
+      const items = res.data?.data?.items || [];
+      const total = res.data?.data?.total || 0;
+      all.push(...items);
+      if (all.length >= total || items.length === 0) break;
+      query.page_no += 1;
+    }
+    return all;
+  },
+} as unknown as IContentConfig;
 
 onMounted(() => {
   loadingData();
