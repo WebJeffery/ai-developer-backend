@@ -269,12 +269,12 @@ class Jinja2TemplateUtil:
         return templates
     
     @classmethod
-    def get_file_name(cls, template: str, gen_table: GenTableOutSchema):
+    def get_file_name(cls, template: List[str], gen_table: GenTableOutSchema):
         """
         根据模板生成文件名。
 
         参数:
-        - template (str): 模板路径字符串，例如 'python/controller.py.j2'。
+        - template (List[str]): 模板列表。
         - gen_table (GenTableOutSchema): 生成表的配置信息。
         
         返回:
@@ -287,23 +287,23 @@ class Jinja2TemplateUtil:
         vue_path = cls.FRONTEND_PROJECT_PATH
         python_path = f'{cls.BACKEND_PROJECT_PATH}/{package_name.replace(".", "/")}' if package_name else cls.BACKEND_PROJECT_PATH
 
-        if template.endswith('controller.py.j2'):
+        if 'controller.py.j2' in template:
             return f'{python_path}/app/api/v1/{module_name}/{business_name}/controller.py'
-        elif template.endswith('crud.py.j2'):
+        elif 'crud.py.j2' in template:
             return f'{python_path}/app/api/v1/{module_name}/{business_name}/crud.py'
-        elif template.endswith('model.py.j2'):
+        elif 'model.py.j2' in template:
             return f'{python_path}/app/api/v1/{module_name}/{business_name}/model.py'
-        elif template.endswith('service.py.j2'):
+        elif 'service.py.j2' in template:
             return f'{python_path}/app/api/v1/{module_name}/{business_name}/service.py'
-        elif template.endswith('param.py.j2'):
+        elif 'param.py.j2' in template:
             return f'{python_path}/app/api/v1/{module_name}/{business_name}/param.py'
-        elif template.endswith('schema.py.j2'):
+        elif 'schema.py.j2' in template:
             return f'{python_path}/app/api/v1/{module_name}/{business_name}/schema.py'
-        elif template.endswith('sql.sql.j2'):
+        elif 'sql.j2' in template:
             return f'{cls.BACKEND_PROJECT_PATH}/sql/{module_name}/{business_name}_menu.sql'
-        elif template.endswith('api.ts.j2'):
+        elif 'api.ts.j2' in template:
             return f'{vue_path}/src/api/{module_name}/{business_name}.ts'
-        elif template.endswith('index.vue.j2') or template.endswith('index-tree.vue.j2'):
+        elif 'index.vue.j2' in template or 'index-tree.vue.j2' in template:
             return f'{vue_path}/src/views/{module_name}/{business_name}/index.vue'
         return ''
 
