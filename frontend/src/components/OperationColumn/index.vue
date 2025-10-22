@@ -1,3 +1,4 @@
+<!-- 操作列自适应宽度 -->
 <template>
   <el-table-column
     :label="label"
@@ -6,9 +7,9 @@
     :show-overflow-tooltip="showOverflowTooltip"
     :width="finalWidth"
   >
-    <template #default="{ row }">
+    <template #default="{ row, column, $index }">
       <div v-auto-width class="operation-buttons">
-        <slot :row="row"></slot>
+        <slot v-bind="{ row, column, $index }"></slot>
       </div>
     </template>
   </el-table-column>
@@ -19,11 +20,11 @@ interface Props {
   listDataLength: number;
   prop?: string;
   label?: string;
-  fixed?: string;
+  fixed?: string | boolean;
   align?: string;
-  width?: number;
+  width?: number | string;
   showOverflowTooltip?: boolean;
-  minWidth?: number;
+  minWidth?: number | string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -34,7 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const count = ref(0);
-const operationWidth = ref(props.minWidth || 80);
+const operationWidth = ref(Number(props.minWidth) || 80);
 
 // 计算操作列宽度
 const calculateWidth = () => {
@@ -42,13 +43,15 @@ const calculateWidth = () => {
 
   if (count.value !== props.listDataLength) return;
   const maxWidth = getOperationMaxWidth();
-  operationWidth.value = Math.max(maxWidth, props.minWidth);
+  operationWidth.value = Math.max(maxWidth, Number(props.minWidth));
   count.value = 0;
 };
 
 // 计算最终宽度
 const finalWidth = computed(() => {
-  return props.width || operationWidth.value || props.minWidth;
+  const widthNum = typeof props.width === 'number' ? props.width : Number(props.width);
+  const minWidthNum = typeof props.minWidth === 'number' ? props.minWidth : Number(props.minWidth);
+  return widthNum || operationWidth.value || minWidthNum;
 });
 
 // 自适应宽度指令

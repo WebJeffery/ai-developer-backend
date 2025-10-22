@@ -21,6 +21,13 @@
             @update:model-value="handleDateRangeChange"
           />
         </el-form-item>
+        <el-form-item v-if="isExpand" prop="creator" label="创建人">
+          <UserTableSelect
+              v-model="queryFormData.creator"
+              @confirm-click="handleConfirm"
+              @clear-click="handleQuery"
+          />
+        </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
           <el-button type="primary" icon="search" @click="handleQuery">查询</el-button>
@@ -44,7 +51,7 @@
     </div>
 
     <!-- 内容区域 -->
-    <el-card shadow="hover" class="data-table">
+    <el-card class="data-table">
       <template #header>
         <div class="card-header">
           <span>
@@ -58,7 +65,7 @@
 
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+        <div class="data-table__toolbar--left">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button v-hasPerm="['system:dict_data:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
@@ -79,11 +86,11 @@
             </el-col>
           </el-row>
         </div>
-        <div class="data-table__toolbar--tools">
+        <div class="data-table__toolbar--right">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="导出">
-                <el-button v-hasPerm="['system:dict_data:export']" type="warning" icon="download" circle @click="handleExport"/>
+                <el-button v-hasPerm="['system:dict_data:export']" type="warning" icon="download" circle @click="handleOpenExportsModal"/>
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
@@ -232,6 +239,13 @@
     </el-dialog>
 
   </el-drawer>
+  <ExportModal
+    v-model="exportsDialogVisible"
+    :content-config="curdContentConfig"
+    :query-params="queryFormData"
+    :page-data="pageTableData"
+    :selection-data="selectionRows"
+  />
 </template>
 
 <script setup lang="ts">
@@ -247,9 +261,13 @@ const props = defineProps({
   }
 })
 
+const drawerVisible = defineModel<boolean>()
 import DictAPI, { DictDataTable, DictDataForm, DictDataPageQuery } from "@/api/system/dict";
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
+import UserTableSelect from "@/views/system/user/components/UserTableSelect.vue";
+import ExportModal from "@/components/CURD/ExportModal.vue";
+import type { IContentConfig } from "@/components/CURD/types";
 
 const appStore = useAppStore();
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "80%" : "60%"));
@@ -262,10 +280,13 @@ const loading = ref(false);
 
 const isExpand = ref(false);
 const isExpandable = ref(true);
-const drawerVisible = ref<boolean>(false);
 
 // 分页表单
 const pageTableData = ref<DictDataTable[]>([]);
+
+// 导出弹窗显示状态 & 选中行
+const exportsDialogVisible = ref(false);
+const selectionRows = ref<DictDataTable[]>([]);
 
 // 详情表单
 const detailFormData = ref<DictDataTable>({});
@@ -279,6 +300,8 @@ const queryFormData = reactive<DictDataPageQuery>({
   status: undefined,
   start_time: undefined,
   end_time: undefined,
+  // 创建人
+  creator: undefined,
 });
 
 // 编辑表单
@@ -357,6 +380,11 @@ async function handleQuery() {
   loadingData();
 }
 
+// 选择创建人后触发查询
+function handleConfirm() {
+  handleQuery();
+}
+
 // 重置查询
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
@@ -391,6 +419,7 @@ async function resetForm() {
 // 行复选框选中项变化
 async function handleSelectionChange(selection: any) {
   selectIds.value = selection.map((item: any) => item.id);
+  selectionRows.value = selection;
 }
 
 // 关闭弹窗
@@ -475,45 +504,9 @@ async function handleDelete(ids: number[]) {
   });
 }
 
-// 导出
-async function handleExport() {
-  ElMessageBox.confirm('是否确认导出当前系统配置?', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    let downloadUrl = '';
-    try {
-      loading.value = true;      
-
-      const response = await DictAPI.exportDictData(queryFormData);
-      const fileData = response.data;
-      const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
-      const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-      const blob = new Blob([fileData], { type: fileType });
-      downloadUrl = window.URL.createObjectURL(blob);
-
-      const downloadLink = document.createElement("a");
-      downloadLink.href = downloadUrl;
-      downloadLink.download = fileName;
-
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      
-      document.body.removeChild(downloadLink);
-    } catch (error: any) {
-      // 错误信息已经在响应拦截器中处理并显示
-      console.error('导出失败:', error);
-    } finally {
-      if (downloadUrl) {
-        window.URL.revokeObjectURL(downloadUrl);
-      }
-      loading.value = false;
-    }
-  }).catch(() => {
-    ElMessageBox.close();
-  });
+// 打开导出弹窗
+function handleOpenExportsModal() {
+  exportsDialogVisible.value = true;
 }
 
 // 批量启用/停用
@@ -538,6 +531,44 @@ async function handleMoreClick(status: boolean) {
     });
   }
 }
+
+// 导出字段
+const exportColumns = [
+  { prop: 'dict_label', label: '数据标签' },
+  { prop: 'dict_type', label: '数据类型' },
+  { prop: 'dict_value', label: '数据值' },
+  { prop: 'css_class', label: '样式属性' },
+  { prop: 'list_class', label: '列表类样式' },
+  { prop: 'dict_sort', label: '排序' },
+  { prop: 'is_default', label: '是否默认' },
+  { prop: 'status', label: '状态' },
+  { prop: 'description', label: '描述' },
+  { prop: 'created_at', label: '创建时间' },
+  { prop: 'updated_at', label: '更新时间' },
+];
+
+// 导出配置（用于导出弹窗）
+const curdContentConfig = {
+  permPrefix: 'system:dict_data',
+  cols: exportColumns as any,
+  exportsAction: async (params: any) => {
+    const query: any = { ...params };
+    if (typeof query.status === 'string') query.status = query.status === 'true';
+    // dict_type 已在查询表单中设置为 props.dictType
+    query.page_no = 1;
+    query.page_size = 1000;
+    const all: any[] = [];
+    while (true) {
+      const res = await DictAPI.getDictDataList(query);
+      const items = res.data?.data?.items || [];
+      const total = res.data?.data?.total || 0;
+      all.push(...items);
+      if (all.length >= total || items.length === 0) break;
+      query.page_no += 1;
+    }
+    return all;
+  },
+} as unknown as IContentConfig;
 
 onMounted(() => {
   loadingData();

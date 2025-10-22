@@ -43,7 +43,7 @@
     </div>
 
     <!-- 内容区域 -->
-    <el-card shadow="hover" class="data-table">
+    <el-card class="data-table">
       <template #header>
         <div class="card-header">
           <span>
@@ -57,7 +57,7 @@
 
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+        <div class="data-table__toolbar--left">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button v-hasPerm="['system:dept:create']" type="success" icon="plus" @click="handleOpenDialog('create')">新增</el-button>
@@ -78,26 +78,24 @@
             </el-col>
           </el-row>
         </div>
-        <div class="data-table__toolbar--tools">
+        <div class="data-table__toolbar--right">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="刷新">
-                <el-button v-hasPerm="['system:dept:refresh']" type="primary" icon="refresh" circle @click="handleRefresh"/>
+                <el-button type="primary" icon="refresh" circle @click="handleRefresh"/>
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
-              <el-tooltip content="列表筛选">
-                <el-dropdown v-hasPerm="['system:dept:filter']" trigger="click">
-                  <el-button type="default" icon="operation" circle />
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item v-for="column in tableColumns" :key="column.prop" :command="column">
-                        <el-checkbox v-model="column.show">{{ column.label }}</el-checkbox>
-                      </el-dropdown-item>
-                    </el-dropdown-menu>
+              <el-popover placement="bottom" trigger="click">
+                <template #reference>
+                  <el-button type="danger" icon="operation" circle />
+                </template>
+                <el-scrollbar max-height="350px">
+                  <template v-for="column in tableColumns" :key="column.prop">
+                    <el-checkbox v-if="column.prop" v-model="column.show" :label="column.label" />
                   </template>
-                </el-dropdown>
-              </el-tooltip>
+                </el-scrollbar>
+              </el-popover>
             </el-col>
           </el-row>
         </div>

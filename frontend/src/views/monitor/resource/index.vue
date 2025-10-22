@@ -14,7 +14,7 @@
     </div>
 
     <!-- 内容区域 -->
-    <el-card shadow="hover" class="data-table">
+    <el-card class="data-table">
       <template #header>
         <div class="card-header">
           <span>
@@ -43,7 +43,7 @@
 
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+        <div class="data-table__toolbar--left">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button v-hasPerm="['monitor:resource:upload']" type="success" icon="plus" @click="handleUpload">上传文件</el-button>
@@ -56,7 +56,7 @@
             </el-col>
           </el-row>
         </div>
-        <div class="data-table__toolbar--tools">
+        <div class="data-table__toolbar--right">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-checkbox v-model="showHiddenFiles" v-hasPerm="['monitor:resource:show_hidden']"  @change="handleShowHiddenChange">

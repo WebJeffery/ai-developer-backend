@@ -40,7 +40,7 @@
     </div>
 
     <!-- 内容区域 -->
-    <el-card shadow="hover" class="data-table">
+    <el-card class="data-table">
       <template #header>
         <div class="card-header">
           <span>
@@ -54,7 +54,7 @@
 
       <!-- 功能区域 -->
       <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+        <div class="data-table__toolbar--left">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button type="danger" icon="delete" :disabled="selectIds.length === 0" @click="handleDelete(selectIds)">批量删除</el-button>
@@ -64,11 +64,12 @@
             </el-col>
           </el-row>
         </div>
-        <div class="data-table__toolbar--tools">
+        <div class="data-table__toolbar--right">
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-tooltip content="导出">
-                <el-button type="warning" icon="download" circle @click="handleExport" />
+                <!-- 将直接导出改为打开导出弹窗 -->
+                <el-button type="warning" icon="download" circle @click="handleOpenExportsModal" />
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
@@ -146,6 +147,15 @@
         </el-descriptions>
       </template>
     </el-dialog>
+
+    <!-- 导出弹窗 -->
+    <ExportModal
+      v-model="exportsDialogVisible"
+      :content-config="curdContentConfig"
+      :query-params="queryFormData"
+      :page-data="pageTableData"
+      :selection-data="selectionRows"
+    />
   </el-drawer>
 </template>
 
@@ -165,6 +175,8 @@ const props = defineProps({
 import JobAPI, { JobLogPageQuery, JobLogTable } from "@/api/application/job";
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
+import ExportModal from "@/components/CURD/ExportModal.vue";
+import type { IContentConfig } from "@/components/CURD/types";
 
 const appStore = useAppStore();
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "80%" : "60%"));
@@ -181,6 +193,10 @@ const drawerVisible = ref<boolean>(false);
 
 // 分页表单
 const pageTableData = ref<JobLogTable[]>([]);
+
+// 导出弹窗显示状态 & 选中行
+const exportsDialogVisible = ref(false);
+const selectionRows = ref<JobLogTable[]>([]);
 
 // 详情表单
 const detailFormData = ref<JobLogTable>({} as JobLogTable);
@@ -258,6 +274,8 @@ async function handleResetQuery() {
 // 行复选框选中项变化
 async function handleSelectionChange(selection: any) {
   selectIds.value = selection.map((item: any) => item.id);
+  // 记录选中行数据供导出弹窗使用
+  selectionRows.value = selection;
 }
 
 // 关闭弹窗
@@ -318,45 +336,46 @@ async function handleClearLog() {
   });
 }
 
-// 导出
-async function handleExport() {
-  ElMessageBox.confirm('是否确认导出当前任务日志?', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    let downloadUrl = '';
-    try {
-      loading.value = true;      
-
-      const response = await JobAPI.exportJobLog(queryFormData);
-      const fileData = response.data;
-      const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
-      const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-      const blob = new Blob([fileData], { type: fileType });
-      downloadUrl = window.URL.createObjectURL(blob);
-
-      const downloadLink = document.createElement("a");
-      downloadLink.href = downloadUrl;
-      downloadLink.download = fileName;
-
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      
-      document.body.removeChild(downloadLink);
-    } catch (error: any) {
-      console.error('导出失败:', error);
-    } finally {
-      if (downloadUrl) {
-        window.URL.revokeObjectURL(downloadUrl);
-      }
-      loading.value = false;
-    }
-  }).catch(() => {
-    ElMessageBox.close();
-  });
+// 打开导出弹窗
+function handleOpenExportsModal() {
+  exportsDialogVisible.value = true;
 }
+
+// 导出字段
+const exportColumns = [
+  { prop: 'job_name', label: '任务名称' },
+  { prop: 'job_group', label: '任务组名' },
+  { prop: 'status', label: '执行状态' },
+  { prop: 'job_message', label: '执行信息' },
+  { prop: 'exception_info', label: '异常信息' },
+  { prop: 'job_executor', label: '执行器' },
+  { prop: 'invoke_target', label: '调用目标' },
+  { prop: 'job_args', label: '位置参数' },
+  { prop: 'job_kwargs', label: '关键字参数' },
+  { prop: 'job_trigger', label: '触发器' },
+  { prop: 'create_time', label: '创建时间' },
+];
+
+// 导出配置（用于导出弹窗）
+const curdContentConfig = {
+  permPrefix: 'application:job_log',
+  cols: exportColumns as any,
+  exportsAction: async (params: any) => {
+    const query: any = { ...params };
+    query.page_no = 1;
+    query.page_size = 1000;
+    const all: any[] = [];
+    while (true) {
+      const res = await JobAPI.getJobLogList(query);
+      const items = res.data?.data?.items || [];
+      const total = res.data?.data?.total || 0;
+      all.push(...items);
+      if (all.length >= total || items.length === 0) break;
+      query.page_no += 1;
+    }
+    return all;
+  },
+} as unknown as IContentConfig;
 
 // 打开抽屉
 function openDrawer() {

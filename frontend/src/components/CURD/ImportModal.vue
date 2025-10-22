@@ -1,12 +1,22 @@
 <template>
   <div>
     <!-- 导入弹窗 -->
-    <el-dialog v-model="importModalVisible" :align-center="true" :title="props.title" :width="props.width" @close="handleClose">
+    <el-dialog 
+      v-model="importModalVisible" 
+      :align-center="true" 
+      :title="props.title" 
+      :width="props.width" 
+      style="padding-right: 0"
+      @close="handleClose">
       <!-- 滚动 -->
       <el-scrollbar :max-height="props.maxHeight">
         <!-- 表单 -->
-        <el-form ref="importFormRef" style="padding-right: var(--el-dialog-padding-primary)" :model="importFormData" :rules="importFormRules">
-          <el-form-item label="文件名" prop="files">
+        <el-form 
+          ref="importFormRef" 
+          style="padding-right: var(--el-dialog-padding-primary)" 
+          :model="importFormData" 
+          :rules="importFormRules">
+          <el-form-item prop="files">
             <el-upload 
               ref="uploadRef" 
               v-model:file-list="importFormData.files" 
@@ -55,139 +65,126 @@
 <script lang="ts" setup>
 import { ElMessage, type UploadUserFile } from "element-plus";
 import { ref, reactive } from "vue";
+import type { IContentConfig, IObject } from "./types";
 
-// 定义props
-const props = defineProps({
+/**
+ * 导入模态框组件属性定义
+ */
+interface ImportModalProps {
   /**
    * 弹窗标题
    */
-  title: {
-    type: String,
-    default: "导入数据"
-  },
+  title?: string;
 
   /**
    * 弹窗宽度
    */
-  width: {
-    type: String,
-    default: "600px"
-  },
+  width?: string;
 
   /**
    * 最大高度
    */
-  maxHeight: {
-    type: String,
-    default: "60vh"
-  },
+  maxHeight?: string;
 
   /**
    * 接受的文件类型
    */
-  accept: {
-    type: String,
-    default: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-  },
+  accept?: string;
 
   /**
    * 文件数量限制
    */
-  limit: {
-    type: Number,
-    default: 1
-  },
+  limit?: number;
 
   /**
    * 是否显示下载模板按钮
    */
-  showTemplateDownload: {
-    type: Boolean,
-    default: true
-  },
+  showTemplateDownload?: boolean;
 
   /**
    * 拖放提示文本
    */
-  dropText: {
-    type: String,
-    default: undefined
-  },
+  dropText?: string;
 
   /**
    * 浏览按钮文本
    */
-  browseText: {
-    type: String,
-    default: undefined
-  },
+  browseText?: string;
 
   /**
    * 模板下载按钮文本
    */
-  templateDownloadText: {
-    type: String,
-    default: undefined
-  },
+  templateDownloadText?: string;
 
   /**
    * 取消按钮文本
    */
-  cancelButtonText: {
-    type: String,
-    default: undefined
-  },
+  cancelButtonText?: string;
 
   /**
    * 确认按钮文本
    */
-  confirmButtonText: {
-    type: String,
-    default: undefined
-  },
+  confirmButtonText?: string;
 
   /**
    * 注意事项文本
    */
-  note: {
-    type: String,
-    default: "注意事项："
-  },
+  note?: string;
 
   /**
    * 文件类型警告文本
    */
-  fileTypeWarning: {
-    type: String,
-    default: "格式为*.xlsx / *.xls，文件不超过 5MB"
-  },
+  fileTypeWarning?: string;
 
   /**
    * 上传文件的参数名
    */
-  uploadFileName: {
-    type: String,
-    default: "file"
-  },
+  uploadFileName?: string;
 
   /**
    * 上传请求的额外参数
    */
-  uploadData: {
-    type: Object,
-    default: () => ({})
-  }
+  uploadData?: IObject;
+
+  /**
+   * 导入配置
+   */
+  contentConfig: IContentConfig;
+}
+
+// 定义props
+const props = withDefaults(defineProps<ImportModalProps>(), {
+  title: "导入数据",
+  width: "600px",
+  maxHeight: "60vh",
+  accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel",
+  limit: 1,
+  showTemplateDownload: true,
+  note: "注意事项：",
+  fileTypeWarning: "格式为*.xlsx / *.xls，文件不超过 5MB",
+  uploadFileName: "file",
+  uploadData: () => ({}),
 });
 
 // 定义模型值（控制弹窗显示/隐藏）
-const importModalVisible = defineModel("modelValue", {
-  type: Boolean,
+const importModalVisible = defineModel<boolean>("modelValue", {
   required: true,
   default: false
 });
 
 // 定义事件
-const emit = defineEmits(["import-success", "import-fail", "close", "download-template", "upload"]);
+const emit = defineEmits<{
+  /** 导入成功事件 */
+  "import-success": [data: any];
+  /** 导入失败事件 */
+  "import-fail": [error: any];
+  /** 关闭事件 */
+  close: [];
+  /** 下载模板事件 */
+  "download-template": [];
+  /** 上传事件 */
+  upload: [formData: FormData, file: File];
+}>();
 
 // 引用
 const importFormRef = ref(null);
@@ -211,10 +208,47 @@ const handleFileExceed = () => {
   ElMessage.warning(`只能上传${props.limit}个文件`);
 };
 
-// 下载导入模板 - 由父组件实现具体逻辑
-const handleDownloadTemplate = () => {
-  emit("download-template");
-};
+// 浏览器保存文件
+function saveXlsx(fileData: any, fileName: string) {
+  const fileType =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
+
+  const blob = new Blob([fileData], { type: fileType });
+  const downloadUrl = window.URL.createObjectURL(blob);
+
+  const downloadLink = document.createElement("a");
+  downloadLink.href = downloadUrl;
+  downloadLink.download = fileName;
+
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+
+  document.body.removeChild(downloadLink);
+  window.URL.revokeObjectURL(downloadUrl);
+}
+
+// 下载导入模板
+function handleDownloadTemplate() {
+  try {
+    const importTemplate = props.contentConfig.importTemplate;
+    if (typeof importTemplate === "string") {
+      window.open(importTemplate);
+    } else if (typeof importTemplate === "function") {
+      importTemplate().then((response) => {
+        const fileData = response.data;
+        const fileName = decodeURI(
+          response.headers["content-disposition"].split(";")[1].split("=")[1]
+        );
+        saveXlsx(fileData, fileName);
+      });
+    } else {
+      ElMessage.error("未配置importTemplate");
+    }
+  } catch (error) {
+    console.error("下载模板失败:", error);
+    ElMessage.error("下载模板失败");
+  }
+}
 
 // 上传文件 - 由父组件实现具体逻辑
 const handleUpload = async () => {
@@ -237,8 +271,8 @@ const handleUpload = async () => {
     // 触发上传事件，由父组件处理具体上传逻辑
     emit("upload", formData, file);
   } catch (error: any) {
-    console.error(error);
-    ElMessage.error("上传失败：" + error);
+    console.error("上传失败:", error);
+    ElMessage.error("上传失败：" + error.message || error);
     emit("import-fail", error);
   } finally {
     loading.value = false;

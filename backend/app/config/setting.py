@@ -72,6 +72,7 @@ class Settings(BaseSettings):
     ALLOW_METHODS: List[str] = ["*"]   # 允许的HTTP方法
     ALLOW_HEADERS: List[str] = ["*"]   # 允许的请求头
     ALLOW_CREDENTIALS: bool = True     # 是否允许携带cookie
+    CORS_EXPOSE_HEADERS: list[str] = ['X-Request-ID']
 
     # ================================================= #
     # ******************* 登录认证配置 ****************** #

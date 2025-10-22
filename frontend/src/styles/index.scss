@@ -6,6 +6,11 @@
 
 .app-container {
   padding: 12px;
+  border-radius: 4px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
 }
 
 // 进度条颜色
@@ -93,7 +98,7 @@ html.sidebar-color-blue .layout-mix .layout__sidebar--left .el-menu {
 
 // 表格区域样式
 .data-table {
-  // margin-bottom: 16px;
+  margin-bottom: 4px;
 
   // 表格工具栏区域
   &__toolbar {
@@ -101,8 +106,8 @@ html.sidebar-color-blue .layout-mix .layout__sidebar--left .el-menu {
     justify-content: space-between;
     margin-bottom: 16px;
 
-    &--actions,
-    &--tools {
+    &--left,
+    &--right {
       display: flex;
       gap: 8px;
     }

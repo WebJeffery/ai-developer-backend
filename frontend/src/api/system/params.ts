@@ -81,6 +81,8 @@ export interface ConfigPageQuery extends PageQuery {
   start_time?: string;
   /** 结束时间 */
   end_time?: string;
+  // 创建人ID
+  creator?: number;
 }
 
 export interface ConfigTable {

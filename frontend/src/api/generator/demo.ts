@@ -67,7 +67,7 @@ const ExampleAPI = {
     });
   },
 
-  importExample(body: any) {
+  importExample(body: FormData) {
     return request<ApiResponse>({
       url: `${API_PATH}/import`,
       method: "post",

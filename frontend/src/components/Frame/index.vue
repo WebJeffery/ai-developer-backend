@@ -3,8 +3,9 @@
   <div v-loading="loading" :style="'height:' + height">
     <iframe 
       :src="url" 
-      frameborder="no" 
-      style="width: 100%; height: 100%" 
+      frameborder="0" 
+      width="100%"
+      height="100%"
       scrolling="auto" />
   </div>
 </template>
@@ -27,8 +28,21 @@ onMounted(() => {
   setTimeout(() => {
     loading.value = false;
   }, 300);
-  window.onresize = function temp() {
-    height.value = document.documentElement.clientHeight - 94.5 + "px;";
-  };
 })
 </script>
+
+<style lang="scss" scoped>
+/** 关闭tag标签  */
+.app-container {
+  /* 50px = navbar = 50px */
+  height: calc(100vh - 50px);
+}
+
+/** 开启tag标签  */
+.hasTagsView {
+  .app-container {
+    /* 84px = navbar + tags-view = 50px + 34px */
+    height: calc(100vh - 84px);
+  }
+}
+</style>
