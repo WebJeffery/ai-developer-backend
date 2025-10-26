@@ -3,12 +3,15 @@
 import json
 from redis.asyncio.client import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from typing import AsyncGenerator, Optional
 from fastapi import Depends, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi import Depends
 
 from app.api.v1.module_system.user.schema import UserOutSchema
+from app.api.v1.module_system.user.model import UserModel
+from app.api.v1.module_system.role.model import RoleModel
 from app.common.enums import RedisInitKeyConfig
 from app.core.exceptions import CustomException
 from app.core.database import session_connect
@@ -53,29 +56,28 @@ async def mongo_getter(request: Request) -> AsyncIOMotorDatabase:
 
 async def get_current_user(
     request: Request,
+    db: AsyncSession = Depends(db_getter),
+    redis: Redis = Depends(redis_getter),
     token: str = Depends(OAuth2Schema),
-    redis: Redis = Depends(redis_getter), 
-    db: AsyncSession = Depends(db_getter)
 ) -> AuthSchema:
-    """获取并验证当前用户信息
+    """获取当前用户
     
     参数:
-    - request (Request): 请求对象。
-    - token (str): 认证token。
-    - redis (Redis): Redis连接。
-    - db (AsyncSession): 数据库会话连接。
+    - request (Request): 请求对象
+    - db (AsyncSession): 数据库会话
+    - redis (Redis): Redis连接
+    - token (str): 访问令牌
     
     返回:
-    - AuthSchema: 包含用户信息的认证对象。
-        
-    异常:
-    - CustomException: 认证失败时抛出异常。
+    - AuthSchema: 认证信息模型
     """
+    if not token:
+        raise CustomException(msg="认证已失效", code=10401, status_code=401)
+    
     # 处理Bearer token
     if token.startswith('Bearer'):
         token = token.split(' ')[1]
-        
-    # 解析token
+
     payload = decode_access_token(token)
     if not payload or not hasattr(payload, 'is_refresh') or payload.is_refresh:
         raise CustomException(msg="非法凭证", code=10401, status_code=401)
@@ -93,12 +95,21 @@ async def get_current_user(
     if not online_ok:
         raise CustomException(msg="认证已失效", code=10401, status_code=401)
 
-    auth = AuthSchema(db=db)
+    # 关闭数据权限过滤，避免当前用户查询被拦截
+    auth = AuthSchema(db=db, check_data_scope=False)
     username = user_info.get("user_name")
     if not username:
         raise CustomException(msg="认证已失效", code=10401, status_code=401)
-    # 获取用户信息
-    user = await UserCRUD(auth).get_by_username_crud(username=username)
+    # 获取用户信息，使用深层预加载确保RoleModel.creator被正确加载
+    user = await UserCRUD(auth).get_by_username_crud(
+        username=username, 
+        preload=[
+            "dept", 
+            selectinload(UserModel.roles).selectinload(RoleModel.creator),
+            "positions", 
+            "creator"
+        ]
+    )
     if not user:
         raise CustomException(msg="用户不存在", code=10401, status_code=401)
     if not user.status:
@@ -110,9 +121,9 @@ async def get_current_user(
     
     # 过滤可用的角色和职位
     if hasattr(user, 'roles'):
-        user.roles = [role for role in user.roles if role.status]
+        user.roles = [role for role in user.roles if role and role.status]
     if hasattr(user, 'positions'):
-        user.positions = [pos for pos in user.positions if pos.status]
+        user.positions = [pos for pos in user.positions if pos and pos.status]
 
     auth.user = UserOutSchema.model_validate(user)
     return auth
@@ -129,22 +140,18 @@ class AuthPermission:
         - permissions (Optional[list[str]]): 权限标识列表。
         - check_data_scope (bool): 是否启用严格模式校验。
         """
-        self.permissions = set(permissions) if permissions else None
+        self.permissions = permissions or []
         self.check_data_scope = check_data_scope
 
     async def __call__(self, auth: AuthSchema = Depends(get_current_user)) -> AuthSchema:
         """
-        执行权限验证
+        调用权限验证
         
         参数:
-        - request (Request): 请求对象。
-        - auth (AuthSchema): 认证信息。
-            
+        - auth (AuthSchema): 认证信息对象。
+        
         返回:
-        - AuthSchema: 认证对象
-            
-        异常:
-        - CustomException: 权限验证失败时抛出异常。
+        - AuthSchema: 认证信息对象。
         """
         auth.check_data_scope = self.check_data_scope
 
@@ -157,7 +164,7 @@ class AuthPermission:
             return auth
 
         # 超级管理员权限标识
-        if {"*:*:*"} <= self.permissions:
+        if "*" in self.permissions or "*:*:*" in self.permissions:
             return auth
 
         # 检查用户是否有角色
@@ -169,19 +176,12 @@ class AuthPermission:
             menu.permission 
             for role in auth.user.roles
             for menu in role.menus 
-            if menu.permission and menu.status
+            if role.status and menu.permission and menu.status
         }
 
-        # 权限验证
-        if self.check_data_scope:
-            # 严格模式:要求所有权限都满足
-            if not all(perm in user_permissions for perm in self.permissions):
-                logger.error(f"用户缺少所需的权限: {self.permissions}")
-                raise CustomException(msg="无权限操作", code=10403, status_code=403)
-        else:
-            # 非严格模式:满足任一权限即可
-            if not any(perm in user_permissions for perm in self.permissions):
-                logger.error(f"用户缺少任何所需的权限: {self.permissions}")
-                raise CustomException(msg="无权限操作", code=10403, status_code=403)
+        # 权限验证 - 满足任一权限即可
+        if not any(perm in user_permissions for perm in self.permissions):
+            logger.error(f"用户缺少任何所需的权限: {self.permissions}")
+            raise CustomException(msg="无权限操作", code=10403, status_code=403)
 
         return auth

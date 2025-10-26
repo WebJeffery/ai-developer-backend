@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Union, Any
 
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.dict.model import DictDataModel, DictTypeModel
@@ -21,30 +21,32 @@ class DictTypeCRUD(CRUDBase[DictTypeModel, DictTypeCreateSchema, DictTypeUpdateS
         self.auth = auth
         super().__init__(model=DictTypeModel, auth=auth)
 
-    async def get_obj_by_id_crud(self, id: int) -> Optional[DictTypeModel]:
+    async def get_obj_by_id_crud(self, id: int, preload: Optional[List[Union[str, Any]]] = None) -> Optional[DictTypeModel]:
         """
         获取数据字典类型详情
         
         参数:
         - id (int): 数据字典类型ID
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Optional[DictTypeModel]: 数据字典类型模型,如果不存在则为None
         """
-        return await self.get(id=id)
+        return await self.get(id=id, preload=preload)
     
-    async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DictTypeModel]:
+    async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None, preload: Optional[List[Union[str, Any]]] = None) -> Sequence[DictTypeModel]:
         """
         获取数据字典类型列表
         
         参数:
         - search (Optional[Dict]): 查询参数,默认值为None
         - order_by (Optional[List[Dict[str, str]]]): 排序参数,默认值为None
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Sequence[DictTypeModel]: 数据字典类型模型序列
         """
-        return await self.list(search=search, order_by=order_by)
+        return await self.list(search=search, order_by=order_by, preload=preload)
     
     async def create_obj_crud(self, data: DictTypeCreateSchema) -> Optional[DictTypeModel]:
         """
@@ -110,30 +112,32 @@ class DictDataCRUD(CRUDBase[DictDataModel, DictDataCreateSchema, DictDataUpdateS
         self.auth = auth
         super().__init__(model=DictDataModel, auth=auth)
 
-    async def get_obj_by_id_crud(self, id: int) -> Optional[DictDataModel]:
+    async def get_obj_by_id_crud(self, id: int, preload: Optional[List[Union[str, Any]]] = None) -> Optional[DictDataModel]:
         """
         获取数据字典数据详情
         
         参数:
         - id (int): 数据字典数据ID
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Optional[DictDataModel]: 数据字典数据模型,如果不存在则为None
         """
-        return await self.get(id=id)
+        return await self.get(id=id, preload=preload)
     
-    async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[DictDataModel]:
+    async def get_obj_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None, preload: Optional[List[Union[str, Any]]] = None) -> Sequence[DictDataModel]:
         """
         获取数据字典数据列表
         
         参数:
         - search (Optional[Dict]): 查询参数,默认值为None
         - order_by (Optional[List[Dict[str, str]]]): 排序参数,默认值为None
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Sequence[DictDataModel]: 数据字典数据模型序列
         """
-        return await self.list(search=search, order_by=order_by)
+        return await self.list(search=search, order_by=order_by, preload=preload)
     
     async def create_obj_crud(self, data: DictDataCreateSchema) -> Optional[DictDataModel]:
         """

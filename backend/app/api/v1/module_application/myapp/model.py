@@ -13,6 +13,7 @@ class ApplicationModel(CreatorMixin):
 
     __tablename__ = 'app_myapp'
     __table_args__ = ({'comment': '应用系统表'})
+    __loader_options__ = ["creator"]
 
     # 基本信息（必备字段）
     name: Mapped[str] = mapped_column(String(64), nullable=False, comment='应用名称', unique=True)
@@ -25,4 +26,3 @@ class ApplicationModel(CreatorMixin):
     
     # 外观展示
     icon_url: Mapped[str] = mapped_column(String(300), nullable=True, comment='应用图标URL')
-    

@@ -485,6 +485,7 @@ import { DeviceEnum } from "@/enums/settings/device.enum";
 import MenuAPI, { MenuPageQuery, MenuForm, MenuTable } from "@/api/system/menu";
 import { MenuTypeEnum } from "@/enums/system/menu.enum";
 import { formatTree } from "@/utils/common";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 const appStore = useAppStore();
 const userStore = useUserStore();
@@ -548,7 +549,10 @@ const menuOptions = ref<OptionType[]>([]);
 
 // 表单验证规则
 const rules = reactive({
-  name: [{ required: true, message: "请输入菜单名称", trigger: "blur" }],
+  name: [
+    { required: true, message: "请输入菜单名称", trigger: "blur" },
+    { min: 2, max: 50, message: "长度 2 到 50 个字符", trigger: "blur" },
+  ],
   parent_id: [{ required: true, message: "请选择父级菜单", trigger: "blur" }],
   type: [{ required: true, message: "请选择菜单类型", trigger: "blur" }],
   order: [{ required: true, message: "请输入排序", trigger: "blur" }],
@@ -568,7 +572,10 @@ const rules = reactive({
     }
   ],
   component_path: [{ required: true, message: "请输入组件路径", trigger: "blur" }],
-  title: [{ required: true, message: "请输入菜单标题", trigger: "blur" }],
+  title: [
+    { required: true, message: "请输入菜单标题", trigger: "blur" },
+    { min: 2, max: 50, message: "长度 2 到 50 个字符", trigger: "blur" },
+  ],
   keep_alive: [{ required: true, message: "请选择是否缓存", trigger: "change" }],
   hidden: [{ required: true, message: "请选择是否隐藏", trigger: "change" }],
   always_show: [{ required: true, message: "请选择始终显示", trigger: "change" }],
@@ -585,8 +592,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;
@@ -641,6 +648,10 @@ async function handleQuery() {
 // 重置查询
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
+  // 额外清空日期范围与时间查询参数
+  dateRange.value = [];
+  queryFormData.start_time = undefined;
+  queryFormData.end_time = undefined;
   handleQuery();
 }
 

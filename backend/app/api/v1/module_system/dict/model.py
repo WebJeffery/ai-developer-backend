@@ -14,6 +14,7 @@ class DictTypeModel(CreatorMixin):
 
     __tablename__ = "system_dict_type"
     __table_args__ = ({'comment': '字典类型表'})
+    __loader_options__ = ["creator"]
 
     dict_name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, comment='字典名称')
     dict_type: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, comment='字典类型')
@@ -28,6 +29,7 @@ class DictDataModel(CreatorMixin):
 
     __tablename__ = 'system_dict_data'
     __table_args__ = ({'comment': '字典数据表'})
+    __loader_options__ = ["creator"]
 
     dict_sort: Mapped[int] = mapped_column(Integer, nullable=False, default=0, comment='字典排序')
     dict_label: Mapped[str] = mapped_column(String(100), nullable=False, comment='字典标签')

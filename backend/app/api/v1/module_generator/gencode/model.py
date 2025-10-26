@@ -13,6 +13,7 @@ class GenTableModel(CreatorMixin):
     """
     __tablename__ = 'gen_table'
     __table_args__ = ({'comment': '代码生成表'})
+    __loader_options__ = ["columns", "creator"]
 
     table_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, default='', comment='表名称')
     table_comment: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, default='', comment='表描述')
@@ -45,6 +46,7 @@ class GenTableColumnModel(CreatorMixin):
     """
     __tablename__ = 'gen_table_column'
     __table_args__ = ({'comment': '代码生成表字段'})
+    __loader_options__ = ["tables", "creator"]
 
     column_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, comment='列名称')
     column_comment: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, comment='列描述')

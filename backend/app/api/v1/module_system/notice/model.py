@@ -22,6 +22,7 @@ class NoticeModel(CreatorMixin):
     """
     __tablename__ = "system_notice"
     __table_args__ = ({'comment': '通知公告表'})
+    __loader_options__ = ["creator"]
 
     notice_title: Mapped[str] = mapped_column(String(50), nullable=False, comment='公告标题')
     notice_type: Mapped[str] = mapped_column(String(50), nullable=False, comment='公告类型（1通知 2公告）')

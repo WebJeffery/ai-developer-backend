@@ -129,6 +129,8 @@ export interface JobPageQuery extends PageQuery {
   start_time?: string;
   /** 结束时间 */
   end_time?: string;
+  // 创建人ID
+  creator?: number;
 }
 
 export interface JobLogPageQuery extends PageQuery {
@@ -137,6 +139,8 @@ export interface JobLogPageQuery extends PageQuery {
   start_time?: string;
   /** 结束时间 */
   end_time?: string;
+  /** 任务ID */
+  job_id?: number;
 }
 
 export interface JobOptionData {

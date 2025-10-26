@@ -13,7 +13,7 @@
       ref="deptTreeRef"
       class="mt-2" 
       :data="deptOptions"
-      :props="{ children: 'children', label: 'label', disabled: '' }" 
+      :props="{ children: 'children', label: 'label', disabled: 'disabled' }" 
       :expand-on-click-node="false"
       :filter-node-method="handleFilter" 
       default-expand-all 

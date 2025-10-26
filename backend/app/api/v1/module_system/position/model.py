@@ -18,6 +18,7 @@ class PositionModel(CreatorMixin):
     """
     __tablename__ = "system_position"
     __table_args__ = ({'comment': '岗位表'})
+    __loader_options__ = ["creator"]
 
     name: Mapped[str] = mapped_column(String(40), nullable=False, unique=True, comment="岗位名称")
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=1, comment="显示排序")

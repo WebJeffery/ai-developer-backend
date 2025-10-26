@@ -1,40 +1,54 @@
 <!-- 单图上传组件 -->
 <template>
-  <el-upload
-    v-model="modelValue"
-    class="single-upload"
-    list-type="picture-card"
-    :show-file-list="false"
-    :accept="props.accept"
-    :before-upload="handleBeforeUpload"
-    :http-request="handleUpload"
-  >
-    <template #default>
-      <el-image v-if="modelValue" :src="modelValue" />
-      <el-icon v-if="modelValue" class="single-upload__delete-btn" @click.stop="handleDelete">
-        <CircleCloseFilled />
-      </el-icon>
-      <el-icon v-else class="single-upload__add-btn">
-        <Plus />
-      </el-icon>
-      <el-icon v-if="modelValue" class="single-upload__preview-btn" @click.stop="handlePreview(modelValue)">
-        <View />
-      </el-icon>
-    </template>
-  </el-upload>
-
-  <el-image-viewer
-    v-if="showPreview"
-    :url-list="srcList"
-    show-progress
-    :initial-index=previewImageIndex
-    @close="showPreview = false"
-  />
-
+  <div class="single-image-upload">
+    <el-upload
+      v-model:file-list="internalFileList"
+      class="single-upload"
+      list-type="picture-card"
+      :show-file-list="false"
+      :accept="props.accept"
+      :before-upload="handleBeforeUpload"
+      :http-request="handleUpload"
+      :on-success="onSuccess"
+      :on-error="onError"
+      :on-remove="handleDelete"
+      :disabled="props.disabled"
+    >
+      <template #default>
+        <template v-if="internalFileList && internalFileList.length > 0 && internalFileList[0].url">
+          <el-image
+            :key="internalFileList[0].url"
+            class="single-upload__image"
+            :src="internalFileList[0].url"
+            fit="cover"
+            :preview-src-list="props.enablePreview ? [internalFileList[0].url] : []"
+            :preview-teleported="true"
+            @click.stop="handleImageClick"
+          />
+          <el-icon 
+            v-if="!props.disabled" 
+            class="single-upload__delete-btn" 
+            @click.stop="handleDelete"
+          >
+            <CircleCloseFilled />
+          </el-icon>
+        </template>
+        <template v-else>
+          <el-icon class="single-upload__add-btn">
+            <Plus />
+          </el-icon>
+        </template>
+      </template>
+    </el-upload>
+    <div v-if="props.showTip" class="el-upload__tip">
+      {{ props.tipText || `支持 ${props.accept} 格式，文件大小不超过 ${props.maxFileSize}MB` }}
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { UploadRawFile, UploadRequestOptions, ElMessage } from "element-plus";
+import { ref, watch } from "vue";
+import { UploadRawFile, UploadRequestOptions, ElMessage, type UploadUserFile } from "element-plus";
 import ParamsAPI from '@/api/system/params';
 
 const props = defineProps({
@@ -82,12 +96,76 @@ const props = defineProps({
       };
     },
   },
+  
+  /**
+   * 是否禁用
+   */
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  
+  /**
+   * 是否显示提示信息
+   */
+  showTip: {
+    type: Boolean,
+    default: false,
+  },
+  
+  /**
+   * 提示文本
+   */
+  tipText: {
+    type: String,
+    default: "",
+  },
+  
+  /**
+   * 是否启用图片预览功能
+   */
+  enablePreview: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-const modelValue = defineModel("modelValue", {
-  type: String,
-  default: () => "",
+// 接收字符串类型的modelValue，保持与现有代码的兼容性
+const modelValue = defineModel<string>({
+  default: "",
 });
+
+// 内部使用的文件列表
+const internalFileList = ref<UploadUserFile[]>([]);
+
+// 监听modelValue变化，同步到internalFileList
+watch(
+  () => modelValue.value,
+  (newVal) => {
+    if (newVal) {
+      internalFileList.value = [{
+        name: newVal.split('/').pop() || 'image',
+        url: newVal
+      }];
+    } else {
+      internalFileList.value = [];
+    }
+  },
+  { immediate: true }
+);
+
+// 监听internalFileList变化，同步到modelValue
+watch(
+  () => internalFileList.value,
+  (newVal) => {
+    if (newVal && newVal.length > 0 && newVal[0].url) {
+      modelValue.value = newVal[0].url;
+    } else {
+      modelValue.value = "";
+    }
+  },
+  { deep: true }
+);
 
 /**
  * 定义组件触发的事件
@@ -96,8 +174,7 @@ const emit = defineEmits<{
   (e: 'success', fileInfo: UploadFilePath): void;
   (e: 'error', error: any): void;
   (e: 'input', value: string): void;
-  (e: 'onSuccess', fileInfo: UploadFilePath): void;
-  (e: 'onError', error: any): void;
+  (e: 'update:modelValue', value: string): void;
 }>();
 
 /**
@@ -128,7 +205,7 @@ function handleBeforeUpload(file: UploadRawFile) {
 
   // 限制文件大小
   if (file.size > props.maxFileSize * 1024 * 1024) {
-    ElMessage.warning("上传图片不能大于" + props.maxFileSize + "M");
+    ElMessage.warning(`上传图片不能大于 ${props.maxFileSize}MB`);
     return false;
   }
   return true;
@@ -171,20 +248,23 @@ async function handleUpload(options: UploadRequestOptions) {
  * 删除图片
  */
 function handleDelete() {
-  modelValue.value = "";
+  // 清空模型值并通知父组件
+  internalFileList.value = [];
 }
 
 /**
- * 预览
+ * 图片点击处理
+ * 阻止事件冒泡到上传组件，避免触发上传
  */
-const showPreview = ref(false); // 是否显示预览
-const srcList = ref<string[]>([]);
-const previewImageIndex = ref(0); // 预览图片的索引
-
-function handlePreview(imagePath: string) {
-  srcList.value = [imagePath];
-  previewImageIndex.value = 0;
-  showPreview.value = true;
+function handleImageClick(event: Event) {
+  // 阻止事件冒泡
+  event.stopPropagation();
+  
+  // 如果启用了预览功能，则触发预览
+  if (props.enablePreview && internalFileList.value && internalFileList.value.length > 0 && internalFileList.value[0].url) {
+    // Element Plus的el-image组件会自动处理preview-src-list的预览功能
+    // 这里只需要阻止冒泡即可
+  }
 }
 
 /**
@@ -193,40 +273,53 @@ function handlePreview(imagePath: string) {
  * @param fileInfo 上传成功后的文件信息
  */
 const onSuccess = (fileInfo: UploadFilePath) => {
-  modelValue.value = fileInfo.file_url; // 更新绑定的值为文件URL
-  emit('onSuccess', fileInfo); // 触发 onSuccess 事件
-  emit('success', fileInfo); // 触发 success 事件
-  emit('input', fileInfo.file_url); // 触发 input 事件，通知父组件值变化
+  // 更新绑定的值为文件URL
+  const newFileList = [{
+    name: fileInfo.file_name,
+    url: fileInfo.file_url
+  }];
+  
+  internalFileList.value = newFileList;
+  
+  // 触发事件
+  emit('success', fileInfo);
+  emit('input', fileInfo.file_url);
+  emit('update:modelValue', fileInfo.file_url);
 };
 
 /**
  * 上传失败回调
  */
 const onError = (error: any) => {
-  console.log("onError", error);
-  emit('onError', error); // 触发 onError 事件
-  emit('error', error); // 触发 error 事件
+  console.error("图片上传失败:", error);
+  ElMessage.error('图片上传失败，请重试');
+  emit('error', error);
 };
-
 </script>
 
 <style scoped lang="scss">
+.single-image-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 :deep(.el-upload--picture-card) {
-  width: v-bind("props.style.width");
-  height: v-bind("props.style.height");
+  position: relative;
+  width: v-bind("props.style.width ?? '150px'");
+  height: v-bind("props.style.height ?? '150px'");
+  
+  &:hover {
+    .single-upload__delete-btn {
+      display: block;
+    }
+  }
 }
 
 .single-upload {
-  position: relative;
-  width: v-bind("props.style.width");
-  height: v-bind("props.style.height");
-  overflow: hidden;
-  cursor: pointer;
-  border: 1px var(--el-border-color) solid;
-  border-radius: 5px;
-
-  &:hover {
-    border-color: var(--el-color-primary);
+  &__image {
+    border-radius: 6px;
+    cursor: pointer;
   }
 
   &__delete-btn {
@@ -238,25 +331,22 @@ const onError = (error: any) => {
     cursor: pointer;
     background: #fff;
     border-radius: 100%;
+    display: none;
 
-    :hover {
+    &:hover {
       color: #ff4500;
     }
   }
   
-  &__preview-btn {
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    font-size: 16px;
-    color: #409eff;
-    cursor: pointer;
-    background: #fff;
-    border-radius: 100%;
-
-    :hover {
-      color: #1d7bff;
-    }
+  &__add-btn {
+    font-size: 28px;
+    color: #8c939d;
   }
+}
+
+.el-upload__tip {
+  font-size: 12px;
+  color: #606266;
+  margin-top: 7px;
 }
 </style>

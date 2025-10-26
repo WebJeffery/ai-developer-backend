@@ -13,6 +13,7 @@ class OperationLogModel(CreatorMixin):
     """
     __tablename__ = "system_log"
     __table_args__ = ({'comment': '系统日志表'})
+    __loader_options__ = ["creator"]
 
     type: Mapped[int] = mapped_column(Integer, comment="日志类型(1登录日志 2操作日志)")
     request_path: Mapped[str] = mapped_column(String(255), comment="请求路径")

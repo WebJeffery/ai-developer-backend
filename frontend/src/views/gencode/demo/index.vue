@@ -18,9 +18,19 @@
               <el-option value="false" label="停用" />
             </el-select>
           </el-form-item>
+          <el-form-item v-if="isExpand" prop="creator" label="创建人">
+            <UserTableSelect
+                v-model="queryFormData.creator"
+                @confirm-click="handleConfirm"
+                @clear-click="handleQuery"
+            />
+          </el-form-item>
           <!-- 时间范围，收起状态下隐藏 -->
           <el-form-item v-if="isExpand" prop="start_time" label="创建时间">
-            <DatePicker v-model="dateRange" @update:model-value="handleDateRangeChange" />
+            <DatePicker
+              v-model="dateRange"
+              @update:model-value="handleDateRangeChange"
+            />
           </el-form-item>
           <!-- 查询、重置、展开/收起按钮 -->
           <el-form-item >
@@ -261,6 +271,7 @@ import ExportModal from "@/components/CURD/ExportModal.vue";
 import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import { QuestionFilled, ArrowUp, ArrowDown } from "@element-plus/icons-vue";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 
 const visible = ref(true);
@@ -303,6 +314,24 @@ const curdContentConfig = {
   permPrefix: 'generator:demo',
   cols: exportColumns as any,
   importTemplate: () => ExampleAPI.downloadTemplate(),
+  exportsAction: async (params: any) => {
+    const query: any = { ...params };
+    if (typeof query.status === 'string') {
+      query.status = query.status === 'true';
+    }
+    query.page_no = 1;
+    query.page_size = 9999;
+    const all: any[] = [];
+    while (true) {
+      const res = await ExampleAPI.getExampleList(query);
+      const items = res.data?.data?.items || [];
+      const total = res.data?.data?.total || 0;
+      all.push(...items);
+      if (all.length >= total || items.length === 0) break;
+      query.page_no += 1;
+    }
+    return all;
+  },
 } as unknown as IContentConfig;
 // 详情表单
 const detailFormData = ref<ExampleTable>({});
@@ -313,8 +342,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;
@@ -329,6 +358,7 @@ const queryFormData = reactive<ExamplePageQuery>({
   status: undefined,
   start_time: undefined,
   end_time: undefined,
+  creator: undefined,
 });
 
 // 编辑表单
@@ -393,6 +423,11 @@ async function loadingData() {
 async function handleQuery() {
   queryFormData.page_no = 1;
   loadingData();
+}
+
+// 选择创建人后触发查询
+function handleConfirm() {
+  handleQuery();
 }
 
 // 重置查询

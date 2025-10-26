@@ -134,7 +134,8 @@ export function formatTree(nodes: any[]): any[] {
   return nodes.map(node => {
     const formattedNode = {
       value: node.id,
-      label: node.name
+      label: node.name,
+      disabled: node.status === false || String(node.status) === 'false'
     };
     
     if (node.children && node.children.length > 0) {

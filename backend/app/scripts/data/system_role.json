@@ -5,7 +5,7 @@
     "code": "ADMIN",
     "status": true,
     "order": 1,
-    "description": "管理员",
+    "description": "初始化角色",
     "creator_id": 1
   }
 ]

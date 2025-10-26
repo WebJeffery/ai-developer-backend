@@ -3,7 +3,6 @@
   <el-scrollbar>
     <div :class="{ hidden: hidden }" class="pagination">
       <el-pagination
-        v-show="total>0"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :background="background"

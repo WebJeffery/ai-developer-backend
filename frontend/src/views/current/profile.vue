@@ -10,6 +10,11 @@
             </div>
           </template>
           <div class="user-info-header">
+            <div class="avatar-alert mb-10px"> 
+              <!-- 提示：头像上传成功后请点击“保存更改”按钮才会生效 -->
+              <el-alert type="info" show-icon :closable="false" title="头像上传，点击“保存更改”按钮使其生效" />
+            </div>
+            
             <div class="avatar-wrapper">
               <el-avatar 
                 v-if="infoFormState.avatar"
@@ -49,62 +54,73 @@
 
           <el-divider />
 
-          <el-descriptions :column="1" size="small" class="user-details">
+          <el-descriptions :column="1"  border>
 
             <el-descriptions-item>
               <template #label>
-                <el-icon style="vertical-align: middle;">
-                  <User />
-                </el-icon>
-                <span style="vertical-align: middle;">账号</span>
+                <div class="cell-item"> 
+                  <el-icon :style="iconStyle">
+                    <User />
+                  </el-icon>
+                  <span >账号</span>
+                </div>
               </template>
-              <span style="vertical-align: middle;">{{ infoFormState.username }}</span>
-            </el-descriptions-item>
-
-            <el-descriptions-item>
-              <template #label>
-                <el-icon style="vertical-align: middle;">
-                  <Coordinate />
-                </el-icon>
-                <span style="vertical-align: middle;">部门</span>
-              </template>
-              <span style="vertical-align: middle;">{{ infoFormState.dept?.name }}</span>
+              <span >{{ infoFormState.username }}</span>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
-                <el-icon style="vertical-align: middle;">
-                  <OfficeBuilding />
-                </el-icon>
-                <span style="vertical-align: middle;">岗位</span>
+                <div class="cell-item"> 
+                  <el-icon :style="iconStyle">
+                    <Coordinate />
+                  </el-icon>
+                  <span >部门</span>
+                </div>
               </template>
-              <span style="vertical-align: middle;">{{infoFormState.positions?.map(item => item.name).join('、')}}</span>
+              <span >{{ infoFormState.dept?.name }}</span>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
-                <el-icon style="vertical-align: middle;">
-                  <Phone />
-                </el-icon>
-                <span style="vertical-align: middle;">手机</span>
+                <div class="cell-item"> 
+                  <el-icon :style="iconStyle">
+                    <OfficeBuilding />
+                  </el-icon>
+                  <span >岗位</span>
+                </div>
               </template>
-              <span style="vertical-align: middle;">{{ infoFormState.mobile }}</span>
+              <span >{{infoFormState.positions?.map(item => item.name).join('、')}}</span>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
-                <el-icon style="vertical-align: middle;">
-                  <Message />
-                </el-icon>
-                <span style="vertical-align: middle;">邮箱</span>
+                <div class="cell-item"> 
+                  <el-icon :style="iconStyle">
+                    <Phone />
+                  </el-icon>
+                  <span >手机</span>
+                </div>
               </template>
-              <span style="vertical-align: middle;">{{ infoFormState.email }}</span>
+              <span >{{ infoFormState.mobile }}</span>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
-                <el-icon style="vertical-align: middle;">
-                  <Clock />
-                </el-icon>
-                <span style="vertical-align: middle;">加入时间</span>
+                <div class="cell-item"> 
+                  <el-icon :style="iconStyle">
+                    <Message />
+                  </el-icon>
+                  <span >邮箱</span>
+                </div>
               </template>
-              <span style="vertical-align: middle;">{{ infoFormState.created_at }}</span>
+              <span >{{ infoFormState.email }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <div class="cell-item"> 
+                  <el-icon :style="iconStyle">
+                    <Clock />
+                  </el-icon>
+                  <span >加入时间</span>
+                </div>
+              </template>
+              <span>{{ infoFormState.created_at }}</span>
             </el-descriptions-item>
           </el-descriptions>
         </el-card>
@@ -122,21 +138,21 @@
                 <span>基本设置</span>
               </template>
               <div>
-                <el-form ref="ruleFormRef" :model="infoFormState" :rules="rules" :inline="true" label-width="80px" label-suffix=":">
+                <el-form ref="infoFormRef" :model="infoFormState" :rules="rules"  label-width="80px" label-suffix=":">
                   
-                  <el-form-item label="姓名" name="name">
-                    <el-input v-model="infoFormState.name" placeholder="请输入姓名" prefix-icon="User" clearable style="width: 240px;" />
+                  <el-form-item label="用户名" prop="name">
+                    <el-input v-model="infoFormState.name" placeholder="请输入用户名" prefix-icon="User" clearable style="width: 240px;" />
                   </el-form-item>
 
-                  <el-form-item label="手机号" name="mobile">
+                  <el-form-item label="手机号" prop="mobile">
                     <el-input v-model="infoFormState.mobile" placeholder="请输入手机号码" prefix-icon="Phone" clearable style="width: 240px;" />
                   </el-form-item>
 
-                  <el-form-item label="邮箱" name="email">
+                  <el-form-item label="邮箱" prop="email">
                     <el-input v-model="infoFormState.email" placeholder="请输入邮箱" prefix-icon="Message" clearable style="width: 240px;" />
                   </el-form-item>
 
-                  <el-form-item label="性别" name="gender">
+                  <el-form-item label="性别" prop="gender">
                     <el-radio-group v-model="infoFormState.gender">
                       <el-radio v-for="item in dictDataStore['sys_user_sex']" :key="item.dict_value" :value="item.dict_value" >
                         {{ item.dict_label }}
@@ -159,25 +175,25 @@
                 <span>安全设置</span>
               </template>
               <div>
-                <el-form ref="ruleFormRef" :model="passwordFormState" :rules="resetPasswordRules"  label-width="80px" label-suffix=":">
-                  <el-form-item label="当前密码" name="old_password">
-                    <el-input v-model.trim="passwordFormState.old_password" :placeholder="t('login.password')" type="password" show-password clearable style="width: 240px;">
+                <el-form ref="passwordFormRef" :model="passwordFormState" :rules="resetPasswordRules"  label-width="120px" label-suffix=":">
+                  <el-form-item label="当前密码" prop="old_password">
+                    <el-input v-model.trim="passwordFormState.old_password" :placeholder="t('login.password')" type="password" prefix-icon="Unlock" show-password clearable style="width: 240px;">
                       <template #prefix>
                         <Lock />
                       </template>
                     </el-input>
                   </el-form-item>
 
-                  <el-form-item label="新密码" name="new_password">
-                    <el-input v-model.trim="passwordFormState.new_password" type="password" :placeholder="t('login.newPassword')" show-password clearable style="width: 240px;">
+                  <el-form-item label="新密码" prop="new_password">
+                    <el-input v-model.trim="passwordFormState.new_password" type="password" :placeholder="t('login.newPassword')" prefix-icon="Unlock" show-password clearable style="width: 240px;">
                       <template #prefix>
                         <Key />
                       </template>
                     </el-input>
                   </el-form-item>
 
-                  <el-form-item label="确认密码" name="confirm_password">
-                    <el-input v-model.trim="passwordFormState.confirm_password" type="password" :placeholder="t('login.message.password.confirm')" show-password clearable style="width: 240px;">
+                  <el-form-item label="确认新密码" prop="confirm_password">
+                    <el-input v-model.trim="passwordFormState.confirm_password" type="password" :placeholder="t('login.message.password.confirm')" prefix-icon="Lock" show-password clearable style="width: 240px;">
                       <template #prefix>
                         <Check />
                       </template>
@@ -198,7 +214,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { FormInstance, UploadRequestOptions, UploadFile, ElUpload } from 'element-plus'
+import type { FormInstance, UploadRequestOptions, UploadFile, ElUpload, ComponentSize } from 'element-plus'
 import UserAPI, { type InfoFormState, type PasswordFormState } from '@/api/system/user';
 import { useUserStore, useDictStore } from "@/store";
 import { useUserStoreHook } from "@/store/modules/user.store";
@@ -211,10 +227,25 @@ import router from "@/router";
 const { t } = useI18n();
 const userStore = useUserStore();
 const dictStore = useDictStore();
-const ruleFormRef = ref<FormInstance>();
+const infoFormRef = ref<FormInstance>();
+const passwordFormRef = ref<FormInstance>();
 const loading = ref<boolean>(false);
 
 const dictDataStore = computed(() => dictStore.dictData);
+
+
+const size = ref<ComponentSize>('default')
+
+const iconStyle = computed(() => {
+  const marginMap = {
+    large: '8px',
+    default: '6px',
+    small: '4px',
+  }
+  return {
+    marginRight: marginMap[size.value || 'default'],
+  }
+})
 
 // 字典数据
 const getOptions = async () => {
@@ -280,6 +311,11 @@ const handleUpload = async (options: UploadRequestOptions) => {
         const fileUrl = response.data.data.file_url;
         updateAvatar(fileUrl);
         options.onSuccess(response);
+        // 重置上传组件状态，允许再次选择上传
+        if (uploadRef.value) {
+          uploadRef.value.clearFiles();
+        }
+        fileList.value = [];
       } else {
       const errorMsg = response.data.msg || '上传失败';
       ElMessage.error(errorMsg);
@@ -321,8 +357,6 @@ const updateAvatar = (fileUrl: string) => {
   if (fileUrl) {
     // 更新头像状态
     infoFormState.avatar = fileUrl;
-    // 更新文件列表
-    fileList.value = [{ url: fileUrl }];
     // 确保DOM正确更新
     nextTick(() => {
       console.log('头像已更新:', infoFormState.avatar);
@@ -337,21 +371,19 @@ const updateAvatar = (fileUrl: string) => {
 // 邮箱校验规则优化
 const rules = {
   name: [
-    { required: true, message: "请输入姓名", trigger: "blur" },
+    { required: true, message: "请输入用户名", trigger: "blur" },
   ],
   mobile: [
-    { required: true, message: "请输入手机号", trigger: "blur" },
     {
       pattern: /^1[3-9]\d{9}$/,
-      message: "手机号格式不正确，请输入有效的中国大陆手机号",
+      message: "请输入有效的手机号格式",
       trigger: "blur",
     },
   ],
   email: [
-    { required: true, message: "请输入邮箱", trigger: "blur" },
     {
       pattern: /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/,
-      message: "邮箱格式不正确，请输入有效的邮箱地址",
+      message: "请输入有效的邮箱格式",
       trigger: "blur",
     },
   ],
@@ -359,14 +391,14 @@ const rules = {
 
 
 const resetPasswordRules = {
-    oldPassword: [
+    old_password: [
       {
         required: true,
         trigger: "blur",
         message: t("login.password"),
       },
     ],
-    newPassword: [
+    new_password: [
       {
         required: true,
         trigger: "blur",
@@ -378,7 +410,7 @@ const resetPasswordRules = {
         trigger: "blur",
       },
     ],
-    confirmPassword: [
+    confirm_password: [
       {
         required: true,
         trigger: "blur",
@@ -408,9 +440,9 @@ const initInfoForm = () => {
 // 初始化密码表单
 const initPasswordForm = () => {
   Object.assign(passwordFormState, {
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    old_password: '',
+    new_password: '',
+    confirm_password: ''
   });
 };
 
@@ -418,9 +450,14 @@ const initPasswordForm = () => {
 const handleSave = async () => {
   try {
     infoSubmitting.value = true;
+    const valid = await infoFormRef.value?.validate().catch(() => false);
+    if (!valid) {
+      return;
+    }
     // 确保avatar字段被正确处理
     const response = await UserAPI.updateCurrentUserInfo({...infoFormState});
     await userStore.setUserInfo(response.data.data);
+    ElMessage.success('个人资料已保存');
   } finally {
     infoSubmitting.value = false;
   }
@@ -430,6 +467,10 @@ const handleSave = async () => {
 const handlePasswordChange = async () => {
   try {
     passwordChanging.value = true;
+    const valid = await passwordFormRef.value?.validate().catch(() => false);
+    if (!valid) {
+      return;
+    }
     const response = await UserAPI.changeCurrentUserPassword(passwordFormState);
     initPasswordForm();
     await redirectToLogin(response.data.msg);
@@ -512,5 +553,14 @@ onMounted(async () => {
 
 .el-input__wrapper {
   transition: none !important;
+}
+
+.iconStyle {
+  margin-right: 6px;
+}
+
+.cell-item {
+  display: flex;
+  align-items: center;
 }
 </style>

@@ -79,8 +79,11 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-const emit = defineEmits(["update:modelValue"]);
-const toLogin = () => emit("update:modelValue", "login");
+// 使用 defineModel 简化具名 v-model 绑定
+const modelValue = defineModel<string>();
+const presetUsername = defineModel<string>('presetUsername');
+const presetPassword = defineModel<string>('presetPassword');
+const toLogin = () => { modelValue.value = 'login'; };
 
 const configStore = useConfigStore();
 
@@ -162,7 +165,9 @@ const submit = async () => {
     loading.value = true;
 
     await UserAPI.registerUser(model.value)
-    
+    // 注册成功后，双向绑定回写父容器的用户名和密码，并切回登录
+    presetUsername.value = model.value.username;
+    presetPassword.value = model.value.password;
     toLogin();
 
   } catch (error) {

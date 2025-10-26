@@ -7,9 +7,6 @@
         <el-form-item prop="request_path" label="请求路径">
           <el-input v-model="queryFormData.request_path" placeholder="请输入请求路径" clearable />
         </el-form-item>
-        <el-form-item prop="creator_name" label="创建人">
-          <el-input v-model="queryFormData.creator_name" placeholder="请输入创建人" clearable />
-        </el-form-item>
         <el-form-item prop="type" label="日志类型">
           <el-select v-model="queryFormData.type" placeholder="请选择日志类型" style="width: 167.5px" clearable>
             <el-option label="登录日志" value=1 />
@@ -157,7 +154,7 @@
     <el-dialog v-model="dialogVisible.visible" :title="dialogVisible.title" @close="handleCloseDialog">
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
-        <el-descriptions :column="4" border>
+        <el-descriptions :column="8" border label-width="140px">
           <el-descriptions-item label="日志类型" :span="2">
             <el-tag :type="formData.type === 1 ? 'success' : 'primary'">
               {{ formData.type === 1 ? '登录日志' : '操作日志' }}
@@ -178,17 +175,17 @@
           <el-descriptions-item label="处理时间" :span="2">{{ formData.process_time }}</el-descriptions-item>
           <el-descriptions-item label="浏览器" :span="2">{{ formData.request_browser }}</el-descriptions-item>
           <el-descriptions-item label="操作系统" :span="2">{{ formData.request_os }}</el-descriptions-item>
-          <el-descriptions-item label="请求参数" :span="4">
-            <el-input v-model="formData.request_payload" type="textarea" :rows="3" readonly class="long-text-editor" />
+          <el-descriptions-item label="请求参数" :span="8">
+            <JsonPretty :value="formData.request_payload" height="80px" />
           </el-descriptions-item>
-          <el-descriptions-item label="响应数据" :span="4">
-            <el-input v-model="formData.response_json" type="textarea" :rows="5" readonly class="long-text-editor" />
+          <el-descriptions-item label="响应数据" :span="8">
+            <JsonPretty :value="formData.response_json" height="140px" />
           </el-descriptions-item>
-          <el-descriptions-item label="登录地点" :span="2">{{ formData.login_location }}</el-descriptions-item>
-          <el-descriptions-item label="创建人" :span="2">{{ formData.creator?.name }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">{{ formData.created_at }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间" :span="2">{{ formData.updated_at }}</el-descriptions-item>
-          <el-descriptions-item label="描述" :span="4">{{ formData.description }}</el-descriptions-item>
+          <el-descriptions-item label="登录地点" :span="4">{{ formData.login_location }}</el-descriptions-item>
+          <el-descriptions-item label="创建人" :span="4">{{ formData.creator?.name }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间" :span="4">{{ formData.created_at }}</el-descriptions-item>
+          <el-descriptions-item label="更新时间" :span="4">{{ formData.updated_at }}</el-descriptions-item>
+          <el-descriptions-item label="描述" :span="8">{{ formData.description }}</el-descriptions-item>
         </el-descriptions>
       </template>
 
@@ -222,7 +219,9 @@ defineOptions({
 import LogAPI, { LogTable, LogPageQuery } from "@/api/system/log";
 import UserTableSelect from "@/views/system/user/components/UserTableSelect.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import JsonPretty from "@/components/JsonPretty/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -269,8 +268,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;
@@ -345,6 +344,10 @@ function handleConfirm() {
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryFormData.page_no = 1;
+  // 额外清空日期范围与时间查询参数
+  dateRange.value = [];
+  queryFormData.start_time = undefined;
+  queryFormData.end_time = undefined;
   loadingData();
 }
 

@@ -137,6 +137,13 @@ class MenuService:
             menu = await MenuCRUD(auth).get_by_id_crud(id=id)
             if not menu:
                 raise CustomException(msg='删除失败，该菜单不存在')
+        # 校验是否存在子级菜单，存在则禁止删除
+        menu_list = await MenuCRUD(auth).get_list_crud()
+        id_map = get_child_id_map(model_list=menu_list)
+        for id in ids:
+            descendants = get_child_recursion(id=id, id_map=id_map)
+            if len(descendants) > 1:
+                raise CustomException(msg='删除失败，存在子级菜单，请先删除子级菜单')
         await MenuCRUD(auth).delete(ids=ids)
 
     @classmethod

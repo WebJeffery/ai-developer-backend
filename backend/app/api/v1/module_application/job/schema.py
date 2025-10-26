@@ -60,10 +60,10 @@ class JobLogCreateSchema(BaseModel):
 class JobLogUpdateSchema(JobLogCreateSchema):
     """定时任务调度日志表更新模型"""
     ...
-    job_log_id: Optional[int] = Field(default=None, description='任务日志ID')
+    id: Optional[int] = Field(default=None, description='任务日志ID')
 
 
-class JobLogOutSchema(JobLogCreateSchema):
+class JobLogOutSchema(JobLogUpdateSchema):
     """定时任务调度日志表响应模型"""
     model_config = ConfigDict(from_attributes=True)
     ...

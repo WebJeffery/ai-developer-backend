@@ -14,6 +14,7 @@ class JobModel(CreatorMixin):
     """
     __tablename__ = 'app_job'
     __table_args__ = ({'comment': '定时任务调度表'})
+    __loader_options__ = ["job_logs", "creator"]
 
     name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, default='', comment='任务名称')
     jobstore: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, default='default', comment='存储器')
@@ -37,6 +38,7 @@ class JobLogModel(MappedBase):
     """
     __tablename__ = 'app_job_log'
     __table_args__ = ({'comment': '定时任务调度日志表'})
+    __loader_options__ = ["job"]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
     job_name: Mapped[str] = mapped_column(String(64),nullable=False,comment='任务名称')

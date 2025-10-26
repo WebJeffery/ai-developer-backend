@@ -13,6 +13,7 @@ class DemoModel(CreatorMixin):
     """
     __tablename__ = 'gen_demo'
     __table_args__ = ({'comment': '示例表'})
+    __loader_options__ = ["creator"]
 
     name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, default='', comment='名称')
     status: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False, comment="是否启用(True:启用 False:禁用)")
