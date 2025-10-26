@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Union, Any
 
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
@@ -21,30 +21,32 @@ class ApplicationCRUD(CRUDBase[ApplicationModel, ApplicationCreateSchema, Applic
         self.auth = auth
         super().__init__(model=ApplicationModel, auth=auth)
 
-    async def get_by_id_crud(self, id: int) -> Optional[ApplicationModel]:
+    async def get_by_id_crud(self, id: int, preload: Optional[List[Union[str, Any]]] = None) -> Optional[ApplicationModel]:
         """
         根据id获取应用详情
         
         参数:
         - id (int): 应用ID
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Optional[ApplicationModel]: 应用详情,如果不存在则为None
         """
-        return await self.get(id=id)
+        return await self.get(id=id, preload=preload)
     
-    async def list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[ApplicationModel]:
+    async def list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None, preload: Optional[List[Union[str, Any]]] = None) -> Sequence[ApplicationModel]:
         """
         列表查询应用
         
         参数:
         - search (Optional[Dict]): 查询参数,默认None
         - order_by (Optional[List[Dict[str, str]]]): 排序参数,默认None
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Sequence[ApplicationModel]: 应用列表
         """
-        return await self.list(search=search, order_by=order_by)
+        return await self.list(search=search, order_by=order_by, preload=preload)
     
     async def create_crud(self, data: ApplicationCreateSchema) -> Optional[ApplicationModel]:
         """

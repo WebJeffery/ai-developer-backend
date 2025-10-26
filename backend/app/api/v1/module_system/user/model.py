@@ -13,7 +13,7 @@ from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.api.v1.module_system.dept.model import DeptModel
 from app.api.v1.module_system.position.model import PositionModel
 from app.api.v1.module_system.role.model import RoleModel
-from app.core.base_model import MappedBase, CreatorMixin
+from app.core.base_model import MappedBase
 
 
 class UserRolesModel(MappedBase):
@@ -68,6 +68,7 @@ class UserModel(MappedBase):
     """
     __tablename__ = "system_users"
     __table_args__ = ({'comment': '用户表'})
+    __loader_options__ = ["dept", "roles", "positions", "creator"]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
     

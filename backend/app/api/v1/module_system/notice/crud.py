@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Union, Any
 
 from app.core.base_crud import CRUDBase
 from ..auth.schema import AuthSchema
@@ -21,30 +21,32 @@ class NoticeCRUD(CRUDBase[NoticeModel, NoticeCreateSchema, NoticeUpdateSchema]):
         self.auth = auth
         super().__init__(model=NoticeModel, auth=auth)
 
-    async def get_by_id_crud(self, id: int) -> Optional[NoticeModel]:
+    async def get_by_id_crud(self, id: int, preload: Optional[List[Union[str, Any]]] = None) -> Optional[NoticeModel]:
         """
         根据ID获取公告详情。
         
         参数:
         - id (int): 公告ID。
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Optional[NoticeModel]: 公告模型实例。
         """
-        return await self.get(id=id)
+        return await self.get(id=id, preload=preload)
     
-    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[NoticeModel]:
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None, preload: Optional[List[Union[str, Any]]] = None) -> Sequence[NoticeModel]:
         """
         获取公告列表。
         
         参数:
         - search (Optional[Dict]): 查询参数。
         - order_by (Optional[List[Dict[str, str]]]): 排序参数。
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Sequence[NoticeModel]: 公告模型实例列表。
         """
-        return await self.list(search=search, order_by=order_by)
+        return await self.list(search=search, order_by=order_by, preload=preload)
     
     async def create_crud(self, data: NoticeCreateSchema) -> Optional[NoticeModel]:
         """

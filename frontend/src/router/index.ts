@@ -48,10 +48,23 @@ export const constantRoutes: RouteRecordRaw[] = [
   // 以下内容必须放在后面
   {
     path: "/",
-    name: "/Index",
-    redirect: "/dashboard/workplace",
+    name: "/",
+    redirect: "/home",
     component: Layout,
     children: [
+      {
+        path: "home",
+        component: () => import("@/views/dashboard/index.vue"),
+        // 用于 keep-alive 功能，需要与 SFC 中自动推导或显式声明的组件名称一致
+        // 参考文档: https://cn.vuejs.org/guide/built-ins/keep-alive.html#include-exclude
+        name: "Home",
+        meta: {
+          title: "首页",
+          icon: "homepage",
+          affix: true,
+          keepAlive: true,
+        },
+      },
       {
         path: "profile",
         name: "Profile",
@@ -65,13 +78,6 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: "内部应用", icon: "Monitor", hidden: true, keepAlive: false },
         component: () => import("@/views/application/myapp/components/InternalApp.vue"),
       },
-      // 临时构建后面要删除掉
-      // {
-      //   path: "form-builder",
-      //   name: "FormBuilder",
-      //   meta: { title: "表单构建", icon: "document" },
-      //   component: () => import("@/views/codegen/build/index.vue"),
-      // }
     ],
   },
 ];

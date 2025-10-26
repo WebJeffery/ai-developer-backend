@@ -1,5 +1,5 @@
 <template>
-  <el-drawer v-model="drawerVisible" title="配置中心" :size="drawerSize">
+  <el-drawer v-model="drawerVisible" title="配置中心" :size="drawerSize" destroy-on-close @closed="onDrawerClosed">
     <el-tabs v-model="activeTabRef" type="border-card" >
       <!-- 网站配置 -->
       <el-tab-pane label="网站配置" name="website">
@@ -30,9 +30,10 @@
                   :data="{ type: key }"
                   :name="'file'"
                   :max-file-size="item.maxFileSize"
-                  @on-success="(fileInfo: UploadFilePath) => handleUploadSuccess(fileInfo, key)"
-                  @on-error="handleUploadError"
-                  @input="markModified(key)"
+                  :show-tip="true"
+                  :enable-preview="true"
+                  @success="(fileInfo: UploadFilePath) => handleUploadSuccess(fileInfo, key)"
+                  @error="handleUploadError"
                 />
               </div>
             </el-form-item>
@@ -61,6 +62,7 @@
       </el-tab-pane>
       <el-tab-pane label="用户协议" name="userAgreement">
         <!-- 系统配置 -->
+        <el-form :model="configState" label-suffix=":" label-width="auto" label-position="right">
           <el-divider>用户协议</el-divider>
           <div v-for="(item, key) in userAgreementConfigs" :key="key">
             <el-form-item :label="item.config_name">
@@ -75,6 +77,7 @@
               </span>
             </el-form-item>
           </div>
+        </el-form>
       </el-tab-pane>
       <el-tab-pane label="接口白名单" name="apiWhitelist">
         <el-form :model="configState" label-suffix=":" label-width="auto" label-position="right">
@@ -243,15 +246,14 @@
       </el-tab-pane>
     </el-tabs>
     <template #footer> 
-      <!-- 操作按钮 -->
-      <el-button @click="resetForm">取消</el-button>
+      <el-button @click="handleCloseDialog">取消</el-button>
       <el-button v-hasPerm="['system:config:update']" type="primary" :disabled="!hasChanges" @click="submitChanges">保存</el-button>
     </template>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted, computed, watch } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import ParamsAPI, { type ConfigTable } from '@/api/system/params';
 import { useConfigStore } from "@/store";
 import { useI18n } from 'vue-i18n';
@@ -290,8 +292,15 @@ const t = useI18n().t;
 const configStore = useConfigStore();
 const activeTabRef = ref('website')
 
+// 与父组件的 v-model 同步
+const props = defineProps<{ modelValue: boolean }>();
+const emit = defineEmits(['update:modelValue']);
+const drawerVisible = computed({
+  get: () => props.modelValue,
+  set: (val: boolean) => emit('update:modelValue', val)
+});
+
 // 配置状态管理
-const drawerVisible = ref<boolean>(false);
 const configState = reactive<ConfigTable>({
   id: undefined,
   config_name: '',
@@ -411,6 +420,16 @@ const resetForm = () => {
   }
   ElMessageBox.close();
 };
+
+async function handleCloseDialog() {
+  // 仅关闭抽屉，等待关闭动画结束后再重置
+  drawerVisible.value = false;
+}
+
+function onDrawerClosed() {
+  // 抽屉关闭动画结束后再执行重置，避免打断动画
+  resetForm();
+}
 
 // 系统配置项
 const systemConfigs = computed(() => ({
@@ -569,11 +588,6 @@ const removeDemoIpWhitelistItem = (id: string) => {
   markModified('ip_white_list');
 };
 
-// 监听列表变化并标记为已修改
-watch([apiWhitelistItems, ipBlacklistItems, demoIpWhitelistItems], () => {
-  // 这里可以添加验证逻辑
-}, { deep: true });
-
 // 接口白名单配置项
 const apiWhitelistConfigs = computed(() => ({
   white_api_list_path: configStore.configData.white_api_list_path,
@@ -603,7 +617,7 @@ const logoConfigs = computed(() => ({
   },
   sys_web_favicon: {
     ...configStore.configData.sys_web_favicon,
-    maxFileSize: 2,
+    maxFileSize: 5,
   },
   sys_login_background: {
     ...configStore.configData.sys_login_background,
@@ -613,22 +627,15 @@ const logoConfigs = computed(() => ({
 
 // 图片上传成功的回调处理
 const handleUploadSuccess = (fileInfo: UploadFilePath, type: string) => {
-  // 使用正确的file_url属性
   const fileUrl = fileInfo.file_url;
-  
-  // 更新store中的数据
   if (type in configStore.configData) {
-    configStore.configData[type as keyof typeof configStore.configData].config_value = fileUrl;
+    (configStore.configData as any)[type].config_value = fileUrl;
   }
-  
-  // 更新对应的item.config_value，确保v-model绑定生效
   if (type in systemConfigs.value) {
-    systemConfigs.value[type as keyof typeof systemConfigs.value].config_value = fileUrl;
+    (systemConfigs.value as any)[type].config_value = fileUrl;
   } else if (type in logoConfigs.value) {
-    logoConfigs.value[type as keyof typeof logoConfigs.value].config_value = fileUrl;
+    (logoConfigs.value as any)[type].config_value = fileUrl;
   }
-  
-  // 标记为已修改
   markModified(type);
 };
 
@@ -642,6 +649,7 @@ const handleUploadError = (error: any) => {
 onMounted(() => {
   configStore.getConfig();
 });
+
 </script>
 
 <style lang="scss" scoped>

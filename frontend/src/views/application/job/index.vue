@@ -34,6 +34,13 @@
             @update:model-value="handleDateRangeChange"
           />
         </el-form-item>
+        <el-form-item v-if="isExpand" prop="creator" label="创建人">
+          <UserTableSelect
+              v-model="queryFormData.creator"
+              @confirm-click="handleConfirm"
+              @clear-click="handleQuery"
+          />
+        </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
           <el-button v-hasPerm="['app:job:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
@@ -604,6 +611,7 @@ import  JobLogDrawer from "@/views/application/job/components/JobLogDrawer.vue"
 import OperationColumn from "@/components/OperationColumn/index.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
 import type { IContentConfig } from "@/components/CURD/types";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 const dictStore = useDictStore();
 
@@ -639,6 +647,8 @@ const queryFormData = reactive<JobPageQuery>({
   status: undefined,
   start_time: undefined,
   end_time: undefined,
+  // 创建人
+  creator: undefined,
 });
 
 // 编辑表单
@@ -649,7 +659,7 @@ const formData = reactive<JobForm>({
   trigger: undefined,
   args: undefined,
   kwargs: undefined,
-  coalesce: undefined,
+  coalesce: false,
   max_instances: 1,
   jobstore: undefined,
   executor: undefined,
@@ -688,8 +698,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;
@@ -721,10 +731,19 @@ async function handleQuery() {
   loadingData();
 }
 
+// 选择创建人后触发查询
+function handleConfirm() {
+  handleQuery();
+}
+
 // 重置查询
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryFormData.page_no = 1;
+  // 额外清空日期范围与时间查询参数
+  dateRange.value = [];
+  queryFormData.start_time = undefined;
+  queryFormData.end_time = undefined;
   loadingData();
 }
 

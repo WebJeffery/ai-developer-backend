@@ -205,6 +205,7 @@ defineOptions({
 import { ref, reactive, onMounted } from "vue";
 import ExampleAPI, { ExampleTable, ExampleForm, ExamplePageQuery } from "@/api/generator/demo";
 import DatePicker from "@/components/DatePicker/index.vue";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -240,8 +241,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
     dateRange.value = range;
     if (range && range.length === 2) {
-        queryFormData.start_time = range[0].toISOString();
-        queryFormData.end_time = range[1].toISOString();
+        queryFormData.start_time = formatToDateTime(range[0]);
+        queryFormData.end_time = formatToDateTime(range[1]);
     } else {
         queryFormData.start_time = undefined;
         queryFormData.end_time = undefined;

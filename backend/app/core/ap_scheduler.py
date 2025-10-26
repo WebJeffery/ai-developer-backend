@@ -15,12 +15,9 @@ from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-# from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-# from apscheduler.jobstores.mongodb import MongoDBJobStore
-# from apscheduler.jobstores.base import JobLookupError, ConflictingIdError
-# from apscheduler.schedulers.background import BackgroundScheduler
-# from apscheduler.triggers.combining import OrTrigger
-# from pymongo import MongoClient
+import asyncio
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from app.config.setting import settings
 from app.core.database import SessionLocal, AsyncSessionLocal
@@ -31,13 +28,13 @@ from app.core.logger import logger
 job_stores = {
     'default': MemoryJobStore(),
     # 'sqlalchemy': SQLAlchemyJobStore(url=settings.DB_URI, engine=engine), 如果用同一个数据库会有lock冲突
-    'redis': RedisJobStore(**dict(
+    'redis': RedisJobStore(
         host=settings.REDIS_HOST,
-        port=settings.REDIS_PORT,
+        port=int(settings.REDIS_PORT),
         username=settings.REDIS_USER,
         password=settings.REDIS_PASSWORD,
-        db=settings.REDIS_DB_NAME,
-    )),
+        db=int(settings.REDIS_DB_NAME),
+    ),
 }
 # 配置执行器
 executors = {
@@ -75,7 +72,7 @@ class SchedulerUtil:
         - None
         """
         # 延迟导入避免循环导入
-        from app.api.v1.module_application.job.schema import JobLogCreateSchema
+        from app.api.v1.module_application.job.model import JobLogModel
         
         # 获取事件类型和任务ID
         event_type = event.__class__.__name__
@@ -106,7 +103,9 @@ class SchedulerUtil:
                 job_trigger = str(query_job_info.get('trigger'))
                 # 构造日志消息
                 job_message = f"事件类型: {event_type}, 任务ID: {job_id}, 任务名称: {job_name}, 状态: {status}, 任务组: {job_group}, 错误详情: {exception_info}, 执行于{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                job_log = JobLogCreateSchema(
+                
+                # 创建ORM对象
+                job_log = JobLogModel(
                     job_name=job_name,
                     job_group=job_group,
                     job_executor=job_executor,
@@ -119,10 +118,44 @@ class SchedulerUtil:
                     exception_info=exception_info,
                     create_time=datetime.now(),
                 )
-                session = SessionLocal()
-                session.add(**job_log.model_dump())
-                session.commit()
-                session.close()
+                
+                # 使用线程池执行异步操作以避免阻塞调度器和数据库锁定问题
+                executor = ThreadPoolExecutor(max_workers=1)
+                executor.submit(cls._save_job_log_async_wrapper, job_log)
+                executor.shutdown(wait=False)
+
+    @classmethod
+    def _save_job_log_async_wrapper(cls, job_log):
+        """
+        异步保存任务日志的包装器函数，在独立线程中运行
+        
+        参数:
+        - job_log (JobLogModel): 任务日志对象
+        
+        返回:
+        - None
+        """
+        import asyncio
+        from app.core.database import AsyncSessionLocal
+        
+        async def _save_job_log_async():
+            async with AsyncSessionLocal() as session:
+                try:
+                    session.add(job_log)
+                    await session.commit()
+                except Exception as e:
+                    await session.rollback()
+                    logger.error(f"保存任务日志失败: {str(e)}")
+                finally:
+                    await session.close()
+        
+        # 创建新的事件循环
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(_save_job_log_async())
+        finally:
+            loop.close()
 
     @classmethod
     async def init_system_scheduler(cls):
@@ -154,8 +187,14 @@ class SchedulerUtil:
         返回:
         - None
         """
-        scheduler.shutdown(wait=False)
-        logger.info('关闭定时任务成功')
+        try:
+            # 移除所有任务
+            scheduler.remove_all_jobs()
+            # 等待所有任务完成后再关闭
+            scheduler.shutdown(wait=True)
+            logger.info('关闭定时任务成功')
+        except Exception as e:
+            logger.error(f'关闭定时任务失败: {str(e)}')
 
     @classmethod
     def get_job(cls, job_id: Union[str, int]) -> Optional[Job]:

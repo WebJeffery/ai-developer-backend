@@ -143,6 +143,7 @@ export default {
     closeRight: "Close Right",
     closeOther: "Close Other",
     closeAll: "Close All",
+    refreshCache: 'Refresh Cache',
   },
     lock: {
     lockScreen: 'Lock screen',

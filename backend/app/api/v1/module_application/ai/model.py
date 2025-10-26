@@ -14,6 +14,7 @@ class McpModel(CreatorMixin):
 
     __tablename__ = 'app_ai_mcp'
     __table_args__ = ({'comment': 'MCP 服务器表'})
+    __loader_options__ = ["creator"]
 
     name: Mapped[str] = mapped_column(String(50), unique=True, comment='MCP 名称')
     type: Mapped[int] = mapped_column(Integer, default=0, comment='MCP 类型（0:stdio 1:sse）')

@@ -156,7 +156,7 @@ import { useUserStore } from "@/store";
 
 const appStore = useAppStore();
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "800px" : "90%"));
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'saved'])
 
 const permTreeRef = ref<TreeInstance>();
 const deptTreeRef = ref<TreeInstance>()
@@ -237,6 +237,10 @@ function handleCancel() {
 // 保存权限分配
 async function handleDrawerSave () {
   try {
+    if (props.roleId === 1) {
+      ElMessage.warning('系统默认角色，不可操作');
+      return;
+    }
     loading.value = true;
 
     // 构造提交数据
@@ -249,13 +253,12 @@ async function handleDrawerSave () {
 
     await RoleAPI.setPermission(submitData)
     
-    ElMessage.success('权限分配成功');
-    
     // 更新全局用户状态，刷新权限信息
     const userStore = useUserStore();
     await userStore.getUserInfo();
     
     drawerVisible.value = false;
+    emit('saved');
   } catch (error: any) {
     console.error(error);
   } finally {

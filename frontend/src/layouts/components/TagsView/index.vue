@@ -7,7 +7,6 @@
 
     <!-- 标签导航容器 -->
     <nav role="navigation" class="scroll-wrapper">
-
       <el-scrollbar ref="scrollbarRef" class="scroll-container" @wheel="handleScroll">
         <VueDraggable v-model="visitedViews" :animation="150">
           <router-link
@@ -106,9 +105,11 @@
     </el-icon>
 
     <!-- 刷新按钮 -->
-    <el-icon class="btn" @click="refreshSelectedTag(selectedTag)">
-      <RefreshRight />
-    </el-icon>
+    <el-tooltip class="item" :content="t('navbar.refreshCache')" placement="top">
+      <el-icon class="btn" @click="handleAction('refreshCache')">
+        <RefreshRight />
+      </el-icon>
+    </el-tooltip>
 
     <!-- 设置按钮 -->
     <el-dropdown class="btn" trigger="click">
@@ -145,7 +146,7 @@
             {{ t("navbar.closeRight") }}
           </el-dropdown-item>
 
-          <el-dropdown-item :disabled="!selectedTag" @click="handleAction('closeOther')">
+          <el-dropdown-item :disabled="visitedViews.length <= 1" @click="handleAction('closeOther')">
             <el-icon>
               <Remove />
             </el-icon>
@@ -168,7 +169,7 @@
 import { useRoute, useRouter, type RouteRecordRaw } from "vue-router";
 import { resolve } from "path-browserify";
 import { translateRouteTitle } from "@/utils/i18n";
-import { usePermissionStore, useTagsViewStore } from "@/store";
+import { refreshAppCaches, usePermissionStore, useTagsViewStore } from "@/store";
 import { VueDraggable } from "vue-draggable-plus";
 import { quickStartManager } from "@/utils/quickStartManager";
 import { ElMessage } from 'element-plus';
@@ -193,6 +194,11 @@ const displayedViews = computed(() => {
 // 当前选中的标签
 const selectedTag = ref<TagView | null>(null);
 
+// 基于当前激活路由的回退标签（当未选中右键标签时）
+const activeTag = computed(() => {
+  return selectedTag.value || routePathMap.value.get(route.path) || null;
+});
+
 // 滚动条引用
 const scrollbarRef = ref();
 
@@ -210,17 +216,17 @@ const routePathMap = computed(() => {
 
 // 判断是否为第一个标签
 const isFirstView = computed(() => {
-  if (!selectedTag.value) return false;
+  if (!activeTag.value) return false;
   return (
-    selectedTag.value.path === "/dashboard" ||
-    selectedTag.value.fullPath === visitedViews.value[1]?.fullPath
+    activeTag.value.path === "/dashboard" ||
+    activeTag.value.fullPath === visitedViews.value[1]?.fullPath
   );
 });
 
 // 判断是否为最后一个标签
 const isLastView = computed(() => {
-  if (!selectedTag.value) return false;
-  return selectedTag.value.fullPath === visitedViews.value[visitedViews.value.length - 1]?.fullPath;
+  if (!activeTag.value) return false;
+  return activeTag.value.fullPath === visitedViews.value[visitedViews.value.length - 1]?.fullPath;
 });
 
 /**
@@ -412,9 +418,10 @@ const closeSelectedTag = (tag: TagView | null) => {
  * 关闭左侧标签
  */
 const closeLeftTags = () => {
-  if (!selectedTag.value) return;
+  const targetTag = selectedTag.value || routePathMap.value.get(route.path);
+  if (!targetTag) return;
 
-  tagsViewStore.delLeftViews(selectedTag.value).then((result: any) => {
+  tagsViewStore.delLeftViews(targetTag).then((result: any) => {
     const hasCurrentRoute = result.visitedViews.some((item: TagView) => item.path === route.path);
 
     if (!hasCurrentRoute) {
@@ -431,9 +438,10 @@ const closeLeftTags = () => {
  * 关闭右侧标签
  */
 const closeRightTags = () => {
-  if (!selectedTag.value) return;
+  const targetTag = selectedTag.value || routePathMap.value.get(route.path);
+  if (!targetTag) return;
 
-  tagsViewStore.delRightViews(selectedTag.value).then((result: any) => {
+  tagsViewStore.delRightViews(targetTag).then((result: any) => {
     const hasCurrentRoute = result.visitedViews.some((item: TagView) => item.path === route.path);
 
     if (!hasCurrentRoute) {
@@ -450,10 +458,11 @@ const closeRightTags = () => {
  * 关闭其他标签
  */
 const closeOtherTags = () => {
-  if (!selectedTag.value) return;
+  const targetTag = selectedTag.value || routePathMap.value.get(route.path);
+  if (!targetTag) return;
 
-  router.push(selectedTag.value);
-  tagsViewStore.delOtherViews(selectedTag.value).then(() => {
+  router.push(targetTag);
+  tagsViewStore.delOtherViews(targetTag).then(() => {
     updateCurrentTag();
     // 关闭标签后重置滚动状态
     nextTick(() => {
@@ -478,7 +487,7 @@ const closeAllTags = (tag: TagView | null) => {
 /**
  * 统一处理标签操作
  */
-const handleAction = (action: string) => {
+const handleAction = async (action: string) => {
   // 总是使用当前路由对应的标签
   const currentTag = routePathMap.value.get(route.path);
   if (!currentTag) return;
@@ -501,6 +510,19 @@ const handleAction = (action: string) => {
       break;
     case 'closeAll':
       closeAllTags(currentTag);
+      break;
+    case 'refreshCache':
+      try {
+        // 1) 刷新服务端缓存（用户/权限/配置/公告/按需字典）并重建路由
+        await refreshAppCaches();
+        // 2) 软刷新当前页面，重新加载组件
+        refreshSelectedTag(currentTag);
+        // 3) 提示成功
+        ElMessage.success(t('navbar.refreshCache') + '完成');
+      } catch (error) {
+        console.error('刷新缓存失败:', error);
+        ElMessage.error('刷新失败');
+      }
       break;
     default:
       console.warn(`Unknown action: ${action}`);

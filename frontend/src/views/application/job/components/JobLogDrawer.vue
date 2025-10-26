@@ -109,7 +109,7 @@
         <el-table-column label="关键字参数" prop="job_kwargs" min-width="150" show-overflow-tooltip />
         <el-table-column label="触发器" prop="job_trigger" min-width="120" show-overflow-tooltip />
         <el-table-column label="创建时间" prop="create_time" min-width="180" sortable />
-        <el-table-column fixed="right" label="操作" align="center" min-width="120">
+        <el-table-column fixed="right" label="操作" align="center" min-width="150">
           <template #default="scope">
             <el-button type="info" size="small" link icon="document" @click="handleOpenDialog('detail', scope.row.id)">详情</el-button>
             <el-button type="danger" size="small" link icon="delete" @click="handleDelete([scope.row.id])">删除</el-button>
@@ -177,6 +177,7 @@ import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 import ExportModal from "@/components/CURD/ExportModal.vue";
 import type { IContentConfig } from "@/components/CURD/types";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 const appStore = useAppStore();
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "80%" : "60%"));
@@ -208,6 +209,7 @@ const queryFormData = reactive<JobLogPageQuery>({
   status: undefined,
   start_time: undefined,
   end_time: undefined,
+  job_id: props.jobId,
 });
 
 // 弹窗状态
@@ -224,8 +226,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;
@@ -273,7 +275,11 @@ async function handleResetQuery() {
 
 // 行复选框选中项变化
 async function handleSelectionChange(selection: any) {
-  selectIds.value = selection.map((item: any) => item.id);
+  // 提取有效的数字ID，过滤掉 null/undefined 并转为 number
+  selectIds.value = selection
+    .map((item: any) => item?.id)
+    .filter((id: any) => id !== null && id !== undefined)
+    .map((id: any) => Number(id));
   // 记录选中行数据供导出弹窗使用
   selectionRows.value = selection;
 }
@@ -296,6 +302,10 @@ async function handleOpenDialog(type: 'detail', id?: number) {
 
 // 删除、批量删除
 async function handleDelete(ids: number[]) {
+  // 如果没有有效ID，直接返回
+  const validIds = ids.filter((id) => id !== null && id !== undefined) as number[];
+  if (validIds.length === 0) return;
+
   ElMessageBox.confirm("确认删除该任务日志?", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
@@ -303,8 +313,10 @@ async function handleDelete(ids: number[]) {
   }).then(async () => {
     try {
       loading.value = true;
-      await JobAPI.deleteJobLog(ids);
+      await JobAPI.deleteJobLog(validIds);
+      // 删除后刷新并清空选择状态
       handleResetQuery();
+      selectIds.value = [];
     } catch (error: any) {
       console.error(error);
     } finally {
@@ -380,8 +392,6 @@ const curdContentConfig = {
 // 打开抽屉
 function openDrawer() {
   drawerVisible.value = true;
-  // 重置查询条件并加载数据
-  handleResetQuery();
 }
 
 // 关闭抽屉
@@ -397,6 +407,7 @@ defineExpose({
 
 onMounted(() => {
   // 抽屉打开时会自动加载数据
+  loadingData();
 });
 </script>
 

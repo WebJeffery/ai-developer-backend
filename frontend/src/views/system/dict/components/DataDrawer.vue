@@ -197,7 +197,21 @@
             <el-input v-model="formData.dict_value" placeholder="请输入数据值" :maxlength="50" />
           </el-form-item>
           <el-form-item label="样式属性" prop="css_class">
-            <el-input v-model="formData.css_class" placeholder="请输入样式属性" :maxlength="50" />
+            <el-select v-model="formData.css_class" placeholder="请选择常用颜色或输入自定义" clearable filterable allow-create default-first-option>
+            <!-- Element Plus 常用主题色（十六进制） -->
+            <el-option value="#409EFF" label="蓝色-Primary (#409EFF)" />
+            <el-option value="#67C23A" label="绿色-Success (#67C23A)" />
+            <el-option value="#E6A23C" label="橙色-Warning (#E6A23C)" />
+            <el-option value="#F56C6C" label="红色-Danger (#F56C6C)" />
+            <el-option value="#909399" label="灰色-Info (#909399)" />
+            <!-- 文本常用颜色 -->
+            <el-option value="#303133" label="深灰-文本主要 (#303133)" />
+            <el-option value="#606266" label="灰色-文本常规 (#606266)" />
+            <el-option value="#C0C4CC" label="浅灰-占位文本 (#C0C4CC)" />
+            <!-- 基础色 -->
+            <el-option value="#000000" label="黑色 (#000000)" />
+            <el-option value="#FFFFFF" label="白色 (#FFFFFF)" />
+            </el-select>
           </el-form-item>
           <el-form-item label="列表类样式" prop="list_class">
             <el-select v-model="formData.list_class" placeholder="请选择列表类样式" clearable>
@@ -219,7 +233,7 @@
             <el-input-number v-model="formData.dict_sort" controls-position="right" :min="1" />
           </el-form-item>
           <el-form-item label="状态" prop="status">
-            <el-switch v-model="formData.status" inline-prompt active-value="true" inactive-value="false" />
+            <el-switch v-model="formData.status" inline-prompt :active-value="true" :inactive-value="false" />
           </el-form-item>
 
           <el-form-item label="描述" prop="description">
@@ -268,6 +282,7 @@ import { DeviceEnum } from "@/enums/settings/device.enum";
 import UserTableSelect from "@/views/system/user/components/UserTableSelect.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
 import type { IContentConfig } from "@/components/CURD/types";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 const appStore = useAppStore();
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "80%" : "60%"));
@@ -332,8 +347,8 @@ const rules = reactive({
   dict_value: [{ required: true, message: "请输入字典键值", trigger: "blur" }],
   status: [{ required: true, message: "请选择状态", trigger: "blur" }],
   dict_sort: [{ required: true, message: "请输入排序", trigger: "blur" }],
-  css_class: [{ required: true, message: "请输入样式类名", trigger: "blur" }],
-  list_class: [{ required: true, message: "请输入列表类名", trigger: "blur" }],
+  // css_class: [{ required: true, message: "请输入样式类名", trigger: "blur" }],
+  // list_class: [{ required: true, message: "请输入列表类名", trigger: "blur" }],
   is_default: [{ required: true, message: "请选择是否默认", trigger: "blur" }],
 });
 
@@ -344,8 +359,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;
@@ -389,6 +404,10 @@ function handleConfirm() {
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryFormData.page_no = 1;
+  // 额外清空日期范围与时间查询参数
+  dateRange.value = [];
+  queryFormData.start_time = undefined;
+  queryFormData.end_time = undefined;
   loadingData();
 }
 
@@ -442,8 +461,11 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
     }
   } else {
     dialogVisible.title = "新增字典数据";
-    formData.id = undefined;
+    // 重置为初始值并确保状态默认开启
+    Object.assign(formData, initialFormData);
     formData.dict_type = props.dictType;
+    formData.status = true;
+    formData.id = undefined;
   }
   dialogVisible.visible = true;
 }

@@ -136,6 +136,13 @@ class DeptService:
             dept = await DeptCRUD(auth).get_by_id_crud(id=id)
             if not dept:
                 raise CustomException(msg='删除失败，该部门不存在')
+        # 校验是否存在子级部门，存在则禁止删除
+        dept_list = await DeptCRUD(auth).get_list_crud()
+        id_map = get_child_id_map(model_list=dept_list)
+        for id in ids:
+            descendants = get_child_recursion(id=id, id_map=id_map)
+            if len(descendants) > 1:
+                raise CustomException(msg='删除失败，存在子级部门，请先删除子级部门')
         await DeptCRUD(auth).delete(ids=ids)
 
     @classmethod

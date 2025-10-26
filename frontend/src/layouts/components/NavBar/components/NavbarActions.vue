@@ -37,7 +37,7 @@
             <el-avatar size="small" :src="userStore.basicInfo.avatar" />
           </template>
           <template v-else>
-            <el-avatar icon="UserFilled" />
+            <el-avatar size="small" icon="UserFilled" />
           </template>
           <span class="user-profile__name">{{ userStore.basicInfo.username }}</span>
         </div>
@@ -78,7 +78,7 @@
   </div>
   
   <!-- 引导 -->
-  <Guide v-if="guideVisible" v-model="guideVisible" />
+  <Guide v-if="guideVisible" v-model="guideVisible" @skip="handleGuideExit" />
 
   <!-- 锁屏弹窗 -->
   <LockDialog v-if="dialogVisible" v-model="dialogVisible" />
@@ -89,7 +89,7 @@
   </teleport>
 
   <!-- 配置中心抽屉 -->
-  <ConfigInfoDrawer v-if="drawerVisible" v-model="drawerVisible"/>
+  <ConfigInfoDrawer v-model="drawerVisible"/>
   
 </template>
 
@@ -174,6 +174,18 @@ function handleTourClick() {
   }
 }
 
+// 引导结束（点击跳过或最后一步完成关闭）后，自动关闭下次登录的自动展示
+function handleGuideExit() {
+  // 关闭自动展示开关，确保下次登录不再自动开启
+  settingStore.updateSetting('showGuide', false);
+}
+
+// 监听引导关闭（从 true -> false），也同步关闭自动展示开关
+watch(() => guideVisible.value, (val, oldVal) => {
+  if (oldVal && !val) {
+    settingStore.updateSetting('showGuide', false);
+  }
+});
 
 /**
  * 锁屏

@@ -77,11 +77,6 @@ class UserService:
         user_list = await UserCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         user_dict_list = []
         for user in user_list:
-            if user.dept_id:
-                dept = await DeptCRUD(auth).get_by_id_crud(id=user.dept_id)
-                UserOutSchema.dept_name = dept.name if dept else None
-            else:
-                UserOutSchema.dept_name = None
             user_dict = UserOutSchema.model_validate(user).model_dump()
             user_dict_list.append(user_dict)
 
@@ -101,6 +96,9 @@ class UserService:
         """
         if not data.username:
             raise CustomException(msg="用户名不能为空")
+        # 检查是否试图创建超级管理员
+        if data.is_superuser:
+            raise CustomException(msg='不允许创建超级管理员')
         # 检查用户名是否存在
         user = await UserCRUD(auth).get_by_username_crud(username=data.username)
         if user:
@@ -142,17 +140,34 @@ class UserService:
         """
         if not data.username:
             raise CustomException(msg="用户名不能为空")
+        # 检查是否是超级管理员
+        if data.is_superuser:
+            raise CustomException(msg='超级管理员系统唯一')
         # 检查用户是否存在
         user = await UserCRUD(auth).get_by_id_crud(id=id)
         if not user:
             raise CustomException(msg='用户不存在')
 
+        # 检查是否尝试修改超级管理员
+        if user.is_superuser:
+            raise CustomException(msg='超级管理员不允许修改')
+
         # 检查用户名是否重复
         exist_user = await UserCRUD(auth).get_by_username_crud(username=data.username)
         if exist_user and exist_user.id != id:
             raise CustomException(msg='已存在相同的用户名')
-
+        # 新增：检查手机号是否重复
+        if data.mobile:
+            exist_mobile_user = await UserCRUD(auth).get_by_mobile_crud(mobile=data.mobile)
+            if exist_mobile_user and exist_mobile_user.id != id:
+                raise CustomException(msg='更新失败，手机号已存在')
+        # 新增：检查邮箱是否重复
+        if data.email:
+            exist_email_user = await UserCRUD(auth).get(email=data.email)
+            if exist_email_user and exist_email_user.id != id:
+                raise CustomException(msg='更新失败，邮箱已存在')
         # 检查部门是否存在且可用
+
         if data.dept_id:
             dept = await DeptCRUD(auth).get_by_id_crud(id=data.dept_id)
             if not dept:
@@ -167,7 +182,8 @@ class UserService:
         # 更新用户
         # user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
         # new_user = await UserCRUD(auth).update(id=id, data=user_dict)
-        new_user = await UserCRUD(auth).update(id=id, data=data)
+        user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids", "last_login", "password"})
+        new_user = await UserCRUD(auth).update(id=id, data=user_dict)
 
         # 更新角色和岗位
         if data.role_ids and len(data.role_ids) > 0:
@@ -248,7 +264,7 @@ class UserService:
         # 获取菜单权限
         if auth.user and auth.user.is_superuser:
             # 使用树形结构查询，预加载children关系
-            menu_all = await MenuCRUD(auth).get_tree_list_crud(search={'type': ('in', [1, 2, 4]), 'status': True})
+            menu_all = await MenuCRUD(auth).get_tree_list_crud(search={'type': ('in', [1, 2, 4]), 'status': True}, order_by=[{"order": "asc"}])
             menus = [MenuOutSchema.model_validate(menu).model_dump() for menu in menu_all]
             
         else:
@@ -263,7 +279,7 @@ class UserService:
             # 使用树形结构查询，预加载children关系
             menus = [
                 MenuOutSchema.model_validate(menu).model_dump() 
-                for menu in await MenuCRUD(auth).get_tree_list_crud(search={'id': ('in', list(menu_ids))})
+                for menu in await MenuCRUD(auth).get_tree_list_crud(search={'id': ('in', list(menu_ids))}, order_by=[{"order": "asc"}])
             ] if menu_ids else []
         user_dict["menus"] = traversal_to_tree(menus)
         return user_dict
@@ -285,6 +301,18 @@ class UserService:
         user = await UserCRUD(auth).get_by_id_crud(id=auth.user.id)
         if not user:
             raise CustomException(msg="用户不存在")
+        if user.is_superuser:
+            raise CustomException(msg="超级管理员不能修改个人信息")
+        # 新增：检查手机号是否重复
+        if data.mobile:
+            exist_mobile_user = await UserCRUD(auth).get_by_mobile_crud(mobile=data.mobile)
+            if exist_mobile_user and exist_mobile_user.id != auth.user.id:
+                raise CustomException(msg='更新失败，手机号已存在')
+        # 新增：检查邮箱是否重复
+        if data.email:
+            exist_email_user = await UserCRUD(auth).get(email=data.email)
+            if exist_email_user and exist_email_user.id != auth.user.id:
+                raise CustomException(msg='更新失败，邮箱已存在')
         user_update_data = UserUpdateSchema(**data.model_dump())
         new_user = await UserCRUD(auth).update(id=auth.user.id, data=user_update_data)
         return UserOutSchema.model_validate(new_user).model_dump()
@@ -380,6 +408,10 @@ class UserService:
         user = await UserCRUD(auth).get_by_id_crud(id=data.id)
         if not user:
             raise CustomException(msg="用户不存在")
+        
+        # 检查是否是超级管理员
+        if user.is_superuser:
+            raise CustomException(msg="超级管理员密码不能重置")
 
         # 更新密码
         new_password_hash = PwdUtil.set_password_hash(password=data.password)
@@ -405,14 +437,10 @@ class UserService:
 
         data.password = PwdUtil.set_password_hash(password=data.password)
         data.name = data.username
-        data.creator_id = 1
-        # dict_data = data.model_dump(exclude_unset=True)
-        # result = await UserCRUD(auth).create(data=dict_data)
-        user_create_data = UserCreateSchema(**data.model_dump())
-        result = await UserCRUD(auth).create(data=user_create_data)
+        create_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
+        result = await UserCRUD(auth).create(data=create_dict)
         if data.role_ids:
             await UserCRUD(auth).set_user_roles_crud(user_ids=[result.id], role_ids=data.role_ids)
-        # await UserCRUD(auth).set_user_positions_crud(user_ids=[result.id], position_ids=data.position_ids)
         return UserOutSchema.model_validate(result).model_dump()
 
     @classmethod
@@ -432,6 +460,11 @@ class UserService:
             raise CustomException(msg="用户不存在")
         if not user.status:
             raise CustomException(msg="用户已停用")
+        
+        # 检查是否是超级管理员
+        if user.is_superuser:
+            raise CustomException(msg="超级管理员密码不能重置")
+
         new_password_hash = PwdUtil.set_password_hash(password=data.new_password)
         new_user = await UserCRUD(auth).forget_password_crud(id=user.id, password_hash=new_password_hash)
         return UserOutSchema.model_validate(new_user).model_dump()
@@ -510,6 +543,10 @@ class UserService:
                     # 处理用户导入
                     exists_user = await UserCRUD(auth).get_by_username_crud(username=user_data["username"])
                     if exists_user:
+                        # 检查是否是超级管理员
+                        if exists_user.is_superuser:
+                            error_msgs.append(f"第{count}行: 超级管理员不允许修改")
+                            continue
                         if update_support:
                             user_update_data = UserUpdateSchema(**user_data)
                             await UserCRUD(auth).update(id=exists_user.id, data=user_update_data)

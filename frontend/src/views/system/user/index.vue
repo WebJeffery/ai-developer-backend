@@ -15,8 +15,8 @@
             <el-form-item prop="username" label="账号">
               <el-input v-model="queryFormData.username" placeholder="请输入账号" clearable />
             </el-form-item>
-            <el-form-item prop="name" label="姓名">
-              <el-input v-model="queryFormData.name" placeholder="请输入姓名" clearable />
+            <el-form-item prop="name" label="用户名">
+              <el-input v-model="queryFormData.name" placeholder="请输入用户名" clearable />
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select v-model="queryFormData.status" placeholder="请选择状态" style="width: 167.5px" clearable>
@@ -176,13 +176,13 @@
             <el-table-column fixed="right" label="操作" align="center" min-width="280">
               <template #default="scope">
                 <el-button 
-                  v-if="scope.row.username !== 'admin'" 
                   v-hasPerm="['system:user:update']" 
                   type="warning" 
                   icon="RefreshLeft" 
                   size="small" 
-                  link 
-                  @click="hancleResetPassword(scope.row)"
+                  link
+                  :disabled="scope.row.is_superuser === true" 
+                  @click="scope.row.is_superuser === true ? ElMessage.warning('系统超管角色，不可操作') : hancleResetPassword(scope.row)"
                 >重置密码</el-button>
                 <el-button 
                   v-hasPerm="['system:user:detail']"
@@ -193,22 +193,22 @@
                   @click="handleOpenDialog('detail', scope.row.id)"
                 >详情</el-button>
                 <el-button 
-                  v-if="scope.row.username !== 'admin'" 
                   v-hasPerm="['system:user:update']" 
                   type="primary" 
                   size="small" 
                   link 
                   icon="edit" 
-                  @click="handleOpenDialog('update', scope.row.id)"
+                  :disabled="scope.row.is_superuser === true" 
+                  @click="scope.row.is_superuser === true ? ElMessage.warning('系统超管角色，不可操作') : handleOpenDialog('update', scope.row.id)"
                 >编辑</el-button>
                 <el-button 
-                  v-if="scope.row.username !== 'admin'" 
                   v-hasPerm="['system:user:delete']" 
                   type="danger" 
                   size="small" 
                   link 
                   icon="delete" 
-                  @click="handleDelete([scope.row.id])"
+                  :disabled="scope.row.is_superuser === true" 
+                  @click="scope.row.is_superuser === true ? ElMessage.warning('系统超管角色，不可操作') : handleDelete([scope.row.id])"
                 >删除</el-button>
               </template>
             </el-table-column>
@@ -269,7 +269,7 @@
       <template v-else>
         <el-form ref="dataFormRef" :model="formData" :rules="rules" label-suffix=":" label-width="auto" label-position="right">
           <el-form-item label="账号" prop="username">
-            <el-input v-model="formData.username" :readonly="!!formData.id" placeholder="请输入账号" />
+            <el-input v-model="formData.username" :disabled="!!formData.id" placeholder="请输入账号" />
           </el-form-item>
 
           <el-form-item label="用户名" prop="name">
@@ -293,23 +293,23 @@
           </el-form-item>
 
           <el-form-item label="部门" prop="dept_id">
-            <el-tree-select v-model="formData.dept_id" placeholder="请选择上级部门" :data="deptOptions" filterable check-strictly :render-after-expand="false" />
+            <el-tree-select v-model="formData.dept_id" placeholder="请选择上级部门" :data="deptOptions" :props="{ children: 'children', label: 'label', disabled: 'disabled' }" filterable check-strictly :render-after-expand="false" />
           </el-form-item>
 
           <el-form-item label="角色" prop="role_ids">
             <el-select v-model="formData.role_ids" multiple placeholder="请选择角色">
-              <el-option v-for="item in roleOptions" :key="item.value" :label="item.label" :value="item.value" />
+              <el-option v-for="item in roleOptions" :key="item.value" :label="item.label" :value="item.value" :disabled="item.disabled" />
             </el-select>
           </el-form-item>
 
           <el-form-item label="岗位" prop="position_ids">
             <el-select v-model="formData.position_ids" multiple placeholder="请选择岗位">
-              <el-option v-for="item in positionOptions" :key="item.value" :label="item.label" :value="item.value" />
+              <el-option v-for="item in positionOptions" :key="item.value" :label="item.label" :value="item.value" :disabled="item.disabled" />
             </el-select>
           </el-form-item>
 
-          <el-form-item v-if="dialogVisible.type === 'create'" label="密码" prop="password">
-            <el-input v-model="formData.password" placeholder="请输入密码" type="password" show-password clearable />
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="formData.password" :readonly="!!formData.id" placeholder="请输入密码" type="password" show-password clearable />
           </el-form-item>
 
           <el-form-item label="是否超管" prop="is_superuser">
@@ -327,40 +327,34 @@
             <el-input v-model="formData.description" :rows="4" :maxlength="100" show-word-limit type="textarea" placeholder="请输入描述" />
           </el-form-item>
 
-          <template #footer>
-            <div class="dialog-footer">
-              <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
-              <el-button v-if="dialogVisible.type === 'create' || dialogVisible.type === 'update'" v-hasPerm="['system:user:create']" type="primary" @click="handleSubmit">确定</el-button>
-              <el-button v-else v-hasPerm="['system:user:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
-              <el-button @click="handleCloseDialog">取消</el-button>
-            </div>
-          </template>
+
         </el-form>
       </template>
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-hasPerm="['system:user:submit']" type="primary" @click="handleSubmit">确 定</el-button>
-          <el-button @click="handleCloseDialog">取 消</el-button>
+          <el-button v-if="dialogVisible.type === 'create' || dialogVisible.type === 'update'" v-hasPerm="['system:user:create']" type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-else v-hasPerm="['system:user:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
+          <el-button @click="handleCloseDialog">取消</el-button>
         </div>
       </template>
     </el-drawer>
 
     <!-- 导入弹窗 -->
-      <ImportModal 
-        v-model="importDialogVisible" 
-        :content-config="curdContentConfig"
-        @upload="handleUpload" 
-      />
+    <ImportModal 
+      v-model="importDialogVisible" 
+      :content-config="curdContentConfig"
+      @upload="handleUpload" 
+    />
 
-      <!-- 导出弹窗 -->
-      <ExportModal 
-        v-model="exportsDialogVisible"
-        :content-config="curdContentConfig"
-        :query-params="queryFormData"
-        :page-data="pageTableData"
-        :selection-data="selectionRows"
-      />
+    <!-- 导出弹窗 -->
+    <ExportModal 
+      v-model="exportsDialogVisible"
+      :content-config="curdContentConfig"
+      :query-params="queryFormData"
+      :page-data="pageTableData"
+      :selection-data="selectionRows"
+    />
     
   </div>
 </template>
@@ -380,6 +374,7 @@ import { formatTree } from "@/utils/common";
 import PositionAPI from "@/api/system/position";
 import DeptAPI from "@/api/system/dept";
 import RoleAPI from "@/api/system/role";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 import DeptTree from "./components/DeptTree.vue";
 import UserTableSelect from "./components/UserTableSelect.vue";
@@ -404,9 +399,9 @@ const selectIds = ref<number[]>([]);
 // 部门下拉数据源
 const deptOptions = ref<OptionType[]>();
 // 角色下拉数据源
-const roleOptions = ref<OptionType[]>();
+const roleOptions = ref<Array<{ value: number; label: string; disabled?: boolean }>>();
 // 岗位下拉数据源
-const positionOptions = ref<OptionType[]>();
+const positionOptions = ref<Array<{ value: number; label: string; disabled?: boolean }>>();
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
 // 导出弹窗显示状态
@@ -464,7 +459,6 @@ const rules = reactive({
   password: [{ required: true, message: "请输入密码", trigger: "blur" }],
   gender: [{ required: true, message: "请选择性别", trigger: "blur" }],
   email: [
-    { required: true, message: "请输入邮箱", trigger: "blur" },
     {
       pattern: /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/,
       message: "请输入正确的邮箱地址",
@@ -472,7 +466,6 @@ const rules = reactive({
     },
   ],
   mobile: [
-    { required: true, message: "请输入手机号", trigger: "blur" },
     {
       pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
       message: "请输入正确的手机号码",
@@ -511,7 +504,7 @@ const curdContentConfig = {
       query.status = query.status === 'true';
     }
     query.page_no = 1;
-    query.page_size = 1000;
+    query.page_size = 9999;
     const all: any[] = [];
     while (true) {
       const res = await UserAPI.getUserList(query);
@@ -535,8 +528,8 @@ function handleConfirm() {
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;
@@ -651,8 +644,6 @@ async function handleCloseDialog() {
 // 打开弹窗
 async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: number) {
   dialogVisible.type = type;
-  // 动态设置密码验证规则
-  rules.password[0].required = type === 'create';
   if (id) {
     const response = await UserAPI.getUserDetail(id);
     if (type === 'detail') {
@@ -670,6 +661,10 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
     formData.id = undefined;
   }
   dialogVisible.visible = true;
+  await nextTick();
+  if (dataFormRef.value) {
+    dataFormRef.value.clearValidate();
+  }
 
   // 获取部门树
   const deptResponse = await DeptAPI.getDeptList(queryFormData);
@@ -682,8 +677,10 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
     .filter(item => item.id !== undefined && item.name !== undefined)
     .map(item => ({
       value: item.id as number,
-      label: item.name as string
-    }));
+      label: item.name as string,
+      disabled: item.status === false || String(item.status) === 'false'
+    }))
+    .filter(opt => !opt.disabled);
 
   // 获取岗位列表
   const positionResponse = await PositionAPI.getPositionList();
@@ -691,8 +688,10 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
     .filter(item => item.id !== undefined && item.name !== undefined)
     .map(item => ({
       value: item.id as number,
-      label: item.name as string
-    }));
+      label: item.name as string,
+      disabled: item.status === false || String(item.status) === 'false'
+    }))
+    .filter(opt => !opt.disabled);
 }
 
 // 提交表单（防抖）

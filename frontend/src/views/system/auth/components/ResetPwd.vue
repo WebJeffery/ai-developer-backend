@@ -73,8 +73,11 @@ const isCapsLock = ref(false); // 是否大写锁定
 
 const { t } = useI18n();
 
-const emit = defineEmits(["update:modelValue"]);
-const toLogin = () => emit("update:modelValue", "login");
+// 使用 defineModel 简化具名 v-model 绑定
+const modelValue = defineModel<string>();
+const presetUsername = defineModel<string>('presetUsername');
+const presetPassword = defineModel<string>('presetPassword');
+const toLogin = () => { modelValue.value = 'login'; };
 
 const model = ref<ForgetPasswordForm>({
   username: "",
@@ -143,7 +146,9 @@ const submit = async () => {
     loading.value = true;
 
     await UserAPI.forgetPassword(model.value)
-    
+    // 重置成功后，双向绑定回写父容器的用户名和新密码，并切回登录
+    presetUsername.value = model.value.username;
+    presetPassword.value = model.value.new_password;
     toLogin();
 
   } catch (error) {

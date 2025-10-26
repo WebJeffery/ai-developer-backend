@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Dict, List, Sequence, Optional
+from typing import Dict, List, Sequence, Optional, Union, Any
 
 from app.core.base_crud import CRUDBase
 from .model import RoleModel
@@ -23,30 +23,32 @@ class RoleCRUD(CRUDBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
         self.auth = auth
         super().__init__(model=RoleModel, auth=auth)
 
-    async def get_by_id_crud(self, id: int) -> Optional[RoleModel]:
+    async def get_by_id_crud(self, id: int, preload: Optional[List[Union[str, Any]]] = None) -> Optional[RoleModel]:
         """
         根据id获取角色信息
         
         参数:
         - id (int): 角色ID
+        - preload (Optional[List[Union[str, Any]]]): 预加载选项
         
         返回:
         - Optional[RoleModel]: 角色模型对象
         """
-        return await self.get(id=id)
+        return await self.get(id=id, preload=preload)
 
-    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[RoleModel]:
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None, preload: Optional[List[Union[str, Any]]] = None) -> Sequence[RoleModel]:
         """
         获取角色列表
         
         参数:
         - search (Optional[Dict]): 查询参数
         - order_by (Optional[List[Dict[str, str]]]): 排序参数
+        - preload (Optional[List[Union[str, Any]]]): 预加载选项
         
         返回:
         - Sequence[RoleModel]: 角色模型对象列表
         """
-        return await self.list(search=search, order_by=order_by)
+        return await self.list(search=search, order_by=order_by, preload=preload)
 
     async def set_role_menus_crud(self, role_ids: List[int], menu_ids: List[int]) -> None:
         """

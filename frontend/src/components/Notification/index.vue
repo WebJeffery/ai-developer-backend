@@ -98,13 +98,12 @@ function handleViewMoreNotice() {
   router.push({ name: "Notice" });
 }
 
-// 全部已读
+// 全部已读：将这些公告禁用（status=false），刷新后不再出现
 function handleMarkAllAsRead() {
-  NoticeAPI.batchAvailableNotice({
-    ids: noticeList.value.map((item) => item.id).filter((id): id is number => id !== undefined),
-    status: true
-  }).then(() => {
-    noticeList.value = [];
+  const ids = noticeList.value.map((item) => item.id).filter((id): id is number => id !== undefined);
+  NoticeAPI.batchAvailableNotice({ ids, status: false }).then(async () => {
+    await noticeStore.getNotice();
+    noticeList.value = noticeStore.noticeList;
   });
 }
 

@@ -265,7 +265,7 @@
       </template>
     </el-dialog>
 
-    <PermissonDrawer v-if="drawerVisible" v-model="drawerVisible" :role-name="checkedRole.name" :role-id="checkedRole.id" />
+    <PermissonDrawer v-if="drawerVisible" v-model="drawerVisible" :role-name="checkedRole.name" :role-id="checkedRole.id" @saved="handleRefresh" />
 
     <!-- 导出弹窗 -->
     <ExportModal 
@@ -291,6 +291,7 @@ import UserTableSelect from "@/views/system/user/components/UserTableSelect.vue"
 import ExportModal from "@/components/CURD/ExportModal.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import { QuestionFilled, ArrowUp, ArrowDown } from "@element-plus/icons-vue";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -406,6 +407,10 @@ async function handleSelectionChange(selection: any) {
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryFormData.page_no = 1;
+  // 额外清空日期范围与时间查询参数
+  dateRange.value = [];
+  queryFormData.start_time = undefined;
+  queryFormData.end_time = undefined;
   loadingData();
 }
 
@@ -426,8 +431,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;

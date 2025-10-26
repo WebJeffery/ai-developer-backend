@@ -32,27 +32,15 @@ class InitializeData:
         """
         # 按照依赖关系排序：先创建基础表，再创建关联表
         self.prepare_init_models = [
-            # 部门表（自引用，需要先创建）
+            # 基础表（项目启动初始化数据表，部门和菜单必须先创建）
             DeptModel,
-            # 菜单表（自引用，需要先创建）
             MenuModel,
-            # 用户表（依赖部门和角色）
             UserModel,
-            # 角色表（依赖菜单和部门）
             RoleModel,
-            # 岗位表（无外键依赖）
-            PositionModel,
-            # 基础表（无外键依赖）
+            UserRolesModel,
             ParamsModel,
             DictTypeModel,
-            DictDataModel,
-            # 关联表（依赖基础表）
-            UserPositionsModel,
-            UserRolesModel,
-            RoleDeptsModel,
-            RoleMenusModel,
-            # 通知表（无外键依赖）
-            NoticeModel,
+            DictDataModel
         ]
     
     async def __init_create_table(self) -> None:
@@ -173,4 +161,6 @@ class InitializeData:
         async with AsyncSessionLocal() as session:
             async with session.begin():
                 await self.__init_data(session)
+                # 确保提交事务
+                await session.commit()
     

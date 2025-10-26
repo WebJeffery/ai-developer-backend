@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from typing import Dict, List, Sequence, Optional
+from typing import Dict, List, Optional, Sequence, Union, Any
 from datetime import datetime
-
 
 from app.core.base_crud import CRUDBase
 from .model import UserModel
@@ -26,54 +25,73 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         self.auth = auth
         super().__init__(model=UserModel, auth=auth)
 
-    async def get_by_id_crud(self, id: int) -> Optional[UserModel]:
+    async def get_by_id_crud(self, id: int, preload: Optional[List[Union[str, Any]]] = None) -> Optional[UserModel]:
         """
         根据id获取用户信息
         
         参数:
         - id (int): 用户ID
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Optional[UserModel]: 用户信息,如果不存在则为None
         """
-        return await self.get(id=id)
+        return await self.get(
+            preload=preload,
+            id=id,
+        )
 
-    async def get_by_username_crud(self, username: str) -> Optional[UserModel]:
+    async def get_by_username_crud(self, username: str, preload: Optional[List[Union[str, Any]]] = None) -> Optional[UserModel]:
         """
         根据用户名获取用户信息
         
         参数:
         - username (str): 用户名
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Optional[UserModel]: 用户信息,如果不存在则为None
         """
-        return await self.get(username=username)
+        return await self.get(
+            preload=preload,
+            username=username,
+        )
     
-    async def get_by_mobile_crud(self, mobile: str) -> Optional[UserModel]:
+
+    
+    async def get_by_mobile_crud(self, mobile: str, preload: Optional[List[Union[str, Any]]] = None) -> Optional[UserModel]:
         """
         根据手机号获取用户信息
         
         参数:
         - mobile (str): 手机号
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
         - Optional[UserModel]: 用户信息,如果不存在则为None
         """
-        return await self.get(mobile=mobile)
+        return await self.get(
+            preload=preload,
+            mobile=mobile,
+        )
 
-    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Sequence[UserModel]:
+    async def get_list_crud(self, search: Optional[Dict] = None, order_by: Optional[List[Dict[str, str]]] = None, preload: Optional[List[Union[str, Any]]] = None) -> Sequence[UserModel]:
         """
         获取用户列表
         
         参数:
         - search (Dict | None): 查询参数对象。
         - order_by (List[Dict[str, str]] | None): 排序参数列表。
+        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
         
         返回:
             Sequence[UserModel]: 用户列表
         """
-        return await self.list(search=search, order_by=order_by)
+        return await self.list(
+            search=search,
+            order_by=order_by,
+            preload=preload,
+        )
 
     async def update_last_login_crud(self, id: int) -> Optional[UserModel]:
         """
@@ -187,5 +205,4 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         """
         if await self.get_by_username_crud(username=data.username):
             return None
-        
         return await self.create(data=UserCreateSchema(**data.model_dump()))

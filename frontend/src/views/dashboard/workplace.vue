@@ -119,7 +119,7 @@
             <template #header>
               <div class="flex justify-between items-center">
                 <div class="flex items-center gap-2">
-                  <el-tooltip content="快速访问常用功能，支持内部路由跳转和外部链接打开。" placement="top">
+                  <el-tooltip content="快速访问常用功能，标签右键收藏可添加快捷栏菜单。" placement="top">
                     <el-icon class="cursor-help" size="16">
                       <QuestionFilled />
                     </el-icon>
@@ -178,6 +178,11 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "Workplace",
+  inheritAttrs: false,
+});
+
 import { EChartsOption } from 'echarts'
 import { useUserStore } from "@/store/index";
 import { greetings } from '@/utils/common';
@@ -337,10 +342,6 @@ onMounted(() => {
 // 组件卸载时移除监听器
 onUnmounted(() => {
   quickStartManager.removeListener(updateQuickLinks);
-});
-
-defineOptions({
-  name: "DashBoard",
 });
 
 const welcome = '祝你开心每一天！';

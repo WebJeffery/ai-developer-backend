@@ -38,7 +38,13 @@
 
           <!-- 组件切换 -->
           <transition name="fade-slide" mode="out-in">
-            <component :is="formComponents[component]" v-model="component" class="w-90%" />
+            <component
+              :is="formComponents[component]"
+              v-model="component"
+              v-model:preset-username="loginPreset.username"
+              v-model:preset-password="loginPreset.password"
+              class="w-90%"
+            />
           </transition>
         </div>
       </div>
@@ -74,10 +80,12 @@ const formComponents = {
   resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
 };
 
+// 预填登录信息（通过具名 v-model 双向绑定传递）
+const loginPreset = reactive<{ username: string; password: string }>({ username: "admin", password: "123456" });
+
 onMounted(() => {
   configStore.getConfig();
 });
-
 </script>
 
 <style lang="scss" scoped>

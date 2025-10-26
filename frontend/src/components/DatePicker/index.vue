@@ -34,6 +34,8 @@ const shortcuts = [
     value: () => {
       const end = new Date()
       const start = new Date()
+      // 修正：起始时间为当前时间往前 24 小时
+      start.setTime(start.getTime() - 3600 * 1000 * 24)
       return [start, end]
     }
   },

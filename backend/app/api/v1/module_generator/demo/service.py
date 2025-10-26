@@ -55,6 +55,33 @@ class DemoService:
         return [DemoOutSchema.model_validate(obj).model_dump() for obj in obj_list]
     
     @classmethod
+    async def page_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: Optional[DemoQueryParam] = None, order_by: Optional[List[Dict[str, str]]] = None) -> Dict:
+        """
+        分页查询
+        
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - page_no (int): 页码
+        - page_size (int): 每页数量
+        - search (Optional[DemoQueryParam]): 查询参数
+        - order_by (Optional[List[Dict[str, str]]]): 排序参数
+        
+        返回:
+        - Dict: 分页数据
+        """
+        search_dict = search.__dict__ if search else {}
+        order_by_list = order_by or [{'id': 'asc'}]
+        offset = (page_no - 1) * page_size
+        
+        result = await DemoCRUD(auth).page_crud(
+            offset=offset,
+            limit=page_size,
+            order_by=order_by_list,
+            search=search_dict
+        )
+        return result
+    
+    @classmethod
     async def create_service(cls, auth: AuthSchema, data: DemoCreateSchema) -> Dict:
         """
         创建

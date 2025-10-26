@@ -13,6 +13,7 @@ class ParamsModel(CreatorMixin):
     """
     __tablename__ = "system_param"
     __table_args__ = ({'comment': '系统参数表'})
+    __loader_options__ = ["creator"]
 
     # 基础字段
     config_name: Mapped[str] = mapped_column(String(500), nullable=False, unique=True, comment='参数名称')

@@ -83,7 +83,7 @@
           </template>
         </el-table-column>
         <el-table-column v-if="tableColumns.find(col => col.prop === 'name')?.show" key="name" label="用户名" prop="name" min-width="80" />
-        <el-table-column v-if="tableColumns.find(col => col.prop === 'user_name')?.show" key="user_name" label="用户姓名" prop="user_name" min-width="80" />
+        <el-table-column v-if="tableColumns.find(col => col.prop === 'user_name')?.show" key="user_name" label="账号" prop="user_name" min-width="80" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'login_location')?.show" key="login_location" label="登录位置" prop="login_location" min-width="280" show-overflow-tooltip/>
         <el-table-column v-if="tableColumns.find(col => col.prop === 'os')?.show" key="os" label="操作系统" prop="os" min-width="120" />
         <el-table-column v-if="tableColumns.find(col => col.prop === 'login_time')?.show" key="login_time" label="登录时间" prop="login_time" min-width="180" />

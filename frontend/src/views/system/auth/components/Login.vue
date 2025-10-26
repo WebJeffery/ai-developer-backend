@@ -113,6 +113,9 @@ const userStore = useUserStore();
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 
+// 来自父容器的预填用户名和密码
+const props = defineProps<{ presetUsername?: string; presetPassword?: string }>();
+
 const route = useRoute();
 const router = useRouter();
 
@@ -142,13 +145,27 @@ const isCapsLock = ref(false);
 
 
 const loginForm = reactive<LoginFormData>({
-  username: "admin",
-  password: "123456",
+  username: "",
+  password: "",
   captcha: "",
   captcha_key: "",
   remember: true,
   login_type: "PC端",
 });
+
+// 监听父组件传入的预填信息，立即填充到登录表单
+watch(
+  () => [props.presetUsername, props.presetPassword],
+  ([presetUsername, presetPassword]) => {
+    if (typeof presetUsername === 'string') {
+      loginForm.username = presetUsername;
+    }
+    if (typeof presetPassword === 'string') {
+      loginForm.password = presetPassword;
+    }
+  },
+  { immediate: true }
+);
 
 const captchaState = reactive<CaptchaInfo>({
   enable: true,

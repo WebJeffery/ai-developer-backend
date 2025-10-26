@@ -380,25 +380,14 @@ class DictDataService:
         exist_obj = await DictDataCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist_obj:
             raise CustomException(msg='更新失败，该字典数据不存在')
-        exist_obj = await DictDataCRUD(auth).get(dict_label=data.dict_label)
-        if not exist_obj:
-            raise CustomException(msg='更新失败，该字典数据不存在')
 
         if exist_obj.id != id:
             raise CustomException(msg='更新失败，数据字典数据重复')
             
-        # 如果状态变更，需要同步更新字典类型状态并刷新缓存
-        if exist_obj.status != data.status or exist_obj.dict_type != data.dict_type:
+        # 如果字典类型变更，仅刷新旧类型缓存，不联动字典类型状态
+        if exist_obj.dict_type != data.dict_type:
             dict_type = await DictTypeCRUD(auth).get(dict_type=exist_obj.dict_type)
             if dict_type:
-                update_data = DictTypeUpdateSchema(
-                    dict_name=dict_type.dict_name,
-                    dict_type=dict_type.dict_type,
-                    status=data.status,
-                    description=dict_type.description
-                )
-                await DictTypeCRUD(auth).update_obj_crud(id=dict_type.id, data=update_data)
-                # 刷新Redis缓存
                 redis_key = f"{RedisInitKeyConfig.SYSTEM_DICT.key}:{dict_type.dict_type}"
                 try:
                     dict_data_list = await DictDataCRUD(auth).get_obj_list_crud(search={'dict_type': dict_type.dict_type})
@@ -409,7 +398,7 @@ class DictDataService:
                             value=value,
                         )
                 except Exception as e:
-                    logger.error(f"更新字典数据状态时刷新缓存失败: {e}")
+                    logger.error(f"更新字典数据类型变更时刷新旧缓存失败: {e}")
                 
         obj = await DictDataCRUD(auth).update_obj_crud(id=id, data=data)
         redis_key = f"{RedisInitKeyConfig.SYSTEM_DICT.key}:{data.dict_type}"
@@ -451,6 +440,9 @@ class DictDataService:
             exist_obj = await DictDataCRUD(auth).get_obj_by_id_crud(id=id)
             if not exist_obj:
                 raise CustomException(msg=f'{id} 删除失败，该字典数据不存在')
+            # 新增：系统默认字典数据不允许删除（通过 is_default 判断）
+            if exist_obj.is_default:
+                raise CustomException(msg='删除失败，系统默认字典数据不允许删除')
             # 删除Redis缓存
             redis_key = f"{RedisInitKeyConfig.SYSTEM_DICT.key}:{exist_obj.dict_type}"
             try:

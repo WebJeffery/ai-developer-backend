@@ -143,6 +143,7 @@ export default {
     closeRight: "关闭右侧",
     closeOther: "关闭其他",
     closeAll: "关闭所有",
+    refreshCache: '刷新缓存',
   },
   lock: {
     lockScreen: '锁定屏幕',

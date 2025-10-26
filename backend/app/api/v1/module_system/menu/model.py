@@ -4,12 +4,15 @@
 定义系统菜单相关数据模型
 """
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 
 from sqlalchemy import Boolean, String, Integer, JSON, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.core.base_model import ModelMixin
+
+if TYPE_CHECKING:
+    from app.api.v1.module_system.role.model import RoleModel
 
 
 class MenuModel(ModelMixin):
@@ -24,6 +27,8 @@ class MenuModel(ModelMixin):
     """
     __tablename__ = "system_menu"
     __table_args__ = ({'comment': '菜单表'})
+    __loader_options__ = ["roles"]
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, comment='主键ID')
     name: Mapped[str] = mapped_column(String(50), nullable=False, comment='菜单名称', unique=True)
     type: Mapped[int] = mapped_column(Integer, nullable=False, default=2, comment='菜单类型(1:目录 2:菜单 3:按钮/权限 4:链接)')
@@ -44,7 +49,7 @@ class MenuModel(ModelMixin):
     
     parent_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('system_menu.id', ondelete='SET NULL'), default=None, index=True, comment='父菜单ID')
     parent: Mapped[Optional['MenuModel']] = relationship(back_populates='children', remote_side=[id], uselist=False)
-    children: Mapped[Optional[List['MenuModel']]] = relationship(back_populates='parent')
+    children: Mapped[Optional[List['MenuModel']]] = relationship(back_populates='parent', order_by="MenuModel.order")
     
     # 角色关联关系
     roles: Mapped[List["RoleModel"]] = relationship(secondary="system_role_menus", back_populates="menus", lazy="selectin")

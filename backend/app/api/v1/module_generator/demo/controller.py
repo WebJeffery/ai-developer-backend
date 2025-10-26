@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse, StreamingResponse
 import urllib.parse
 
 from app.common.response import StreamResponse, SuccessResponse
-from app.common.request import PaginationService
 from app.utils.common_util import bytes2file_response
 from app.core.base_params import PaginationQueryParam
 from app.core.dependencies import AuthPermission
@@ -59,8 +58,14 @@ async def get_obj_list_controller(
     返回:
     - JSONResponse: 包含示例列表分页信息的JSON响应
     """
-    result_dict_list = await DemoService.list_service(auth=auth, search=search, order_by=page.order_by)
-    result_dict = await PaginationService.paginate(data_list=result_dict_list, page_no=page.page_no, page_size=page.page_size)
+    # 使用数据库分页而不是应用层分页
+    result_dict = await DemoService.page_service(
+        auth=auth, 
+        page_no=page.page_no if page.page_no is not None else 1, 
+        page_size=page.page_size if page.page_size is not None else 10, 
+        search=search, 
+        order_by=page.order_by
+    )
     logger.info("查询示例列表成功")
     return SuccessResponse(data=result_dict, msg="查询示例列表成功")
 

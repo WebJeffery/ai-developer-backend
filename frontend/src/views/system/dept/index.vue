@@ -102,7 +102,7 @@
       </div>
 
       <!-- 表格区域：系统配置列表 -->
-      <el-table ref="dataTableRef" v-loading="loading" row-key="id" :data="pageTableData" :tree-props="{children: 'children'}" highlight-current-row class="data-table__content" height="540" border stripe @selection-change="handleSelectionChange">
+      <el-table ref="dataTableRef" v-loading="loading" row-key="id" :data="pageTableData" :tree-props="{children: 'children', hasChildren: 'hasChildren'}" class="data-table__content" height="540" border stripe @selection-change="handleSelectionChange" @row-click="handleRowClick">
         <template #empty>
           <el-empty :image-size="80" description="暂无数据" />
         </template>
@@ -183,9 +183,9 @@
       <template #footer>
         <div class="dialog-footer">
           <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
-          <el-button @click="handleCloseDialog">取消</el-button>
           <el-button v-if="dialogVisible.type !== 'detail'" v-hasPerm="['system:dept:submit']" type="primary" @click="handleSubmit">确定</el-button>
           <el-button v-else v-hasPerm="['system:dept:detail']" type="primary" @click="handleCloseDialog">确定</el-button>
+          <el-button @click="handleCloseDialog">取消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -202,6 +202,7 @@ defineOptions({
 import DeptAPI, { DeptTable, DeptForm, DeptPageQuery } from "@/api/system/dept";
 import { useUserStore } from "@/store";
 import { formatTree } from "@/utils/common";
+import { formatToDateTime } from "@/utils/dateUtil";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -305,6 +306,10 @@ async function handleQuery() {
 // 重置查询
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
+  // 额外清空日期范围与时间查询参数
+  dateRange.value = [];
+  queryFormData.start_time = undefined;
+  queryFormData.end_time = undefined;
   loadingData();
 }
 
@@ -325,8 +330,8 @@ const dateRange = ref<[Date, Date] | []>([]);
 function handleDateRangeChange(range: [Date, Date]) {
   dateRange.value = range;
   if (range && range.length === 2) {
-    queryFormData.start_time = range[0].toISOString();
-    queryFormData.end_time = range[1].toISOString();
+    queryFormData.start_time = formatToDateTime(range[0]);
+    queryFormData.end_time = formatToDateTime(range[1]);
   } else {
     queryFormData.start_time = undefined;
     queryFormData.end_time = undefined;
@@ -346,6 +351,14 @@ async function resetForm() {
 // 行复选框选中项变化
 async function handleSelectionChange(selection: any) {
   selectIds.value = selection.map((item: any) => item.id);
+}
+
+// 选择表格的行菜单ID
+const selectedDeptId = ref<number | undefined>();
+
+// 行点击事件
+async function handleRowClick(row: DeptTable) {
+  selectedDeptId.value = row.id;
 }
 
 // 关闭弹窗

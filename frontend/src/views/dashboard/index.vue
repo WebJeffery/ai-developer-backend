@@ -292,7 +292,7 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "Dashboard",
+  name: "Home",
   inheritAttrs: false,
 });
 
