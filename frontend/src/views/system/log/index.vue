@@ -154,7 +154,7 @@
     <el-dialog v-model="dialogVisible.visible" :title="dialogVisible.title" @close="handleCloseDialog">
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
-        <el-descriptions :column="8" border label-width="140px">
+        <el-descriptions :column="8" border label-width="200px">
           <el-descriptions-item label="日志类型" :span="2">
             <el-tag :type="formData.type === 1 ? 'success' : 'primary'">
               {{ formData.type === 1 ? '登录日志' : '操作日志' }}

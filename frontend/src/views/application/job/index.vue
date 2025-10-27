@@ -24,7 +24,7 @@
             style="width: 167.5px"
           >
             <el-option value="true" label="启用" />
-            <el-option value="false" label="暂停" />
+            <el-option value="false" label="停用" />
           </el-select>
         </el-form-item>
         <!-- 时间范围，收起状态下隐藏 -->
@@ -521,7 +521,7 @@
                 max-height="500px"
                 @change="handlechangeCron"
                 @close="openCron = false"
-              ></vue3CronPlus>
+              />
             </el-popover>
           </el-form-item>
           <!-- 开始日期和结束日期 -->

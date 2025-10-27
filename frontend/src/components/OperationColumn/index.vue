@@ -82,7 +82,7 @@ const getOperationMaxWidth = () => {
     const buttons = item.querySelectorAll(".el-button");
     // 获取每行按钮的总宽度
     totalWidth = Array.from(buttons).reduce((acc, button: any) => {
-      return acc + button.scrollWidth + 22; // 每个按钮的宽度加上预留宽度
+      return acc + button.scrollWidth + 14; // 每个按钮的宽度加上预留宽度
     }, 0);
 
     // 获取最大的宽度

@@ -127,7 +127,7 @@
     <el-dialog v-model="dialogVisible.visible" :title="dialogVisible.title" @close="handleCloseDialog">
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
-        <el-descriptions :column="2" border>
+        <el-descriptions :column="2" border label-width="120px">
           <el-descriptions-item label="日志ID" :span="2">{{ detailFormData.id }}</el-descriptions-item>
           <el-descriptions-item label="任务名称" :span="2">{{ detailFormData.job_name }}</el-descriptions-item>
           <el-descriptions-item label="任务组名" :span="2">{{ detailFormData.job_group }}</el-descriptions-item>

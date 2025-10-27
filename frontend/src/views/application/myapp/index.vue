@@ -2,29 +2,47 @@
 <template> 
   <div class="app-container">
       <!-- 顶部搜索和操作区域 -->
-      <div class="search-container mb-4">
+      <div class="search-container">
         <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":">
           <el-form-item prop="name" label="应用名称">
-            <el-input v-model="queryFormData.name" placeholder="请输入应用名称" clearable style="width: 200px" />
+            <el-input v-model="queryFormData.name" placeholder="请输入应用名称" clearable/>
           </el-form-item>
           <el-form-item prop="status" label="状态">
-            <el-select v-model="queryFormData.status" placeholder="请选择状态" clearable style="width: 120px">
+            <el-select v-model="queryFormData.status" placeholder="请选择状态" clearable style="width: 170px;">
               <el-option label="启用" :value="true" />
               <el-option label="停用" :value="false" />
             </el-select>
           </el-form-item>
-          <el-form-item prop="creator" label="创建人">
-            <el-input v-model="queryFormData.creator" placeholder="请输入创建人" clearable style="width: 150px" />
+          <el-form-item v-if="isExpand" prop="creator" label="创建人">
+            <UserTableSelect
+                v-model="queryFormData.creator"
+                @confirm-click="handleConfirm"
+                @clear-click="handleQuery"
+            />
           </el-form-item>
           <el-form-item class="search-buttons">
             <el-button v-hasPerm="['application:myapp:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
             <el-button v-hasPerm="['application:myapp:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
+            <!-- 展开/收起 -->
+            <template v-if="isExpandable">
+              <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
+                {{ isExpand ? "收起" : "展开" }}
+                <el-icon>
+                  <template v-if="isExpand">
+                    <ArrowUp />
+                  </template>
+                  <template v-else>
+                    <ArrowDown />
+                  </template>
+                </el-icon>
+              </el-link>
+            </template>
           </el-form-item>
         </el-form>
       </div>
 
       <!-- 应用卡片展示区域 -->
-      <el-card shadow="hover" class="app-grid-card">
+      <el-card shadow="hover" class="app-grid-card"  >
         <template #header>
           <div class="card-header">
             <span>应用市场</span>
@@ -35,7 +53,7 @@
         </template>
 
         <!-- 应用网格 -->
-        <div v-loading="loading" class="app-grid">
+        <div v-loading="loading" class="app-grid" >
           <el-card 
             v-for="app in applicationList" 
             :key="app.id"
@@ -136,17 +154,14 @@
 
         <!-- 分页区域 -->
         <template #footer>
-          <div class="pagination-container">
-            <el-pagination
-              v-model:current-page="queryFormData.page_no"
-              v-model:page-size="queryFormData.page_size"
-              :total="total"
-              :page-sizes="[12, 24, 48]"
-              layout="total, sizes, prev, pager, next, jumper"
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-            />
-          </div>
+          <!-- 使用卡片 footer 样式右对齐，无需额外容器 -->
+          <pagination
+            v-model:total="total"
+            v-model:page="queryFormData.page_no"
+            v-model:limit="queryFormData.page_size"
+            :page-sizes="[12, 24, 48]"
+            @pagination="loadApplicationList"
+          />
         </template>
       </el-card>
 
@@ -232,6 +247,8 @@ const total = ref(0);
 const dialogVisible = ref(false);
 const dialogType = ref<'create' | 'edit'>('create');
 const currentApp = ref<ApplicationInfo | null>(null);
+const isExpand = ref(false);
+const isExpandable = ref(true);
 
 // 分页查询参数
 const queryFormData = reactive<ApplicationPageQuery>({
@@ -256,7 +273,9 @@ const formData = reactive<ApplicationForm>({
 
 // 表单验证规则
 const formRules = reactive({
-  name: [{ required: true, message: "请输入应用名称", trigger: "blur" }],
+  name: [
+    { required: true, message: "请输入应用名称", trigger: "blur" },
+    { min: 2, max: 30, message: "长度在 2 到 30 个字符", trigger: "blur" }],
   access_url: [
     { required: true, message: "请输入访问地址", trigger: "blur" },
     { type: 'url' as const, message: "请输入正确的URL格式", trigger: "blur" }
@@ -298,23 +317,15 @@ async function handleQuery() {
   await loadApplicationList();
 }
 
+// 选择创建人后触发查询
+function handleConfirm() {
+  handleQuery();
+}
+
 // 重置查询
 async function handleResetQuery() {
   queryFormRef.value?.resetFields();
   queryFormData.page_no = 1;
-  await loadApplicationList();
-}
-
-// 分页大小改变
-async function handleSizeChange(size: number) {
-  queryFormData.page_size = size;
-  queryFormData.page_no = 1;
-  await loadApplicationList();
-}
-
-// 当前页改变
-async function handleCurrentChange(page: number) {
-  queryFormData.page_no = page;
   await loadApplicationList();
 }
 
@@ -465,19 +476,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.app-container {
-  padding: 20px;
-  background-color: var(--el-bg-color-page);
-  min-height: calc(100vh - 84px);
-}
-
-.search-container {
-  background: var(--el-bg-color);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 .app-grid-card {
   height: calc(100vh - 200px);
   position: relative;
@@ -486,6 +484,8 @@ onMounted(() => {
   
   :deep(.el-card__footer) {
     margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
   }
 }
 
@@ -493,14 +493,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
 }
 
 .app-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
-    padding: 20px 0;
     flex: 1;
   }
 
@@ -508,13 +505,6 @@ onMounted(() => {
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
   transition: all 0.3s ease;
-  min-height: 180px;
-  width: 100%;
-  
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
 }
 
 .app-card-header-el {
@@ -531,14 +521,6 @@ onMounted(() => {
   min-width: 0;
 }
 
-.app-avatar-el {
-  flex-shrink: 0;
-}
-
-.app-title-section {
-  flex: 1;
-  min-width: 0;
-}
 
 .app-name-el {
   font-size: 16px;
@@ -551,18 +533,7 @@ onMounted(() => {
   text-overflow: ellipsis;
 }
 
-.app-status-tag {
-  margin-top: 2px;
-}
 
-.app-menu-btn {
-  padding: 4px;
-  color: var(--el-text-color-secondary);
-  
-  &:hover {
-    color: var(--el-color-primary);
-  }
-}
 
 .app-card-content {
   margin: 12px 0;
@@ -571,8 +542,6 @@ onMounted(() => {
 .app-description {
   font-size: 14px;
   color: var(--el-text-color-regular);
-
-  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -625,7 +594,6 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
 }
 
 .app-card-actions {
