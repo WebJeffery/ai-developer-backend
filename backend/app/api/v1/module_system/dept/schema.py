@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import Optional, List
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.core.base_schema import BaseSchema
 
@@ -22,6 +22,45 @@ class DeptCreateSchema(BaseModel):
             raise ValueError("部门名称不能为空")
         value = value.replace(" ", "")
         return value
+
+    @field_validator('code')
+    @classmethod
+    def validate_code(cls, value: Optional[str]):
+        if value is None:
+            return value
+        v = value.strip()
+        if v == "":
+            return None
+        import re
+        if not re.match(r'^[A-Za-z][A-Za-z0-9_]*$', v):
+            raise ValueError("部门编码必须以字母开头，且仅包含字母/数字/下划线")
+        return v
+
+    @model_validator(mode='before')
+    @classmethod
+    def _normalize(cls, data):
+        if isinstance(data, dict):
+            for key in ('code', 'description'):
+                val = data.get(key)
+                if isinstance(val, str):
+                    val = val.strip()
+                    if key == 'description' and val == '':
+                        val = None
+                    data[key] = val
+            pid = data.get('parent_id')
+            if isinstance(pid, str) and pid.strip().isdigit():
+                data['parent_id'] = int(pid.strip())
+            # status兼容
+            status_val = data.get('status')
+            if isinstance(status_val, str):
+                lowered = status_val.strip().lower()
+                if lowered in {'true', '1', 'y', 'yes'}:
+                    data['status'] = True
+                elif lowered in {'false', '0', 'n', 'no'}:
+                    data['status'] = False
+            elif isinstance(status_val, int):
+                data['status'] = bool(status_val)
+        return data
 
 
 class DeptUpdateSchema(DeptCreateSchema):

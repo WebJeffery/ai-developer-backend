@@ -3,7 +3,7 @@
   <div class="app-container">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryFormData" :inline="true"  label-suffix=":" >
+      <el-form ref="queryFormRef" :model="queryFormData" :inline="true"  label-suffix=":" @submit.prevent="handleQuery" >
         <el-form-item prop="config_name" label="配置名称">
           <el-input v-model="queryFormData.config_name" placeholder="请输入配置名称" clearable />
         </el-form-item>
@@ -31,7 +31,7 @@
           />
         </el-form-item>
         <el-form-item class="search-buttons">
-          <el-button v-hasPerm="['system:config:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['system:config:query']" type="primary" icon="search" native-type="submit">查询</el-button>
           <el-button v-hasPerm="['system:config:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">

@@ -222,10 +222,6 @@ async def gen_code_local_controller(
     返回:
     - JSONResponse: 包含生成结果的JSON响应
     """
-    from app.config.setting import settings
-    if not settings.allow_overwrite:
-        logger.error('【系统预设】不允许生成文件覆盖到本地')
-        return ErrorResponse(msg='【系统预设】不允许生成文件覆盖到本地')
     result = await GenTableService.generate_code_service(auth, table_name)
     logger.info('生成代码到指定路径成功')
     return SuccessResponse(msg="生成代码到指定路径成功", data=result)

@@ -3,7 +3,7 @@
   <el-drawer v-model="drawerVisible" :title="'【' + props.jobName + '】任务日志'" :size="drawerSize">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":">
+      <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":" @submit.prevent="handleQuery">
         <el-form-item prop="status" label="执行状态">
           <el-select v-model="queryFormData.status" placeholder="请选择执行状态" style="width: 167.5px" clearable>
             <el-option :value="true" label="成功" />
@@ -127,7 +127,7 @@
     <el-dialog v-model="dialogVisible.visible" :title="dialogVisible.title" @close="handleCloseDialog">
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
-        <el-descriptions :column="2" border>
+        <el-descriptions :column="2" border label-width="120px">
           <el-descriptions-item label="日志ID" :span="2">{{ detailFormData.id }}</el-descriptions-item>
           <el-descriptions-item label="任务名称" :span="2">{{ detailFormData.job_name }}</el-descriptions-item>
           <el-descriptions-item label="任务组名" :span="2">{{ detailFormData.job_group }}</el-descriptions-item>

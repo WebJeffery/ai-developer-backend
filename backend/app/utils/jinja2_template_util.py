@@ -248,33 +248,35 @@ class Jinja2TemplateUtil:
         # 处理空值情况
         category = tpl_category or GenConstant.TPL_CRUD
         templates = [
-            # Python相关模板
-            'python/controller.py.j2',
-            'python/service.py.j2',
-            'python/crud.py.j2',
-            'python/schema.py.j2',
-            'python/param.py.j2',
-            'python/model.py.j2',
-            # Vue相关模板
-            f'{use_web_type}/api.ts.j2',
-            # SQL脚本模板
-            'sql/sql.sql.j2',
+            # Python相关模板（调整为实际目录）
+            'backend/app/v1/module_demo/python/controller.py.j2',
+            'backend/app/v1/module_demo/python/service.py.j2',
+            'backend/app/v1/module_demo/python/crud.py.j2',
+            'backend/app/v1/module_demo/python/schema.py.j2',
+            'backend/app/v1/module_demo/python/param.py.j2',
+            'backend/app/v1/module_demo/python/model.py.j2',
+            'backend/app/v1/module_demo/python/__init__.py.j2',
+
+            # Vue相关模板（API）
+            'frontend/src/api/api.ts.j2',
+            # SQL脚本模板（调整为实际目录）
+            'backend/sql/sql.sql.j2',
         ]
         if category == GenConstant.TPL_CRUD:
-            templates.append(f'{use_web_type}/index.vue.j2')
+            templates.append(f'frontend/src/views/module_demo/{use_web_type}/index.vue.j2')
         elif category == GenConstant.TPL_TREE:
-            templates.append(f'{use_web_type}/index-tree.vue.j2')
+            templates.append(f'frontend/src/views/module_demo/{use_web_type}/index-tree.vue.j2')
         elif category == GenConstant.TPL_SUB:
-            templates.append(f'{use_web_type}/index.vue.j2')
+            templates.append(f'frontend/src/views/module_demo/{use_web_type}/index.vue.j2')
         return templates
     
     @classmethod
-    def get_file_name(cls, template: List[str], gen_table: GenTableOutSchema):
+    def get_file_name(cls, template: str, gen_table: GenTableOutSchema):
         """
         根据模板生成文件名。
 
         参数:
-        - template (List[str]): 模板列表。
+        - template (str): 模板路径字符串。
         - gen_table (GenTableOutSchema): 生成表的配置信息。
         
         返回:
@@ -299,7 +301,9 @@ class Jinja2TemplateUtil:
             return f'{python_path}/app/api/v1/{module_name}/{business_name}/param.py'
         elif 'schema.py.j2' in template:
             return f'{python_path}/app/api/v1/{module_name}/{business_name}/schema.py'
-        elif 'sql.j2' in template:
+        elif '__init__.py.j2' in template:
+            return f'{vue_path}/src/views/{module_name}/{business_name}/__init__.py'
+        elif 'sql.sql.j2' in template:
             return f'{cls.BACKEND_PROJECT_PATH}/sql/{module_name}/{business_name}_menu.sql'
         elif 'api.ts.j2' in template:
             return f'{vue_path}/src/api/{module_name}/{business_name}.ts'

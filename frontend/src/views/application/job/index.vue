@@ -8,6 +8,7 @@
         :model="queryFormData"
         :inline="true"
         label-suffix=":"
+        @submit.prevent="handleQuery"
       >
         <el-form-item prop="name" label="任务名称">
           <el-input
@@ -24,7 +25,7 @@
             style="width: 167.5px"
           >
             <el-option value="true" label="启用" />
-            <el-option value="false" label="暂停" />
+            <el-option value="false" label="停用" />
           </el-select>
         </el-form-item>
         <!-- 时间范围，收起状态下隐藏 -->
@@ -43,7 +44,7 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button v-hasPerm="['app:job:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['app:job:query']" type="primary" icon="search" native-type="submit">查询</el-button>
           <el-button v-hasPerm="['app:job:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable">
@@ -521,7 +522,7 @@
                 max-height="500px"
                 @change="handlechangeCron"
                 @close="openCron = false"
-              ></vue3CronPlus>
+              />
             </el-popover>
           </el-form-item>
           <!-- 开始日期和结束日期 -->

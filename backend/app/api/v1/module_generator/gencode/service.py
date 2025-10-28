@@ -408,18 +408,35 @@ class GenTableService:
         """
         env = Jinja2TemplateInitializerUtil.init_jinja2()
         render_info = await cls.__get_gen_render_info(auth, table_name)
+        gen_table_schema = render_info[3]
+        skipped = 0
         for template in render_info[0]:
             try:
                 render_content = await env.get_template(template).render_async(**render_info[2])
-                gen_path = cls.__get_gen_path(render_info[3], template)
+                gen_path = cls.__get_gen_path(gen_table_schema, template)
                 if gen_path:
+                    # 只允许写入到项目根目录及其子目录
+                    project_root = os.path.realpath(str(settings.BASE_DIR.parent))
+                    target_path = os.path.realpath(gen_path)
+                    if not target_path.startswith(project_root):
+                        raise CustomException(msg='生成路径不允许，请选择项目目录内路径')
+
                     os.makedirs(os.path.dirname(gen_path), exist_ok=True)
+
+                    # 覆盖控制：存在且不允许覆盖则跳过
+                    if os.path.exists(gen_path) and not settings.allow_overwrite:
+                        skipped += 1
+                        continue
+
                     with open(gen_path, 'w', encoding='utf-8') as f:
                         f.write(render_content)
             except Exception as e:
-                raise CustomException(msg=f'渲染模板失败，表名：{render_info[3].table_name}，详细错误信息：{str(e)}')
+                raise CustomException(msg=f'渲染模板失败，表名：{gen_table_schema.table_name}，详细错误信息：{str(e)}')
 
-        return SuccessResponse(msg='生成代码成功')
+        msg = '生成代码成功'
+        if skipped:
+            msg += f'（已跳过 {skipped} 个已存在文件）'
+        return SuccessResponse(msg=msg)
 
     @classmethod
     async def batch_gen_code_service(cls, auth: AuthSchema, table_names: List[str]) -> bytes:
@@ -682,13 +699,14 @@ class GenTableService:
         - Optional[str]: 生成的文件路径，若失败则返回None。
         """
         try:
-            gen_path = gen_table.gen_path or ""
+            gen_path = (gen_table.gen_path or '').strip()
             file_name = Jinja2TemplateUtil.get_file_name(template, gen_table)
-            # 修复：检查文件名是否为空
             if not file_name:
                 return None
-            if gen_path == '/':
-                return os.path.join(os.getcwd(), GEN_PATH, file_name)
+            # 默认写入到项目根目录（backend的上一级）
+            project_root = str(settings.BASE_DIR.parent)
+            if gen_path in ['', '/']:
+                return os.path.join(project_root, file_name)
             else:
                 return os.path.join(gen_path, file_name)
         except Exception:

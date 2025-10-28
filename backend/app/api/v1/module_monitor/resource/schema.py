@@ -2,8 +2,9 @@
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 class ResourceItemSchema(BaseModel):
@@ -19,6 +20,33 @@ class ResourceItemSchema(BaseModel):
     created_time: Optional[datetime] = Field(None, description="创建时间")
     modified_time: Optional[datetime] = Field(None, description="修改时间")
     is_hidden: bool = Field(False, description="是否为隐藏文件")
+
+    @field_validator('file_url')
+    @classmethod
+    def _validate_file_url(cls, v: str) -> str:
+        v = v.strip()
+        parsed = urlparse(v)
+        if parsed.scheme not in ('http', 'https'):
+            raise ValueError('文件URL必须为 http/https')
+        return v
+
+    @field_validator('relative_path')
+    @classmethod
+    def _validate_relative_path(cls, v: str) -> str:
+        v = v.strip()
+        if '..' in v or v.startswith('\\'):
+            raise ValueError('相对路径包含不安全字符')
+        return v
+
+    @model_validator(mode='after')
+    def _validate_flags(self):
+        if self.is_file and self.is_dir:
+            raise ValueError('不能同时为文件和目录')
+        if not self.is_file and not self.is_dir:
+            raise ValueError('必须是文件或目录之一')
+        # 根据名称自动修正隐藏标记
+        self.is_hidden = self.name.startswith('.')
+        return self
 
 
 class ResourceDirectorySchema(BaseModel):
@@ -77,6 +105,14 @@ class ResourceRenameSchema(BaseModel):
         if not value or len(value.strip()) == 0:
             raise ValueError("参数不能为空")
         return value.strip()
+
+    @field_validator('new_name')
+    @classmethod
+    def _validate_new_name(cls, v: str) -> str:
+        v = v.strip()
+        if '..' in v or '/' in v or '\\' in v:
+            raise ValueError('新名称包含不安全字符')
+        return v
 
 
 class ResourceCreateDirSchema(BaseModel):
