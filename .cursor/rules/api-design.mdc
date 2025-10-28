@@ -1,0 +1,252 @@
+---
+globs: backend/app/api/**/*.py
+description: API 设计和接口规范
+---
+
+# API 设计规范
+
+## RESTful API 规范
+
+### URL 设计
+
+```
+/api/v1/{module}/{resource}/{action}
+```
+
+示例：
+```
+GET    /api/v1/system/users          # 获取用户列表
+GET    /api/v1/system/users/{id}     # 获取用户详情
+POST   /api/v1/system/users          # 创建用户
+PUT    /api/v1/system/users/{id}     # 更新用户
+DELETE /api/v1/system/users          # 删除用户（批量）
+```
+
+### HTTP 方法
+
+| 方法 | 用途 | 是否幂等 |
+|------|------|---------|
+| GET | 查询数据 | 是 |
+| POST | 创建数据 | 否 |
+| PUT | 更新数据 | 是 |
+| DELETE | 删除数据 | 是 |
+| PATCH | 部分更新 | 否 |
+
+## 响应格式
+
+### 成功响应
+
+```python
+# 单条数据
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": {
+    "id": 1,
+    "name": "张三"
+  }
+}
+
+# 列表数据
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": [
+    {"id": 1, "name": "张三"},
+    {"id": 2, "name": "李四"}
+  ]
+}
+
+# 分页数据
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": {
+    "items": [...],
+    "total": 100,
+    "page_no": 1,
+    "page_size": 10,
+    "has_next": true
+  }
+}
+```
+
+### 错误响应
+
+```python
+{
+  "code": 10401,
+  "msg": "认证失败，请重新登录",
+  "data": None
+}
+```
+
+### 状态码
+
+| 状态码 | 说明 |
+|--------|------|
+| 200 | 成功 |
+| 400 | 请求参数错误 |
+| 401 | 未授权（需要登录） |
+| 403 | 无权限 |
+| 404 | 资源不存在 |
+| 500 | 服务器错误 |
+
+## 权限控制
+
+使用 `AuthPermission` 装饰器：
+
+```python
+from app.core.dependencies import AuthPermission
+
+@router.get("/list")
+async def list_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module:resource:query"]))
+):
+    # 权限字符串格式: "模块:资源:操作"
+    # 操作类型: query, create, update, delete
+    pass
+```
+
+## 查询参数
+
+### 分页参数
+
+```python
+class PaginationQueryParam(BaseModel):
+    page_no: int = Field(default=1, ge=1, description="页码")
+    page_size: int = Field(default=10, ge=1, le=100, description="每页数量")
+    order_by: List[Dict[str, str]] = Field(default_factory=lambda: [{"id": "desc"}])
+```
+
+### 搜索参数
+
+```python
+class UserQueryParam(BaseModel):
+    username: Optional[str] = Field(default=None, description="用户名")
+    status: Optional[bool] = Field(default=None, description="状态")
+    start_time: Optional[str] = Field(default=None, description="开始时间")
+    end_time: Optional[str] = Field(default=None, description="结束时间")
+```
+
+### 使用示例
+
+```python
+@router.get("/list")
+async def list_controller(
+    page: PaginationQueryParam = Depends(),
+    search: UserQueryParam = Depends(),
+    auth: AuthSchema = Depends(AuthPermission(["system:user:query"]))
+):
+    # 实现逻辑
+    pass
+```
+
+## 文件上传
+
+```python
+@router.post("/upload")
+async def upload_controller(
+    file: UploadFile = File(...),
+    auth: AuthSchema = Depends(AuthPermission(["system:file:upload"]))
+):
+    """文件上传接口"""
+    result = await FileService.upload_service(file=file, auth=auth)
+    return SuccessResponse(data=result)
+```
+
+## 文件下载
+
+```python
+@router.get("/download/{file_path:path}")
+async def download_controller(
+    file_path: str = Path(..., description="文件路径"),
+    auth: AuthSchema = Depends(AuthPermission(["system:file:download"]))
+):
+    """文件下载接口"""
+    return await FileService.download_service(file_path=file_path, auth=auth)
+```
+
+## 流式响应
+
+```python
+@router.post("/stream")
+async def stream_controller(
+    query: StreamQuerySchema,
+    auth: AuthSchema = Depends(AuthPermission(["app:ai:chat"]))
+) -> StreamingResponse:
+    """流式响应接口"""
+    
+    async def generate():
+        async for chunk in service.process_stream(query):
+            yield chunk.encode('utf-8') if isinstance(chunk, str) else chunk
+    
+    return StreamResponse(generate(), media_type="text/plain")
+```
+
+## WebSocket
+
+```python
+@router.websocket("/ws/{path}")
+async def websocket_controller(websocket: WebSocket):
+    """WebSocket 接口"""
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # 处理数据
+            await websocket.send_text(response)
+    except Exception as e:
+        logger.error(f"WebSocket 错误: {str(e)}")
+    finally:
+        await websocket.close()
+```
+
+## API 文档
+
+### 接口注释
+
+```python
+@router.get("/list", summary="查询用户列表", description="分页查询用户列表，支持多条件筛选")
+async def list_controller(
+    page: PaginationQueryParam = Depends(),
+    search: UserQueryParam = Depends(),
+    auth: AuthSchema = Depends(AuthPermission(["system:user:query"]))
+) -> JSONResponse:
+    """
+    查询用户列表接口
+    
+    参数:
+    - page (PaginationQueryParam): 分页查询参数
+    - search (UserQueryParam): 查询条件参数
+    - auth (AuthSchema): 认证信息
+    
+    返回:
+    - JSONResponse: 包含用户列表的分页响应
+    
+    权限要求:
+    - system:user:query
+    """
+    pass
+```
+
+### Schema 字段描述
+
+```python
+class UserSchema(BaseSchema):
+    username: str = Field(..., description="用户名", example="zhangsan")
+    name: str = Field(..., description="姓名", example="张三")
+    email: str = Field(..., description="邮箱", example="zhangsan@example.com")
+    status: bool = Field(default=True, description="状态：True-启用，False-禁用")
+```
+
+## 最佳实践
+
+1. **统一响应格式**: 所有接口使用统一的响应结构
+2. **参数验证**: 使用 Pydantic 进行严格的数据验证
+3. **错误处理**: 使用统一的异常处理机制
+4. **权限控制**: 所有接口都要有权限校验
+5. **日志记录**: 使用 OperationLogRoute 自动记录操作日志
+6. **接口文档**: 提供详细的接口注释和参数说明
+7. **版本控制**: 使用 URL 版本控制 `/api/v1/`
+8. **接口命名**: 使用语义化的接口路径

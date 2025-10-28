@@ -1,0 +1,188 @@
+---
+globs: backend/**/*.py
+description: Python/FastAPI 后端代码规范和最佳实践
+---
+
+# Python/FastAPI 后端开发规范
+
+## 代码结构
+
+### 模块化组织
+每个业务模块应包含以下文件：
+
+1. **model.py** - SQLAlchemy ORM 模型
+2. **schema.py** - Pydantic 数据验证模型
+3. **param.py** - 查询参数模型
+4. **crud.py** - 数据访问层（继承 CRUDBase）
+5. **service.py** - 业务逻辑层
+6. **controller.py** - 控制器层（处理 HTTP 请求）
+
+### 示例结构
+
+```python
+# model.py
+from app.core.base_model import CreatorMixin
+
+class YourModel(CreatorMixin):
+    """你的模型"""
+    __tablename__ = "your_table"
+    
+    name: Mapped[str] = mapped_column(String, comment="名称")
+    
+    # 如果有关系，定义关系
+    @declared_attr
+    def __loader_options__(cls):
+        return [selectinload(cls.relation_name)]
+
+# schema.py  
+class YourCreateSchema(BaseModel):
+    """创建模型"""
+    name: str = Field(..., description="名称")
+
+class YourUpdateSchema(BaseModel):
+    """更新模型"""  
+    name: Optional[str] = Field(None, description="名称")
+
+class YourOutSchema(BaseSchema):
+    """输出模型"""
+    name: str = Field(description="名称")
+```
+
+## 核心原则
+
+### 1. 继承体系
+- 所有 ORM 模型继承 `ModelMixin` 或 `CreatorMixin`
+- 所有 CRUD 操作继承 `CRUDBase`
+- 所有 Pydantic Schema 继承 `BaseSchema` 或 `BaseModel`
+
+### 2. 异步优先
+始终使用 `async def` 和 `await`：
+
+```python
+async def get_service(self, id: int):
+    obj = await self.crud.get(id=id)
+    return obj
+```
+
+### 3. 数据权限
+CRUD 会自动处理数据权限过滤，无需手动添加权限检查。
+
+### 4. 预加载关系
+使用 `preload` 参数预加载关联数据：
+
+```python
+# 预加载单个关系
+obj = await crud.get(id=1, preload=["creator"])
+
+# 预加载多个关系
+obj = await crud.get(id=1, preload=["creator", "department"])
+```
+
+### 5. 错误处理
+使用 `CustomException` 抛出业务异常：
+
+```python
+from app.core.exceptions import CustomException
+
+if not obj:
+    raise CustomException(msg="对象不存在")
+```
+
+### 6. 路由定义
+使用 `OperationLogRoute` 自动记录操作日志：
+
+```python
+from app.core.router_class import OperationLogRoute
+
+router = APIRouter(route_class=OperationLogRoute, prefix="/your", tags=["你的模块"])
+```
+
+### 7. 权限控制
+使用 `AuthPermission` 依赖注入进行权限校验：
+
+```python
+@router.get("/list")
+async def list_controller(
+    auth: AuthSchema = Depends(AuthPermission(["your:query"]))
+):
+    pass
+```
+
+### 8. 分页查询
+使用标准分页接口：
+
+```python
+@router.get("/list")
+async def list_controller(
+    page: PaginationQueryParam = Depends(),
+    search: YourQueryParam = Depends(),
+    auth: AuthSchema = Depends(AuthPermission(["your:query"]))
+):
+    result_list = await YourService.list_service(auth=auth, search=search)
+    result = await PaginationService.paginate(
+        data_list=result_list, 
+        page_no=page.page_no, 
+        page_size=page.page_size
+    )
+    return SuccessResponse(data=result)
+```
+
+## 注释规范
+
+所有函数必须包含完整的文档字符串：
+
+```python
+async def your_function(param1: str, param2: int) -> dict:
+    """
+    函数功能说明
+    
+    参数:
+    - param1 (str): 参数1的说明
+    - param2 (int): 参数2的说明
+    
+    返回:
+    - dict: 返回值说明
+    
+    异常:
+    - CustomException: 可能的异常说明
+    """
+    pass
+```
+
+## 数据库操作
+
+### 查询操作
+```python
+# 单条查询
+obj = await crud.get(id=1)
+
+# 列表查询
+objs = await crud.list(search={"name": "test"}, order_by=[{"id": "desc"}])
+
+# 分页查询
+result = await crud.page(offset=0, limit=10, order_by=[{"id": "desc"}], 
+                         search={"name": "test"}, out_schema=YourOutSchema)
+```
+
+### 创建操作
+```python
+obj = await crud.create(data=YourCreateSchema(name="test"))
+```
+
+### 更新操作
+```python
+obj = await crud.update(id=1, data=YourUpdateSchema(name="new name"))
+```
+
+### 删除操作
+```python
+await crud.delete(ids=[1, 2, 3])
+```
+
+## 最佳实践
+
+1. **类型提示**: 所有函数参数和返回值必须有类型提示
+2. **异常处理**: 在 Service 层处理业务异常，CRUD 层只处理数据库异常
+3. **日志记录**: 使用 `logger` 记录重要操作
+4. **数据验证**: 在 Schema 中使用 Pydantic 验证器
+5. **响应统一**: 使用 `SuccessResponse` 返回成功响应

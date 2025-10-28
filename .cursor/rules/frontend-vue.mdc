@@ -1,0 +1,319 @@
+---
+globs: frontend/**/*.{vue,ts,js},fastapp/**/*.{vue,ts,js}
+description: Vue3 + TypeScript 前端开发规范和最佳实践
+---
+
+# Vue3 + TypeScript 前端开发规范
+
+## 组件结构
+
+### 标准组件结构
+
+Vue 组件应按照以下顺序组织：
+
+```vue
+<template>
+  <!-- 模板内容 -->
+</template>
+
+<script setup lang="ts">
+// 1. 导入依赖
+import { ref, reactive } from 'vue'
+
+// 2. 定义 TypeScript 接口
+interface ComponentProps {
+  prop1: string
+}
+
+// 3. 定义 Props
+const props = defineProps<ComponentProps>()
+
+// 4. 定义 Emits
+const emit = defineEmits<{
+  update: [value: string]
+}>()
+
+// 5. 响应式数据
+const count = ref(0)
+const formData = reactive({})
+
+// 6. 计算属性
+const computedValue = computed(() => {
+  return count.value * 2
+})
+
+// 7. 方法定义
+const handleClick = () => {
+  // 方法实现
+}
+
+// 8. 生命周期钩子
+onMounted(() => {
+  // 初始化逻辑
+})
+
+// 9. 暴露给父组件
+defineExpose({
+  someMethod: handleClick
+})
+</script>
+
+<style scoped lang="scss">
+/* 样式内容 */
+</style>
+```
+
+## 核心原则
+
+### 1. 使用 `<script setup>`
+优先使用 `<script setup>` 语法糖：
+
+```vue
+<script setup lang="ts">
+// 推荐
+const count = ref(0)
+</script>
+```
+
+### 2. TypeScript 类型安全
+所有数据必须定义明确的类型：
+
+```typescript
+interface User {
+  id: number
+  name: string
+  email: string
+}
+
+const user = ref<User>({
+  id: 1,
+  name: '张三',
+  email: 'zhangsan@example.com'
+})
+```
+
+### 3. 组件命名
+- 组件文件使用 PascalCase: `UserList.vue`
+- Props 和 Emits 使用 camelCase
+
+### 4. Props 验证
+使用 TypeScript 定义 Props：
+
+```typescript
+interface Props {
+  // 必填项
+  title: string
+  // 可选项
+  count?: number
+  // 默认值
+  status: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  status: true
+})
+```
+
+### 5. Emits 定义
+使用 TypeScript 定义事件：
+
+```typescript
+const emit = defineEmits<{
+  change: [value: string]
+  update: [id: number, data: User]
+  delete: [id: number]
+}>()
+```
+
+### 6. 响应式数据
+- 简单值使用 `ref`
+- 对象使用 `reactive` 或 `ref`
+
+```typescript
+// 简单值
+const count = ref(0)
+const message = ref('')
+
+// 对象
+const user = reactive({
+  name: '',
+  age: 0
+})
+
+// 或使用 ref 获取更好的类型推导
+const user = ref<User>({
+  name: '',
+  age: 0
+})
+```
+
+### 7. API 请求
+使用统一的 request 工具：
+
+```typescript
+import httpRequest from '@/utils/request'
+
+const fetchUsers = async () => {
+  const response = await httpRequest.get<ApiResponse<User[]>>('/api/users')
+  return response.data.data
+}
+```
+
+## 页面开发规范
+
+### 列表页面标准结构
+
+```vue
+<template>
+  <div class="app-container">
+    <!-- 1. 搜索区域 -->
+    <div class="search-container">
+      <el-form :model="queryForm">
+        <!-- 搜索表单 -->
+      </el-form>
+    </div>
+
+    <!-- 2. 表格区域 -->
+    <el-card>
+      <!-- 工具栏 -->
+      <div class="toolbar">
+        <!-- 操作按钮 -->
+      </div>
+      
+      <!-- 数据表格 -->
+      <el-table v-loading="loading" :data="tableData">
+        <!-- 表格列 -->
+      </el-table>
+      
+      <!-- 分页组件 -->
+      <el-pagination v-model="pagination" />
+    </el-card>
+
+    <!-- 3. 对话框 -->
+    <el-dialog v-model="dialogVisible">
+      <!-- 表单内容 -->
+    </el-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+// 标准的列表页面逻辑
+const loading = ref(false)
+const tableData = ref([])
+const queryForm = reactive({})
+const pagination = reactive({ page: 1, size: 10 })
+
+const handleQuery = async () => {
+  loading.value = true
+  try {
+    const data = await fetchData()
+    tableData.value = data
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+```
+
+## Composable 函数
+
+创建可复用的组合式函数：
+
+```typescript
+// composables/useTable.ts
+export function useTable<T>(apiFn: (params: any) => Promise<ApiResponse<T[]>>) {
+  const loading = ref(false)
+  const tableData = ref<T[]>([])
+  
+  const fetchData = async (params?: any) => {
+    loading.value = true
+    try {
+      const response = await apiFn(params)
+      tableData.value = response.data.data
+    } finally {
+      loading.value = false
+    }
+  }
+  
+  return {
+    loading,
+    tableData,
+    fetchData
+  }
+}
+```
+
+## 状态管理（Pinia）
+
+### Store 定义
+
+```typescript
+import { defineStore } from 'pinia'
+
+export const useUserStore = defineStore('user', {
+  state: () => ({
+    userInfo: null as User | null,
+    token: ''
+  }),
+  
+  getters: {
+    isLoggedIn: (state) => !!state.token
+  },
+  
+  actions: {
+    async login(username: string, password: string) {
+      // 登录逻辑
+    },
+    
+    logout() {
+      this.userInfo = null
+      this.token = ''
+    }
+  }
+})
+```
+
+### 使用 Store
+
+```typescript
+const userStore = useUserStore()
+const { userInfo, isLoggedIn } = storeToRefs(userStore)
+```
+
+## 移动端开发（uni-app）
+
+### 页面结构
+
+```vue
+<template>
+  <view class="container">
+    <!-- uni-app 页面内容 -->
+  </view>
+</template>
+
+<script setup lang="ts">
+// 使用 uni-app API
+import { onLoad } from '@dcloudio/uni-app'
+
+onLoad((options) => {
+  console.log('页面参数:', options)
+})
+</script>
+
+<style lang="scss" scoped>
+.container {
+  padding: 20rpx;
+}
+</style>
+```
+
+## 最佳实践
+
+1. **组件复用**: 提取公共逻辑为 Composable 函数
+2. **类型安全**: 全面使用 TypeScript 类型
+3. **性能优化**: 使用 `v-memo`、`v-once` 等指令优化渲染
+4. **代码规范**: 遵循 ESLint 规则
+5. **命名规范**: 
+   - 组件文件：PascalCase
+   - 工具函数：camelCase  
+   - 常量：UPPER_SNAKE_CASE

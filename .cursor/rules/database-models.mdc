@@ -1,0 +1,293 @@
+---
+globs: backend/**/*model.py,backend/**/*crud.py
+description: 数据库模型和 CRUD 操作规范
+---
+
+# 数据库模型和 CRUD 规范
+
+## ORM 模型定义
+
+### 基础模型继承
+
+所有模型都应继承自基础模型类：
+
+```python
+from app.core.base_model import ModelMixin, CreatorMixin
+
+# 1. 基本模型 - 包含 id、description、时间戳
+class YourModel(ModelMixin):
+    __tablename__ = "your_table"
+    
+    name: Mapped[str] = mapped_column(String(50), comment="名称")
+
+# 2. 带创建人的模型 - 额外包含 creator_id 和 creator 关系
+class YourModel(CreatorMixin):
+    __tablename__ = "your_table"
+    
+    name: Mapped[str] = mapped_column(String(50), comment="名称")
+```
+
+### 字段定义
+
+```python
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Integer, Boolean, DateTime, Text, ForeignKey
+
+class UserModel(CreatorMixin):
+    __tablename__ = "system_users"
+    
+    # 字符串字段
+    username: Mapped[str] = mapped_column(String(50), unique=True, index=True, comment="用户名")
+    name: Mapped[str] = mapped_column(String(50), comment="姓名")
+    
+    # 整数字段
+    age: Mapped[int] = mapped_column(Integer, comment="年龄")
+    
+    # 布尔字段
+    status: Mapped[bool] = mapped_column(Boolean, default=True, comment="状态")
+    
+    # 外键字段
+    dept_id: Mapped[Optional[int]] = mapped_column(
+        Integer, 
+        ForeignKey('system_depts.id', ondelete="SET NULL"),
+        nullable=True,
+        comment="部门ID"
+    )
+    
+    # 文本字段
+    description: Mapped[Optional[str]] = mapped_column(
+        Text, 
+        nullable=True, 
+        default=None,
+        comment="备注"
+    )
+    
+    # 时间字段（已在 ModelMixin 中定义）
+    # created_at, updated_at
+    
+    # 定义关系
+    @declared_attr
+    def dept(cls) -> Mapped[Optional["DeptModel"]]:
+        return relationship(
+            "DeptModel",
+            foreign_keys=[cls.dept_id],
+            lazy="selectin",
+            back_populates="users"
+        )
+```
+
+### 预加载配置
+
+在模型中定义默认预加载的关系：
+
+```python
+class YourModel(CreatorMixin):
+    # ... 字段定义 ...
+    
+    # 关系定义
+    @declared_attr
+    def children(cls) -> Mapped[List["YourModel"]]:
+        return relationship(
+            "YourModel",
+            remote_side=[cls.id],
+            lazy="selectin",
+            back_populates="parent"
+        )
+    
+    @declared_attr
+    def parent(cls) -> Mapped[Optional["YourModel"]]:
+        return relationship(
+            "YourModel",
+            remote_side=[cls.id],
+            foreign_keys=[cls.parent_id],
+            lazy="selectin"
+        )
+    
+    # 定义默认预加载关系
+    @declared_attr
+    def __loader_options__(cls):
+        return [
+            selectinload(cls.creator),
+            selectinload(cls.dept)
+        ]
+```
+
+## CRUD 操作
+
+### 创建 CRUD 类
+
+```python
+from app.core.base_crud import CRUDBase
+from app.core.base_schema import BaseSchema
+
+class YourCRUD(CRUDBase[YourModel, YourCreateSchema, YourUpdateSchema]):
+    """YourModel CRUD 操作类"""
+    pass
+
+# 实例化
+def get_crud(auth: AuthSchema) -> YourCRUD:
+    return YourCRUD(model=YourModel, auth=auth)
+```
+
+### 查询操作
+
+```python
+# 1. 单条查询
+obj = await crud.get(id=1)
+
+# 2. 条件查询
+obj = await crud.get(name="test")
+
+# 3. 预加载关系
+obj = await crud.get(id=1, preload=["creator", "dept"])
+
+# 4. 列表查询
+objs = await crud.list(
+    search={"status": True},
+    order_by=[{"created_at": "desc"}],
+    preload=["creator"]
+)
+
+# 5. 分页查询
+result = await crud.page(
+    offset=0,
+    limit=10,
+    order_by=[{"id": "desc"}],
+    search={"status": True},
+    out_schema=YourOutSchema,
+    preload=["creator"]
+)
+
+# 6. 树形列表查询
+tree_data = await crud.tree_list(
+    search={"status": True},
+    preload=["children", "creator"]
+)
+```
+
+### 高级查询
+
+```python
+# 模糊查询
+objs = await crud.list(search={"name": ("like", "张")})
+
+# IN 查询
+objs = await crud.list(search={"id": ("in", [1, 2, 3])})
+
+# 时间范围查询
+objs = await crud.list(
+    search={
+        "created_at": ("between", ["2024-01-01", "2024-12-31"])
+    }
+)
+
+# 日期查询
+objs = await crud.list(search={"created_at": ("date", "2024-01-01")})
+
+# 月份查询
+objs = await crud.list(search={"created_at": ("month", "2024-01")})
+
+# NULL 查询
+objs = await crud.list(search={"deleted_at": ("None", None)})
+objs = await crud.list(search={"deleted_at": ("not None", None)})
+
+# 比较查询
+objs = await crud.list(search={"age": (">", 18)})
+objs = await crud.list(search={"age": ("<=", 65)})
+
+# 不等于查询
+objs = await crud.list(search={"status": ("!=", False)})
+```
+
+### 创建操作
+
+```python
+# 使用 Schema
+data = YourCreateSchema(name="test", status=True)
+obj = await crud.create(data=data)
+
+# 使用字典
+obj = await crud.create(data={"name": "test", "status": True})
+```
+
+### 更新操作
+
+```python
+# 使用 Schema
+data = YourUpdateSchema(name="new name")
+obj = await crud.update(id=1, data=data)
+
+# 使用字典
+obj = await crud.update(id=1, data={"name": "new name"})
+```
+
+### 删除操作
+
+```python
+# 单个删除
+await crud.delete(ids=[1])
+
+# 批量删除
+await crud.delete(ids=[1, 2, 3])
+```
+
+### 批量更新
+
+```python
+# 批量更新状态
+await crud.set(ids=[1, 2, 3], status=True)
+
+# 批量更新多个字段
+await crud.set(
+    ids=[1, 2, 3],
+    status=True,
+    updated_by=current_user_id
+)
+```
+
+## 数据权限
+
+CRUD 自动处理数据权限过滤，支持：
+
+1. **仅本人数据** (data_scope=1)
+2. **本部门数据** (data_scope=2)
+3. **本部门及以下数据** (data_scope=3)
+4. **全部数据** (data_scope=4)
+5. **自定义数据** (data_scope=5)
+
+权限过滤会根据用户的角色和部门自动应用。
+
+## 关系加载策略
+
+### 常用策略
+
+- **selectin**: 预加载优化，先查询主对象，然后使用 IN 子句批量查询关联对象（推荐用于一对多和多对多）
+- **joined**: 使用 LEFT OUTER JOIN 一次性加载（适合一对一和多对一）
+- **select**: 延迟加载，访问时才查询（默认）
+- **noload**: 不加载关联数据
+
+### 示例
+
+```python
+@declared_attr
+def children(cls) -> Mapped[List["YourModel"]]:
+    return relationship(
+        "YourModel",
+        remote_side=[cls.id],
+        lazy="selectin",  # 使用 selectin 预加载
+        back_populates="parent"
+    )
+```
+
+## 最佳实践
+
+1. **模型命名**: 使用 PascalCase，以 `Model` 结尾：`UserModel`, `DeptModel`
+2. **表名**: 使用小写字母和下划线：`system_users`, `system_depts`
+3. **索引**: 在频繁查询的字段上添加索引
+4. **外键约束**: 使用 `ondelete` 和 `onupdate` 指定级联行为
+5. **注释**: 所有字段都要有中文注释
+6. **关系定义**: 使用 `@declared_attr` 定义关系，避免循环依赖
+7. **预加载**: 在查询时使用 `preload` 参数避免 N+1 查询问题
+8. **类型提示**: 使用 `Mapped` 类型提示
+9. **默认值**: 使用合适的默认值
+10. **可空性**: 明确指定字段是否可为 NULL
