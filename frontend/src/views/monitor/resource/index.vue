@@ -2,12 +2,18 @@
   <div class="app-container">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":">
+      <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":" @submit.prevent="handleQuery">
         <el-form-item prop="name" label="关键词">
-          <el-input v-model="queryFormData.name" placeholder="请输入文件名或目录名" clearable />
+          <el-input
+            v-model="queryFormData.name"
+            placeholder="请输入文件名或目录名"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleQuery"
+          />
         </el-form-item>
         <el-form-item class="search-buttons">
-          <el-button v-hasPerm="['monitor:resource:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['monitor:resource:query']" type="primary" icon="search" native-type="submit">查询</el-button>
           <el-button v-hasPerm="['monitor:resource:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>
@@ -106,8 +112,8 @@
         <template #empty>
           <el-empty :image-size="80" description="暂无数据" />
         </template>
-        <el-table-column type="selection" min-width="55" align="center" />
-        <el-table-column type="index" fixed label="序号" min-width="60" />
+        <el-table-column type="selection" min-width="40" align="center" />
+        <el-table-column type="index" fixed label="序号" min-width="40" />
         <el-table-column label="名称" prop="name" min-width="200">
           <template #default="{ row }">
             <div class="file-name">
@@ -208,8 +214,8 @@
           将文件拖到此处，或<em>点击上传</em>
         </div>
         <template #tip>
-          <div class="el-upload__tip">
-            支持多文件上传，单个文件不超过100MB
+          <div class="el-upload__tip" style="color: red;">
+            不支持多文件上传，单个文件不超过100MB，多文件上传，取最后一个文件上传
           </div>
         </template>
       </el-upload>
@@ -719,6 +725,7 @@ onMounted(() => {
 .grid-view {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  height: calc(100vh - 200px);
   gap: 20px;
   
   .grid-item {

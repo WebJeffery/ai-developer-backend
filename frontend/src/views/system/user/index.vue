@@ -11,7 +11,7 @@
       <el-col :lg="20" :xs="24">
         <!-- 搜索区域 -->
         <div class="search-container">
-          <el-form ref="queryFormRef" :model="queryFormData" :inline="true"  label-suffix=":" >
+          <el-form ref="queryFormRef" :model="queryFormData" :inline="true"  label-suffix=":" @submit.prevent="handleQuery" >
             <el-form-item prop="username" label="账号">
               <el-input v-model="queryFormData.username" placeholder="请输入账号" clearable />
             </el-form-item>
@@ -40,7 +40,7 @@
             </el-form-item>
             <!-- 查询、重置、展开/收起按钮 -->
             <el-form-item class="search-buttons">
-              <el-button v-hasPerm="['system:user:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+              <el-button v-hasPerm="['system:user:query']" type="primary" icon="search" native-type="submit">查询</el-button>
               <el-button v-hasPerm="['system:user:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">

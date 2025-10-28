@@ -56,6 +56,7 @@ class DictDataCreateSchema(BaseModel):
     description: Optional[str] = Field(default=None, max_length=255, description="描述")
 
     @field_validator('dict_label')
+    @classmethod
     def validate_dict_label(cls, value: str):
         if not value or value.strip() == '':
             raise ValueError('字典标签不能为空')

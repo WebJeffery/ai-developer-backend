@@ -1,7 +1,7 @@
 <template>
   <div v-show="visible">
     <el-card v-bind="cardAttrs">
-      <el-form ref="queryFormRef" :model="queryParams" v-bind="formAttrs" :class="isGrid">
+      <el-form ref="queryFormRef" :model="queryParams" v-bind="formAttrs" :class="isGrid" @submit.prevent="handleQuery">
         <template v-for="(item, index) in formItems" :key="item.prop">
           <el-form-item
             v-show="isExpand ? true : index < showNumber"

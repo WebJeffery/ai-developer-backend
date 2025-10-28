@@ -3,7 +3,7 @@
   <el-drawer v-model="drawerVisible" :title="'【' + props.jobName + '】任务日志'" :size="drawerSize">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":">
+      <el-form ref="queryFormRef" :model="queryFormData" :inline="true" label-suffix=":" @submit.prevent="handleQuery">
         <el-form-item prop="status" label="执行状态">
           <el-select v-model="queryFormData.status" placeholder="请选择执行状态" style="width: 167.5px" clearable>
             <el-option :value="true" label="成功" />
