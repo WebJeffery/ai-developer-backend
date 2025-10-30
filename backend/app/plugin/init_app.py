@@ -40,10 +40,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     logger.info(f"✅️ 初始化 {settings.DATABASE_TYPE} 数据库初始化完成...")
     await import_modules_async(modules=settings.EVENT_LIST, desc="全局事件", app=app, status=True)
     logger.info("✅️ 初始化全局事件完成...")
-    await ParamsService().init_config_service(redis=app.state.redis)
-    logger.info("✅️ 初始化Redis系统配置完成...")
-    await DictDataService().init_dict_service(redis=app.state.redis)
-    logger.info('✅️ 初始化Redis数据字典完成...')
+    # 当 Redis 未连接时，跳过依赖 Redis 的初始化，保证应用可启动
+    redis_client = getattr(app.state, 'redis', None)
+    if redis_client:
+        await ParamsService().init_config_service(redis=redis_client)
+        logger.info("✅️ 初始化Redis系统配置完成...")
+        await DictDataService().init_dict_service(redis=redis_client)
+        logger.info('✅️ 初始化Redis数据字典完成...')
+    else:
+        logger.warning('未检测到Redis连接，跳过系统配置与数据字典的Redis初始化（降级为无Redis模式）')
     await SchedulerUtil.init_system_scheduler()
     logger.info('✅️ 初始化定时任务完成...')
 

@@ -95,14 +95,27 @@ async def redis_connect(app: FastAPI, status: bool) -> Redis | None:
                 return rd
             raise CustomException(msg="Redis连接失败")
         except exceptions.AuthenticationError as e:
-            raise exceptions.AuthenticationError(f"Redis认证失败: {e}")
+            # 认证失败时不中断应用启动，降级为无Redis模式
+            logger.warning(f"Redis认证失败，将以无Redis模式启动: {e}")
+            app.state.redis = None
+            return None
         except exceptions.TimeoutError as e:
-            raise exceptions.TimeoutError(f"Redis连接超时: {e}")
+            # 连接超时时不中断应用启动，降级为无Redis模式
+            logger.warning(f"Redis连接超时，将以无Redis模式启动: {e}")
+            app.state.redis = None
+            return None
         except exceptions.RedisError as e:
-            raise exceptions.RedisError(f"Redis连接错误: {e}")
+            # 其他Redis错误不中断应用启动，降级为无Redis模式
+            logger.warning(f"Redis连接错误，将以无Redis模式启动: {e}")
+            app.state.redis = None
+            return None
     else:
-        await app.state.redis.close()
-        logger.info('Redis连接已关闭')
+        # 关闭连接时需要判断是否存在Redis实例
+        if hasattr(app.state, 'redis') and getattr(app.state, 'redis', None):
+            await app.state.redis.close()
+            logger.info('Redis连接已关闭')
+        else:
+            logger.info('Redis未启用或未连接，无需关闭')
 
 async def mongodb_connect(app: FastAPI, status: bool) -> AsyncIOMotorClient | None:
     """
