@@ -15,8 +15,6 @@ from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-import asyncio
-import threading
 from concurrent.futures import ThreadPoolExecutor
 
 from app.config.setting import settings
@@ -117,6 +115,7 @@ class SchedulerUtil:
                     status=status,
                     exception_info=exception_info,
                     create_time=datetime.now(),
+                    job_id=job_id,
                 )
                 
                 # 使用线程池执行异步操作以避免阻塞调度器和数据库锁定问题

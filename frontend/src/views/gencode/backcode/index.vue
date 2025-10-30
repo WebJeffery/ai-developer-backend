@@ -2,7 +2,7 @@
   <div class="app-container">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryRef" :model="queryFormData" :inline="true" label-suffix=":">
+      <el-form ref="queryRef" :model="queryFormData" :inline="true" label-suffix=":" @submit.prevent="handleQuery">
         <el-form-item label="表名称" prop="table_name">
           <el-input v-model="queryFormData.table_name" placeholder="请输入表名称" clearable style="width: 200px" @keyup.enter="handleQuery"/>
         </el-form-item>
@@ -13,7 +13,7 @@
           <el-date-picker v-model="dateRange" value-format="YYYY-MM-DD" type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"/>
         </el-form-item>
         <el-form-item class="search-buttons">
-          <el-button v-hasPerm="['generator:gencode:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['generator:gencode:query']" type="primary" icon="search" native-type="submit">查询</el-button>
           <el-button v-hasPerm="['generator:gencode:query']" icon="refresh" @click="handleRefresh">重置</el-button>
         </el-form-item>
       </el-form>
@@ -1557,7 +1557,7 @@ async function loadTableDetail(id: number | string) {
   }
 }
 
-// ===== 生命周期函数 =====
+// ===== 生命周期函数
 
 /** 组件挂载时 */
 onMounted(() => {

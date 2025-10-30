@@ -8,6 +8,7 @@
           :model="queryFormData"
           label-suffix=":"
           :inline="true"
+          @submit.prevent="handleQuery"
         >
           <el-form-item prop="name" label="名称">
             <el-input v-model="queryFormData.name" placeholder="请输入名称" clearable />

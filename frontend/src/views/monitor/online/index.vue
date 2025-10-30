@@ -3,7 +3,7 @@
   <div class="app-container">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryFormData" :inline="true"  label-suffix=":" >
+      <el-form ref="queryFormRef" :model="queryFormData" :inline="true"  label-suffix=":" @submit.prevent="handleQuery" >
         <el-form-item prop="ipaddr" label="IP地址">
           <el-input v-model="queryFormData.ipaddr" placeholder="请输入IP地址" clearable />
         </el-form-item>
@@ -15,7 +15,7 @@
         </el-form-item>
         <!-- 查询、重置、展开/收起按钮 -->
         <el-form-item class="search-buttons">
-          <el-button v-hasPerm="['monitor:online:query']" type="primary" icon="search" @click="handleQuery">查询</el-button>
+          <el-button v-hasPerm="['monitor:online:query']" type="primary" icon="search" native-type="submit">查询</el-button>
           <el-button v-hasPerm="['monitor:online:query']" icon="refresh" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>

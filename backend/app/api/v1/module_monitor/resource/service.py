@@ -5,6 +5,7 @@ import shutil
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+from urllib.parse import urlparse
 from fastapi import UploadFile
 
 from app.core.exceptions import CustomException
@@ -61,6 +62,26 @@ class ResourceService:
         if not path:
             return resource_root
         
+        # 支持前端传递的完整URL或以STATIC_URL/ROOT_PATH+STATIC_URL开头的URL路径，转换为相对资源路径
+        if isinstance(path, str):
+            static_prefix = settings.STATIC_URL.rstrip('/')
+            root_prefix = settings.ROOT_PATH.rstrip('/') if getattr(settings, 'ROOT_PATH', '') else ''
+            root_static_prefix = f"{root_prefix}{static_prefix}" if root_prefix else static_prefix
+            
+            def strip_prefix(p: str) -> str:
+                if p.startswith(root_static_prefix):
+                    return p[len(root_static_prefix):].lstrip('/')
+                if p.startswith(static_prefix):
+                    return p[len(static_prefix):].lstrip('/')
+                return p
+            
+            if path.startswith('http://') or path.startswith('https://'):
+                parsed = urlparse(path)
+                url_path = parsed.path or ''
+                path = strip_prefix(url_path)
+            else:
+                path = strip_prefix(path)
+        
         # 清理路径，移除危险字符
         path = path.strip().replace('..', '').replace('//', '/')
         
@@ -78,9 +99,9 @@ class ResourceService:
             raise CustomException(msg=f'访问路径不在允许范围内: {path}')
         
         # 防止路径遍历攻击
-        if '..' in safe_path or safe_path.count('/') > cls.MAX_PATH_DEPTH:  # 限制最大目录深度
+        if '..' in safe_path or safe_path.count('/') > cls.MAX_PATH_DEPTH:
             raise CustomException(msg=f'不安全的路径格式: {path}')
-            
+        
         return safe_path
     
     @classmethod
@@ -522,14 +543,14 @@ class ResourceService:
     @classmethod
     async def download_file_service(cls, file_path: str, base_url: Optional[str] = None) -> str:
         """
-        下载文件（返回文件路径）
+        下载文件（返回本地文件系统路径）
         
         参数:
-        - file_path (str): 文件路径。
-        - base_url (Optional[str]): 基础URL，用于生成完整URL。
+        - file_path (str): 文件路径（可为相对路径、绝对路径或完整URL）。
+        - base_url (Optional[str]): 基础URL，用于生成完整URL（不再直接返回URL）。
         
         返回:
-        - str: 文件访问URL。
+        - str: 本地文件系统路径。
         """
         try:
             safe_path = cls._get_safe_path(file_path)
@@ -540,10 +561,9 @@ class ResourceService:
             if not os.path.isfile(safe_path):
                 raise CustomException(msg='路径不是文件')
             
-            # 生成HTTP URL路径而不是返回文件系统路径
-            http_url = cls._generate_http_url(safe_path, base_url)
-            logger.info(f"生成文件访问URL: {http_url}")
-            return http_url
+            # 返回本地文件路径给 FileResponse 使用
+            logger.info(f"定位文件路径: {safe_path}")
+            return safe_path
             
         except CustomException:
             raise

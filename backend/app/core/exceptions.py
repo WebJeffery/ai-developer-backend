@@ -109,7 +109,14 @@ def handle_exception(app: FastAPI):
             "value could not be parsed to a boolean": "类型错误，提交参数应该为布尔值！",
             "Input should be a valid list": "类型错误，输入应该是一个有效的列表！"
         }
-        msg = error_mapping.get(exc.errors()[0].get('msg'), exc.errors()[0].get('msg'))
+        raw_msg = exc.errors()[0].get('msg')
+        msg = error_mapping.get(raw_msg, raw_msg)
+        # 去掉Pydantic默认的前缀“Value error”, 仅保留具体提示内容
+        if isinstance(msg, str) and msg.startswith("Value error"):
+            if "," in msg:
+                msg = msg.split(",", 1)[1].strip()
+            else:
+                msg = msg.replace("Value error", "").strip()
         logger.error(f"请求地址: {request.url}, 错误信息: {msg}, 错误详情: {exc}")
         return ErrorResponse(msg=str(msg), status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, data=exc.body)
 

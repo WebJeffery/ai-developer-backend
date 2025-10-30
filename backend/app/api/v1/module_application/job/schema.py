@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from typing import Optional
+import re
 from app.core.base_schema import BaseSchema
-from app.core.validator import DateTimeStr
+from app.core.validator import DateTimeStr, datetime_validator
 
 
 class JobCreateSchema(BaseModel):
@@ -24,6 +25,52 @@ class JobCreateSchema(BaseModel):
     end_date: Optional[str] = Field(default=None, description='结束时间')
     description: Optional[str] = Field(default=None, max_length=255, description='描述')
     status: Optional[bool] = Field(default=False, description='任务状态:启动,停止')
+
+    @model_validator(mode='before')
+    @classmethod
+    def _normalize(cls, data):
+        """前置归一化：字符串去空格、布尔/数字兼容转换。"""
+        if isinstance(data, dict):
+            for key in ('name', 'func', 'trigger', 'args', 'kwargs', 'jobstore', 'executor', 'trigger_args', 'start_date', 'end_date', 'description'):
+                val = data.get(key)
+                if isinstance(val, str):
+                    data[key] = val.strip()
+            for bkey in ('coalesce', 'status'):
+                val = data.get(bkey)
+                if isinstance(val, str):
+                    lowered = val.strip().lower()
+                    if lowered in {'true', '1', 'y', 'yes'}:
+                        data[bkey] = True
+                    elif lowered in {'false', '0', 'n', 'no'}:
+                        data[bkey] = False
+                elif isinstance(val, int):
+                    data[bkey] = bool(val)
+            val = data.get('max_instances')
+            if isinstance(val, str) and val.strip().isdigit():
+                data['max_instances'] = int(val.strip())
+        return data
+
+    @field_validator('trigger')
+    @classmethod
+    def _validate_trigger(cls, v: str) -> str:
+        allowed = {'cron', 'interval', 'date'}
+        v = v.strip()
+        if v not in allowed:
+            raise ValueError('触发器必须为 cron/interval/date')
+        return v
+
+    @model_validator(mode='after')
+    def _validate_dates(self):
+        """跨字段校验：结束时间不得早于开始时间。"""
+        if self.start_date and self.end_date:
+            try:
+                start = datetime_validator(self.start_date)
+                end = datetime_validator(self.end_date)
+            except Exception:
+                raise ValueError('时间格式必须为 YYYY-MM-DD HH:MM:SS')
+            if end < start:
+                raise ValueError('结束时间不能早于开始时间')
+        return self
 
 
 class JobUpdateSchema(JobCreateSchema):
