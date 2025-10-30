@@ -21,17 +21,17 @@
         <div w-full flex flex-col items-center>
           <!-- logo -->
           <!-- <el-image :src="logo" style="width: 84px" /> -->
-          <el-image :src="configStore.configData.sys_web_logo.config_value" style="width: 140px" />
+          <el-image :src="configStore.configData?.sys_web_logo?.config_value || '/logo.png'" style="width: 140px" />
 
           <!-- 标题 -->
           <!-- 添加小图标用于显示提示信息 -->
           <div class="flex items-center justify-center mb-4">
-            <el-tooltip :content="configStore.configData.sys_web_description.config_value" placement="bottom">
+            <el-tooltip :content="configStore.configData?.sys_web_description?.config_value || '系统描述'" placement="bottom">
               <el-icon class="cursor-help"><QuestionFilled /></el-icon>
             </el-tooltip>
             <div class="ml-2 text-xl font-bold">
-              <el-badge :value="`v ${configStore.configData.sys_web_version.config_value}`" type="success">
-                {{ configStore.configData.sys_web_title.config_value }}
+              <el-badge :value="`v ${configStore.configData?.sys_web_version?.config_value || '1.0.0'}`" type="success">
+                {{ configStore.configData?.sys_web_title?.config_value || '系统管理平台' }}
               </el-badge>
             </div>
           </div>
@@ -50,11 +50,11 @@
       </div>
       <!-- 登录页底部版权 -->
       <el-text size="small" class="py-2.5! fixed bottom-0 text-center">
-        <a :href="configStore.configData.sys_git_code.config_value" target="_blank">{{ configStore.configData.sys_web_copyright.config_value }} |</a>
-        <a :href="configStore.configData.sys_help_doc.config_value" target="_blank">帮助 |</a>
-        <a :href="configStore.configData.sys_web_privacy.config_value" target="_blank">隐私 |</a>
-        <a :href="configStore.configData.sys_web_clause.config_value" target="_blank">条款</a>
-        {{ configStore.configData.sys_keep_record.config_value }}
+        <a :href="configStore.configData?.sys_git_code?.config_value || '#'" target="_blank">{{ configStore.configData?.sys_web_copyright?.config_value || '版权所有' }} |</a>
+        <a :href="configStore.configData?.sys_help_doc?.config_value || '#'" target="_blank">帮助 |</a>
+        <a :href="configStore.configData?.sys_web_privacy?.config_value || '#'" target="_blank">隐私 |</a>
+        <a :href="configStore.configData?.sys_web_clause?.config_value || '#'" target="_blank">条款</a>
+        {{ configStore.configData?.sys_keep_record?.config_value || '' }}
       </el-text>
     </div>
   </div>
@@ -65,6 +65,7 @@
 // import { defaultSettings } from "@/settings";
 import CommonWrapper from "@/components/CommonWrapper/index.vue";
 import DarkModeSwitch from "@/components/DarkModeSwitch/index.vue";
+import { QuestionFilled } from "@element-plus/icons-vue";
 import { useConfigStore } from "@/store";
 
 const configStore = useConfigStore();

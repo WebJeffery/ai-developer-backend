@@ -16,6 +16,20 @@ import "animate.css";
 import { useConfigStore } from "@/store";
 
 const app = createApp(App);
+
+// 全局错误处理 - 捕获组件渲染错误
+app.config.errorHandler = (err, instance, info) => {
+  console.error('Vue 全局错误捕获:', {
+    error: err,
+    instance,
+    info,
+  });
+  // 在生产环境中，可以发送错误日志到服务器
+  if (import.meta.env.PROD) {
+    // TODO: 发送错误日志到服务器
+  }
+};
+
 // 注册插件
 app.use(setupPlugins);
 // 封装设置 title 和 favicon 的函数

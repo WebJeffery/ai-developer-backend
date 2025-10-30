@@ -7,10 +7,14 @@
       <div class="flex flex-wrap">
         <!-- 左侧问候语区域 -->
         <div class="flex-1 flex items-start">
-          <img class="w80px h80px rounded-full" :src="userStore.basicInfo.avatar + '?imageView2/1/w/80/h/80'" />
+          <img 
+            class="w80px h80px rounded-full" 
+            :src="(userStore.basicInfo?.avatar || '') + '?imageView2/1/w/80/h/80'" 
+            :alt="userStore.basicInfo?.name || '用户头像'"
+          />
           <div class="ml-5">
             <div class="text-20px font-bold mb-5px">
-              {{ timefix }}{{ userStore.basicInfo.name }}，{{ welcome }}
+              {{ timefix }}{{ userStore.basicInfo?.name || '用户' }}，{{ welcome }}
             </div>
             <p class="text-sm text-gray">今日天气晴朗，气温在15℃至25℃之间，东南风。</p>
           </div>
@@ -300,8 +304,18 @@ import { dayjs } from "element-plus";
 import { useUserStore } from "@/store/modules/user.store";
 import { formatGrowthRate } from "@/utils";
 import { useTransition } from "@vueuse/core";
-import { Connection, Failed } from "@element-plus/icons-vue";
+import { 
+  Connection, 
+  Failed, 
+  Document, 
+  Folder, 
+  Top, 
+  Bottom, 
+  TopRight 
+} from "@element-plus/icons-vue";
 import { greetings } from '@/utils/common';
+import GithubCorner from '@/components/GithubCorner/index.vue';
+import ECharts from '@/components/ECharts/index.vue';
 
 const timefix = greetings();
 const welcome = '祝你开心每一天！';
@@ -394,7 +408,13 @@ const transitionTotalPvCount = useTransition(
 // 访问趋势日期范围（单位：天）
 const visitTrendDateRange = ref(7);
 // 访问趋势图表配置
-const visitTrendChartOptions = ref();
+const visitTrendChartOptions = ref<any>({
+  // 初始空配置，避免渲染时出错
+  tooltip: { trigger: "axis" },
+  xAxis: { type: "category", data: [] },
+  yAxis: { type: "value" },
+  series: [],
+});
 
 /**
  * 更新访问趋势图表的配置项
